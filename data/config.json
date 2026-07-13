@@ -1,0 +1,16 @@
+{
+  "_comment": "운영 연동 설정. AI/운영자는 이 파일만 수정하면 웹이 n8n·카카오톡과 연결됩니다.",
+  "n8n": {
+    "inquiryWebhookUrl": "",
+    "_inquiryWebhookUrl_help": "n8n 상담 문의 워크플로의 Webhook Production URL을 넣으세요. 예: https://your-n8n.example.com/webhook/manmul-inquiry",
+    "enabled": false
+  },
+  "kakao": {
+    "channelPublicId": "_manmul",
+    "channelAddUrl": "http://pf.kakao.com/_manmul",
+    "chatUrl": "http://pf.kakao.com/_manmul/chat",
+    "_help": "카카오톡 채널 관리자센터에서 발급받은 채널 홈 URL(채널 추가)과 1:1 채팅 URL을 넣으세요. 챗봇 자동응대는 카카오 i 오픈빌더 스킬서버(n8n 웹훅)로 처리됩니다."
+  },
+  "demoMode": true,
+  "_demoMode_help": "true이면 n8n 미설정 시에도 폼이 동작하며 문의를 브라우저(localStorage)에 저장해 관리자 화면에서 확인할 수 있습니다. 실서비스에서는 n8n 연결 후 false로 두는 것을 권장합니다."
+}

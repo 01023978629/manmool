@@ -138,6 +138,7 @@ function renderReviews(reviews) {
 function renderContact(company) {
   const items = [
     { ic: '📞', label: '전화 상담', value: company.phone },
+    { ic: '💬', label: '카카오톡 채널', value: '<a href="#" id="contactKakao">채널 추가 / 상담하기</a>' },
     { ic: '✉️', label: '이메일', value: company.email },
     { ic: '🕐', label: '운영 시간', value: company.hours },
     { ic: '📍', label: '오시는 길', value: company.address }
@@ -173,23 +174,37 @@ function setupEstimator(cfg) {
   calc();
 }
 
-/* ---------- 상담 폼 (데모: 로컬 검증) ---------- */
-function setupContactForm() {
-  const form = document.getElementById('contactForm');
-  const status = document.getElementById('contactStatus');
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = document.getElementById('cName').value.trim();
-    const phone = document.getElementById('cPhone').value.trim();
-    if (!name || !phone) {
-      status.textContent = '이름과 연락처를 입력해 주세요.';
-      status.className = 'form-status err';
-      return;
-    }
-    status.textContent = `${name}님, 상담 신청이 접수되었습니다. 루프 에이전트가 곧 연락드립니다. 🤖`;
-    status.className = 'form-status ok';
-    form.reset();
-  });
+/* ---------- 연동 설정 로드 + 카카오톡 버튼 연결 ---------- */
+async function loadConfig() {
+  try {
+    const res = await fetch('data/config.json', { cache: 'no-cache' });
+    if (res.ok) return await res.json();
+  } catch (e) { /* noop */ }
+  return null;
+}
+
+function setupKakao(config) {
+  const kakao = (config && config.kakao) || {};
+  const chatUrl = kakao.chatUrl || kakao.channelAddUrl || '#';
+  const addUrl = kakao.channelAddUrl || kakao.chatUrl || '#';
+  const open = (url) => window.open(url, '_blank', 'noopener');
+
+  const bind = (id, url) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!url || url === '#') {
+        alert('카카오톡 채널이 아직 연결되지 않았습니다.\n운영자는 data/config.json의 kakao 설정을 입력하세요.');
+        return;
+      }
+      open(url);
+    });
+  };
+  bind('heroKakao', chatUrl);
+  bind('inquiryKakao', chatUrl);
+  bind('fabKakao', chatUrl);
+  bind('contactKakao', addUrl);
 }
 
 /* ---------- 히어로 챗봇 애니메이션 ---------- */
@@ -262,7 +277,11 @@ async function init() {
   setupUI();
   playHeroChat();
 
-  const data = await loadSite();
+  const [data, config] = await Promise.all([loadSite(), loadConfig()]);
+  window.MANMUL = { config: config || {}, data: data || {} };
+
+  setupKakao(config);
+
   if (!data) { renderFallbackNotice(); observeReveal(); return; }
 
   bindText(data);
@@ -273,8 +292,15 @@ async function init() {
   renderReviews(data.reviews);
   renderContact(data.company);
   setupEstimator(data.estimator);
-  setupContactForm();
   observeReveal();
+
+  // 견적 시뮬레이터 결과를 상담 폼으로 넘기기 위해 노출
+  window.MANMUL.getEstimate = () => {
+    const amount = document.getElementById('estimateAmount');
+    return amount ? amount.textContent : '';
+  };
+  // inquiry.js 초기화 (body 끝에서 먼저 로드됨)
+  if (typeof window.initInquiry === 'function') window.initInquiry(window.MANMUL);
 }
 
 document.addEventListener('DOMContentLoaded', init);

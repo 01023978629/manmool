@@ -1,0 +1,62 @@
+{
+  "name": "만물인테리어 · 카카오톡 챗봇 스킬서버",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kakao-skill",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b2000000-0000-4000-8000-000000000001",
+      "name": "Webhook (카카오 스킬 요청)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-560, 300],
+      "webhookId": "kakao-skill",
+      "notesInFlow": true,
+      "notes": "카카오 i 오픈빌더의 스킬(Skill) URL로 이 Production URL을 등록합니다. 오픈빌더가 여기로 사용자 발화를 POST합니다."
+    },
+    {
+      "parameters": {
+        "jsCode": "// 카카오 i 오픈빌더 스킬 요청 파싱\nconst body = $json.body || {};\nconst utter = (body.userRequest?.utterance || '').trim();\nconst userId = body.userRequest?.user?.id || '';\n// 간단 인텐트 분기 (실서비스에서는 오픈빌더 블록/엔티티 또는 AI로 분류)\nlet intent = 'fallback';\nif (/견적|비용|가격|얼마/.test(utter)) intent = 'estimate';\nelse if (/상담|문의|예약|실측/.test(utter)) intent = 'consult';\nelse if (/사례|포트폴리오|시공/.test(utter)) intent = 'portfolio';\nelse if (/A\\/?S|하자|보수/i.test(utter)) intent = 'as';\nreturn [{ json: { utter, userId, intent } }];"
+      },
+      "id": "b2000000-0000-4000-8000-000000000002",
+      "name": "발화 분석",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-340, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 인텐트별 카카오 응답 템플릿(2.0) 생성\nconst { intent, utter } = $json;\nconst HOME = 'https://your-site.example.com';\nconst reply = {\n  estimate: '평수·공사범위를 알려주시면 참고 예상 범위를 안내드려요. 웹에서 30초 견적도 가능합니다 👇\\n' + HOME + '/#estimator\\n(최종 금액은 현장 실측 후 확정됩니다.)',\n  consult: '상담 신청 감사합니다! 아래에서 단계별 정보를 남겨주시면 대표 검토 후 카카오톡으로 회신드립니다 👇\\n' + HOME + '/#inquiry',\n  portfolio: '지역·평수·예산으로 유사 시공사례를 골라보실 수 있어요 👇\\n' + HOME + '/#portfolio',\n  as: 'A/S 접수는 사진과 함께 남겨주시면 빠르게 배정해드립니다. 상담 채널로 사진을 보내주세요.',\n  fallback: '안녕하세요! 만물인테리어 챗봇입니다 🤖\\n무엇을 도와드릴까요? 아래에서 선택해주세요.'\n};\nconst text = reply[intent] || reply.fallback;\nconst kakao = {\n  version: '2.0',\n  template: {\n    outputs: [ { simpleText: { text } } ],\n    quickReplies: [\n      { label: '30초 견적', action: 'message', messageText: '견적 알려줘' },\n      { label: '상담 신청', action: 'message', messageText: '상담하고 싶어요' },\n      { label: '시공사례', action: 'message', messageText: '시공사례 보여줘' },\n      { label: 'A/S 문의', action: 'message', messageText: 'A/S 접수' }\n    ]\n  }\n};\nreturn [{ json: kakao }];"
+      },
+      "id": "b2000000-0000-4000-8000-000000000003",
+      "name": "카카오 응답 생성",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-120, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "b2000000-0000-4000-8000-000000000004",
+      "name": "카카오에 응답",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [100, 300]
+    }
+  ],
+  "connections": {
+    "Webhook (카카오 스킬 요청)": { "main": [[{ "node": "발화 분석", "type": "main", "index": 0 }]] },
+    "발화 분석": { "main": [[{ "node": "카카오 응답 생성", "type": "main", "index": 0 }]] },
+    "카카오 응답 생성": { "main": [[{ "node": "카카오에 응답", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "pinData": {},
+  "meta": { "templatecredsSetupCompleted": false }
+}

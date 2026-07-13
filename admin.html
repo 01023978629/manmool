@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>관리자 대시보드 · 만물인테리어</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23201b16'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='%23f0dcc4' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body class="admin-body">
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <div class="admin-brand">
+        <span class="logo-mark">萬</span>
+        <div>
+          <strong>만물인테리어 관리자</strong>
+          <em>리드 · 승인 대시보드</em>
+        </div>
+      </div>
+      <div class="admin-header-actions">
+        <span class="pill" id="pipelineStatus">파이프라인 확인 중…</span>
+        <a href="index.html" class="btn btn-ghost btn-sm">사이트로</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <!-- KPI -->
+    <section class="kpi-row" id="kpiRow"></section>
+
+    <!-- 파이프라인 안내 -->
+    <section class="admin-panel pipeline-panel">
+      <h2>운영 파이프라인</h2>
+      <div class="pipe">
+        <div class="pipe-node"><b>웹 폼</b><span>단계형 문의</span></div>
+        <i>→</i>
+        <div class="pipe-node"><b>n8n</b><span>저장·AI요약·분류</span></div>
+        <i>→</i>
+        <div class="pipe-node"><b>카카오 알림</b><span>대표 통보</span></div>
+        <i>→</i>
+        <div class="pipe-node accent"><b>대표 승인</b><span>여기서 결정</span></div>
+        <i>→</i>
+        <div class="pipe-node"><b>고객 발송</b><span>승인분만</span></div>
+      </div>
+      <p class="pipe-note" id="pipeNote"></p>
+    </section>
+
+    <!-- 문의 목록 -->
+    <section class="admin-panel">
+      <div class="panel-head">
+        <h2>상담 문의 <span class="count" id="inqCount">0</span></h2>
+        <div class="filter-tabs" id="statusFilter">
+          <button class="ftab active" data-f="전체">전체</button>
+          <button class="ftab" data-f="신규">신규</button>
+          <button class="ftab" data-f="승인">승인</button>
+          <button class="ftab" data-f="보류">보류</button>
+          <button class="ftab" data-f="거절">거절</button>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="seedBtn" title="데모 샘플 문의 추가">샘플 추가</button>
+      </div>
+      <div id="inquiryList" class="inquiry-list"></div>
+      <p class="empty-note" id="emptyNote" hidden>접수된 문의가 없습니다. 사이트에서 상담 신청을 하거나 “샘플 추가”를 눌러보세요.</p>
+    </section>
+  </main>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
