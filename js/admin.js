@@ -197,5 +197,8 @@
     });
   }
 
+  // 외부(단일 파일 데모의 화면 전환 등)에서 목록을 새로고침할 수 있도록 노출
+  window.manmulAdminRefresh = render;
+
   document.addEventListener('DOMContentLoaded', init);
 })();
