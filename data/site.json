@@ -24,6 +24,16 @@
     { "icon": "leaf", "title": "친환경 시공", "desc": "저VOC 자재와 에너지 효율을 고려한 지속 가능한 설계를 제안합니다.", "tags": ["친환경", "단열", "에너지"] },
     { "icon": "cpu", "title": "스마트홈", "desc": "조명, 냉난방, 보안까지. 공간 자체를 자동화하는 스마트홈을 구축합니다.", "tags": ["IoT", "자동화", "보안"] }
   ],
+  "trust": {
+    "headline": "면허·보증·A/S로 증명합니다",
+    "sub": "감성만 강조하지 않습니다. 고액 계약을 안심하고 맡길 수 있도록 자격과 책임을 데이터로 남깁니다.",
+    "items": [
+      { "icon": "badge", "title": "실내건축공사업 면허", "desc": "정식 등록 사업자 · 표준 계약서 발급으로 계약을 투명하게." },
+      { "icon": "shield", "title": "공정별 하자 보증", "desc": "품질보증서 발급 · 표준 하자보수 기간 내 무상 처리." },
+      { "icon": "wrench", "title": "A/S 이력 관리", "desc": "준공 후 접수·방문·처리 전후 사진을 이력으로 보관합니다." },
+      { "icon": "doc", "title": "투명 견적·승인", "desc": "기준일·제외사항 명시. 추가금·변경은 대표·고객 승인 후 진행." }
+    ]
+  },
   "automation": {
     "headline": "체계적이고 효율적인 운영 프로세스",
     "sub": "n8n 워크플로와 카카오톡 챗봇이 상담·견적·시공·사후관리를 자동으로 순환시킵니다. 반복 업무는 자동화하고, 금액·계약·발송은 대표 승인 후에만 진행합니다.",
@@ -62,7 +72,7 @@
   },
   "portfolio": [
     {
-      "id": "p1", "title": "미니멀 화이트 아파트", "category": "주거",
+      "id": "p1", "title": "미니멀 화이트 아파트", "category": "주거", "spaceType": "아파트", "year": 2025,
       "complex": "래미안 도안", "region": "대전 유성구", "area": 34,
       "period": "6주", "budget": "5~8천만원", "scope": "전체공사", "style": "미니멀",
       "problem": "낡은 30평대 구축, 어두운 조명과 답답한 구조로 공간이 좁아 보였습니다.",
@@ -71,7 +81,7 @@
       "beforeColor": "#8f877c", "afterColor": "#e8e2d9", "consent": true
     },
     {
-      "id": "p2", "title": "우드톤 감성 카페", "category": "상업",
+      "id": "p2", "title": "우드톤 감성 카페", "category": "상업", "spaceType": "카페", "year": 2025,
       "complex": "나성 상가", "region": "세종 나성동", "area": 22,
       "period": "4주", "budget": "3~5천만원", "scope": "전체공사", "style": "내추럴",
       "problem": "임대 상가의 노후 인테리어로 브랜드 감성과 동선 효율이 부족했습니다.",
@@ -80,7 +90,7 @@
       "beforeColor": "#9a9086", "afterColor": "#d8c3a5", "consent": true
     },
     {
-      "id": "p3", "title": "모던 오피스 리모델링", "category": "상업",
+      "id": "p3", "title": "모던 오피스 리모델링", "category": "상업", "spaceType": "오피스", "year": 2024,
       "complex": "둔산 오피스", "region": "대전 서구", "area": 60,
       "period": "5주", "budget": "5~8천만원", "scope": "부분공사", "style": "모던",
       "problem": "칸막이가 많아 소통이 어렵고 회의 공간이 부족한 사무실이었습니다.",
@@ -89,7 +99,7 @@
       "beforeColor": "#8a8f94", "afterColor": "#c9d6df", "consent": true
     },
     {
-      "id": "p4", "title": "따뜻한 우드 주택", "category": "주거",
+      "id": "p4", "title": "따뜻한 우드 주택", "category": "주거", "spaceType": "단독주택", "year": 2024,
       "complex": "도안 단독주택", "region": "대전 유성구", "area": 45,
       "period": "8주", "budget": "8천만원 이상", "scope": "전체공사", "style": "내추럴",
       "problem": "단열이 약하고 마감이 노후된 단독주택으로 겨울철 난방 효율이 낮았습니다.",
@@ -98,7 +108,7 @@
       "beforeColor": "#918a7e", "afterColor": "#e0cfc0", "consent": true
     },
     {
-      "id": "p5", "title": "인더스트리얼 매장", "category": "상업",
+      "id": "p5", "title": "인더스트리얼 매장", "category": "상업", "spaceType": "매장", "year": 2025,
       "complex": "중앙로 리테일", "region": "대전 중구", "area": 18,
       "period": "3주", "budget": "3~5천만원", "scope": "전체공사", "style": "인더스트리얼",
       "problem": "작은 매장이라 제품 진열과 브랜드 아이덴티티 표현이 제한적이었습니다.",
@@ -107,7 +117,7 @@
       "beforeColor": "#8c8c8c", "afterColor": "#cfcfcf", "consent": true
     },
     {
-      "id": "p6", "title": "내추럴 신혼집", "category": "주거",
+      "id": "p6", "title": "내추럴 신혼집", "category": "주거", "spaceType": "아파트", "year": 2026,
       "complex": "새롬 아파트", "region": "세종 새롬동", "area": 24,
       "period": "5주", "budget": "3~5천만원", "scope": "전체공사", "style": "내추럴",
       "problem": "신혼부부의 첫 집, 수납이 부족하고 밋밋한 기본 옵션 상태였습니다.",
@@ -116,7 +126,7 @@
       "beforeColor": "#94897c", "afterColor": "#e6ddd1", "consent": true
     },
     {
-      "id": "p7", "title": "클래식 갤러리 하우스", "category": "주거",
+      "id": "p7", "title": "클래식 갤러리 하우스", "category": "주거", "spaceType": "아파트", "year": 2024,
       "complex": "도룡 펜트하우스", "region": "대전 유성구", "area": 52,
       "period": "9주", "budget": "8천만원 이상", "scope": "전체공사", "style": "클래식",
       "problem": "넓은 평수에 비해 공간의 격조와 아트월이 부족한 상태였습니다.",
@@ -125,7 +135,7 @@
       "beforeColor": "#8b8478", "afterColor": "#ded3c4", "consent": true
     },
     {
-      "id": "p8", "title": "콤팩트 원룸 리모델링", "category": "주거",
+      "id": "p8", "title": "콤팩트 원룸 리모델링", "category": "주거", "spaceType": "오피스텔", "year": 2023,
       "complex": "탄방 오피스텔", "region": "대전 서구", "area": 12,
       "period": "2주", "budget": "~3천만원", "scope": "부분공사", "style": "미니멀",
       "problem": "좁은 원룸으로 수납과 공간 분리가 어려워 생활이 불편했습니다.",
@@ -142,6 +152,19 @@
   "estimator": {
     "baseByType": { "주거": 900000, "상업": 1100000, "리모델링": 1300000 },
     "gradeMultiplier": { "실속형": 1.0, "표준형": 1.35, "프리미엄": 1.8 },
+    "periodByArea": [
+      { "max": 15, "period": "2~3주" },
+      { "max": 25, "period": "3~5주" },
+      { "max": 40, "period": "5~7주" },
+      { "max": 999, "period": "7~10주" }
+    ],
+    "worksByScope": {
+      "전체공사": ["철거", "샷시·창호", "바닥·마루", "도배·도장", "주방", "욕실", "조명·전기"],
+      "부분공사": ["도배·도장", "바닥·마루", "부분 목공"]
+    },
+    "gradeByBudget": {
+      "~3천만원": "실속형", "3~5천만원": "표준형", "5~8천만원": "표준형", "8천만원 이상": "프리미엄", "미정": "표준형"
+    },
     "note": "표시 금액은 평당 단가 기준의 예상치이며, 실제 견적은 현장 실측 후 확정됩니다."
   }
 }

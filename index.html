@@ -12,6 +12,19 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
+  <!-- ===== Utility bar (업무 시스템) ===== -->
+  <div class="utility-bar">
+    <div class="container utility-inner">
+      <span class="utility-label">업무 시스템</span>
+      <nav class="utility-nav" aria-label="업무 시스템 메뉴">
+        <a href="mypage.html">고객 마이페이지</a>
+        <a href="field.html">현장관리</a>
+        <a href="as.html">A/S 센터</a>
+        <a href="admin.html">관리자</a>
+      </nav>
+    </div>
+  </div>
+
   <!-- ===== Header ===== -->
   <header class="site-header" id="siteHeader">
     <div class="container header-inner">
@@ -23,13 +36,14 @@
         </span>
       </a>
       <nav class="main-nav" id="mainNav" aria-label="주요 메뉴">
-        <a href="#services">서비스</a>
-        <a href="#process">운영 방식</a>
-        <a href="#portfolio">포트폴리오</a>
-        <a href="#estimator">AI 견적</a>
+        <a href="#portfolio">시공 사례</a>
+        <a href="#estimator">AI 예상견적</a>
+        <a href="#services">공사 종류</a>
+        <a href="#trust">면허·보증·A/S</a>
+        <a href="#reviews">고객 후기</a>
         <a href="#inquiry">상담 신청</a>
       </nav>
-      <a href="#estimator" class="btn btn-primary btn-sm header-cta">30초 견적</a>
+      <a href="#estimator" class="btn btn-primary btn-sm header-cta">AI 예상견적</a>
       <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -127,44 +141,39 @@
       </div>
     </div>
 
-    <!-- ===== AI Estimator ===== -->
+    <!-- ===== AI 예상견적 (대화식) ===== -->
     <section class="section section-dark" id="estimator">
       <div class="container estimator-wrap">
         <div class="estimator-intro">
           <span class="eyebrow light">AI ESTIMATOR</span>
-          <h2>30초 즉시 견적</h2>
-          <p>공간 정보를 입력하면 루프 에이전트가 예상 견적을 바로 계산합니다.</p>
+          <h2>대화로 받는 AI 예상견적</h2>
+          <p>긴 설문 대신 몇 가지만 대화로 답하면, AI가 예상금액·필요공사·자재등급·공사기간과 비슷한 사례까지 정리해 드립니다.</p>
           <p class="estimator-note" id="estimatorNote"></p>
         </div>
-        <form class="estimator-form" id="estimatorForm" novalidate>
-          <div class="field">
-            <label for="estType">공간 유형</label>
-            <select id="estType">
-              <option value="주거">주거 인테리어</option>
-              <option value="상업">상업 공간</option>
-              <option value="리모델링">리모델링</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="estArea">면적 (평)</label>
-            <input type="range" id="estArea" min="5" max="120" value="34" />
-            <output id="estAreaOut">34평</output>
-          </div>
-          <div class="field">
-            <label>마감 등급</label>
-            <div class="grade-group" id="gradeGroup">
-              <label class="grade"><input type="radio" name="grade" value="실속형" /><span>실속형</span></label>
-              <label class="grade"><input type="radio" name="grade" value="표준형" checked /><span>표준형</span></label>
-              <label class="grade"><input type="radio" name="grade" value="프리미엄" /><span>프리미엄</span></label>
+
+        <div class="chat-estimator" id="chatEstimator">
+          <div class="ce-window">
+            <div class="ce-head">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              <em>AI 견적 상담</em>
+              <button type="button" class="ce-restart" id="ceRestart" hidden>처음부터</button>
             </div>
+            <div class="ce-body" id="ceBody" aria-live="polite"></div>
+            <div class="ce-input" id="ceInput"></div>
           </div>
-          <div class="estimate-result" id="estimateResult" aria-live="polite">
-            <span class="result-label">예상 견적</span>
-            <strong class="result-amount" id="estimateAmount">₩ 0</strong>
-            <span class="result-range" id="estimateRange"></span>
-          </div>
-          <a href="#inquiry" class="btn btn-primary btn-lg btn-block" id="estimateToInquiry">이 견적으로 상담 신청</a>
-        </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 면허·보증·A/S (신뢰) ===== -->
+    <section class="section" id="trust">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">TRUST</span>
+          <h2 id="trustHeadline">면허·보증·A/S로 증명합니다</h2>
+          <p id="trustSub"></p>
+        </div>
+        <div class="trust-grid" id="trustGrid"></div>
       </div>
     </section>
 
@@ -329,7 +338,7 @@
         </div>
       </div>
       <p class="footer-note">본 웹사이트는 AI 루프 에이전트가 n8n·카카오톡과 연동하여 콘텐츠와 상담을 운영하는 데모 프로젝트입니다.</p>
-      <p class="footer-links"><a href="admin.html">관리자 대시보드</a> · <a href="integrations/INTEGRATION.md">연동 가이드</a></p>
+      <p class="footer-links"><a href="mypage.html">고객 마이페이지</a> · <a href="field.html">현장관리</a> · <a href="as.html">A/S 센터</a> · <a href="admin.html">관리자</a> · <a href="integrations/INTEGRATION.md">연동 가이드</a></p>
       <p class="footer-copy">© <span id="year"></span> <span data-bind="company.name">만물인테리어</span>. All rights reserved.</p>
     </div>
   </footer>
@@ -345,6 +354,7 @@
   </div>
 
   <script src="js/main.js"></script>
+  <script src="js/estimate.js"></script>
   <script src="js/inquiry.js"></script>
 </body>
 </html>

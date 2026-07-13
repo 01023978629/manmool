@@ -11,7 +11,11 @@ const ICONS = {
   sofa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3"/><path d="M2 13a2 2 0 0 1 2 2v3h16v-3a2 2 0 0 1 2-2 2 2 0 0 0-2-2 2 2 0 0 0-2 2v1H6v-1a2 2 0 0 0-2-2 2 2 0 0 0-2 2Z"/><path d="M6 18v2M18 18v2"/></svg>',
   leaf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-5 4-9 16-9 0 10-5 16-9 16Z"/><path d="M4 20c2-4 5-7 9-8"/></svg>',
   cpu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v3M14 3v3M10 18v3M14 18v3M3 10h3M3 14h3M18 10h3M18 14h3"/></svg>',
-  room: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg>'
+  room: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg>',
+  badge: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/></svg>',
+  wrench: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.2l-6 6 2.2 2.2 6-6a4 4 0 0 0 5.2-5.4l-2.4 2.4-2-2 2.4-2.4Z"/></svg>',
+  doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/><path d="M9 13h6M9 17h6"/></svg>'
 };
 
 const won = (n) => '₩ ' + Math.round(n).toLocaleString('ko-KR');
@@ -121,24 +125,38 @@ function renderPortfolio(items, filterConfig) {
   const emptyEl = document.getElementById('portfolioEmpty');
   const cfg = filterConfig || {};
 
-  // 선택 상태 (그룹별 단일 선택, null = 전체)
-  const state = { area: null, budget: null, style: null, scope: null };
+  // 데이터에서 옵션 파생 (지역·공간종류·연도)
+  const uniq = (key) => [...new Set(items.map((x) => x[key]).filter((v) => v != null))];
+  const regions = uniq('region');
+  const spaceTypes = uniq('spaceType');
+  const years = uniq('year').sort((a, b) => b - a);
+
+  // 선택 상태 (그룹별 단일 선택, null = 전체) + 아파트명 텍스트 검색
+  const state = { region: null, area: null, budget: null, spaceType: null, style: null, scope: null, year: null, complex: '' };
 
   const groups = [
+    { key: 'region', label: '지역', options: regions },
     { key: 'area', label: '평수', options: (cfg.area || []).map((a) => a.label) },
-    { key: 'budget', label: '예산', options: cfg.budget || [] },
+    { key: 'budget', label: '공사비', options: cfg.budget || [] },
+    { key: 'spaceType', label: '공간종류', options: spaceTypes },
     { key: 'style', label: '스타일', options: cfg.style || [] },
-    { key: 'scope', label: '공사범위', options: cfg.scope || [] }
+    { key: 'scope', label: '공사범위', options: cfg.scope || [] },
+    { key: 'year', label: '공사연도', options: years.map((y) => String(y)) }
   ];
 
-  filtersEl.innerHTML = groups.map((g) => `
+  filtersEl.innerHTML = `
+    <div class="folio-search">
+      <input type="search" id="folioComplex" placeholder="아파트명·단지명 검색 (예: 도안)" aria-label="아파트명 검색" />
+      <span class="folio-ai-note">🤖 사진을 업로드하면 AI가 지역·평수·스타일을 자동 분류합니다</span>
+    </div>
+    ${groups.map((g) => `
     <div class="folio-filter-group" data-group="${g.key}">
       <span class="fg-label">${g.label}</span>
       <div class="fg-chips">
         <button class="fg-chip active" data-val="">전체</button>
         ${g.options.map((o) => `<button class="fg-chip" data-val="${o}">${o}</button>`).join('')}
       </div>
-    </div>`).join('');
+    </div>`).join('')}`;
 
   const matchArea = (item) => {
     if (!state.area) return true;
@@ -148,11 +166,16 @@ function renderPortfolio(items, filterConfig) {
   };
 
   const draw = () => {
+    const q = state.complex.trim();
     const list = items.filter((it) =>
+      (!state.region || it.region === state.region) &&
       matchArea(it) &&
       (!state.budget || it.budget === state.budget) &&
+      (!state.spaceType || it.spaceType === state.spaceType) &&
       (!state.style || it.style === state.style) &&
-      (!state.scope || it.scope === state.scope));
+      (!state.scope || it.scope === state.scope) &&
+      (!state.year || String(it.year) === state.year) &&
+      (!q || (it.complex && it.complex.includes(q)) || (it.title && it.title.includes(q))));
 
     countEl.textContent = `총 ${list.length}개 사례`;
     emptyEl.hidden = list.length !== 0;
@@ -182,6 +205,9 @@ function renderPortfolio(items, filterConfig) {
     state[group] = chip.dataset.val || null;
     draw();
   });
+
+  const complexInput = document.getElementById('folioComplex');
+  if (complexInput) complexInput.addEventListener('input', (e) => { state.complex = e.target.value; draw(); });
 
   // 카드 클릭 → 상세 모달
   const openById = (id) => openFolioModal(items.find((x) => x.id === id), items);
@@ -282,6 +308,24 @@ function setupFolioModal() {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) close(); });
 }
 
+/* ---------- 면허·보증·A/S (신뢰) ---------- */
+function renderTrust(trust) {
+  if (!trust) return;
+  const head = document.getElementById('trustHeadline');
+  const sub = document.getElementById('trustSub');
+  if (head && trust.headline) head.textContent = trust.headline;
+  if (sub && trust.sub) sub.textContent = trust.sub;
+  const grid = document.getElementById('trustGrid');
+  if (grid && trust.items) {
+    grid.innerHTML = trust.items.map((t) => `
+      <article class="trust-card reveal">
+        <div class="trust-icon">${ICONS[t.icon] || ICONS.badge}</div>
+        <h3>${t.title}</h3>
+        <p>${t.desc}</p>
+      </article>`).join('');
+  }
+}
+
 /* ---------- 리뷰 ---------- */
 function renderReviews(reviews) {
   document.getElementById('reviewsGrid').innerHTML = reviews.map((r) => `
@@ -305,32 +349,7 @@ function renderContact(company) {
     <li><span class="ic">${i.ic}</span><div><b>${i.label}</b>${i.value}</div></li>`).join('');
 }
 
-/* ---------- AI 견적 시뮬레이터 ---------- */
-function setupEstimator(cfg) {
-  const typeEl = document.getElementById('estType');
-  const areaEl = document.getElementById('estArea');
-  const areaOut = document.getElementById('estAreaOut');
-  const amountEl = document.getElementById('estimateAmount');
-  const rangeEl = document.getElementById('estimateRange');
-  const gradeGroup = document.getElementById('gradeGroup');
-  document.getElementById('estimatorNote').textContent = cfg.note;
-
-  const calc = () => {
-    const type = typeEl.value;
-    const area = +areaEl.value;
-    const grade = gradeGroup.querySelector('input:checked').value;
-    const base = cfg.baseByType[type] || 900000;
-    const mult = cfg.gradeMultiplier[grade] || 1;
-    const total = base * mult * area;
-    areaOut.textContent = area + '평';
-    amountEl.textContent = won(total);
-    rangeEl.textContent = `예상 범위 ${won(total * 0.9)} ~ ${won(total * 1.15)}`;
-  };
-
-  [typeEl, areaEl].forEach((el) => el.addEventListener('input', calc));
-  gradeGroup.addEventListener('change', calc);
-  calc();
-}
+/* AI 예상견적은 js/estimate.js(대화식)에서 처리합니다. */
 
 /* ---------- 연동 설정 로드 + 카카오톡 버튼 연결 ---------- */
 async function loadConfig() {
@@ -449,16 +468,17 @@ async function init() {
   renderProcess(data.process);
   renderPortfolio(data.portfolio, data.portfolioFilters);
   setupFolioModal();
+  renderTrust(data.trust);
   renderReviews(data.reviews);
   renderContact(data.company);
-  setupEstimator(data.estimator);
   observeReveal();
 
-  // 견적 시뮬레이터 결과를 상담 폼으로 넘기기 위해 노출
-  window.MANMUL.getEstimate = () => {
-    const amount = document.getElementById('estimateAmount');
-    return amount ? amount.textContent : '';
-  };
+  // 대화식 예상견적 결과를 상담 폼으로 넘기기 위해 노출
+  window.MANMUL.lastEstimate = '';
+  window.MANMUL.getEstimate = () => window.MANMUL.lastEstimate || '';
+
+  // estimate.js(대화식 견적) 초기화
+  if (typeof window.initEstimator === 'function') window.initEstimator(window.MANMUL);
   // inquiry.js 초기화 (body 끝에서 먼저 로드됨)
   if (typeof window.initInquiry === 'function') window.initInquiry(window.MANMUL);
 }
