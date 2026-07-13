@@ -88,40 +88,198 @@ function renderProcess(steps) {
     </li>`).join('');
 }
 
-/* ---------- 포트폴리오 (필터 포함) ---------- */
-function renderPortfolio(items) {
+/* ---------- 자동화 파이프라인 (n8n · 카카오톡) ---------- */
+function renderAutomation(auto) {
+  if (!auto) return;
+  const head = document.getElementById('automationHeadline');
+  const sub = document.getElementById('automationSub');
+  if (head && auto.headline) head.textContent = auto.headline;
+  if (sub && auto.sub) sub.textContent = auto.sub;
+
+  const pipe = document.getElementById('automationPipeline');
+  if (pipe && auto.pipeline) {
+    pipe.innerHTML = auto.pipeline.map((n, i) => `
+      <div class="pipe-step reveal">
+        <span class="pipe-tag pipe-tag-${n.tag === '카카오' ? 'kakao' : n.tag === 'n8n' ? 'n8n' : n.tag === '승인' ? 'approve' : 'default'}">${n.tag}</span>
+        <b>${n.node}</b>
+        <span class="pipe-desc">${n.desc}</span>
+      </div>${i < auto.pipeline.length - 1 ? '<i class="pipe-arrow" aria-hidden="true">→</i>' : ''}`).join('');
+  }
+  const stats = document.getElementById('automationStats');
+  if (stats && auto.stats) {
+    stats.innerHTML = auto.stats.map((s) => `
+      <li><b>${s.value}<em>${s.suffix}</em></b><span>${s.label}</span></li>`).join('');
+  }
+}
+
+/* ---------- 포트폴리오 (아파트멘터리형 사례 탐색) ---------- */
+const AREA_FILTERS_DEFAULT = [];
+function renderPortfolio(items, filterConfig) {
   const grid = document.getElementById('portfolioGrid');
-  const filters = document.getElementById('portfolioFilters');
-  const cats = ['전체', ...new Set(items.map((i) => i.category))];
+  const filtersEl = document.getElementById('portfolioFilters');
+  const countEl = document.getElementById('portfolioCount');
+  const emptyEl = document.getElementById('portfolioEmpty');
+  const cfg = filterConfig || {};
 
-  filters.innerHTML = cats.map((c, i) =>
-    `<button class="filter-btn ${i === 0 ? 'active' : ''}" data-cat="${c}">${c}</button>`).join('');
+  // 선택 상태 (그룹별 단일 선택, null = 전체)
+  const state = { area: null, budget: null, style: null, scope: null };
 
-  const draw = (cat) => {
-    const list = cat === '전체' ? items : items.filter((i) => i.category === cat);
+  const groups = [
+    { key: 'area', label: '평수', options: (cfg.area || []).map((a) => a.label) },
+    { key: 'budget', label: '예산', options: cfg.budget || [] },
+    { key: 'style', label: '스타일', options: cfg.style || [] },
+    { key: 'scope', label: '공사범위', options: cfg.scope || [] }
+  ];
+
+  filtersEl.innerHTML = groups.map((g) => `
+    <div class="folio-filter-group" data-group="${g.key}">
+      <span class="fg-label">${g.label}</span>
+      <div class="fg-chips">
+        <button class="fg-chip active" data-val="">전체</button>
+        ${g.options.map((o) => `<button class="fg-chip" data-val="${o}">${o}</button>`).join('')}
+      </div>
+    </div>`).join('');
+
+  const matchArea = (item) => {
+    if (!state.area) return true;
+    const range = (cfg.area || []).find((a) => a.label === state.area);
+    if (!range) return true;
+    return item.area >= range.min && item.area < range.max;
+  };
+
+  const draw = () => {
+    const list = items.filter((it) =>
+      matchArea(it) &&
+      (!state.budget || it.budget === state.budget) &&
+      (!state.style || it.style === state.style) &&
+      (!state.scope || it.scope === state.scope));
+
+    countEl.textContent = `총 ${list.length}개 사례`;
+    emptyEl.hidden = list.length !== 0;
     grid.innerHTML = list.map((i) => `
-      <article class="folio reveal">
-        <div class="folio-thumb" style="background:${i.color}">
-          <span class="thumb-tag">${i.category}</span>
+      <article class="folio reveal" data-id="${i.id}" tabindex="0" role="button" aria-label="${i.title} 상세보기">
+        <div class="folio-thumb" style="background:linear-gradient(150deg, ${i.afterColor}, ${shade(i.afterColor, -14)})">
+          <span class="thumb-badge">${i.style}</span>
+          <span class="thumb-area">${i.area}평 · ${i.scope}</span>
           ${ICONS.room}
+          <span class="thumb-cta">Before / After 보기</span>
         </div>
         <div class="folio-body">
           <h3>${i.title}</h3>
-          <span>${i.area}</span>
+          <p class="folio-meta">${i.region} · ${i.complex}</p>
+          <p class="folio-budget">${i.budget} · ${i.period}</p>
         </div>
       </article>`).join('');
     observeReveal();
   };
 
-  filters.addEventListener('click', (e) => {
-    const btn = e.target.closest('.filter-btn');
-    if (!btn) return;
-    filters.querySelectorAll('.filter-btn').forEach((b) => b.classList.remove('active'));
-    btn.classList.add('active');
-    draw(btn.dataset.cat);
+  filtersEl.addEventListener('click', (e) => {
+    const chip = e.target.closest('.fg-chip');
+    if (!chip) return;
+    const group = chip.closest('.folio-filter-group').dataset.group;
+    chip.parentElement.querySelectorAll('.fg-chip').forEach((c) => c.classList.remove('active'));
+    chip.classList.add('active');
+    state[group] = chip.dataset.val || null;
+    draw();
   });
 
-  draw('전체');
+  // 카드 클릭 → 상세 모달
+  const openById = (id) => openFolioModal(items.find((x) => x.id === id), items);
+  grid.addEventListener('click', (e) => {
+    const card = e.target.closest('.folio');
+    if (card) openById(card.dataset.id);
+  });
+  grid.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.folio')) {
+      e.preventDefault();
+      openById(e.target.closest('.folio').dataset.id);
+    }
+  });
+
+  draw();
+}
+
+/* 색상 음영 조절 (#rrggbb) */
+function shade(hex, amt) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const clamp = (v) => Math.max(0, Math.min(255, v));
+  const r = clamp(((n >> 16) & 255) + amt);
+  const g = clamp(((n >> 8) & 255) + amt);
+  const b = clamp((n & 255) + amt);
+  return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+}
+
+/* ---------- 사례 상세 모달 (Before/After + 유사 사례) ---------- */
+function openFolioModal(item, all) {
+  if (!item) return;
+  const modal = document.getElementById('folioModal');
+  const body = document.getElementById('folioModalBody');
+  // 유사도 점수: 스타일 일치 + 같은 카테고리 + 평수 근접
+  const similar = all
+    .filter((x) => x.id !== item.id)
+    .map((x) => {
+      let s = 0;
+      if (x.style === item.style) s += 3;
+      if (x.category === item.category) s += 1;
+      s += Math.max(0, 3 - Math.abs(x.area - item.area) / 6);
+      return { x, s };
+    })
+    .sort((a, b) => b.s - a.s)
+    .slice(0, 3)
+    .map((o) => o.x);
+
+  body.innerHTML = `
+    <div class="fm-ba">
+      <figure><div class="fm-img" style="background:linear-gradient(150deg, ${item.beforeColor}, ${shade(item.beforeColor, -12)})">${ICONS.room}</div><figcaption>BEFORE</figcaption></figure>
+      <figure><div class="fm-img" style="background:linear-gradient(150deg, ${item.afterColor}, ${shade(item.afterColor, -14)})">${ICONS.room}</div><figcaption class="after">AFTER</figcaption></figure>
+    </div>
+    <div class="fm-info">
+      <div class="fm-head">
+        <span class="fm-style">${item.style}</span>
+        <h3 id="folioModalTitle">${item.title}</h3>
+        <p>${item.region} · ${item.complex}</p>
+      </div>
+      <dl class="fm-grid">
+        <div><dt>면적</dt><dd>${item.area}평</dd></div>
+        <div><dt>공사기간</dt><dd>${item.period}</dd></div>
+        <div><dt>예산구간</dt><dd>${item.budget}</dd></div>
+        <div><dt>공사범위</dt><dd>${item.scope}</dd></div>
+      </dl>
+      <div class="fm-block"><h4>핵심 문제</h4><p>${item.problem}</p></div>
+      <div class="fm-block"><h4>해결 방법</h4><p>${item.solution}</p></div>
+      <div class="fm-block"><h4>주요 자재</h4><div class="fm-tags">${(item.materials || []).map((m) => `<span>${m}</span>`).join('')}</div></div>
+      ${item.consent ? '<p class="fm-consent">✔ 고객 공개 동의 완료</p>' : ''}
+      <a href="#inquiry" class="btn btn-primary btn-block" data-close>이 사례처럼 상담 신청</a>
+    </div>
+    ${similar.length ? `
+    <div class="fm-similar">
+      <h4>비슷한 사례</h4>
+      <div class="fm-similar-grid">
+        ${similar.map((s) => `
+          <button class="fm-sim" data-goto="${s.id}">
+            <span class="fm-sim-thumb" style="background:linear-gradient(150deg, ${s.afterColor}, ${shade(s.afterColor, -14)})"></span>
+            <b>${s.title}</b><small>${s.area}평 · ${s.style}</small>
+          </button>`).join('')}
+      </div>
+    </div>` : ''}`;
+
+  modal.hidden = false;
+  document.body.style.overflow = 'hidden';
+
+  // 유사 사례 클릭 시 모달 내용 교체
+  body.querySelectorAll('.fm-sim').forEach((b) => b.addEventListener('click', () => {
+    openFolioModal(all.find((x) => x.id === b.dataset.goto), all);
+  }));
+}
+
+function setupFolioModal() {
+  const modal = document.getElementById('folioModal');
+  if (!modal) return;
+  const close = () => { modal.hidden = true; document.body.style.overflow = ''; };
+  modal.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) close(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) close(); });
 }
 
 /* ---------- 리뷰 ---------- */
@@ -287,8 +445,10 @@ async function init() {
   bindText(data);
   renderStats(data.stats);
   renderServices(data.services);
+  renderAutomation(data.automation);
   renderProcess(data.process);
-  renderPortfolio(data.portfolio);
+  renderPortfolio(data.portfolio, data.portfolioFilters);
+  setupFolioModal();
   renderReviews(data.reviews);
   renderContact(data.company);
   setupEstimator(data.estimator);
