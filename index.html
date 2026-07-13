@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>만물인테리어 · Loop Agent — AI가 운영하는 인테리어 회사</title>
+  <meta name="description" content="상담부터 견적, 시공, 사후 관리까지 AI 루프 에이전트가 24시간 운영하는 만물인테리어. 30초 즉시 견적을 경험하세요." />
+  <meta property="og:title" content="만물인테리어 · Loop Agent" />
+  <meta property="og:description" content="AI가 24시간 운영하는 만물인테리어. 30초 즉시 견적." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23b8895a'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- ===== Header ===== -->
+  <header class="site-header" id="siteHeader">
+    <div class="container header-inner">
+      <a href="#top" class="logo" aria-label="만물인테리어 홈">
+        <span class="logo-mark">萬</span>
+        <span class="logo-text">
+          <strong data-bind="company.name">만물인테리어</strong>
+          <em data-bind="company.brandEn">Loop Agent</em>
+        </span>
+      </a>
+      <nav class="main-nav" id="mainNav" aria-label="주요 메뉴">
+        <a href="#services">서비스</a>
+        <a href="#process">운영 방식</a>
+        <a href="#portfolio">포트폴리오</a>
+        <a href="#estimator">AI 견적</a>
+        <a href="#contact">상담 신청</a>
+      </nav>
+      <a href="#estimator" class="btn btn-primary btn-sm header-cta">30초 견적</a>
+      <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- ===== Hero ===== -->
+    <section class="hero">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="container hero-inner">
+        <div class="hero-text">
+          <span class="badge">🤖 AI 루프 에이전트 운영</span>
+          <h1 class="hero-title" data-bind="company.tagline">AI가 24시간 운영하는 만물인테리어</h1>
+          <p class="hero-desc" data-bind="company.description">상담부터 견적, 시공 관리, 사후 관리까지 — 루프 에이전트가 끊임없이 순환하며 운영하는 차세대 인테리어 회사입니다.</p>
+          <div class="hero-actions">
+            <a href="#estimator" class="btn btn-primary btn-lg">지금 견적 받기</a>
+            <a href="#portfolio" class="btn btn-ghost btn-lg">포트폴리오 보기</a>
+          </div>
+          <div class="hero-trust">
+            <span>✔ 24시간 즉시 응답</span>
+            <span>✔ 투명한 공정 관리</span>
+            <span>✔ 사후 관리 자동화</span>
+          </div>
+        </div>
+        <div class="hero-card" aria-hidden="true">
+          <div class="chat-window">
+            <div class="chat-head">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              <em>Loop Agent · 상담중</em>
+            </div>
+            <div class="chat-body" id="heroChat"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Stats ===== -->
+    <section class="stats-band">
+      <div class="container stats-grid" id="statsGrid"></div>
+    </section>
+
+    <!-- ===== Services ===== -->
+    <section class="section" id="services">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">SERVICES</span>
+          <h2>만물(萬物)을 다루는 인테리어</h2>
+          <p>공간에 필요한 모든 것을 AI가 설계하고 큐레이션합니다.</p>
+        </div>
+        <div class="cards-grid" id="servicesGrid"></div>
+      </div>
+    </section>
+
+    <!-- ===== Process ===== -->
+    <section class="section section-alt" id="process">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">HOW IT WORKS</span>
+          <h2>루프 에이전트 운영 방식</h2>
+          <p>사람의 손이 덜 가도 멈추지 않는, 순환하는 5단계 운영 루프.</p>
+        </div>
+        <ol class="process-loop" id="processList"></ol>
+      </div>
+    </section>
+
+    <!-- ===== Portfolio ===== -->
+    <section class="section" id="portfolio">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">PORTFOLIO</span>
+          <h2>최근 시공 사례</h2>
+          <p>AI가 제안하고 전문가가 완성한 공간들.</p>
+        </div>
+        <div class="portfolio-filters" id="portfolioFilters"></div>
+        <div class="portfolio-grid" id="portfolioGrid"></div>
+      </div>
+    </section>
+
+    <!-- ===== AI Estimator ===== -->
+    <section class="section section-dark" id="estimator">
+      <div class="container estimator-wrap">
+        <div class="estimator-intro">
+          <span class="eyebrow light">AI ESTIMATOR</span>
+          <h2>30초 즉시 견적</h2>
+          <p>공간 정보를 입력하면 루프 에이전트가 예상 견적을 바로 계산합니다.</p>
+          <p class="estimator-note" id="estimatorNote"></p>
+        </div>
+        <form class="estimator-form" id="estimatorForm" novalidate>
+          <div class="field">
+            <label for="estType">공간 유형</label>
+            <select id="estType">
+              <option value="주거">주거 인테리어</option>
+              <option value="상업">상업 공간</option>
+              <option value="리모델링">리모델링</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="estArea">면적 (평)</label>
+            <input type="range" id="estArea" min="5" max="120" value="34" />
+            <output id="estAreaOut">34평</output>
+          </div>
+          <div class="field">
+            <label>마감 등급</label>
+            <div class="grade-group" id="gradeGroup">
+              <label class="grade"><input type="radio" name="grade" value="실속형" /><span>실속형</span></label>
+              <label class="grade"><input type="radio" name="grade" value="표준형" checked /><span>표준형</span></label>
+              <label class="grade"><input type="radio" name="grade" value="프리미엄" /><span>프리미엄</span></label>
+            </div>
+          </div>
+          <div class="estimate-result" id="estimateResult" aria-live="polite">
+            <span class="result-label">예상 견적</span>
+            <strong class="result-amount" id="estimateAmount">₩ 0</strong>
+            <span class="result-range" id="estimateRange"></span>
+          </div>
+          <a href="#contact" class="btn btn-primary btn-lg btn-block">이 견적으로 상담 신청</a>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===== Reviews ===== -->
+    <section class="section section-alt" id="reviews">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">REVIEWS</span>
+          <h2>고객이 남긴 이야기</h2>
+        </div>
+        <div class="reviews-grid" id="reviewsGrid"></div>
+      </div>
+    </section>
+
+    <!-- ===== Contact ===== -->
+    <section class="section" id="contact">
+      <div class="container contact-wrap">
+        <div class="contact-info">
+          <span class="eyebrow">CONTACT</span>
+          <h2>상담 신청</h2>
+          <p>양식을 남기시면 루프 에이전트가 가장 빠른 시간에 답변드립니다.</p>
+          <ul class="contact-list" id="contactList"></ul>
+        </div>
+        <form class="contact-form" id="contactForm" novalidate>
+          <div class="field">
+            <label for="cName">이름</label>
+            <input type="text" id="cName" required placeholder="홍길동" />
+          </div>
+          <div class="field">
+            <label for="cPhone">연락처</label>
+            <input type="tel" id="cPhone" required placeholder="010-0000-0000" />
+          </div>
+          <div class="field">
+            <label for="cType">문의 유형</label>
+            <select id="cType">
+              <option>주거 인테리어</option>
+              <option>상업 공간</option>
+              <option>리모델링</option>
+              <option>가구·소품</option>
+              <option>기타 문의</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cMsg">문의 내용</label>
+            <textarea id="cMsg" rows="4" placeholder="공간 정보나 원하시는 스타일을 알려주세요."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg btn-block">상담 신청하기</button>
+          <p class="form-status" id="contactStatus" role="status"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== Footer ===== -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="logo-mark">萬</span>
+        <div>
+          <strong data-bind="company.name">만물인테리어</strong>
+          <p data-bind="company.brandEn">Loop Agent</p>
+        </div>
+      </div>
+      <p class="footer-note">본 웹사이트는 AI 루프 에이전트가 콘텐츠와 상담을 운영하는 데모 프로젝트입니다.</p>
+      <p class="footer-copy">© <span id="year"></span> <span data-bind="company.name">만물인테리어</span>. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Floating AI button -->
+  <a href="#estimator" class="fab" aria-label="AI 견적 받기">
+    <span>🤖</span> AI 견적
+  </a>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
