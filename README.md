@@ -1,0 +1,2 @@
+# manmool
+ai학습
