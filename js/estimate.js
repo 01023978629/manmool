@@ -174,8 +174,18 @@
             </button>`).join('')}
         </div>
       </div>` : ''}
+      <div class="cr-flow">
+        <span class="crf-title">다음 단계</span>
+        <ol class="crf-steps">
+          <li class="done"><b>AI 예상견적</b><span>지금 여기</span></li>
+          <li class="active"><b>무료 방문 실측</b><span>현장 확인</span></li>
+          <li><b>정식 견적서</b><span>금액 확정</span></li>
+          <li><b>계약</b><span>전자 서명</span></li>
+        </ol>
+        <p class="crf-note">위 금액은 참고용이며, <b>실제 금액은 방문 실측 후 정식 견적서로 확정</b>됩니다.</p>
+      </div>
       <p class="cr-note">${CFG.note || ''}</p>
-      <a href="#inquiry" class="btn btn-primary btn-lg btn-block">이 내용으로 상담 신청</a>`;
+      <a href="#inquiry" class="btn btn-primary btn-lg btn-block">무료 방문 실측 예약하기</a>`;
     $('ceBody').appendChild(card);
     $('ceBody').scrollTop = $('ceBody').scrollHeight;
     setInput('');

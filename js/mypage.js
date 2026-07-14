@@ -252,21 +252,65 @@
     render();
   }
 
-  /* ---------- 결제 (승인·기록 원칙) ---------- */
-  function payments(list) {
-    const total = list.reduce((s, x) => s + x.amount, 0);
-    const paid = list.filter((x) => x.status === '완납').reduce((s, x) => s + x.amount, 0);
-    $('payments').innerHTML = `
-      <thead><tr><th>구분</th><th>예정일</th><th class="num">금액</th><th>상태</th></tr></thead>
-      <tbody>
-        ${list.map((p) => `<tr>
-          <td>${p.name}</td><td>${p.dueDate}</td><td class="num">${won(p.amount)}</td>
-          <td>${p.status === '완납'
-            ? `<span class="${stCls(p.status)}">완납 · 기록됨</span>`
-            : `<span class="${stCls(p.status)}">${p.status}</span>`}</td>
-        </tr>`).join('')}
-        <tr><td><b>합계</b></td><td></td><td class="num"><b>${won(total)}</b></td><td>${Math.round(paid / total * 100)}% 납부</td></tr>
-      </tbody>`;
+  /* ---------- 결제 (돈은 승인·기록을 거친다) ---------- */
+  function payments(list, info) {
+    const el = $('payments');
+    if (el && el.tagName === 'TABLE') { // 최초 1회 table→div 교체
+      const host = document.createElement('div');
+      host.id = 'payHost';
+      el.replaceWith(host);
+    }
+    const mount = document.getElementById('payHost');
+    if (!mount) return;
+
+    const render = () => {
+      const total = list.reduce((s, x) => s + x.amount, 0);
+      const paid = list.filter((x) => x.status === '완납').reduce((s, x) => s + x.amount, 0);
+      const nextIdx = list.findIndex((x) => x.status !== '완납');
+      mount.innerHTML = `
+        <div class="pay-progress">
+          <div class="bar light"><i style="width:${Math.round(paid / total * 100)}%"></i></div>
+          <span>납부 ${won(paid)} / ${won(total)} · ${Math.round(paid / total * 100)}%</span>
+        </div>
+        <div class="pay-rows">
+          ${list.map((p, i) => `
+            <div class="pay-row ${i === nextIdx ? 'next' : ''}">
+              <div class="pr-main"><b>${p.name}</b><span>${p.dueDate}</span></div>
+              <span class="pr-amt">${won(p.amount)}</span>
+              <span class="${stCls(p.status)}">${p.status === '완납' ? '완납 · 확인됨' : (p.status === '확인대기' ? '입금 확인중' : p.status)}</span>
+            </div>
+            ${i === nextIdx && p.status !== '완납' ? nextCard(p, i, info) : ''}
+          `).join('')}
+        </div>`;
+      const btn = mount.querySelector('[data-pay]');
+      if (btn) btn.addEventListener('click', () => {
+        const p = list[+btn.dataset.pay];
+        p.status = '확인대기';
+        p.notifiedAt = new Date().toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' });
+        alert('입금 완료를 담당자에게 알렸습니다. 확인 후 완납으로 처리되며, 내역이 기록됩니다. (데모)');
+        render();
+      });
+    };
+
+    const nextCard = (p, i, info) => {
+      if (!info) return '';
+      if (p.status === '확인대기') {
+        return `<div class="pay-next wait">
+          <p><b>입금 확인중</b> — ${p.notifiedAt || ''}에 입금 완료를 알렸습니다. 담당자 확인 후 완납 처리됩니다.</p>
+        </div>`;
+      }
+      return `<div class="pay-next">
+        <div class="pn-acct">
+          <span class="pn-label">다음 납부 안내</span>
+          <b>${info.bank} ${info.account}</b>
+          <span>예금주 ${info.holder} · ${won(p.amount)}</span>
+        </div>
+        <p class="pn-guide">${info.guide}</p>
+        <button class="mini ok" data-pay="${i}">입금 완료 알림 보내기</button>
+      </div>`;
+    };
+
+    render();
   }
 
   /* ---------- 하자 보증 (국가 기준 자동) ---------- */
@@ -323,6 +367,37 @@
     render();
   }
 
+  /* ---------- 완공 후: 후기·소개 루프 ---------- */
+  function afterCare(project, ref) {
+    ref = ref || {};
+    const code = (project.id || 'MANMUL').replace(/[^A-Za-z0-9]/g, '').slice(-6).toUpperCase();
+    $('afterCare').innerHTML = `
+      <div class="after-grid">
+        <div class="after-card">
+          <span class="ac-ico">⭐</span>
+          <b>후기 남기기</b>
+          <p>공사는 만족스러우셨나요? 후기를 남겨주시면 다음 고객에게 큰 힘이 됩니다.</p>
+          <p class="ac-reward">🎁 ${ref.reviewReward || '후기 작성 감사 혜택 제공'}</p>
+          <button class="mini ok" onclick="alert('후기 작성 화면으로 이동합니다 (데모)')">후기 작성</button>
+        </div>
+        <div class="after-card">
+          <span class="ac-ico">🤝</span>
+          <b>지인 소개하고 혜택받기</b>
+          <p>내 소개 코드를 지인에게 공유하세요. 계약 성사 시 두 분 모두 혜택을 드립니다.</p>
+          <div class="ac-code"><span>내 소개 코드</span><code id="refCode">${code}</code>
+            <button class="mini ghost" id="refCopy">복사</button></div>
+          <p class="ac-reward">🎁 ${ref.benefit || ''}</p>
+        </div>
+      </div>`;
+    const copy = $('refCopy');
+    if (copy) copy.addEventListener('click', () => {
+      const t = code;
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).catch(() => {});
+      copy.textContent = '복사됨';
+      setTimeout(() => { copy.textContent = '복사'; }, 1500);
+    });
+  }
+
   function renderAll() {
     $('appMain').hidden = false;
     summary(DATA.project);
@@ -333,11 +408,12 @@
     contract(DATA.contract, DATA.project);
     materials(DATA.materials);
     changes(DATA.changes);
-    payments(DATA.payments);
+    payments(DATA.payments, DATA.paymentInfo);
     warranty(DATA.warranty);
     documents(DATA.documents);
     notifs(DATA.notifications);
     checklist(DATA.checklist);
+    afterCare(DATA.project, DATA.referral);
   }
 
   async function init() {
