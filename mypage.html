@@ -3,18 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>고객 마이페이지 · 만물인테리어</title>
+  <title>내 공사 · 만물인테리어</title>
   <meta name="robots" content="noindex" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23b8895a'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/app.css" />
 </head>
 <body class="app-body">
+
+  <!-- 개인 링크 본인확인 게이트 -->
+  <div class="gate" id="gate" hidden>
+    <div class="gate-card">
+      <span class="logo-mark">萬</span>
+      <h2 id="gateTitle">내 공사 페이지</h2>
+      <p class="gate-sub">본인 확인을 위해 <b>계약자 휴대폰 뒷 4자리</b>를 입력해 주세요.</p>
+      <input id="gateInput" class="gate-input" inputmode="numeric" maxlength="4" placeholder="예: 5678" autocomplete="off" />
+      <p class="gate-err" id="gateErr"></p>
+      <button class="btn btn-primary gate-btn" id="gateBtn">확인하고 입장</button>
+      <p class="gate-note">이 링크는 카카오톡으로 전달된 <b>고객님 전용 주소</b>입니다.</p>
+    </div>
+  </div>
+
+  <!-- 최초 진입 동의 -->
+  <div class="gate" id="consent" hidden>
+    <div class="gate-card">
+      <h2>이용 안내 동의</h2>
+      <p class="gate-sub">원활한 공사 진행과 사진·문서 공유를 위해 아래에 동의해 주세요.</p>
+      <label class="consent-item"><input type="checkbox" id="cA" /> <span>개인정보 수집·이용 동의 (공사 진행·연락 목적)</span></label>
+      <label class="consent-item"><input type="checkbox" id="cB" /> <span>현장 사진의 페이지 내 공개 및 보관 동의</span></label>
+      <label class="consent-item"><input type="checkbox" id="cC" /> <span>전자 서명 방식의 계약 진행에 동의</span></label>
+      <button class="btn btn-primary gate-btn" id="consentBtn" disabled>동의하고 시작</button>
+    </div>
+  </div>
+
   <header class="app-header">
     <div class="app-header-inner">
       <div class="app-brand">
         <span class="logo-mark">萬</span>
-        <div><strong>만물인테리어</strong><em>고객 마이페이지</em></div>
+        <div><strong>만물인테리어</strong><em>내 공사 페이지</em></div>
         <span class="app-role">고객</span>
       </div>
       <div class="app-header-actions">
@@ -24,18 +50,32 @@
     </div>
   </header>
 
-  <main class="app-main">
+  <main class="app-main" id="appMain" hidden>
+    <div class="app-demo-banner">
+      🔗 이 페이지는 <b>고객님 전용 링크</b>입니다 — 진행 상황은 카카오톡으로 알려드리고, 사진·계약서·보증서는 준공 후에도 이곳에 남습니다.
+    </div>
+
     <section class="proj-summary" id="projSummary"></section>
 
     <div class="panel-grid">
       <section class="panel span-2"><h2>공사 일정</h2><div class="timeline" id="schedule"></div></section>
       <section class="panel"><h2>오늘의 공정</h2><div class="row-list" id="today"></div></section>
       <section class="panel"><h2>담당자 연락</h2><div id="manager"></div></section>
-      <section class="panel span-2"><h2>현장 사진</h2><div class="photo-grid" id="photos"></div></section>
+
+      <section class="panel span-2"><h2>📷 현장 사진 <span class="tag-open">공개</span></h2><div class="photo-grid" id="photos"></div></section>
+
+      <section class="panel span-2"><h2>계약서 · 전자 서명</h2><div id="contract"></div></section>
+
       <section class="panel"><h2>자재 선택</h2><div id="materials"></div></section>
-      <section class="panel"><h2>변경 요청 · 추가비용 승인 <span class="tagN" id="changeCount">0</span></h2><div class="row-list" id="changes"></div></section>
-      <section class="panel"><h2>결제 현황</h2><table class="tbl" id="payments"></table></section>
+      <section class="panel"><h2>변경 · 추가공사 승인 <span class="tagN" id="changeCount">0</span></h2><div class="row-list" id="changes"></div></section>
+
+      <section class="panel span-2 money-panel"><h2>결제 현황 <span class="money-rule">💰 모든 대금은 담당자 확인·기록 후 처리</span></h2><table class="tbl" id="payments"></table></section>
+
+      <section class="panel span-2"><h2>하자 보증 <span class="tag-basis">국가 건설 기준</span></h2><div id="warranty"></div></section>
+
       <section class="panel"><h2>문서</h2><div class="row-list" id="documents"></div></section>
+      <section class="panel"><h2>카카오톡 알림 이력</h2><div class="notif-list" id="notifs"></div></section>
+
       <section class="panel span-2"><h2>준공 체크리스트</h2><div class="check-list" id="checklist"></div></section>
     </div>
   </main>
