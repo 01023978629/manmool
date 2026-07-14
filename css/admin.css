@@ -1,0 +1,94 @@
+/* ===== 관리자 대시보드 ===== */
+.admin-body { background: var(--bg-alt); }
+.admin-header { background: var(--dark); color: #fff; position: sticky; top: 0; z-index: 30; }
+.admin-header-inner { max-width: 1200px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 16px; }
+.admin-brand { display: flex; align-items: center; gap: 12px; margin-right: auto; }
+.admin-brand strong { display: block; font-size: 16px; color: #fff; }
+.admin-brand em { font-style: normal; font-size: 12px; color: #cbbfae; }
+.admin-header-actions { display: flex; align-items: center; gap: 12px; }
+.admin-header .btn-ghost { color: #fff; border-color: rgba(255,255,255,.3); }
+.admin-header .btn-ghost:hover { border-color: var(--brand); color: #f0dcc4; }
+
+.pill { font-size: 12.5px; font-weight: 700; padding: 6px 13px; border-radius: 999px; background: #3a322a; color: #e0d4c2; }
+.pill-on { background: #1f4d3a; color: #9be6be; }
+.pill-demo { background: #4d3f1f; color: #f0d68a; }
+
+.admin-main { max-width: 1200px; margin: 0 auto; padding: 28px 24px 60px; display: flex; flex-direction: column; gap: 24px; }
+
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm); }
+.kpi b { display: block; font-size: 30px; font-weight: 800; color: var(--brand-dark); letter-spacing: -.02em; }
+.kpi span { font-size: 13.5px; color: var(--ink-soft); }
+
+.admin-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow-sm); }
+.admin-panel h2 { font-size: 19px; margin-bottom: 16px; }
+.panel-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+.panel-head h2 { margin: 0; margin-right: auto; }
+.count { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 13px; margin-left: 6px; }
+
+/* 파이프라인 */
+.pipeline-panel h2 { margin-bottom: 18px; }
+.pipe { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pipe-node { background: var(--bg-alt); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px 16px; text-align: center; }
+.pipe-node b { display: block; font-size: 14px; }
+.pipe-node span { font-size: 12px; color: var(--ink-soft); }
+.pipe-node.accent { background: var(--brand-soft); border-color: var(--brand); }
+.pipe i { color: var(--brand); font-style: normal; font-weight: 800; }
+.pipe-note { margin-top: 14px; font-size: 13px; color: var(--ink-soft); }
+.pipe-note code { background: var(--bg-alt); padding: 2px 6px; border-radius: 5px; font-size: 12px; }
+
+/* 필터 탭 */
+.filter-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.ftab { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink-soft); font-weight: 700; font-size: 13px; padding: 7px 14px; border-radius: 999px; cursor: pointer; font-family: inherit; transition: .15s; }
+.ftab.active, .ftab:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
+
+/* 문의 카드 */
+.inquiry-list { display: flex; flex-direction: column; gap: 16px; }
+.inq-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; background: var(--bg); }
+.inq-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.inq-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.inq-top time { font-size: 12.5px; color: var(--ink-soft); }
+.status { font-size: 12.5px; font-weight: 800; padding: 4px 12px; border-radius: 999px; }
+.st-new { background: #e7eef5; color: #35618e; }
+.st-ok { background: #e0f0e6; color: #2b7a4b; }
+.st-hold { background: #f5ecd6; color: #9a7a1e; }
+.st-no { background: #f3e0dd; color: #9c4b3f; }
+.prio { font-size: 12.5px; font-weight: 700; padding: 4px 11px; border-radius: 999px; }
+.prio-hi { background: #fbe3de; color: #b5443a; }
+.prio-mid { background: #f6ecd9; color: #97741f; }
+.prio-lo { background: #e9e4dc; color: #6b6157; }
+
+.ai-summary { background: var(--brand-soft); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 14px; }
+.ai-tag { font-size: 12px; font-weight: 800; color: var(--brand-dark); }
+.ai-summary p { font-size: 14.5px; margin-top: 4px; }
+.ai-q { color: var(--ink-soft); font-size: 13px !important; }
+
+.inq-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 20px; margin-bottom: 12px; }
+.inq-grid dt { font-size: 12px; color: var(--ink-soft); font-weight: 700; }
+.inq-grid dd { font-size: 14.5px; }
+.inq-memo { font-size: 14px; color: var(--ink); background: var(--surface); border-left: 3px solid var(--brand); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; }
+
+.inq-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px dashed var(--line); padding-top: 14px; }
+.approve-guide { font-size: 12.5px; color: var(--ink-soft); }
+.btn-set { display: flex; gap: 8px; flex-wrap: wrap; }
+.mini { border: none; font-weight: 700; font-size: 13.5px; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-family: inherit; transition: .15s; }
+.mini.ok { background: var(--accent); color: #fff; }
+.mini.hold { background: #e9c96a; color: #4a3a08; }
+.mini.no { background: #d98a7f; color: #fff; }
+.mini.ghost { background: var(--bg-alt); color: var(--ink); border: 1px solid var(--line); }
+.mini.field { background: var(--brand); color: #fff; }
+.mini:hover { transform: translateY(-1px); }
+
+.draft-box { margin-top: 14px; }
+.draft-box pre { background: var(--dark); color: #f0e6d6; padding: 16px; border-radius: var(--radius-sm); font-size: 13px; white-space: pre-wrap; font-family: inherit; line-height: 1.6; }
+.draft-box small { display: block; margin-top: 8px; color: var(--ink-soft); font-size: 12.5px; }
+
+.empty-note { text-align: center; color: var(--ink-soft); padding: 30px; font-size: 15px; }
+
+@media (max-width: 860px) {
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .inq-grid { grid-template-columns: 1fr; }
+  .inq-actions { flex-direction: column; align-items: stretch; }
+}

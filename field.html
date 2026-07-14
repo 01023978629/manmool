@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>현장관리 · 만물인테리어</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%233f5a52'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body class="app-body">
+  <header class="app-header">
+    <div class="app-header-inner">
+      <div class="app-brand">
+        <span class="logo-mark">萬</span>
+        <div><strong>만물인테리어</strong><em>현장관리</em></div>
+        <span class="app-role">기사·현장</span>
+      </div>
+      <div class="app-header-actions">
+        <span class="app-proj-pill" id="projPill">현장 로딩…</span>
+        <a href="index.html" class="btn btn-ghost btn-sm">사이트로</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="app-demo-banner">이 화면은 <b>미리보기 데모</b>입니다 · 실제 현장 운영은 <a href="#" data-hj-link>현장 운영 앱(현장.)</a>에서 하세요.</div>
+    <p class="form-note" style="margin-bottom:16px">현장에서는 긴 글 대신 <b>버튼 선택·사진</b> 중심으로 입력하세요. AI가 보고 문장으로 정리합니다.</p>
+    <div class="panel-grid">
+      <section class="panel span-2"><h2>오늘 할 작업 <span class="tagN" id="todoCount">0</span></h2><div class="row-list" id="today"></div></section>
+
+      <section class="panel"><h2>작업 전·후 사진</h2>
+        <form class="app-form" id="photoForm">
+          <div><label class="fl">공간</label><div class="opt-chips" id="phSpace"></div></div>
+          <div><label class="fl">공정</label><div class="opt-chips" id="phPhase"></div></div>
+          <div class="actions-row">
+            <label class="app-upload"><input type="file" accept="image/*" capture="environment" multiple hidden id="phFile" /><span>📷 작업 사진 촬영</span></label>
+            <button type="button" class="btn btn-primary btn-sm" id="phSave">등록</button>
+          </div>
+          <p class="app-status" id="phStatus"></p>
+        </form>
+        <div class="photo-grid" id="photos" style="margin-top:14px"></div>
+      </section>
+
+      <section class="panel"><h2>자재 입고 확인</h2><div class="row-list" id="materialIn"></div></section>
+
+      <section class="panel"><h2>문제 발생 보고 <span class="tagN" id="issueCount">0</span></h2>
+        <form class="app-form" id="issueForm" style="margin-bottom:16px">
+          <div><label class="fl">유형</label><div class="opt-chips" id="issueType"></div></div>
+          <textarea class="app-textarea" id="issueText" rows="2" placeholder="상황을 짧게 적어주세요 (선택)"></textarea>
+          <div class="actions-row">
+            <span class="approve-guide">고위험(구조·전기·누수)은 대표·전문가 확인 후 진행됩니다</span>
+            <button type="button" class="btn btn-primary btn-sm" id="issueSave">보고 등록</button>
+          </div>
+          <p class="app-status" id="issueStatus"></p>
+        </form>
+        <div class="row-list" id="issues"></div>
+      </section>
+
+      <section class="panel"><h2>추가 공사 요청</h2>
+        <form class="app-form" id="extraForm">
+          <textarea class="app-textarea" id="extraText" rows="2" placeholder="추가 공사 내용"></textarea>
+          <div class="actions-row">
+            <input class="app-textarea" style="max-width:150px" id="extraAmount" placeholder="예상 금액(원)" inputmode="numeric" />
+            <input class="app-textarea" style="max-width:150px" id="extraDays" placeholder="일정 영향(일)" inputmode="numeric" />
+            <button type="button" class="btn btn-primary btn-sm" id="extraSave">대표 승인 요청</button>
+          </div>
+          <p class="app-status" id="extraStatus"></p>
+        </form>
+      </section>
+
+      <section class="panel"><h2>출입 기록</h2><div class="row-list" id="access"></div></section>
+      <section class="panel"><h2>고객 요청사항</h2><div class="row-list" id="custReq"></div></section>
+      <section class="panel span-2"><h2>작업 완료 체크</h2><p class="form-note" style="margin-bottom:10px">체크리스트와 사진이 모두 있어야 완료 처리됩니다.</p><div class="check-list" id="checklist"></div></section>
+    </div>
+  </main>
+
+  <script src="js/field.js"></script>
+  <script src="js/hj-link.js"></script>
+</body>
+</html>

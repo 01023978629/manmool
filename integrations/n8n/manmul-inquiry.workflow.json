@@ -1,0 +1,208 @@
+{
+  "name": "만물인테리어 · 상담 문의 처리",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "manmul-inquiry",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000001",
+      "name": "Webhook (상담 폼 수신)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-620, 300],
+      "webhookId": "manmul-inquiry"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "f1", "name": "name", "value": "={{ $json.body.name }}", "type": "string" },
+            { "id": "f2", "name": "phone", "value": "={{ $json.body.phone }}", "type": "string" },
+            { "id": "f3", "name": "type", "value": "={{ $json.body.type }}", "type": "string" },
+            { "id": "f4", "name": "region", "value": "={{ $json.body.region }}", "type": "string" },
+            { "id": "f5", "name": "area", "value": "={{ $json.body.area }}", "type": "number" },
+            { "id": "f6", "name": "scope", "value": "={{ $json.body.scope }}", "type": "string" },
+            { "id": "f7", "name": "works", "value": "={{ ($json.body.works || []).join(', ') }}", "type": "string" },
+            { "id": "f8", "name": "budget", "value": "={{ $json.body.budget }}", "type": "string" },
+            { "id": "f9", "name": "movein", "value": "={{ $json.body.movein }}", "type": "string" },
+            { "id": "f10", "name": "live", "value": "={{ $json.body.live }}", "type": "string" },
+            { "id": "f11", "name": "memo", "value": "={{ $json.body.memo }}", "type": "string" },
+            { "id": "f12", "name": "estimateHint", "value": "={{ $json.body.estimateHint }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000002",
+      "name": "필드 정규화",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-400, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $credentials.anthropicApiKey || $env.ANTHROPIC_API_KEY }}" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-5\",\n  \"max_tokens\": 700,\n  \"system\": \"너는 인테리어 회사의 상담 접수 보조 AI다. 입력에 없는 사실은 추측하지 말고 '확인 필요'로 표시하라. 고객에게 보낼 문장은 만들지 말고 내부 검토용 JSON만 출력하라. 반드시 JSON만 출력한다.\",\n  \"messages\": [\n    { \"role\": \"user\", \"content\": \"다음 상담 문의를 분석해 JSON으로 출력하라. 키: summary(한줄요약), workType(공사유형), budgetFit(예산적합성: 적합/부족/확인필요), missingQuestions(배열, 최대3), risks(배열), priority(0-100 정수), nextAction(대표가 할 다음 행동 1가지).\\n\\n문의: 이름 {{ $json.name }}, 지역 {{ $json.region }}, {{ $json.area }}평, {{ $json.type }} {{ $json.scope }}공사, 항목 {{ $json.works }}, 예산 {{ $json.budget }}, 시기 {{ $json.movein }}, 거주 {{ $json.live }}, 메모 {{ $json.memo }}\" }\n  ]\n}",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000003",
+      "name": "AI 1차 분석 (Claude)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-180, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Claude 응답에서 JSON 추출\nconst raw = $json.content?.[0]?.text || '{}';\nlet ai = {};\ntry { ai = JSON.parse(raw.match(/\\{[\\s\\S]*\\}/)?.[0] || '{}'); } catch (e) { ai = { summary: raw.slice(0,120) }; }\nconst prev = $('필드 정규화').item.json;\nreturn [{ json: { ...prev, ai } }];"
+      },
+      "id": "a1000000-0000-4000-8000-000000000004",
+      "name": "AI 결과 파싱",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [40, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": { "__rl": true, "value": "public", "mode": "list" },
+        "table": { "__rl": true, "value": "inquiries", "mode": "list" },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000005",
+      "name": "DB 저장 (Postgres)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [260, 300],
+      "notesInFlow": true,
+      "notes": "고객·프로젝트·문의를 하나의 DB에 저장 (플랜의 단일 데이터 원본). 자격증명 미설정 시 이 노드를 비활성화하거나 Google Sheets로 대체하세요."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kapi.kakao.com/v2/api/talk/memo/default/send",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.KAKAO_ADMIN_TOKEN }}" },
+            { "name": "Content-Type", "value": "application/x-www-form-urlencoded" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "template_object", "value": "={{ JSON.stringify({ object_type: 'text', text: '🔔 새 상담 문의\\n' + $json.name + ' (' + $json.phone + ')\\n' + $json.region + ' ' + $json.area + '평 ' + $json.type + '\\n예산 ' + $json.budget + ' / ' + $json.movein + '\\n[AI] ' + ($json.ai?.summary || '') + '\\n우선순위 ' + ($json.ai?.priority || '-'), link: { web_url: 'https://your-admin.example.com/admin.html' }, button_title: '대시보드 열기' }) }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000006",
+      "name": "대표에게 카카오 알림",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300],
+      "notesInFlow": true,
+      "notes": "카카오 '나에게 보내기'(memo) API 예시. 실서비스에서는 알림톡(Alimtalk) 비즈메시지로 교체하세요."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: true, id: $json.id || null, message: '접수되었습니다. 대표 검토 후 카카오톡으로 안내드립니다.' } }}",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000007",
+      "name": "웹사이트에 응답",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000008",
+      "name": "대표 승인 대기 (Wait)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [700, 480],
+      "webhookId": "manmul-approval",
+      "notesInFlow": true,
+      "notes": "대표가 대시보드/카카오의 승인 링크를 누르면 이 지점이 재개됩니다. 승인 없이는 아래 고객 발송이 실행되지 않습니다 (초안·발송 분리)."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "conditions": [
+            { "id": "c1", "leftValue": "={{ $json.body.decision }}", "rightValue": "approve", "operator": { "type": "string", "operation": "equals" } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000009",
+      "name": "승인 여부",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [900, 480]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-n8n.example.com/kakao/alimtalk/send",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $('AI 결과 파싱').item.json.phone }}\",\n  \"templateCode\": \"MANMUL_GUIDE\",\n  \"text\": \"안내드립니다. 실측 일정 확정 후 예상 범위를 전달드리겠습니다.\"\n}",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000010",
+      "name": "고객에게 안내 발송 (승인분)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 400],
+      "notesInFlow": true,
+      "notes": "대표 승인된 건만 고객에게 알림톡 발송. 자동 확정 금지 항목(최종금액·구조변경·안전판단)은 포함하지 않습니다."
+    },
+    {
+      "parameters": {},
+      "id": "a1000000-0000-4000-8000-000000000011",
+      "name": "보류/거절 (발송 안함)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1120, 560]
+    }
+  ],
+  "connections": {
+    "Webhook (상담 폼 수신)": { "main": [[{ "node": "필드 정규화", "type": "main", "index": 0 }]] },
+    "필드 정규화": { "main": [[{ "node": "AI 1차 분석 (Claude)", "type": "main", "index": 0 }]] },
+    "AI 1차 분석 (Claude)": { "main": [[{ "node": "AI 결과 파싱", "type": "main", "index": 0 }]] },
+    "AI 결과 파싱": { "main": [[{ "node": "DB 저장 (Postgres)", "type": "main", "index": 0 }]] },
+    "DB 저장 (Postgres)": { "main": [[{ "node": "대표에게 카카오 알림", "type": "main", "index": 0 }]] },
+    "대표에게 카카오 알림": { "main": [[{ "node": "웹사이트에 응답", "type": "main", "index": 0 }]] },
+    "웹사이트에 응답": { "main": [[{ "node": "대표 승인 대기 (Wait)", "type": "main", "index": 0 }]] },
+    "대표 승인 대기 (Wait)": { "main": [[{ "node": "승인 여부", "type": "main", "index": 0 }]] },
+    "승인 여부": { "main": [[{ "node": "고객에게 안내 발송 (승인분)", "type": "main", "index": 0 }], [{ "node": "보류/거절 (발송 안함)", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "pinData": {},
+  "meta": { "templatecredsSetupCompleted": false }
+}

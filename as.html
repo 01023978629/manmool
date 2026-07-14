@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A/S 센터 · 만물인테리어</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23c0554a'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body class="app-body">
+  <header class="app-header">
+    <div class="app-header-inner">
+      <div class="app-brand">
+        <span class="logo-mark">萬</span>
+        <div><strong>만물인테리어</strong><em>A/S 센터</em></div>
+        <span class="app-role">사후관리</span>
+      </div>
+      <div class="app-header-actions">
+        <a href="index.html" class="btn btn-ghost btn-sm">사이트로</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="app-demo-banner">이 화면은 <b>미리보기 데모</b>입니다 · 실제 A/S 운영은 <a href="#" data-hj-link>현장 운영 앱(현장.)</a>에서 하세요.</div>
+    <div class="panel-grid">
+      <!-- 접수 폼 -->
+      <section class="panel"><h2>하자 접수</h2>
+        <form class="app-form" id="asForm">
+          <div>
+            <label class="fl">하자 위치</label>
+            <div class="opt-chips" id="asLocation"></div>
+          </div>
+          <div>
+            <label class="fl">사진·영상 첨부</label>
+            <label class="app-upload"><input type="file" accept="image/*,video/*" multiple hidden id="asFile" /><span>📷 사진·영상 업로드</span></label>
+            <p class="form-note" id="asFileNote" style="margin-top:8px"></p>
+          </div>
+          <div>
+            <label class="fl">하자 유형</label>
+            <div class="opt-chips" id="asType"></div>
+          </div>
+          <div id="asAuto" hidden>
+            <label class="fl">AI 자동 분석</label>
+            <div class="row-card">
+              <p>긴급도 <span class="st" id="asUrgency"></span></p>
+              <p class="rc-sub" id="asAssign"></p>
+              <p class="rc-sub" id="asVisit"></p>
+            </div>
+            <p class="form-note" style="margin-top:8px">※ 구조·전기·가스·안전 관련은 자동 판단하지 않고 전문가가 현장 확인 후 처리합니다.</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-lg btn-block" id="asSubmit">A/S 접수하기</button>
+          <p class="app-status" id="asStatus"></p>
+        </form>
+      </section>
+
+      <!-- 접수 현황 -->
+      <section class="panel"><h2>A/S 접수 현황 <span class="tagN" id="asCount">0</span></h2>
+        <div class="row-list" id="asList"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/as.js"></script>
+  <script src="js/hj-link.js"></script>
+</body>
+</html>

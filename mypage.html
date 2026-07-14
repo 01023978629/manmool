@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>고객 마이페이지 · 만물인테리어</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23b8895a'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body class="app-body">
+  <header class="app-header">
+    <div class="app-header-inner">
+      <div class="app-brand">
+        <span class="logo-mark">萬</span>
+        <div><strong>만물인테리어</strong><em>고객 마이페이지</em></div>
+        <span class="app-role">고객</span>
+      </div>
+      <div class="app-header-actions">
+        <span class="app-proj-pill" id="projPill">프로젝트 로딩…</span>
+        <a href="index.html" class="btn btn-ghost btn-sm">사이트로</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <section class="proj-summary" id="projSummary"></section>
+
+    <div class="panel-grid">
+      <section class="panel span-2"><h2>공사 일정</h2><div class="timeline" id="schedule"></div></section>
+      <section class="panel"><h2>오늘의 공정</h2><div class="row-list" id="today"></div></section>
+      <section class="panel"><h2>담당자 연락</h2><div id="manager"></div></section>
+      <section class="panel span-2"><h2>현장 사진</h2><div class="photo-grid" id="photos"></div></section>
+      <section class="panel"><h2>자재 선택</h2><div id="materials"></div></section>
+      <section class="panel"><h2>변경 요청 · 추가비용 승인 <span class="tagN" id="changeCount">0</span></h2><div class="row-list" id="changes"></div></section>
+      <section class="panel"><h2>결제 현황</h2><table class="tbl" id="payments"></table></section>
+      <section class="panel"><h2>문서</h2><div class="row-list" id="documents"></div></section>
+      <section class="panel span-2"><h2>준공 체크리스트</h2><div class="check-list" id="checklist"></div></section>
+    </div>
+  </main>
+
+  <script src="js/mypage.js"></script>
+</body>
+</html>
