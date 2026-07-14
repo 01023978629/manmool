@@ -1,0 +1,11 @@
+# 만물인테리어 · robots.txt
+User-agent: *
+Allow: /$
+Allow: /index.html
+# 내부 업무 화면은 색인 제외 (각 페이지에도 noindex 적용)
+Disallow: /admin.html
+Disallow: /mypage.html
+Disallow: /field.html
+Disallow: /as.html
+
+Sitemap: https://01023978629.github.io/manmool/sitemap.xml
