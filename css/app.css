@@ -165,6 +165,36 @@
 .wi-top b { font-size: 14.5px; } .wi-year { font-size: 13px; font-weight: 800; color: var(--brand-dark); background: var(--brand-soft); border-radius: 999px; padding: 2px 10px; }
 .warr-item p { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
 
+/* 결제 흐름 */
+.pay-progress { margin-bottom: 16px; }
+.pay-progress .bar.light { height: 10px; background: var(--bg-alt); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.pay-progress .bar.light > i { display: block; height: 100%; background: linear-gradient(90deg, var(--brand), #e0b487); }
+.pay-progress span { display: block; margin-top: 7px; font-size: 13px; font-weight: 700; color: var(--brand-dark); }
+.pay-rows { display: flex; flex-direction: column; gap: 8px; }
+.pay-row { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg); }
+.pay-row.next { border-color: var(--brand); background: var(--brand-soft); }
+.pr-main b { font-size: 14.5px; } .pr-main span { display: block; font-size: 12.5px; color: var(--ink-soft); }
+.pr-amt { font-weight: 800; font-variant-numeric: tabular-nums; font-size: 14px; }
+.pay-next { border: 1px dashed var(--brand); border-radius: var(--radius-sm); padding: 14px 16px; margin: 2px 0 6px; background: var(--surface); }
+.pay-next.wait { border-style: solid; border-color: #e6d29a; background: #fbf5e4; }
+.pay-next.wait p { font-size: 13px; color: #6b5a2a; }
+.pn-acct { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+.pn-label { font-size: 11.5px; font-weight: 800; color: var(--brand-dark); }
+.pn-acct b { font-size: 15px; font-variant-numeric: tabular-nums; }
+.pn-acct span { font-size: 12.5px; color: var(--ink-soft); }
+.pn-guide { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; margin-bottom: 10px; }
+
+/* 완공 후: 후기·소개 */
+.after-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.after-card { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 18px; background: var(--bg); }
+.after-card .ac-ico { font-size: 24px; }
+.after-card b { display: block; font-size: 15.5px; margin: 6px 0 6px; }
+.after-card p { font-size: 13px; color: var(--ink-soft); line-height: 1.55; }
+.ac-reward { color: var(--brand-dark) !important; font-weight: 700; margin: 8px 0 12px !important; }
+.ac-code { display: flex; align-items: center; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+.ac-code > span { font-size: 12px; color: var(--ink-soft); font-weight: 700; }
+.ac-code code { font-size: 16px; font-weight: 800; letter-spacing: 2px; background: var(--brand-soft); color: var(--brand-dark); padding: 4px 12px; border-radius: 8px; }
+
 /* 카카오톡 알림 이력 */
 .notif-list { display: flex; flex-direction: column; gap: 10px; }
 .notif { display: flex; gap: 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px; background: var(--bg); }
