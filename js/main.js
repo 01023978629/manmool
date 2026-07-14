@@ -165,9 +165,30 @@ function renderPortfolio(items, filterConfig) {
     return item.area >= range.min && item.area < range.max;
   };
 
+  // 저장(♡) 스크랩 — 오늘의집 스타일
+  const SAVE_KEY = 'manmul_saved';
+  const saved = (() => { try { return new Set(JSON.parse(localStorage.getItem(SAVE_KEY)) || []); } catch (e) { return new Set(); } })();
+  const persistSaved = () => localStorage.setItem(SAVE_KEY, JSON.stringify([...saved]));
+  const likesOf = (i) => (i.likes || 0) + (saved.has(i.id) ? 1 : 0);
+
+  state.sort = '추천';
+  state.savedOnly = false;
+  const SORTS = ['추천', '인기순', '최신순', '저장'];
+  const sortEl = document.getElementById('portfolioSort');
+  const renderSort = () => {
+    if (!sortEl) return;
+    sortEl.innerHTML = SORTS.map((s) => {
+      const active = (s === '저장') ? state.savedOnly : (!state.savedOnly && state.sort === s);
+      const label = s === '저장' ? `♥ 저장${saved.size ? ' ' + saved.size : ''}` : s;
+      return `<button class="sort-chip ${active ? 'active' : ''}" data-sort="${s}">${label}</button>`;
+    }).join('');
+  };
+
+  const RATIOS = ['4 / 5', '1 / 1', '4 / 3', '3 / 4', '1 / 1', '4 / 5', '3 / 4', '4 / 3'];
+
   const draw = () => {
     const q = state.complex.trim();
-    const list = items.filter((it) =>
+    let list = items.filter((it) =>
       (!state.region || it.region === state.region) &&
       matchArea(it) &&
       (!state.budget || it.budget === state.budget) &&
@@ -177,22 +198,32 @@ function renderPortfolio(items, filterConfig) {
       (!state.year || String(it.year) === state.year) &&
       (!q || (it.complex && it.complex.includes(q)) || (it.title && it.title.includes(q))));
 
-    countEl.textContent = `총 ${list.length}개 사례`;
+    if (state.savedOnly) list = list.filter((it) => saved.has(it.id));
+    if (state.savedOnly || state.sort === '인기순') list = [...list].sort((a, b) => likesOf(b) - likesOf(a));
+    else if (state.sort === '최신순') list = [...list].sort((a, b) => (b.year - a.year) || (likesOf(b) - likesOf(a)));
+
+    countEl.textContent = `${list.length}개 사례`;
     emptyEl.hidden = list.length !== 0;
-    grid.innerHTML = list.map((i) => `
+    grid.innerHTML = list.map((i, idx) => {
+      const on = saved.has(i.id);
+      const tags = (i.photoTags || [i.style]).slice(0, 2);
+      return `
       <article class="folio reveal" data-id="${i.id}" tabindex="0" role="button" aria-label="${i.title} 상세보기">
-        <div class="folio-thumb" style="background:linear-gradient(150deg, ${i.afterColor}, ${shade(i.afterColor, -14)})">
-          <span class="thumb-badge">${i.style}</span>
-          <span class="thumb-area">${i.area}평 · ${i.scope}</span>
+        <div class="folio-photo" style="aspect-ratio:${RATIOS[idx % RATIOS.length]};background:linear-gradient(150deg, ${i.afterColor}, ${shade(i.afterColor, -16)})">
           ${ICONS.room}
-          <span class="thumb-cta">Before / After 보기</span>
+          <button class="save-btn ${on ? 'on' : ''}" data-save="${i.id}" aria-label="저장" aria-pressed="${on}">${on ? '♥' : '♡'}</button>
+          <div class="photo-tags">${tags.map((t) => `<span>#${t}</span>`).join('')}</div>
         </div>
-        <div class="folio-body">
+        <div class="folio-info">
           <h3>${i.title}</h3>
-          <p class="folio-meta">${i.region} · ${i.complex}</p>
-          <p class="folio-budget">${i.budget} · ${i.period}</p>
+          <p class="folio-sub">${i.region} · ${i.spaceType} · ${i.area}평</p>
+          <div class="folio-foot">
+            <span class="folio-budget">${i.budget}</span>
+            <span class="folio-likes ${on ? 'liked' : ''}">♥ ${likesOf(i).toLocaleString('ko-KR')}</span>
+          </div>
         </div>
-      </article>`).join('');
+      </article>`;
+    }).join('');
     observeReveal();
   };
 
@@ -209,9 +240,26 @@ function renderPortfolio(items, filterConfig) {
   const complexInput = document.getElementById('folioComplex');
   if (complexInput) complexInput.addEventListener('input', (e) => { state.complex = e.target.value; draw(); });
 
-  // 카드 클릭 → 상세 모달
+  if (sortEl) sortEl.addEventListener('click', (e) => {
+    const b = e.target.closest('.sort-chip');
+    if (!b) return;
+    const s = b.dataset.sort;
+    if (s === '저장') state.savedOnly = !state.savedOnly;
+    else { state.savedOnly = false; state.sort = s; }
+    renderSort(); draw();
+  });
+
+  // 카드 클릭 → 상세 모달 (저장 버튼은 제외)
   const openById = (id) => openFolioModal(items.find((x) => x.id === id), items);
   grid.addEventListener('click', (e) => {
+    const saveBtn = e.target.closest('.save-btn');
+    if (saveBtn) {
+      e.stopPropagation();
+      const id = saveBtn.dataset.save;
+      if (saved.has(id)) saved.delete(id); else saved.add(id);
+      persistSaved(); renderSort(); draw();
+      return;
+    }
     const card = e.target.closest('.folio');
     if (card) openById(card.dataset.id);
   });
@@ -222,6 +270,7 @@ function renderPortfolio(items, filterConfig) {
     }
   });
 
+  renderSort();
   draw();
 }
 
