@@ -165,30 +165,9 @@ function renderPortfolio(items, filterConfig) {
     return item.area >= range.min && item.area < range.max;
   };
 
-  // 저장(♡) 스크랩 — 오늘의집 스타일
-  const SAVE_KEY = 'manmul_saved';
-  const saved = (() => { try { return new Set(JSON.parse(localStorage.getItem(SAVE_KEY)) || []); } catch (e) { return new Set(); } })();
-  const persistSaved = () => localStorage.setItem(SAVE_KEY, JSON.stringify([...saved]));
-  const likesOf = (i) => (i.likes || 0) + (saved.has(i.id) ? 1 : 0);
-
-  state.sort = '추천';
-  state.savedOnly = false;
-  const SORTS = ['추천', '인기순', '최신순', '저장'];
-  const sortEl = document.getElementById('portfolioSort');
-  const renderSort = () => {
-    if (!sortEl) return;
-    sortEl.innerHTML = SORTS.map((s) => {
-      const active = (s === '저장') ? state.savedOnly : (!state.savedOnly && state.sort === s);
-      const label = s === '저장' ? `♥ 저장${saved.size ? ' ' + saved.size : ''}` : s;
-      return `<button class="sort-chip ${active ? 'active' : ''}" data-sort="${s}">${label}</button>`;
-    }).join('');
-  };
-
-  const RATIOS = ['4 / 5', '1 / 1', '4 / 3', '3 / 4', '1 / 1', '4 / 5', '3 / 4', '4 / 3'];
-
   const draw = () => {
     const q = state.complex.trim();
-    let list = items.filter((it) =>
+    const list = items.filter((it) =>
       (!state.region || it.region === state.region) &&
       matchArea(it) &&
       (!state.budget || it.budget === state.budget) &&
@@ -198,29 +177,29 @@ function renderPortfolio(items, filterConfig) {
       (!state.year || String(it.year) === state.year) &&
       (!q || (it.complex && it.complex.includes(q)) || (it.title && it.title.includes(q))));
 
-    if (state.savedOnly) list = list.filter((it) => saved.has(it.id));
-    if (state.savedOnly || state.sort === '인기순') list = [...list].sort((a, b) => likesOf(b) - likesOf(a));
-    else if (state.sort === '최신순') list = [...list].sort((a, b) => (b.year - a.year) || (likesOf(b) - likesOf(a)));
-
-    countEl.textContent = `${list.length}개 사례`;
+    countEl.textContent = `총 ${list.length}개 사례`;
     emptyEl.hidden = list.length !== 0;
     grid.innerHTML = list.map((i, idx) => {
-      const on = saved.has(i.id);
-      const tags = (i.photoTags || [i.style]).slice(0, 2);
+      const specs = [
+        ['평수', i.area + '평'],
+        ['공사비', i.cost || i.budget],
+        ['공간 종류', i.spaceType],
+        ['집 구조', i.structure || '-'],
+        ['스타일', i.style],
+        ['공사 범위', i.scope]
+      ];
       return `
       <article class="folio reveal" data-id="${i.id}" tabindex="0" role="button" aria-label="${i.title} 상세보기">
-        <div class="folio-photo" style="aspect-ratio:${RATIOS[idx % RATIOS.length]};background:linear-gradient(150deg, ${i.afterColor}, ${shade(i.afterColor, -16)})">
-          ${ICONS.room}
-          <button class="save-btn ${on ? 'on' : ''}" data-save="${i.id}" aria-label="저장" aria-pressed="${on}">${on ? '♥' : '♡'}</button>
-          <div class="photo-tags">${tags.map((t) => `<span>#${t}</span>`).join('')}</div>
+        <div class="folio-photo">
+          ${i.photo ? `<img class="scene" src="${i.photo}" alt="${i.title}" loading="lazy" />` : roomScene(i, idx, i.afterColor)}
+          ${i.photo ? '' : '<span class="ai-badge">AI 스타일 참고 이미지</span>'}
         </div>
         <div class="folio-info">
-          <h3>${i.title}</h3>
-          <p class="folio-sub">${i.region} · ${i.spaceType} · ${i.area}평</p>
-          <div class="folio-foot">
-            <span class="folio-budget">${i.budget}</span>
-            <span class="folio-likes ${on ? 'liked' : ''}">♥ ${likesOf(i).toLocaleString('ko-KR')}</span>
-          </div>
+          <h3 class="folio-title">${i.title}</h3>
+          <dl class="folio-specs">
+            ${specs.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}
+          </dl>
+          <span class="folio-more">사례 상세 보기 →</span>
         </div>
       </article>`;
     }).join('');
@@ -240,26 +219,9 @@ function renderPortfolio(items, filterConfig) {
   const complexInput = document.getElementById('folioComplex');
   if (complexInput) complexInput.addEventListener('input', (e) => { state.complex = e.target.value; draw(); });
 
-  if (sortEl) sortEl.addEventListener('click', (e) => {
-    const b = e.target.closest('.sort-chip');
-    if (!b) return;
-    const s = b.dataset.sort;
-    if (s === '저장') state.savedOnly = !state.savedOnly;
-    else { state.savedOnly = false; state.sort = s; }
-    renderSort(); draw();
-  });
-
-  // 카드 클릭 → 상세 모달 (저장 버튼은 제외)
+  // 카드 클릭 → 상세 모달
   const openById = (id) => openFolioModal(items.find((x) => x.id === id), items);
   grid.addEventListener('click', (e) => {
-    const saveBtn = e.target.closest('.save-btn');
-    if (saveBtn) {
-      e.stopPropagation();
-      const id = saveBtn.dataset.save;
-      if (saved.has(id)) saved.delete(id); else saved.add(id);
-      persistSaved(); renderSort(); draw();
-      return;
-    }
     const card = e.target.closest('.folio');
     if (card) openById(card.dataset.id);
   });
@@ -270,7 +232,6 @@ function renderPortfolio(items, filterConfig) {
     }
   });
 
-  renderSort();
   draw();
 }
 
@@ -284,6 +245,68 @@ function shade(hex, amt) {
   const g = clamp(((n >> 8) & 255) + amt);
   const b = clamp((n & 255) + amt);
   return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+}
+
+/* ---------- AI 생성 룸 장면 이미지 (SVG 일러스트) ----------
+   각 사례의 색감(afterColor/beforeColor)과 공간종류에 맞춰
+   인테리어 장면을 그려 카드/모달 이미지로 사용합니다. */
+function roomScene(i, idx, baseColor) {
+  const base = baseColor || i.afterColor || '#dcd3c7';
+  const wall = shade(base, 16);
+  const wallHi = shade(base, 34);
+  const floor = shade(base, -36);
+  const floorHi = shade(base, -18);
+  const dark = shade(base, -78);
+  const accent = shade(base, -48);
+  const soft = shade(base, -24);
+  const gid = 'sc_' + (i.id || 'x') + '_' + idx;
+  const st = i.spaceType || '';
+  const cat = i.category || '';
+
+  let furniture;
+  if (st === '카페' || st === '매장' || (cat === '상업' && st !== '오피스')) {
+    furniture = `
+      <line x1="150" y1="46" x2="150" y2="96" stroke="${dark}" stroke-width="2.5"/>
+      <path d="M138 96 h24 l-4 14 h-16 z" fill="${accent}"/>
+      <line x1="212" y1="46" x2="212" y2="84" stroke="${dark}" stroke-width="2.5"/>
+      <path d="M202 84 h20 l-3 12 h-14 z" fill="${accent}"/>
+      <rect x="118" y="196" width="176" height="60" rx="6" fill="${accent}"/>
+      <rect x="114" y="188" width="184" height="12" rx="5" fill="${dark}"/>
+      <rect x="150" y="228" width="9" height="34" fill="${dark}"/><circle cx="154.5" cy="224" r="12" fill="${soft}"/>
+      <rect x="206" y="228" width="9" height="34" fill="${dark}"/><circle cx="210.5" cy="224" r="12" fill="${soft}"/>`;
+  } else if (st === '오피스') {
+    furniture = `
+      <rect x="112" y="206" width="176" height="12" rx="3" fill="${accent}"/>
+      <rect x="120" y="218" width="8" height="44" fill="${dark}"/><rect x="272" y="218" width="8" height="44" fill="${dark}"/>
+      <rect x="150" y="164" width="62" height="42" rx="4" fill="${dark}"/><rect x="156" y="170" width="50" height="30" rx="2" fill="${wallHi}"/>
+      <rect x="176" y="206" width="10" height="8" fill="${dark}"/>
+      <rect x="232" y="210" width="36" height="18" rx="7" fill="${soft}"/><rect x="246" y="228" width="8" height="34" fill="${dark}"/>`;
+  } else {
+    furniture = `
+      <ellipse cx="205" cy="266" rx="128" ry="15" fill="${floorHi}" opacity=".55"/>
+      <rect x="112" y="210" width="158" height="48" rx="15" fill="${accent}"/>
+      <rect x="112" y="182" width="158" height="36" rx="13" fill="${soft}"/>
+      <rect x="122" y="198" width="42" height="28" rx="9" fill="${wall}"/><rect x="172" y="198" width="42" height="28" rx="9" fill="${wall}"/>
+      <line x1="300" y1="150" x2="300" y2="256" stroke="${dark}" stroke-width="3"/>
+      <path d="M286 150 h28 l-7 -22 h-14 z" fill="${wallHi}"/>`;
+  }
+
+  return `
+  <svg class="scene" viewBox="0 0 400 320" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${wallHi}"/><stop offset="1" stop-color="${wall}"/>
+    </linearGradient></defs>
+    <rect width="400" height="320" fill="url(#${gid})"/>
+    <path d="M0 252 H400 V320 H0 Z" fill="${floor}"/>
+    <path d="M0 252 H400 V260 H0 Z" fill="${floorHi}" opacity=".6"/>
+    <rect x="40" y="70" width="92" height="112" rx="4" fill="${wallHi}" stroke="${dark}" stroke-width="3"/>
+    <line x1="86" y1="70" x2="86" y2="182" stroke="${dark}" stroke-width="2"/>
+    <line x1="40" y1="126" x2="132" y2="126" stroke="${dark}" stroke-width="2"/>
+    <rect x="248" y="78" width="72" height="54" rx="3" fill="${wallHi}" stroke="${dark}" stroke-width="2"/>
+    <rect x="332" y="214" width="26" height="34" rx="4" fill="${accent}"/>
+    <path d="M345 214 C326 191 331 166 345 158 C359 166 364 191 345 214 Z" fill="${soft}"/>
+    ${furniture}
+  </svg>`;
 }
 
 /* ---------- 사례 상세 모달 (Before/After + 유사 사례) ---------- */
@@ -307,8 +330,8 @@ function openFolioModal(item, all) {
 
   body.innerHTML = `
     <div class="fm-ba">
-      <figure><div class="fm-img" style="background:linear-gradient(150deg, ${item.beforeColor}, ${shade(item.beforeColor, -12)})">${ICONS.room}</div><figcaption>BEFORE</figcaption></figure>
-      <figure><div class="fm-img" style="background:linear-gradient(150deg, ${item.afterColor}, ${shade(item.afterColor, -14)})">${ICONS.room}</div><figcaption class="after">AFTER</figcaption></figure>
+      <figure><div class="fm-img">${roomScene(item, 'b', item.beforeColor)}</div><figcaption>BEFORE</figcaption></figure>
+      <figure><div class="fm-img">${roomScene(item, 'a', item.afterColor)}</div><figcaption class="after">AFTER</figcaption></figure>
     </div>
     <div class="fm-info">
       <div class="fm-head">

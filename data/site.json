@@ -271,11 +271,12 @@
       "beforeColor": "#8f877c",
       "afterColor": "#e8e2d9",
       "consent": true,
-      "likes": 312,
       "photoTags": [
         "화이트",
         "개방감"
-      ]
+      ],
+      "structure": "방 3 · 욕실 2 · 거실 확장",
+      "cost": "6,800만원"
     },
     {
       "id": "p2",
@@ -301,11 +302,12 @@
       "beforeColor": "#9a9086",
       "afterColor": "#d8c3a5",
       "consent": true,
-      "likes": 289,
       "photoTags": [
         "우드",
         "감성"
-      ]
+      ],
+      "structure": "홀 · 바 · 창고",
+      "cost": "4,200만원"
     },
     {
       "id": "p3",
@@ -331,11 +333,12 @@
       "beforeColor": "#8a8f94",
       "afterColor": "#c9d6df",
       "consent": true,
-      "likes": 540,
       "photoTags": [
         "오피스",
         "모던"
-      ]
+      ],
+      "structure": "오픈형 · 회의실 2",
+      "cost": "7,500만원"
     },
     {
       "id": "p4",
@@ -361,11 +364,12 @@
       "beforeColor": "#918a7e",
       "afterColor": "#e0cfc0",
       "consent": true,
-      "likes": 201,
       "photoTags": [
         "우드",
         "단열"
-      ]
+      ],
+      "structure": "방 4 · 욕실 2 · 다락",
+      "cost": "9,200만원"
     },
     {
       "id": "p5",
@@ -391,11 +395,12 @@
       "beforeColor": "#8c8c8c",
       "afterColor": "#cfcfcf",
       "consent": true,
-      "likes": 178,
       "photoTags": [
         "인더스트리얼",
         "매장"
-      ]
+      ],
+      "structure": "매장 · 진열 · 창고",
+      "cost": "3,800만원"
     },
     {
       "id": "p6",
@@ -421,11 +426,12 @@
       "beforeColor": "#94897c",
       "afterColor": "#e6ddd1",
       "consent": true,
-      "likes": 423,
       "photoTags": [
         "내추럴",
         "수납"
-      ]
+      ],
+      "structure": "방 2 · 욕실 1 · ㄷ자 주방",
+      "cost": "4,200만원"
     },
     {
       "id": "p7",
@@ -451,11 +457,12 @@
       "beforeColor": "#8b8478",
       "afterColor": "#ded3c4",
       "consent": true,
-      "likes": 367,
       "photoTags": [
         "클래식",
         "갤러리"
-      ]
+      ],
+      "structure": "방 4 · 욕실 2 · 대면형 주방",
+      "cost": "9,800만원"
     },
     {
       "id": "p8",
@@ -481,11 +488,12 @@
       "beforeColor": "#8f8880",
       "afterColor": "#e9e3da",
       "consent": true,
-      "likes": 156,
       "photoTags": [
         "미니멀",
         "원룸"
-      ]
+      ],
+      "structure": "원룸 · 분리형 침실",
+      "cost": "2,600만원"
     }
   ],
   "reviews": [
