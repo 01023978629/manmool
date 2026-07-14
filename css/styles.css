@@ -383,31 +383,23 @@ ul, ol { list-style: none; }
 .folio-meta { font-size: 13.5px; color: var(--ink-soft); }
 .folio-budget { font-size: 13px; color: var(--brand-dark); font-weight: 700; margin-top: 2px; }
 
-/* ===== 오늘의집 스타일 사진 피드 ===== */
-.folio-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 2px 0 20px; flex-wrap: wrap; }
-.folio-sort { display: flex; gap: 7px; flex-wrap: wrap; }
-.sort-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink-soft); font-weight: 700; font-size: 13.5px; padding: 7px 15px; border-radius: 999px; cursor: pointer; font-family: inherit; transition: .15s; }
-.sort-chip.active, .sort-chip:hover { background: var(--ink); border-color: var(--ink); color: #fff; }
-.folio-count { margin: 0; color: var(--ink-soft); font-size: 13.5px; font-weight: 600; }
-
-.portfolio-feed { columns: 4 250px; column-gap: 18px; }
-.portfolio-feed .folio { break-inside: avoid; width: 100%; margin: 0 0 18px; display: inline-block; cursor: pointer; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-sm); transition: transform .18s ease, box-shadow .25s ease; }
-.portfolio-feed .folio:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
-.folio-photo { position: relative; display: grid; place-items: center; overflow: hidden; }
-.folio-photo svg { width: 50px; height: 50px; opacity: .5; color: rgba(255,255,255,.85); }
-.save-btn { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(255,255,255,.92); color: #ff5a7a; font-size: 18px; line-height: 1; cursor: pointer; display: grid; place-items: center; box-shadow: 0 2px 10px rgba(0,0,0,.18); transition: transform .12s ease, background .15s; }
-.save-btn:hover { transform: scale(1.12); }
-.save-btn.on { color: #ff3d68; }
-.photo-tags { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
-.photo-tags span { background: rgba(0,0,0,.45); color: #fff; font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
-.folio-info { padding: 12px 14px 14px; }
-.folio-info h3 { font-size: 15.5px; margin-bottom: 4px; }
-.folio-sub { font-size: 12.5px; color: var(--ink-soft); }
-.folio-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 9px; }
-.folio-foot .folio-budget { font-size: 13px; font-weight: 800; color: var(--brand-dark); }
-.folio-likes { font-size: 12.5px; color: var(--ink-soft); font-weight: 700; }
-.folio-likes.liked { color: #ff3d68; }
-@media (max-width: 640px) { .portfolio-feed { columns: 2 150px; column-gap: 12px; } .portfolio-feed .folio { margin-bottom: 12px; } }
+/* ===== 시공 사례 카드 (참고 자료 레이아웃) ===== */
+.folio-count { text-align: center; color: var(--ink-soft); font-size: 14px; font-weight: 700; margin: 2px 0 24px; }
+.portfolio-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.portfolio-cards .folio { cursor: pointer; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: var(--shadow-sm); transition: transform .18s ease, box-shadow .25s ease; display: flex; flex-direction: column; }
+.portfolio-cards .folio:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
+.folio-photo { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
+.folio-photo .scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; }
+.ai-badge { position: absolute; right: 12px; bottom: 12px; background: rgba(20,20,20,.62); color: #fff; font-size: 11.5px; font-weight: 700; padding: 5px 12px; border-radius: 999px; backdrop-filter: blur(3px); }
+.folio-info { padding: 20px 22px 18px; display: flex; flex-direction: column; flex: 1; }
+.folio-title { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin-bottom: 16px; }
+.folio-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+.folio-specs dt { font-size: 12.5px; color: var(--ink-soft); font-weight: 600; margin-bottom: 3px; }
+.folio-specs dd { font-size: 14.5px; font-weight: 700; color: var(--ink); line-height: 1.4; }
+.folio-more { display: inline-block; margin-top: 18px; color: var(--brand-dark); font-weight: 800; font-size: 14.5px; }
+.portfolio-cards .folio:hover .folio-more { text-decoration: underline; }
+@media (max-width: 900px) { .portfolio-cards { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .portfolio-cards { grid-template-columns: 1fr; } }
 
 /* ===== 사례 상세 모달 ===== */
 .folio-modal { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 20px; }
@@ -418,8 +410,8 @@ ul, ol { list-style: none; }
 .folio-modal-body { padding: 0 0 28px; }
 .fm-ba { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
 .fm-ba figure { position: relative; }
-.fm-img { aspect-ratio: 16/11; display: grid; place-items: center; }
-.fm-img svg { width: 56px; height: 56px; opacity: .4; color: rgba(255,255,255,.85); }
+.fm-img { aspect-ratio: 16/11; position: relative; overflow: hidden; }
+.fm-img .scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .fm-ba figcaption { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,.6); color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .1em; padding: 4px 12px; border-radius: 999px; }
 .fm-ba figcaption.after { background: var(--brand); }
 .fm-info { padding: 24px 28px 0; }
