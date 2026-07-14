@@ -1,5 +1,7 @@
 /* ===== 업무 시스템 공통 셸 (마이페이지 · 현장관리 · A/S) ===== */
 .app-body { background: var(--bg-alt); }
+.app-demo-banner { background: var(--brand-soft); color: var(--brand-dark); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 11px 16px; margin-bottom: 16px; font-size: 13.5px; text-align: center; }
+.app-demo-banner a { color: var(--brand-dark); font-weight: 800; text-decoration: underline; }
 .app-header { background: var(--dark); color: #fff; position: sticky; top: 0; z-index: 30; }
 .app-header-inner { max-width: 1160px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .app-brand { display: flex; align-items: center; gap: 12px; }

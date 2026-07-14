@@ -427,6 +427,7 @@ ul, ol { list-style: none; }
 .utility-nav { display: flex; gap: 18px; margin-left: auto; }
 .utility-nav a { color: #d8c6ab; font-weight: 600; transition: color .15s; }
 .utility-nav a:hover { color: #fff; }
+.utility-nav a.util-primary { color: #f0dcc4; font-weight: 800; }
 
 /* ===== 면허·보증·A/S (신뢰) ===== */
 .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
