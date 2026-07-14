@@ -76,6 +76,7 @@
 .mini.hold { background: #e9c96a; color: #4a3a08; }
 .mini.no { background: #d98a7f; color: #fff; }
 .mini.ghost { background: var(--bg-alt); color: var(--ink); border: 1px solid var(--line); }
+.mini.field { background: var(--brand); color: #fff; }
 .mini:hover { transform: translateY(-1px); }
 
 .draft-box { margin-top: 14px; }

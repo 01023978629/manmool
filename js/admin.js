@@ -100,6 +100,7 @@
           <button class="mini hold" data-act="보류">보류</button>
           <button class="mini no" data-act="거절">거절</button>
           <button class="mini ghost" data-act="draft">고객 안내문 초안</button>
+          <button class="mini field" data-act="tofield">🏗 현장 앱으로 보내기</button>
         </div>
       </div>
       <div class="draft-box" hidden></div>
@@ -132,12 +133,37 @@
     if (it) { it.status = status; save(list); render(); }
   }
 
+  // 리드를 현장 앱(hyeonjang) 딥링크로 인코딩
+  function utf8ToB64url(str) {
+    return btoa(unescape(encodeURIComponent(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function fieldAppLink(d) {
+    const app = (CONFIG.hyeonjang && CONFIG.hyeonjang.appUrl) || '';
+    const lead = {
+      name: d.name, phone: d.phone, region: d.region, type: d.type, area: d.area,
+      scope: d.scope, works: d.works, budget: d.budget, movein: d.movein,
+      estimateHint: d.estimateHint, memo: d.memo
+    };
+    const url = app ? app + (app.indexOf('?') >= 0 ? '&' : '?') + 'lead=' + utf8ToB64url(JSON.stringify(lead)) : '';
+    return { app, url };
+  }
+
   function onListClick(e) {
     const btn = e.target.closest('button[data-act]');
     if (!btn) return;
     const cardEl = btn.closest('.inq-card');
     const id = cardEl.dataset.id;
     const act = btn.dataset.act;
+    if (act === 'tofield') {
+      const d = load().find((x) => x.id === id);
+      const { app, url } = fieldAppLink(d);
+      if (!app) {
+        alert('현장 앱 주소가 설정되지 않았습니다.\n운영자는 data/config.json의 hyeonjang.appUrl을 입력하세요.');
+        return;
+      }
+      window.open(url, '_blank', 'noopener');
+      return;
+    }
     if (act === 'draft') {
       const list = load();
       const d = list.find((x) => x.id === id);
