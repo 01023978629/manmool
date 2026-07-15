@@ -106,7 +106,7 @@
       .map((x) => {
         let s = 0;
         if (catMatch && x.category === catMatch) s += 3;
-        s += Math.max(0, 4 - Math.abs(x.area - area) / 5);
+        s += x.area ? Math.max(0, 4 - Math.abs(x.area - area) / 5) : 1;
         return { x, s };
       })
       .sort((a, b) => b.s - a.s)
@@ -165,13 +165,19 @@
       </div>
       ${sims.length ? `
       <div class="cr-similar">
-        <h4>비슷한 시공 사례</h4>
+        <h4>${sims.some((s) => s.aiDesign) ? '추천 디자인' : '비슷한 시공 사례'}</h4>
         <div class="cr-similar-grid">
-          ${sims.map((s) => `
+          ${sims.map((s) => {
+            const thumb = s.photo
+              ? `background-image:url('${s.photo}');background-size:cover;background-position:center`
+              : `background:linear-gradient(150deg, ${s.afterColor || '#cdb8a0'}, ${shadeLocal(s.afterColor || '#cdb8a0', -14)})`;
+            const sub = [s.spaceType, s.style].filter(Boolean).join(' · ') || (s.area ? s.area + '평 · ' + (s.style || '') : (s.style || ''));
+            return `
             <button type="button" class="cr-sim" data-id="${s.id}">
-              <span class="cr-sim-thumb" style="background:linear-gradient(150deg, ${s.afterColor}, ${shadeLocal(s.afterColor, -14)})"></span>
-              <b>${s.title}</b><small>${s.area}평 · ${s.style}</small>
-            </button>`).join('')}
+              <span class="cr-sim-thumb" style="${thumb}"></span>
+              <b>${s.title}</b><small>${sub}</small>
+            </button>`;
+          }).join('')}
         </div>
       </div>` : ''}
       <div class="cr-flow">
