@@ -2,12 +2,16 @@
   "company": {
     "name": "만물인테리어",
     "brandEn": "Loop Agent",
+    "specialty": "욕실·주방 방수·설비 전문",
     "tagline": "AI가 24시간 운영하는 만물인테리어",
-    "description": "상담부터 견적, 시공 관리, 사후 관리까지 — 루프 에이전트가 끊임없이 순환하며 운영하는 차세대 인테리어 회사입니다.",
-    "phone": "1600-0000",
-    "email": "hello@manmool.ai",
+    "description": "욕실·주방 방수·설비를 중심으로, 상담부터 견적·시공 관리·A/S까지 AI 루프 에이전트가 운영하는 만물인테리어입니다.",
+    "rep": "전병덕",
+    "repTitle": "팀장",
+    "phone": "010-5439-8629",
+    "email": "1dncjf@naver.com",
     "hours": "AI 상담 24시간 / 유선 상담 09:00 - 20:00",
-    "address": "서울특별시 어딘가 만물로 1",
+    "address": "",
+    "bizno": "895-48-01132",
     "established": 2024
   },
   "stats": [
