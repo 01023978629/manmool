@@ -408,6 +408,44 @@ function renderReviews(reviews) {
     </article>`).join('');
 }
 
+/* ---------- 자주 묻는 질문 (FAQ) ---------- */
+function renderFaq(faq) {
+  const host = document.getElementById('faqList');
+  if (!host || !Array.isArray(faq) || !faq.length) return;
+  host.innerHTML = faq.map((f, i) => `
+    <div class="faq-item reveal">
+      <button type="button" class="faq-q" aria-expanded="false" aria-controls="faq-a-${i}" id="faq-q-${i}">
+        <span>${f.q}</span><span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a" id="faq-a-${i}" role="region" aria-labelledby="faq-q-${i}" hidden>
+        <p>${f.a}</p>
+      </div>
+    </div>`).join('');
+  host.querySelectorAll('.faq-q').forEach((btn) => btn.addEventListener('click', () => {
+    const open = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!open));
+    btn.querySelector('.faq-icon').textContent = open ? '+' : '−';
+    document.getElementById(btn.getAttribute('aria-controls')).hidden = open;
+  }));
+
+  // FAQPage 구조화 데이터 주입 (검색 리치 결과)
+  try {
+    const ld = {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a }
+      }))
+    };
+    const s = document.createElement('script');
+    s.type = 'application/ld+json';
+    s.textContent = JSON.stringify(ld);
+    document.head.appendChild(s);
+  } catch (e) { /* noop */ }
+}
+
 /* ---------- 연락처 ---------- */
 function renderContact(company) {
   const items = [
@@ -542,6 +580,7 @@ async function init() {
   setupFolioModal();
   renderTrust(data.trust);
   renderReviews(data.reviews);
+  renderFaq(data.faq);
   renderContact(data.company);
   observeReveal();
 
