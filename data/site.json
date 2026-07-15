@@ -212,131 +212,147 @@
   "portfolioFilters": {
     "area": [],
     "budget": [],
-    "style": [],
-    "scope": [
-      "방수·설비",
-      "부분공사",
-      "전체공사"
+    "scope": [],
+    "style": [
+      "미니멀",
+      "내추럴",
+      "모던",
+      "웜 베이지",
+      "호텔식"
     ]
   },
   "portfolio": [
     {
-      "id": "case-bath-waterproof-1",
-      "title": "욕실 이중 방수 + 배관 정리",
-      "category": "방수·설비",
-      "spaceType": "욕실",
-      "process": "방수",
-      "scope": "방수·설비",
-      "year": 2026,
-      "problem": "노후 욕실 바닥·벽 균열로 누수 위험이 있었고, 방수층이 제대로 없어 아랫집 누수 우려가 컸습니다.",
-      "solution": "바탕을 정리한 뒤 벽·바닥에 탄성 방수를 이중으로 도포하고 모서리를 보강했습니다. 와이어메쉬와 배관을 정리해 재시공했습니다.",
+      "id": "design-minimal-white",
+      "title": "미니멀 화이트 거실",
+      "category": "AI추천",
+      "spaceType": "거실",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f0ebe3",
+        "#e7e1d7",
+        "#d3b98e",
+        "#8ba888"
+      ],
       "materials": [
-        "탄성 방수재",
-        "모서리 보강 테이프",
-        "와이어메쉬",
-        "PVC 배관"
+        "웜 화이트 도장",
+        "오크 강마루",
+        "린넨 패브릭"
       ],
-      "photo": "assets/cases/case-blue-mesh.jpg",
-      "photoTags": [
-        "#욕실방수",
-        "#이중방수",
-        "#배관"
-      ],
-      "afterColor": "#2f7fd0",
-      "consent": true
+      "tip": "군더더기 없는 배치로 좁은 거실도 넓어 보입니다. 조명은 간접등 위주로 계획하세요.",
+      "photo": "assets/designs/minimal-white.png",
+      "aiDesign": true
     },
     {
-      "id": "case-bath-floor",
-      "title": "욕실 바닥 전면 방수",
-      "category": "방수·설비",
-      "spaceType": "욕실",
-      "process": "방수",
-      "scope": "방수·설비",
-      "year": 2026,
-      "problem": "바닥 방수 노후로 물이 스며 아랫집 천장에 누수 흔적이 생겼습니다.",
-      "solution": "기존 마감을 철거하고 바닥 전면에 방수를 도포했습니다. 배수 구배를 다시 잡아 물 빠짐을 확보했습니다.",
+      "id": "design-natural-wood",
+      "title": "내추럴 우드 거실",
+      "category": "AI추천",
+      "spaceType": "거실",
+      "style": "내추럴",
+      "mood": "따뜻하고 편안한",
+      "palette": [
+        "#efe7db",
+        "#caa06a",
+        "#c1924f",
+        "#6f9d63"
+      ],
       "materials": [
-        "탄성 방수재",
-        "프라이머",
-        "배수 트랩"
+        "내추럴 오크",
+        "라탄 소품",
+        "그린 식물"
       ],
-      "photo": "assets/cases/case-blue-floor.jpg",
-      "photoTags": [
-        "#욕실방수",
-        "#바닥방수"
-      ],
-      "afterColor": "#2f7fd0",
-      "consent": true
+      "tip": "우드 톤과 식물로 카페 같은 감성을 냅니다. 패브릭은 베이지·그린 계열을 추천해요.",
+      "photo": "assets/designs/natural-wood.png",
+      "aiDesign": true
     },
     {
-      "id": "case-bath-coat",
-      "title": "욕실 도막 방수 + 배관 관통부 보강",
-      "category": "방수·설비",
-      "spaceType": "욕실",
-      "process": "방수",
-      "scope": "방수·설비",
-      "year": 2026,
-      "problem": "벽·바닥 이음부와 배관 주변 방수가 취약해 누수가 반복됐습니다.",
-      "solution": "도막 방수를 벽·바닥에 고르게 도포하고, 배관 관통부를 방수 슬리브와 실링으로 보강했습니다.",
+      "id": "design-modern-gray",
+      "title": "모던 그레이 거실",
+      "category": "AI추천",
+      "spaceType": "거실",
+      "style": "모던",
+      "mood": "시크하고 세련된",
+      "palette": [
+        "#e8e7e6",
+        "#565b61",
+        "#2c2f33",
+        "#7f9a7c"
+      ],
       "materials": [
-        "도막 방수재",
-        "배관 방수 슬리브",
-        "실리콘 실링"
+        "그레이 포세린 타일",
+        "무광 블랙 하드웨어",
+        "패브릭 소파"
       ],
-      "photo": "assets/cases/case-coat-gray.jpg",
-      "photoTags": [
-        "#욕실방수",
-        "#도막방수"
-      ],
-      "afterColor": "#5f6f5a",
-      "consent": true
+      "tip": "채도를 낮춰 고급스럽게. 블랙 포인트로 공간의 라인을 살립니다.",
+      "photo": "assets/designs/modern-gray.png",
+      "aiDesign": true
     },
     {
-      "id": "case-bath-mortar",
-      "title": "욕실 미장·방수 바탕 작업",
-      "category": "방수·설비",
-      "spaceType": "욕실",
-      "process": "미장·방수",
-      "scope": "방수·설비",
-      "year": 2026,
-      "problem": "바닥 수평·구배가 맞지 않아 물이 고이고, 방수 바탕이 고르지 못했습니다.",
-      "solution": "미장으로 구배를 다시 잡고 방수 바탕을 정리했습니다. 배관 위치를 확정한 뒤 방수를 진행했습니다.",
+      "id": "design-warm-beige",
+      "title": "웜 베이지 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "style": "웜 베이지",
+      "mood": "포근하고 아늑한",
+      "palette": [
+        "#efe6d9",
+        "#dcc7a6",
+        "#c4a06f",
+        "#88a37f"
+      ],
       "materials": [
-        "방수 시멘트",
-        "미장 모르타르",
-        "배관 자재"
+        "베이지 침구",
+        "우드 헤드보드",
+        "간접 조명"
       ],
-      "photo": "assets/cases/case-mortar.jpg",
-      "photoTags": [
-        "#욕실",
-        "#미장",
-        "#방수바탕"
-      ],
-      "afterColor": "#8a8175",
-      "consent": true
+      "tip": "침실은 채도 낮은 베이지로 숙면 분위기를 만드세요. 무드등을 곁들이면 좋아요.",
+      "photo": "assets/designs/warm-beige.png",
+      "aiDesign": true
     },
     {
-      "id": "case-bath-drain",
-      "title": "배수 트랩 교체 + 방수 마감",
-      "category": "방수·설비",
-      "spaceType": "욕실",
-      "process": "설비·배수",
-      "scope": "방수·설비",
-      "year": 2026,
-      "problem": "배수 트랩이 노후해 냄새가 역류하고 주변으로 물이 새어 나왔습니다.",
-      "solution": "배수 트랩과 설비를 교체하고 주변을 방수 마감했습니다. 타일 이음부 줄눈까지 방수 처리했습니다.",
+      "id": "design-modern-kitchen",
+      "title": "모던 화이트 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "style": "모던",
+      "mood": "깔끔하고 실용적",
+      "palette": [
+        "#efece7",
+        "#ecebe6",
+        "#c49a63",
+        "#373b3e"
+      ],
       "materials": [
-        "방수 트랩",
-        "PVC 배관",
-        "줄눈 방수"
+        "무광 화이트 도어",
+        "우드 상판",
+        "블랙 수전"
       ],
-      "photo": "assets/cases/case-drain.jpg",
-      "photoTags": [
-        "#배수설비",
-        "#트랩교체"
+      "tip": "화이트에 우드 상판은 질리지 않는 조합입니다. 후드·수전을 블랙으로 포인트 주세요.",
+      "photo": "assets/designs/modern-kitchen.png",
+      "aiDesign": true
+    },
+    {
+      "id": "design-hotel-bath",
+      "title": "호텔식 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "style": "호텔식",
+      "mood": "차분하고 고급스러운",
+      "palette": [
+        "#e9e5df",
+        "#eceae6",
+        "#c09967",
+        "#33373a"
       ],
-      "afterColor": "#b8b0a0",
-      "consent": true
+      "materials": [
+        "대형 포세린 타일",
+        "무광 블랙 수전",
+        "우드 세면대"
+      ],
+      "tip": "큰 타일로 줄눈을 줄이면 넓고 깔끔해 보입니다. 간접 조명은 필수예요.",
+      "photo": "assets/designs/hotel-bath.png",
+      "aiDesign": true
     }
   ],
   "reviews": [
