@@ -585,6 +585,9 @@ ul, ol { list-style: none; }
 .crf-note b { color: var(--brand-dark); }
 @media (max-width: 560px) { .crf-steps { grid-template-columns: repeat(2, 1fr); } }
 
+/* ===== 스크린리더 전용 ===== */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
 /* ===== Reveal animation ===== */
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
 .reveal.in { opacity: 1; transform: none; }
