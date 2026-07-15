@@ -109,10 +109,10 @@
     ]
   },
   "notifications": [
-    { "date": "07-22 14:10", "text": "거실 천장 배선 작업이 완료됐어요. 현장 사진을 확인해 주세요 📷", "kind": "진행", "approved": true },
-    { "date": "07-16 17:30", "text": "붙박이장 골조가 완료됐습니다. 다음은 전기·설비 공정이에요.", "kind": "진행", "approved": true },
-    { "date": "07-10 09:20", "text": "중도금 1차 입금이 확인되었습니다. 감사합니다.", "kind": "결제", "approved": true },
-    { "date": "07-09 11:05", "text": "발코니 이중창 교체가 끝났습니다.", "kind": "진행", "approved": true }
+    { "date": "07-22 14:10", "text": "거실 천장 배선 작업이 완료됐어요. 현장 사진을 확인해 주세요 📷", "kind": "진행", "approved": true, "read": false, "remindAt": "07-23 14:10" },
+    { "date": "07-16 17:30", "text": "붙박이장 골조가 완료됐습니다. 다음은 전기·설비 공정이에요.", "kind": "진행", "approved": true, "read": true },
+    { "date": "07-10 09:20", "text": "중도금 1차 입금이 확인되었습니다. 감사합니다.", "kind": "결제", "approved": true, "read": true },
+    { "date": "07-09 11:05", "text": "발코니 이중창 교체가 끝났습니다.", "kind": "진행", "approved": true, "read": true }
   ],
   "checklist": [
     { "item": "전 공간 청소 상태", "done": false },
