@@ -75,6 +75,9 @@ integrations/n8n/*.workflow.json        n8n 워크플로(import용)
    - `kakao-chatbot-skill.workflow.json` — 카카오 i 오픈빌더 챗봇 스킬서버
 2. `data/config.json`에 n8n 웹훅 URL과 카카오 채널 URL을 넣고 `enabled: true`, `demoMode: false`로 전환합니다.
 3. 자세한 절차는 [`integrations/INTEGRATION.md`](integrations/INTEGRATION.md) 참고.
+4. **n8n을 아직 안 띄웠다면** — 무료 클라우드부터 처음부터 세우는
+   [`integrations/SETUP-n8n-kakao.md`](integrations/SETUP-n8n-kakao.md)를 먼저 보세요.
+   전환 상태는 관리자 화면(`admin.html`)의 **연동 상태** 패널에서 확인·테스트할 수 있습니다.
 
 > **안전장치:** 금액·계약·고객 발송은 **대표 승인 후에만** 실행됩니다(초안·발송 분리).
 > AI는 요약·분류·초안까지만 담당합니다.
