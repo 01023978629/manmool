@@ -241,7 +241,7 @@
         "린넨 패브릭"
       ],
       "tip": "군더더기 없는 배치로 좁은 거실도 넓어 보입니다. 조명은 간접등 위주로 계획하세요.",
-      "photo": "assets/designs/minimal-white.png",
+      "photo": "assets/designs/minimal-white.jpg",
       "aiDesign": true
     },
     {
@@ -263,7 +263,7 @@
         "그린 식물"
       ],
       "tip": "우드 톤과 식물로 카페 같은 감성을 냅니다. 패브릭은 베이지·그린 계열을 추천해요.",
-      "photo": "assets/designs/natural-wood.png",
+      "photo": "assets/designs/natural-wood.jpg",
       "aiDesign": true
     },
     {
@@ -285,7 +285,7 @@
         "패브릭 소파"
       ],
       "tip": "채도를 낮춰 고급스럽게. 블랙 포인트로 공간의 라인을 살립니다.",
-      "photo": "assets/designs/modern-gray.png",
+      "photo": "assets/designs/modern-gray.jpg",
       "aiDesign": true
     },
     {
@@ -307,7 +307,7 @@
         "간접 조명"
       ],
       "tip": "침실은 채도 낮은 베이지로 숙면 분위기를 만드세요. 무드등을 곁들이면 좋아요.",
-      "photo": "assets/designs/warm-beige.png",
+      "photo": "assets/designs/warm-beige.jpg",
       "aiDesign": true
     },
     {
@@ -329,7 +329,7 @@
         "블랙 수전"
       ],
       "tip": "화이트에 우드 상판은 질리지 않는 조합입니다. 후드·수전을 블랙으로 포인트 주세요.",
-      "photo": "assets/designs/modern-kitchen.png",
+      "photo": "assets/designs/modern-kitchen.jpg",
       "aiDesign": true
     },
     {
@@ -351,7 +351,7 @@
         "우드 세면대"
       ],
       "tip": "큰 타일로 줄눈을 줄이면 넓고 깔끔해 보입니다. 간접 조명은 필수예요.",
-      "photo": "assets/designs/hotel-bath.png",
+      "photo": "assets/designs/hotel-bath.jpg",
       "aiDesign": true
     }
   ],
