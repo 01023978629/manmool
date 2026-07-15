@@ -90,6 +90,7 @@
         <div><dt>공간/범위</dt><dd>${d.type} ${d.scope || ''} · ${worksTxt}</dd></div>
         <div><dt>예산/시기</dt><dd>${d.budget || '-'} · ${d.movein || '-'}</dd></div>
         <div><dt>참고 견적</dt><dd>${d.estimateHint || '-'}</dd></div>
+        ${d.selectedDesign ? `<div><dt>선택 디자인</dt><dd>🎨 ${d.selectedDesign}</dd></div>` : ''}
       </dl>
       ${d.memo ? `<p class="inq-memo">“${d.memo}”</p>` : ''}
 

@@ -407,6 +407,16 @@ function openFolioModal(item, all) {
   body.querySelectorAll('.fm-sim').forEach((b) => b.addEventListener('click', () => {
     openFolioModal(all.find((x) => x.id === b.dataset.goto), all);
   }));
+
+  // '이 디자인으로 상담 신청' → 선택 디자인을 상담 폼으로 전달
+  if (item.aiDesign) {
+    const ctaBtn = body.querySelector('a[href="#inquiry"]');
+    if (ctaBtn) ctaBtn.addEventListener('click', () => {
+      if (window.MANMUL && typeof window.MANMUL.selectDesign === 'function') {
+        window.MANMUL.selectDesign({ id: item.id, title: item.title, style: item.style, spaceType: item.spaceType });
+      }
+    });
+  }
 }
 
 function setupFolioModal() {
@@ -664,6 +674,14 @@ async function init() {
   // 대화식 예상견적 결과를 상담 폼으로 넘기기 위해 노출
   window.MANMUL.lastEstimate = '';
   window.MANMUL.getEstimate = () => window.MANMUL.lastEstimate || '';
+
+  // 선택한 AI 추천 디자인을 상담 폼으로 전달
+  window.MANMUL.selectedDesign = null;
+  window.MANMUL.selectDesign = (d) => {
+    window.MANMUL.selectedDesign = d || null;
+    document.dispatchEvent(new CustomEvent('manmul:design', { detail: d || null }));
+  };
+  window.MANMUL.getDesign = () => window.MANMUL.selectedDesign;
 
   // estimate.js(대화식 견적) 초기화
   if (typeof window.initEstimator === 'function') window.initEstimator(window.MANMUL);
