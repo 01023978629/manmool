@@ -216,8 +216,12 @@
     "style": [
       "미니멀",
       "내추럴",
+      "북유럽",
       "모던",
+      "인더스트리얼",
+      "빈티지",
       "웜 베이지",
+      "프렌치",
       "호텔식"
     ]
   },
@@ -267,6 +271,28 @@
       "aiDesign": true
     },
     {
+      "id": "design-scandi",
+      "title": "북유럽 스칸디 거실",
+      "category": "AI추천",
+      "spaceType": "거실",
+      "style": "북유럽",
+      "mood": "밝고 산뜻한",
+      "palette": [
+        "#f4f2ee",
+        "#dcc39a",
+        "#9fb4c4",
+        "#7fa27a"
+      ],
+      "materials": [
+        "밝은 오크",
+        "화이트 벽",
+        "패브릭 소파"
+      ],
+      "tip": "밝은 우드와 화이트로 넓고 산뜻하게. 소프트 블루·그린을 소량 포인트로 쓰면 좋아요.",
+      "photo": "assets/designs/scandi.jpg",
+      "aiDesign": true
+    },
+    {
       "id": "design-modern-gray",
       "title": "모던 그레이 거실",
       "category": "AI추천",
@@ -289,6 +315,50 @@
       "aiDesign": true
     },
     {
+      "id": "design-industrial",
+      "title": "인더스트리얼 거실",
+      "category": "AI추천",
+      "spaceType": "거실",
+      "style": "인더스트리얼",
+      "mood": "빈티지하고 감각적인",
+      "palette": [
+        "#6f655c",
+        "#8a5a34",
+        "#7d5236",
+        "#26231f"
+      ],
+      "materials": [
+        "노출 벽돌·콘크리트",
+        "가죽 소파",
+        "블랙 메탈"
+      ],
+      "tip": "노출 마감과 가죽·블랙 메탈로 감각적인 분위기를 냅니다. 조명은 따뜻한 색으로 균형을 맞추세요.",
+      "photo": "assets/designs/industrial.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-vintage",
+      "title": "빈티지 레트로 거실",
+      "category": "AI추천",
+      "spaceType": "거실",
+      "style": "빈티지",
+      "mood": "따뜻하고 개성 있는",
+      "palette": [
+        "#e9e0cf",
+        "#c99a3f",
+        "#3f5b47",
+        "#9a6a35"
+      ],
+      "materials": [
+        "머스터드 패브릭",
+        "딥그린 포인트",
+        "원목 가구"
+      ],
+      "tip": "머스터드·딥그린 조합으로 레트로 감성을 냅니다. 원목 가구로 따뜻함을 더하세요.",
+      "photo": "assets/designs/vintage.jpg",
+      "aiDesign": true
+    },
+    {
       "id": "design-warm-beige",
       "title": "웜 베이지 침실",
       "category": "AI추천",
@@ -308,6 +378,28 @@
       ],
       "tip": "침실은 채도 낮은 베이지로 숙면 분위기를 만드세요. 무드등을 곁들이면 좋아요.",
       "photo": "assets/designs/warm-beige.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-french",
+      "title": "프렌치 모던 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "style": "프렌치",
+      "mood": "우아하고 부드러운",
+      "palette": [
+        "#efe8dd",
+        "#eadfce",
+        "#c9ad82",
+        "#c3a878"
+      ],
+      "materials": [
+        "몰딩 벽",
+        "크림 침구",
+        "골드 포인트"
+      ],
+      "tip": "벽 몰딩과 크림 톤으로 우아하게. 골드 소품을 포인트로 더하면 완성도가 올라가요.",
+      "photo": "assets/designs/french.jpg",
       "aiDesign": true
     },
     {
