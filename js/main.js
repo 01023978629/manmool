@@ -149,8 +149,8 @@ function renderPortfolio(items, filterConfig) {
 
   filtersEl.innerHTML = `
     <div class="folio-search">
-      <input type="search" id="folioComplex" placeholder="현장·단지명 검색" aria-label="현장명 검색" />
-      <span class="folio-ai-note">🤖 사진을 업로드하면 AI가 공간·공정을 자동 분류합니다</span>
+      <input type="search" id="folioComplex" placeholder="디자인·스타일 검색 (예: 모던)" aria-label="디자인 검색" />
+      <span class="folio-ai-note">🤖 우리 집 사진을 올리면 AI가 어울리는 디자인을 추천합니다</span>
     </div>
     ${groups.map((g) => `
     <div class="folio-filter-group" data-group="${g.key}">
@@ -181,27 +181,30 @@ function renderPortfolio(items, filterConfig) {
       (!state.year || String(it.year) === state.year) &&
       (!q || (it.complex && it.complex.includes(q)) || (it.title && it.title.includes(q))));
 
-    countEl.textContent = `총 ${list.length}개 사례`;
+    countEl.textContent = `총 ${list.length}개 디자인`;
     emptyEl.hidden = list.length !== 0;
     grid.innerHTML = list.map((i, idx) => {
       // 값이 있는 항목만 노출 (모르는 수치는 지어내지 않음)
       const specs = [
         ['공간', i.spaceType],
+        ['스타일', i.style],
+        ['분위기', i.mood],
         ['주요 공정', i.process],
         ['공사 범위', i.scope],
         ['평수', i.area ? i.area + '평' : null],
         ['공사비', i.cost || i.budget || null],
         ['공사 기간', i.period],
         ['지역', i.region],
-        ['스타일', i.style],
         ['집 구조', i.structure],
         ['시공', i.year ? i.year + '년' : null]
       ].filter(([, v]) => v).slice(0, 6);
+      const badge = i.aiDesign ? '<span class="ai-badge">✨ AI 추천 디자인</span>'
+        : (i.photo ? '' : '<span class="ai-badge">AI 스타일 참고 이미지</span>');
       return `
       <article class="folio reveal" data-id="${i.id}" tabindex="0" role="button" aria-label="${i.title} 상세보기">
         <div class="folio-photo">
           ${i.photo ? `<img class="scene" src="${i.photo}" alt="${i.title}" loading="lazy" />` : roomScene(i, idx, i.afterColor)}
-          ${i.photo ? '' : '<span class="ai-badge">AI 스타일 참고 이미지</span>'}
+          ${badge}
         </div>
         <div class="folio-info">
           <h3 class="folio-title">${i.title}</h3>
@@ -344,8 +347,9 @@ function openFolioModal(item, all) {
     : `<span class="fm-sim-thumb" style="background:linear-gradient(150deg, ${s.afterColor || '#cdb8a0'}, ${shade(s.afterColor || '#cdb8a0', -14)})"></span>`;
   const simSub = (s) => [s.spaceType, s.process || s.style].filter(Boolean).join(' · ') || '시공 사례';
 
+  const mediaCap = item.aiDesign ? 'AI 추천 디자인 시안' : '시공 현장';
   const media = item.photo
-    ? `<figure class="fm-single"><div class="fm-img"><img class="scene" src="${item.photo}" alt="${item.title}" /></div><figcaption>시공 현장</figcaption></figure>`
+    ? `<figure class="fm-single"><div class="fm-img"><img class="scene" src="${item.photo}" alt="${item.title}" /></div><figcaption>${mediaCap}</figcaption></figure>`
     : `<figure><div class="fm-img">${roomScene(item, 'b', item.beforeColor)}</div><figcaption>BEFORE</figcaption></figure>
        <figure><div class="fm-img">${roomScene(item, 'a', item.afterColor)}</div><figcaption class="after">AFTER</figcaption></figure>`;
 
@@ -353,12 +357,16 @@ function openFolioModal(item, all) {
   const headSub = [item.region, item.complex].filter(Boolean).join(' · ');
   const gridRows = [
     ['공간', item.spaceType],
+    ['스타일', item.style],
+    ['분위기', item.mood],
     ['주요 공정', item.process],
     ['공사범위', item.scope],
     ['면적', item.area ? item.area + '평' : null],
     ['공사기간', item.period],
     ['예산구간', item.budget]
-  ].filter(([, v]) => v);
+  ].filter(([, v]) => v).slice(0, 6);
+  const matLabel = item.aiDesign ? '추천 자재·마감' : '주요 자재';
+  const cta = item.aiDesign ? '이 디자인으로 상담 신청' : '이 사례처럼 상담 신청';
 
   body.innerHTML = `
     <div class="fm-ba${item.photo ? ' fm-ba-single' : ''}">
@@ -371,11 +379,13 @@ function openFolioModal(item, all) {
         ${headSub ? `<p>${headSub}</p>` : ''}
       </div>
       ${gridRows.length ? `<dl class="fm-grid">${gridRows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>` : ''}
+      ${(item.palette || []).length ? `<div class="fm-block"><h4>컬러 팔레트</h4><div class="fm-palette">${item.palette.map((c) => `<span style="background:${c}" title="${c}"></span>`).join('')}</div></div>` : ''}
+      ${item.tip ? `<div class="fm-block"><h4>💡 AI 추천 포인트</h4><p>${item.tip}</p></div>` : ''}
       ${item.problem ? `<div class="fm-block"><h4>핵심 문제</h4><p>${item.problem}</p></div>` : ''}
       ${item.solution ? `<div class="fm-block"><h4>해결 방법</h4><p>${item.solution}</p></div>` : ''}
-      ${(item.materials || []).length ? `<div class="fm-block"><h4>주요 자재</h4><div class="fm-tags">${item.materials.map((m) => `<span>${m}</span>`).join('')}</div></div>` : ''}
+      ${(item.materials || []).length ? `<div class="fm-block"><h4>${matLabel}</h4><div class="fm-tags">${item.materials.map((m) => `<span>${m}</span>`).join('')}</div></div>` : ''}
       ${item.consent ? '<p class="fm-consent">✔ 고객 공개 동의 완료</p>' : ''}
-      <a href="#inquiry" class="btn btn-primary btn-block" data-close>이 사례처럼 상담 신청</a>
+      <a href="#inquiry" class="btn btn-primary btn-block" data-close>${cta}</a>
     </div>
     ${similar.length ? `
     <div class="fm-similar">
