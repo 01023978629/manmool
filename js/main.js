@@ -408,6 +408,41 @@ function renderReviews(reviews) {
     </article>`).join('');
 }
 
+/* ---------- 회사 소개 (About) ---------- */
+function renderAbout(about) {
+  if (!about) return;
+  const body = document.getElementById('aboutBody');
+  if (body && Array.isArray(about.paragraphs)) {
+    body.innerHTML = about.paragraphs.map((p) => `<p>${p}</p>`).join('');
+  }
+  const vals = document.getElementById('aboutValues');
+  if (vals && Array.isArray(about.values)) {
+    vals.innerHTML = about.values.map((v) => `
+      <div class="about-value reveal">
+        <span class="av-icon" aria-hidden="true">${v.icon || ''}</span>
+        <b>${v.title}</b>
+        <p>${v.desc}</p>
+      </div>`).join('');
+  }
+}
+
+/* ---------- 인사이트 (블로그 미리보기) ---------- */
+function renderInsights(insights) {
+  const grid = document.getElementById('insightsGrid');
+  if (!grid || !Array.isArray(insights) || !insights.length) return;
+  grid.innerHTML = insights.slice(0, 3).map((a) => `
+    <a class="insight-card reveal" href="blog.html?post=${encodeURIComponent(a.slug)}">
+      <span class="ic-cover" style="background:linear-gradient(150deg, ${a.cover || '#d8c3a5'}, ${shade(a.cover || '#d8c3a5', -16)})">
+        <span class="ic-cat">${a.category}</span>
+      </span>
+      <span class="ic-body">
+        <b>${a.title}</b>
+        <span class="ic-excerpt">${a.excerpt}</span>
+        <span class="ic-meta">${a.date} · ${a.readMin}분 읽기</span>
+      </span>
+    </a>`).join('');
+}
+
 /* ---------- 자주 묻는 질문 (FAQ) ---------- */
 function renderFaq(faq) {
   const host = document.getElementById('faqList');
@@ -573,6 +608,7 @@ async function init() {
 
   bindText(data);
   renderStats(data.stats);
+  renderAbout(data.about);
   renderServices(data.services);
   renderAutomation(data.automation);
   renderProcess(data.process);
@@ -580,6 +616,7 @@ async function init() {
   setupFolioModal();
   renderTrust(data.trust);
   renderReviews(data.reviews);
+  renderInsights(data.insights);
   renderFaq(data.faq);
   renderContact(data.company);
   observeReveal();
