@@ -92,3 +92,24 @@
   .inq-grid { grid-template-columns: 1fr; }
   .inq-actions { flex-direction: column; align-items: stretch; }
 }
+
+/* ===== 연동 상태 (실서비스 전환) ===== */
+.conn-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.conn-head h2 { margin: 0; display: flex; align-items: center; gap: 10px; }
+.conn-badge { font-size: 12.5px; font-weight: 800; padding: 4px 12px; border-radius: 999px; }
+.conn-badge.on { background: #e0f0e6; color: #2b7a4b; }
+.conn-badge.demo { background: #f5ecd6; color: #9a7a1e; }
+.conn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.conn-item { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 13px; }
+.conn-item .ci-key { font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+.conn-item .ci-val { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.conn-item .ci-dot { font-weight: 800; }
+.conn-item.ok .ci-dot { color: #2b7a4b; }
+.conn-item.no .ci-dot { color: #b5443a; }
+.conn-item.no { border-style: dashed; }
+.conn-result { margin-top: 12px; font-size: 13px; font-weight: 600; min-height: 18px; }
+.conn-result.ok { color: #2b7a4b; }
+.conn-result.err { color: #c0554a; }
+.conn-help { margin-top: 10px; font-size: 12.5px; color: var(--ink-soft); line-height: 1.6; }
+.conn-help code { background: var(--bg-alt); padding: 1px 6px; border-radius: 5px; font-size: 12px; }
+@media (max-width: 720px) { .conn-grid { grid-template-columns: 1fr; } }

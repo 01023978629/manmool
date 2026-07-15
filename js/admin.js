@@ -193,6 +193,60 @@
       : 'n8n 미설정 상태입니다. <code>data/config.json</code>의 <code>n8n.inquiryWebhookUrl</code>과 <code>enabled:true</code>를 설정하면 실서비스로 전환됩니다. 지금은 문의가 브라우저에 저장됩니다.';
   }
 
+  /* ----- 연동 상태 (실서비스 전환) ----- */
+  function renderConnection() {
+    const n8n = CONFIG.n8n || {};
+    const kakao = CONFIG.kakao || {};
+    const hj = CONFIG.hyeonjang || {};
+    const live = !!(n8n.enabled && n8n.inquiryWebhookUrl) && !CONFIG.demoMode;
+    const badge = $('connBadge');
+    if (badge) {
+      badge.textContent = live ? '🟢 실서비스 연결됨' : '🟡 데모 모드';
+      badge.className = 'conn-badge ' + (live ? 'on' : 'demo');
+    }
+    const rows = [
+      ['n8n 웹훅', n8n.inquiryWebhookUrl || '(미설정)', !!n8n.inquiryWebhookUrl],
+      ['n8n enabled', String(!!n8n.enabled), !!n8n.enabled],
+      ['카카오 채널', kakao.chatUrl || kakao.channelAddUrl || '(미설정)', !!(kakao.chatUrl || kakao.channelAddUrl)],
+      ['현장 앱(hyeonjang)', hj.appUrl || '(미설정)', !!hj.appUrl],
+      ['demoMode', String(!!CONFIG.demoMode), !CONFIG.demoMode]
+    ];
+    const grid = $('connGrid');
+    if (grid) grid.innerHTML = rows.map(([k, v, ok]) => `
+      <div class="conn-item ${ok ? 'ok' : 'no'}">
+        <span class="ci-key">${k}</span>
+        <span class="ci-val">${v}</span>
+        <span class="ci-dot">${ok ? '✓' : '—'}</span>
+      </div>`).join('');
+  }
+
+  async function testWebhook() {
+    const n8n = CONFIG.n8n || {};
+    const res = $('connResult');
+    const btn = $('connTest');
+    if (!n8n.inquiryWebhookUrl) {
+      res.textContent = '웹훅 URL이 설정되지 않았습니다. data/config.json의 n8n.inquiryWebhookUrl을 먼저 입력하세요.';
+      res.className = 'conn-result err';
+      return;
+    }
+    btn.disabled = true;
+    res.textContent = '연결 테스트 중… (' + n8n.inquiryWebhookUrl + ')';
+    res.className = 'conn-result';
+    const payload = { source: 'admin-test', submittedAt: new Date().toISOString(), status: '테스트', ping: true };
+    try {
+      const r = await fetch(n8n.inquiryWebhookUrl, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      if (r.ok) { res.textContent = '✓ 웹훅 응답 정상 (' + r.status + '). n8n 워크플로가 테스트 요청을 수신했습니다.'; res.className = 'conn-result ok'; }
+      else { res.textContent = '△ 웹훅이 응답했으나 오류 상태입니다 (' + r.status + '). n8n 워크플로 활성화/경로를 확인하세요.'; res.className = 'conn-result err'; }
+    } catch (e) {
+      res.textContent = '✗ 웹훅에 연결하지 못했습니다 (' + e.message + '). URL·CORS·n8n 실행 상태를 확인하세요.';
+      res.className = 'conn-result err';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
   /* ----- 데모 샘플 ----- */
   function seed() {
     const samples = [
@@ -213,9 +267,11 @@
   async function init() {
     CONFIG = await loadConfig();
     renderPipeline();
+    renderConnection();
     render();
     $('inquiryList').addEventListener('click', onListClick);
     $('seedBtn').addEventListener('click', seed);
+    const ct = $('connTest'); if (ct) ct.addEventListener('click', testWebhook);
     $('statusFilter').addEventListener('click', (e) => {
       const b = e.target.closest('.ftab'); if (!b) return;
       $('statusFilter').querySelectorAll('.ftab').forEach((x) => x.classList.remove('active'));
