@@ -211,7 +211,8 @@ function renderPortfolio(items, filterConfig) {
           <dl class="folio-specs">
             ${specs.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}
           </dl>
-          <span class="folio-more">사례 상세 보기 →</span>
+          ${(i.palette || []).length ? `<div class="folio-palette" aria-hidden="true">${i.palette.map((c) => `<span style="background:${c}"></span>`).join('')}</div>` : ''}
+          <span class="folio-more">${i.aiDesign ? '디자인 자세히 보기 →' : '사례 상세 보기 →'}</span>
         </div>
       </article>`;
     }).join('');
