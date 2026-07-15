@@ -14,8 +14,27 @@
   const TOTAL_STEPS = 4;
   let step = 1;
   let CONFIG = {};
+  let SELECTED_DESIGN = null;
 
   const $ = (id) => document.getElementById(id);
+
+  /* ----- 선택한 AI 추천 디자인 ----- */
+  function renderSelectedDesign() {
+    const el = $('selectedDesignChip');
+    if (!el) return;
+    if (!SELECTED_DESIGN) { el.hidden = true; el.innerHTML = ''; return; }
+    const d = SELECTED_DESIGN;
+    el.hidden = false;
+    el.innerHTML = `<span class="sd-ico">🎨</span>
+      <span class="sd-text">선택한 디자인 · <b>${d.title}</b>${d.style ? ` (${d.style})` : ''}</span>
+      <button type="button" class="sd-clear" id="sdClear" aria-label="선택 해제">✕</button>`;
+    const c = $('sdClear');
+    if (c) c.addEventListener('click', () => {
+      SELECTED_DESIGN = null;
+      if (window.MANMUL) window.MANMUL.selectedDesign = null;
+      renderSelectedDesign();
+    });
+  }
 
   /* ----- 스텝 UI ----- */
   function renderStepper() {
@@ -68,7 +87,8 @@
       phone: (fd.get('phone') || '').trim(),
       memo: (fd.get('memo') || '').trim(),
       consent: fd.get('consent') === 'on',
-      estimateHint: window.MANMUL && window.MANMUL.getEstimate ? window.MANMUL.getEstimate() : ''
+      estimateHint: window.MANMUL && window.MANMUL.getEstimate ? window.MANMUL.getEstimate() : '',
+      selectedDesign: SELECTED_DESIGN ? (SELECTED_DESIGN.title + (SELECTED_DESIGN.style ? ' (' + SELECTED_DESIGN.style + ')' : '')) : ''
     };
   }
 
@@ -83,6 +103,7 @@
       ['예상 예산', d.budget],
       ['희망 시기', d.movein],
       ['거주 여부', d.live],
+      ['선택 디자인', d.selectedDesign || '-'],
       ['참고 견적', d.estimateHint || '-']
     ];
     $('inquirySummary').innerHTML =
@@ -181,6 +202,18 @@
     renderWorks();
     renderStepper();
     showStep(1);
+
+    // 선택한 디자인 반영(초기값 + 이후 선택 이벤트)
+    if (ctx && typeof ctx.getDesign === 'function') SELECTED_DESIGN = ctx.getDesign();
+    renderSelectedDesign();
+    document.addEventListener('manmul:design', (e) => {
+      SELECTED_DESIGN = e.detail || null;
+      renderSelectedDesign();
+      if (SELECTED_DESIGN) {
+        const sec = $('inquiry');
+        if (sec) setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+      }
+    });
 
     $('nextStep').addEventListener('click', () => {
       const err = validateStep(step);
