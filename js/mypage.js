@@ -343,13 +343,19 @@
       </div>`).join('');
   }
 
-  /* ---------- 카카오톡 알림 이력 ---------- */
+  /* ---------- 카카오톡 알림 이력 (읽음·미확인·리마인드) ---------- */
   function notifs(list) {
     if (!list || !list.length) { $('notifs').innerHTML = '<p class="form-note">알림 이력이 없습니다.</p>'; return; }
     $('notifs').innerHTML = list.map((n) => `
-      <div class="notif">
+      <div class="notif ${n.read ? '' : 'unread'}">
         <span class="notif-kind kind-${n.kind}">${n.kind}</span>
-        <div class="notif-body"><p>${n.text}</p><span class="notif-date">${n.date}${n.approved ? ' · 승인 후 발송' : ''}</span></div>
+        <div class="notif-body">
+          <p>${n.text}</p>
+          <span class="notif-date">${n.date}${n.approved ? ' · 승인 후 발송' : ''}
+            <span class="notif-status ${n.read ? 'read' : 'unread'}">${n.read ? '✓ 읽음' : '● 미확인'}</span>
+          </span>
+          ${!n.read && n.remindAt ? `<span class="notif-remind">미확인 시 ${n.remindAt}에 리마인드(카톡·문자) 예정</span>` : ''}
+        </div>
       </div>`).join('');
   }
 
