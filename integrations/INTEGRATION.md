@@ -73,6 +73,20 @@
 - `demoMode: false` → n8n 미응답 시 실패로 처리(운영). `true`면 로컬 저장으로 폴백(데모).
 
 변경 후 저장하면 코드 수정 없이 즉시 반영됩니다. (사이트 새로고침)
+> 예시 파일: [`integrations/config.example.json`](config.example.json)
+
+### 실서비스 전환 체크리스트 (3단계)
+
+1. **채우기** — `data/config.json`에 실제 값 입력
+   - `n8n.inquiryWebhookUrl` = n8n 상담 워크플로 **Production Webhook URL**
+   - `n8n.enabled` = `true`, `demoMode` = `false`
+   - `kakao.channelAddUrl`·`chatUrl` = 카카오톡 채널 홈/1:1 채팅 URL
+2. **검증** — 관리자 화면(`admin.html`) → **연동 상태** 패널에서
+   - 배지가 **🟢 실서비스 연결됨** 인지 확인
+   - **웹훅 연결 테스트** 버튼으로 n8n이 요청을 수신하는지 확인
+   (n8n Webhook 노드는 웹 도메인에 대해 **CORS 허용** 필요)
+3. **비밀값 분리** — 관리자 토큰·API 키 등은 **repo에 넣지 말고** n8n
+   환경변수(`KAKAO_ADMIN_TOKEN`, `CLAUDE_API_KEY` 등)로 관리
 
 ---
 

@@ -47,6 +47,17 @@
       <p class="pipe-note" id="pipeNote"></p>
     </section>
 
+    <!-- 연동 상태 (실서비스 전환) -->
+    <section class="admin-panel conn-panel">
+      <div class="conn-head">
+        <h2>연동 상태 <span class="conn-badge" id="connBadge">확인 중…</span></h2>
+        <button class="btn btn-ghost btn-sm" id="connTest">웹훅 연결 테스트</button>
+      </div>
+      <div class="conn-grid" id="connGrid"></div>
+      <p class="conn-result" id="connResult"></p>
+      <p class="conn-help">실서비스 전환: <code>data/config.json</code>에 n8n 웹훅 URL과 카카오 채널 URL을 넣고 <code>n8n.enabled=true</code>, <code>demoMode=false</code>로 두면 됩니다. 관리자 토큰 등 비밀값은 n8n 환경변수로 관리하세요.</p>
+    </section>
+
     <!-- 문의 목록 -->
     <section class="admin-panel">
       <div class="panel-head">

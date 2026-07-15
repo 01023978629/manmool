@@ -1,0 +1,16 @@
+{
+  "_comment": "data/config.json 실서비스 전환 예시. 실제 값으로 채운 뒤 data/config.json에 복사하세요. (관리자 토큰 등 비밀값은 여기 넣지 말고 n8n 환경변수로 관리)",
+  "n8n": {
+    "inquiryWebhookUrl": "https://your-n8n.example.com/webhook/manmul-inquiry",
+    "enabled": true
+  },
+  "kakao": {
+    "channelPublicId": "_yourchannel",
+    "channelAddUrl": "http://pf.kakao.com/_yourchannel",
+    "chatUrl": "http://pf.kakao.com/_yourchannel/chat"
+  },
+  "hyeonjang": {
+    "appUrl": "https://your-org.github.io/hyeonjang/"
+  },
+  "demoMode": false
+}
