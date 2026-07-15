@@ -483,13 +483,16 @@ function renderFaq(faq) {
 
 /* ---------- 연락처 ---------- */
 function renderContact(company) {
+  const rep = company.rep ? company.rep + (company.repTitle ? ' ' + company.repTitle : '') : '';
   const items = [
     { ic: '📞', label: '전화 상담', value: company.phone },
     { ic: '💬', label: '카카오톡 채널', value: '<a href="#" id="contactKakao">채널 추가 / 상담하기</a>' },
     { ic: '✉️', label: '이메일', value: company.email },
+    { ic: '🧑‍🔧', label: '담당', value: rep },
     { ic: '🕐', label: '운영 시간', value: company.hours },
-    { ic: '📍', label: '오시는 길', value: company.address }
-  ];
+    { ic: '📍', label: '오시는 길', value: company.address },
+    { ic: '🧾', label: '사업자등록번호', value: company.bizno }
+  ].filter((i) => i.value && String(i.value).trim());
   document.getElementById('contactList').innerHTML = items.map((i) => `
     <li><span class="ic">${i.ic}</span><div><b>${i.label}</b>${i.value}</div></li>`).join('');
 }
