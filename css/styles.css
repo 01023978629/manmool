@@ -235,6 +235,21 @@ ul, ol { list-style: none; }
 .review .who b { font-size: 15px; }
 .review .who small { color: var(--ink-soft); font-size: 13px; }
 
+/* ===== 자주 묻는 질문 (FAQ) ===== */
+#faq .section-sub { margin: 12px auto 0; color: var(--ink-soft); font-size: 15px; line-height: 1.6; max-width: 640px; }
+.faq-list { max-width: 780px; margin: 40px auto 0; display: flex; flex-direction: column; gap: 12px; }
+.faq-item { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+.faq-q { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 16.5px; font-weight: 700; color: var(--ink); text-align: left; transition: background .15s; }
+.faq-q:hover { background: var(--bg-alt); }
+.faq-q[aria-expanded="true"] { color: var(--brand-dark); }
+.faq-icon { flex-shrink: 0; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--brand-soft); color: var(--brand-dark); font-size: 20px; font-weight: 700; line-height: 1; }
+.faq-a { padding: 0 24px; }
+.faq-a p { padding: 4px 0 22px; color: var(--ink-soft); font-size: 15px; line-height: 1.72; border-top: 1px solid var(--line); padding-top: 18px; }
+@media (max-width: 640px) {
+  .faq-q { padding: 16px 18px; font-size: 15.5px; }
+  .faq-a { padding: 0 18px; }
+}
+
 /* ===== Contact ===== */
 .contact-wrap { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: start; }
 .contact-info h2 { font-size: clamp(26px, 3.6vw, 38px); font-weight: 800; letter-spacing: -.02em; }
