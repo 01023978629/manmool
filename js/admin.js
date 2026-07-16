@@ -9,8 +9,21 @@
   let filter = '전체';
   let CONFIG = {};
 
-  const load = () => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { return []; } };
   const save = (list) => localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+
+  // 개인정보 최소 보관: 90일 지난 문의는 로컬 보드에서 자동 삭제 (시각을 알 수 없는 항목은 유지)
+  const RETENTION_DAYS = 90;
+  const load = () => {
+    let list;
+    try { list = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { return []; }
+    const cutoff = Date.now() - RETENTION_DAYS * 86400000;
+    const kept = list.filter((x) => {
+      const t = Date.parse(x && x.submittedAt || '') || 0;
+      return !t || t >= cutoff;
+    });
+    if (kept.length !== list.length) save(kept);
+    return kept;
+  };
 
   /* ----- 간이 AI 요약(클라이언트) : 실제로는 n8n의 AI 노드가 생성 ----- */
   function aiSummary(d) {
@@ -223,7 +236,9 @@
       selectedDesign: d.selectedDesign,
       estimateHint: d.estimateHint, memo: d.memo
     };
-    const url = app ? app + (app.indexOf('?') >= 0 ? '&' : '?') + 'lead=' + utf8ToB64url(JSON.stringify(lead)) : '';
+    // fragment(#lead=)로 전달: 해시는 서버 요청·액세스 로그·리퍼러에 전송되지 않아
+    // 쿼리(?lead=)보다 PII 노출면이 작다. hyeonjang 수신부는 search·hash 둘 다 파싱한다.
+    const url = app ? app + '#lead=' + utf8ToB64url(JSON.stringify(lead)) : '';
     return { app, url };
   }
 
