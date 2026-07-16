@@ -184,7 +184,8 @@ function renderPortfolio(items, filterConfig) {
 
     countEl.textContent = `총 ${list.length}개 디자인`;
     emptyEl.hidden = list.length !== 0;
-    grid.innerHTML = list.map((i, idx) => {
+
+    const cardHTML = (i, idx) => {
       // 값이 있는 항목만 노출 (모르는 수치는 지어내지 않음)
       const specs = [
         ['공간', i.spaceType],
@@ -201,11 +202,13 @@ function renderPortfolio(items, filterConfig) {
       ].filter(([, v]) => v).slice(0, 6);
       const badge = i.aiDesign ? '<span class="ai-badge">✨ AI 추천 디자인</span>'
         : (i.photo ? '' : '<span class="ai-badge">AI 스타일 참고 이미지</span>');
+      const styleTag = i.style ? `<span class="folio-style-tag">${i.style}</span>` : '';
       return `
       <article class="folio reveal" data-id="${i.id}" tabindex="0" role="button" aria-label="${i.title} 상세보기">
         <div class="folio-photo">
           ${i.photo ? `<img class="scene" src="${i.photo}" alt="${i.title}" loading="lazy" />` : roomScene(i, idx, i.afterColor)}
           ${badge}
+          ${styleTag}
         </div>
         <div class="folio-info">
           <h3 class="folio-title">${i.title}</h3>
@@ -216,7 +219,21 @@ function renderPortfolio(items, filterConfig) {
           <span class="folio-more">${i.aiDesign ? '디자인 자세히 보기 →' : '사례 상세 보기 →'}</span>
         </div>
       </article>`;
-    }).join('');
+    };
+
+    // 공간별로 묶어 섹션 헤더와 함께 노출 (스타일은 카드 태그로 표시)
+    const SPACE_ORDER = ['거실', '침실', '주방', '욕실'];
+    const bySpace = {};
+    list.forEach((it) => { const k = it.spaceType || '기타'; (bySpace[k] = bySpace[k] || []).push(it); });
+    const keys = [
+      ...SPACE_ORDER.filter((k) => bySpace[k]),
+      ...Object.keys(bySpace).filter((k) => !SPACE_ORDER.includes(k))
+    ];
+    let gi = 0;
+    grid.innerHTML = keys.map((space) =>
+      `<h3 class="folio-group-head">${space} 디자인 <em>${bySpace[space].length}</em></h3>` +
+      bySpace[space].map((i) => cardHTML(i, gi++)).join('')
+    ).join('');
     observeReveal();
   };
 
