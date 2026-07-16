@@ -43,8 +43,8 @@
 .st { font-size: 12px; font-weight: 800; padding: 3px 11px; border-radius: 999px; white-space: nowrap; }
 .st-done, .st-완료, .st-완납, .st-처리완료, .st-승인완료 { background: #e0f0e6; color: #2b7a4b; }
 .st-doing, .st-진행 { background: #e7eef5; color: #35618e; }
-.st-wait, .st-예정, .st-접수, .st-승인대기, .st-대기 { background: #f5ecd6; color: #9a7a1e; }
-.st-urgent, .st-긴급, .st-방문예정 { background: #fbe3de; color: #b5443a; }
+.st-wait, .st-예정, .st-접수, .st-승인대기, .st-대기, .st-확인대기 { background: #f5ecd6; color: #9a7a1e; }
+.st-urgent, .st-긴급, .st-방문예정, .st-반려 { background: #fbe3de; color: #b5443a; }
 
 /* 타임라인 */
 .timeline { display: flex; flex-direction: column; }
