@@ -182,8 +182,13 @@ function renderPortfolio(items, filterConfig) {
       (!q || [it.title, it.style, it.mood, it.spaceType, (it.materials || []).join(' ')]
         .some((v) => v && String(v).toLowerCase().includes(q.toLowerCase()))));
 
-    countEl.textContent = `총 ${list.length}개 디자인`;
+    const hasActive = !!(state.complex && state.complex.trim()) || groups.some((g) => state[g.key]);
+    countEl.innerHTML = `총 ${list.length}개 디자인` +
+      (hasActive ? ' · <button type="button" class="folio-reset" data-folio-reset>필터 초기화</button>' : '');
     emptyEl.hidden = list.length !== 0;
+    if (list.length === 0) {
+      emptyEl.innerHTML = '조건에 맞는 디자인이 없습니다. <button type="button" class="folio-reset" data-folio-reset>필터 초기화</button>';
+    }
 
     const cardHTML = (i, idx) => {
       // 값이 있는 항목만 노출 (모르는 수치는 지어내지 않음)
@@ -249,6 +254,22 @@ function renderPortfolio(items, filterConfig) {
 
   const complexInput = document.getElementById('folioComplex');
   if (complexInput) complexInput.addEventListener('input', (e) => { state.complex = e.target.value; draw(); });
+
+  // 필터 초기화 (0건 탈출 + 활성 필터 리셋)
+  function resetFilters() {
+    state.complex = '';
+    groups.forEach((g) => { state[g.key] = null; });
+    if (complexInput) complexInput.value = '';
+    filtersEl.querySelectorAll('.folio-filter-group').forEach((grp) => {
+      grp.querySelectorAll('.fg-chip').forEach((c) => c.classList.remove('active'));
+      const all = grp.querySelector('.fg-chip[data-val=""]');
+      if (all) all.classList.add('active');
+    });
+    draw();
+  }
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-folio-reset]')) resetFilters();
+  });
 
   // 카드 클릭 → 상세 모달
   const openById = (id) => openFolioModal(items.find((x) => x.id === id), items);

@@ -389,6 +389,10 @@ ul, ol { list-style: none; }
 .done-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 18px 0 6px; }
 .done-actions .btn { margin-top: 0; }
 @media (max-width: 520px) { .done-actions { flex-direction: column; } .done-actions .btn { width: 100%; } }
+.done-check.warn { background: #d98a3c; }
+.done-check.send { background: var(--brand); }
+.field-error { color: #b5443a; font-size: 13px; font-weight: 700; margin-top: 6px; }
+.inquiry-form [aria-invalid="true"] { border-color: #d98a7f; box-shadow: 0 0 0 3px rgba(217,138,127,.18); }
 
 /* ===== Contact list (row) ===== */
 .contact-list-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 900px; margin: 0 auto; }
@@ -444,6 +448,8 @@ ul, ol { list-style: none; }
 
 /* ===== 시공 사례 카드 (참고 자료 레이아웃) ===== */
 .folio-count { text-align: center; color: var(--ink-soft); font-size: 14px; font-weight: 700; margin: 2px 0 24px; }
+.folio-reset { border: 1px solid var(--brand); background: var(--surface); color: var(--brand-dark); font-weight: 700; font-size: 13px; padding: 4px 12px; border-radius: 999px; cursor: pointer; font-family: inherit; margin-left: 6px; }
+.folio-reset:hover { background: var(--brand); color: #fff; }
 .portfolio-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .folio-group-head { grid-column: 1 / -1; font-size: 18px; font-weight: 800; color: var(--ink); margin: 6px 0 -6px; display: flex; align-items: center; gap: 9px; }
 .folio-group-head:not(:first-child) { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
@@ -561,6 +567,10 @@ ul, ol { list-style: none; }
 .ce-bubble.user { background: var(--brand); color: #fff; border-bottom-right-radius: 5px; align-self: flex-end; }
 .ce-input { padding: 14px 18px; border-top: 1px solid var(--line); background: var(--surface); min-height: 8px; }
 .ce-input:empty { display: none; }
+.ce-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.ce-progress { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+.ce-back { border: none; background: none; color: var(--brand-dark); font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; padding: 2px 4px; }
+.ce-back:hover { text-decoration: underline; }
 .ce-quick { display: flex; flex-wrap: wrap; gap: 8px; }
 .ce-chip, .ce-btn { border: 1.5px solid var(--brand); background: var(--surface); color: var(--brand-dark); font-weight: 700; font-size: 14px; padding: 9px 16px; border-radius: 999px; cursor: pointer; font-family: inherit; transition: .15s; }
 .ce-chip:hover, .ce-btn:hover { background: var(--brand); color: #fff; }

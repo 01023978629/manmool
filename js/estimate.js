@@ -88,6 +88,29 @@
       $('ceInput').querySelectorAll('.ce-chip').forEach((c) =>
         c.addEventListener('click', () => answer(step.key, c.dataset.v, c.textContent)));
     }
+
+    // 진행 표시 + 이전 버튼
+    $('ceInput').insertAdjacentHTML('afterbegin',
+      `<div class="ce-controls">
+         <span class="ce-progress">질문 ${idx + 1} / ${STEPS.length}</span>
+         ${idx > 0 ? '<button type="button" class="ce-back" id="ceBack">← 이전 답변 수정</button>' : ''}
+       </div>`);
+    const back = $('ceBack');
+    if (back) back.addEventListener('click', goBack);
+  }
+
+  // 직전 답변으로 되돌아가 다시 묻기
+  function goBack() {
+    if (idx <= 0) return;
+    const body = $('ceBody');
+    const bubbles = () => body.querySelectorAll('.ce-bubble');
+    let b = bubbles();
+    if (b.length) b[b.length - 1].remove();   // 현재 질문(bot) 제거
+    b = bubbles();
+    if (b.length) b[b.length - 1].remove();   // 직전 답변(user) 제거
+    idx -= 1;
+    delete answers[STEPS[idx].key];
+    ask();
   }
 
   function answer(key, value, label) {
@@ -147,6 +170,8 @@
     const sims = similarCases();
 
     MANMUL.lastEstimate = `${won(low)} ~ ${won(high)}`;
+    // 상담 폼이 같은 질문을 반복하지 않도록 답변을 넘겨준다
+    MANMUL.lastAnswers = { type: type, area: area, scope: scope, budget: budget, photo: answers.photo || 0 };
 
     bubble('bot', 'AI가 입력하신 내용을 분석했어요. 아래 참고 결과를 확인해 주세요 👇');
 
@@ -215,6 +240,12 @@
       const item = PORTFOLIO.find((x) => x.id === b.dataset.id);
       if (typeof window.openFolioModal === 'function') window.openFolioModal(item, PORTFOLIO);
     }));
+
+    // '무료 방문 실측 예약하기' → 상담 폼에 답변 자동 채움
+    const cta = card.querySelector('a[href="#inquiry"]');
+    if (cta) cta.addEventListener('click', () => {
+      document.dispatchEvent(new CustomEvent('manmul:estimate', { detail: MANMUL.lastAnswers }));
+    });
   }
 
   function shadeLocal(hex, amt) {

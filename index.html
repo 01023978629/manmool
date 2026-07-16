@@ -316,7 +316,7 @@
             </div>
             <div class="field">
               <label for="iArea">평수</label>
-              <input type="number" id="iArea" name="area" min="1" max="500" placeholder="예: 34" />
+              <input type="number" id="iArea" name="area" min="1" max="500" inputmode="numeric" placeholder="예: 34" />
             </div>
           </fieldset>
 
@@ -368,11 +368,11 @@
             <div class="field-row">
               <div class="field">
                 <label for="iName">이름</label>
-                <input type="text" id="iName" name="name" required placeholder="홍길동" />
+                <input type="text" id="iName" name="name" required autocomplete="name" placeholder="홍길동" />
               </div>
               <div class="field">
                 <label for="iPhone">연락처</label>
-                <input type="tel" id="iPhone" name="phone" required placeholder="010-0000-0000" />
+                <input type="tel" id="iPhone" name="phone" required autocomplete="tel" inputmode="numeric" maxlength="13" placeholder="010-0000-0000" />
               </div>
             </div>
           </fieldset>
