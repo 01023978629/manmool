@@ -362,10 +362,14 @@ function roomScene(i, idx, baseColor) {
 }
 
 /* ---------- 사례 상세 모달 (Before/After + 유사 사례) ---------- */
+let __fmOpener = null; // 모달을 연 요소 — 닫을 때 포커스 복귀(접근성)
+
 function openFolioModal(item, all) {
   if (!item) return;
   const modal = document.getElementById('folioModal');
   const body = document.getElementById('folioModalBody');
+  // 첫 오픈일 때만 기억 (유사 사례로 내용 교체 시 원래 카드 유지)
+  if (modal.hidden) __fmOpener = document.activeElement;
   // 유사도 점수: 스타일 일치 + 같은 카테고리 + 평수 근접
   const similar = all
     .filter((x) => x.id !== item.id)
@@ -441,6 +445,8 @@ function openFolioModal(item, all) {
 
   modal.hidden = false;
   document.body.style.overflow = 'hidden';
+  const closeBtn = modal.querySelector('.folio-modal-close');
+  if (closeBtn) closeBtn.focus();
 
   // 유사 사례 클릭 시 모달 내용 교체
   body.querySelectorAll('.fm-sim').forEach((b) => b.addEventListener('click', () => {
@@ -461,9 +467,28 @@ function openFolioModal(item, all) {
 function setupFolioModal() {
   const modal = document.getElementById('folioModal');
   if (!modal) return;
-  const close = () => { modal.hidden = true; document.body.style.overflow = ''; };
+  const close = () => {
+    modal.hidden = true;
+    document.body.style.overflow = '';
+    // 모달을 연 요소로 포커스 복귀 (요소가 재렌더로 사라졌으면 생략)
+    if (__fmOpener && document.contains(__fmOpener)) { try { __fmOpener.focus(); } catch (e) {} }
+    __fmOpener = null;
+  };
   modal.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) close(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) close(); });
+  document.addEventListener('keydown', (e) => {
+    if (modal.hidden) return;
+    if (e.key === 'Escape') { close(); return; }
+    if (e.key !== 'Tab') return;
+    // Tab 포커스 트랩: 모달 밖으로 새지 않게 순환
+    const foci = modal.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])');
+    if (!foci.length) return;
+    const first = foci[0], last = foci[foci.length - 1];
+    if (e.shiftKey && (document.activeElement === first || !modal.contains(document.activeElement))) {
+      e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && (document.activeElement === last || !modal.contains(document.activeElement))) {
+      e.preventDefault(); first.focus();
+    }
+  });
 }
 
 /* ---------- 면허·보증·A/S (신뢰) ---------- */
@@ -614,8 +639,9 @@ function setupContactCtas(config, company) {
   const kakao = (config && config.kakao) || {};
   const chatUrl = kakao.chatUrl || kakao.channelAddUrl || '';
   const ready = !!(kakao.ready && chatUrl);
-  const phoneRaw = (company && company.phone) || '';
-  const tel = phoneRaw ? 'tel:' + phoneRaw.replace(/[^0-9]/g, '') : '';
+  // 데이터 로드 실패 시에도 전화 CTA는 동작해야 한다 (폴백 번호)
+  const phoneRaw = (company && company.phone) || FALLBACK_CONTACT.phone;
+  const tel = 'tel:' + phoneRaw.replace(/[^0-9]/g, '');
 
   // 전화 CTA 연결 (항상 동작)
   ['heroCall', 'fabCall', 'inquiryCall', 'utilPhone'].forEach((id) => {
@@ -696,10 +722,21 @@ function setupUI() {
 }
 
 /* ---------- 폴백 (데이터 로드 실패 시 index.html의 기본 문구 유지) ---------- */
+// site.json 로드 실패 시에도 고객이 연락할 수 있도록 핵심 연락처는 하드코딩 폴백
+const FALLBACK_CONTACT = { phone: '010-2397-8629', email: '1dncjf@naver.com', hours: '평일 09:00 - 17:30' };
+
 function renderFallbackNotice() {
   const grid = document.getElementById('servicesGrid');
   if (grid && !grid.children.length) {
-    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--ink-soft)">콘텐츠를 불러오지 못했습니다. 로컬 서버(예: <code>python3 -m http.server</code>)로 실행해 주세요.</p>';
+    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--ink-soft)">콘텐츠를 일시적으로 불러오지 못했습니다. 새로고침하시거나, 아래 연락처로 문의해 주세요.<br/>📞 <a href="tel:' + FALLBACK_CONTACT.phone.replace(/[^0-9]/g, '') + '"><b>' + FALLBACK_CONTACT.phone + '</b></a> (' + FALLBACK_CONTACT.hours + ')</p>';
+  }
+  const cl = document.getElementById('contactList');
+  if (cl && !cl.children.length) {
+    const tel = 'tel:' + FALLBACK_CONTACT.phone.replace(/[^0-9]/g, '');
+    cl.innerHTML = `
+      <li><span class="ic">📞</span><div><b>전화 상담</b><a href="${tel}">${FALLBACK_CONTACT.phone}</a></div></li>
+      <li><span class="ic">✉️</span><div><b>이메일</b><a href="mailto:${FALLBACK_CONTACT.email}">${FALLBACK_CONTACT.email}</a></div></li>
+      <li><span class="ic">🕐</span><div><b>운영 시간</b>${FALLBACK_CONTACT.hours}</div></li>`;
   }
 }
 
