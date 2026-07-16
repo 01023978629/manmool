@@ -18,6 +18,12 @@
       }
     }
   },
+  "forms": {
+    "enabled": true,
+    "provider": "web3forms",
+    "endpoint": "https://api.web3forms.com/submit",
+    "accessKey": "여기에-web3forms-access-key"
+  },
   "hyeonjang": {
     "appUrl": "https://your-org.github.io/hyeonjang/"
   },

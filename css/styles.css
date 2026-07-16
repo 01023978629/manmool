@@ -386,6 +386,9 @@ ul, ol { list-style: none; }
 .done-eta { font-weight: 700; color: var(--brand-dark) !important; }
 .done-note { font-size: 13px; }
 .inquiry-done .btn { margin-top: 10px; }
+.done-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 18px 0 6px; }
+.done-actions .btn { margin-top: 0; }
+@media (max-width: 520px) { .done-actions { flex-direction: column; } .done-actions .btn { width: 100%; } }
 
 /* ===== Contact list (row) ===== */
 .contact-list-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 900px; margin: 0 auto; }
