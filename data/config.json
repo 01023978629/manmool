@@ -32,7 +32,7 @@
   },
   "hyeonjang": {
     "appUrl": "https://01023978629.github.io/hyeonjang/",
-    "_help": "내부 운영앱(현장/hyeonjang) 배포 URL. 관리자 대시보드의 '현장 앱으로 보내기'가 이 주소로 리드를 실은 딥링크(?lead=)를 엽니다. 앱은 v103 이상이어야 리드 인입을 지원합니다. (사장님의 chatgpt.site를 v103으로 재배포하면 그 주소로 바꿔도 됩니다.)"
+    "_help": "내부 운영앱(현장/hyeonjang) 배포 URL. 관리자 대시보드의 '현장 앱으로 보내기'가 이 주소로 리드를 실은 딥링크(#lead= fragment — 서버·로그·리퍼러에 전송되지 않음)를 엽니다. 앱은 v103 이상이어야 리드 인입을 지원합니다. (사장님의 chatgpt.site를 v103으로 재배포하면 그 주소로 바꿔도 됩니다.)"
   },
   "demoMode": true,
   "_demoMode_help": "true이면 n8n 미설정 시에도 폼이 동작하며 문의를 브라우저(localStorage)에 저장해 관리자 화면에서 확인할 수 있습니다. 실서비스에서는 n8n 연결 후 false로 두는 것을 권장합니다."
