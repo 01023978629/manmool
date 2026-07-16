@@ -98,15 +98,28 @@
     setTimeout(ask, 350);
   }
 
+  // AI 추천 디자인(spaceType/style/mood 스키마)에 맞춰 답변 기반으로 추천.
+  // 과거 아파트단지(category/area) 스키마 잔재를 제거하고, 입력에 따라 결과가 달라지도록 함.
   function similarCases() {
-    const type = answers.type;
     const area = answers.area || 30;
-    const catMatch = type === '리모델링' ? null : type; // 주거/상업
+    const budget = answers.budget || '';
+    const commercial = answers.type === '상업';
+    const premium = /8천|이상/.test(budget) || area >= 45;
+    const compact = (/^~?3천/.test(budget) && !/5천|8천/.test(budget)) || area <= 18;
+
+    const COMMERCIAL = ['모던', '인더스트리얼', '호텔식'];
+    const PREMIUM = ['호텔식', '프렌치', '모던'];
+    const COMPACT = ['미니멀', '북유럽', '내추럴'];
+
     return PORTFOLIO
-      .map((x) => {
+      .map((x, i) => {
         let s = 0;
-        if (catMatch && x.category === catMatch) s += 3;
-        s += x.area ? Math.max(0, 4 - Math.abs(x.area - area) / 5) : 1;
+        if (commercial && COMMERCIAL.includes(x.style)) s += 3;
+        if (!commercial && ['거실', '침실'].includes(x.spaceType)) s += 2;
+        if (premium && PREMIUM.includes(x.style)) s += 2;
+        if (compact && COMPACT.includes(x.style)) s += 2;
+        // 동점 축퇴 방지: 입력 평수에 따라 안정적으로 순서를 흔들어 준다(허위 정밀도 아님).
+        s += ((area + i) % 5) * 0.1;
         return { x, s };
       })
       .sort((a, b) => b.s - a.s)

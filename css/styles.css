@@ -176,7 +176,6 @@ ul, ol { list-style: none; }
   font-weight: 700; font-size: 14px; padding: 8px 18px; border-radius: 999px; cursor: pointer; transition: .18s; font-family: inherit;
 }
 .filter-btn.active, .filter-btn:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
-.portfolio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
 .folio {
   border-radius: var(--radius); overflow: hidden; background: var(--surface);
   border: 1px solid var(--line); box-shadow: var(--shadow-sm); transition: transform .2s ease, box-shadow .25s ease;
@@ -426,7 +425,6 @@ ul, ol { list-style: none; }
 .fg-chips { display: flex; flex-wrap: wrap; gap: 7px; }
 .fg-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink-soft); font-weight: 600; font-size: 13.5px; padding: 6px 14px; border-radius: 999px; cursor: pointer; font-family: inherit; transition: .15s; }
 .fg-chip.active, .fg-chip:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
-.folio-count { text-align: center; color: var(--ink-soft); font-size: 14px; font-weight: 600; margin-bottom: 20px; }
 .folio-empty { text-align: center; color: var(--ink-soft); padding: 30px; }
 
 .folio { cursor: pointer; }
@@ -609,7 +607,7 @@ ul, ol { list-style: none; }
 @media (max-width: 960px) {
   .hero-inner { grid-template-columns: 1fr; }
   .hero-card { order: -1; max-width: 420px; }
-  .cards-grid, .portfolio-grid, .reviews-grid, .insights-grid { grid-template-columns: repeat(2, 1fr); }
+  .cards-grid, .reviews-grid, .insights-grid { grid-template-columns: repeat(2, 1fr); }
   .process-loop { grid-template-columns: repeat(2, 1fr); }
   .process-step::after { display: none; }
   .estimator-wrap, .contact-wrap, .inquiry-wrap, .about-wrap { grid-template-columns: 1fr; }
@@ -629,7 +627,7 @@ ul, ol { list-style: none; }
   .main-nav.open a { padding: 10px 0; }
   .nav-toggle { display: flex; }
   .section { padding: 60px 0; }
-  .cards-grid, .portfolio-grid, .reviews-grid, .insights-grid { grid-template-columns: 1fr; }
+  .cards-grid, .reviews-grid, .insights-grid { grid-template-columns: 1fr; }
   .about-values { grid-template-columns: 1fr; }
   .contact-list-row { grid-template-columns: 1fr; }
   .field-row { grid-template-columns: 1fr; }

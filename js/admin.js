@@ -82,18 +82,18 @@
 
       <div class="ai-summary">
         <span class="ai-tag">🤖 AI 1차 요약</span>
-        <p>${ai.summary}</p>
-        ${ai.questions.length ? `<p class="ai-q">추가 확인 질문: ${ai.questions.join(' / ')}</p>` : ''}
+        <p>${escapeHtml(ai.summary)}</p>
+        ${ai.questions.length ? `<p class="ai-q">추가 확인 질문: ${escapeHtml(ai.questions.join(' / '))}</p>` : ''}
       </div>
 
       <dl class="inq-grid">
-        <div><dt>고객</dt><dd>${d.name || '-'} · ${d.phone || '-'}</dd></div>
-        <div><dt>공간/범위</dt><dd>${d.type} ${d.scope || ''} · ${worksTxt}</dd></div>
-        <div><dt>예산/시기</dt><dd>${d.budget || '-'} · ${d.movein || '-'}</dd></div>
-        <div><dt>참고 견적</dt><dd>${d.estimateHint || '-'}</dd></div>
-        ${d.selectedDesign ? `<div><dt>선택 디자인</dt><dd>🎨 ${d.selectedDesign}</dd></div>` : ''}
+        <div><dt>고객</dt><dd>${escapeHtml(d.name || '-')} · ${escapeHtml(d.phone || '-')}</dd></div>
+        <div><dt>공간/범위</dt><dd>${escapeHtml(d.type || '')} ${escapeHtml(d.scope || '')} · ${escapeHtml(worksTxt)}</dd></div>
+        <div><dt>예산/시기</dt><dd>${escapeHtml(d.budget || '-')} · ${escapeHtml(d.movein || '-')}</dd></div>
+        <div><dt>참고 견적</dt><dd>${escapeHtml(d.estimateHint || '-')}</dd></div>
+        ${d.selectedDesign ? `<div><dt>선택 디자인</dt><dd>🎨 ${escapeHtml(d.selectedDesign)}</dd></div>` : ''}
       </dl>
-      ${d.memo ? `<p class="inq-memo">“${d.memo}”</p>` : ''}
+      ${d.memo ? `<p class="inq-memo">“${escapeHtml(d.memo)}”</p>` : ''}
 
       <div class="inq-actions">
         <span class="approve-guide">가격·일정·발송은 대표 승인 후 진행됩니다</span>

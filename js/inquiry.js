@@ -224,10 +224,6 @@
     });
     $('prevStep').addEventListener('click', () => showStep(step - 1));
     $('inquiryForm').addEventListener('submit', (e) => { e.preventDefault(); submit(); });
-
-    // "이 견적으로 상담 신청" 클릭 시 예상 견적을 자동 반영
-    const link = $('estimateToInquiry');
-    if (link) link.addEventListener('click', () => setTimeout(() => showStep(1), 300));
   }
 
   window.initInquiry = init;

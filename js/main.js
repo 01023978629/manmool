@@ -179,7 +179,8 @@ function renderPortfolio(items, filterConfig) {
       (!state.style || it.style === state.style) &&
       (!state.scope || it.scope === state.scope) &&
       (!state.year || String(it.year) === state.year) &&
-      (!q || (it.complex && it.complex.includes(q)) || (it.title && it.title.includes(q))));
+      (!q || [it.title, it.style, it.mood, it.spaceType, (it.materials || []).join(' ')]
+        .some((v) => v && String(v).toLowerCase().includes(q.toLowerCase()))));
 
     countEl.textContent = `총 ${list.length}개 디자인`;
     emptyEl.hidden = list.length !== 0;
