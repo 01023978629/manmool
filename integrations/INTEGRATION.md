@@ -142,6 +142,54 @@
 
 ---
 
+## 5-2. 알림톡 자동 발송 노드 설정 (완전 자동 발송)
+
+`admin.html`의 **수동 발송**(대표가 직접 복사/문자/카카오)과 별개로, 승인된 건을
+**카카오 알림톡으로 자동 발송**하려면 `manmul-inquiry` 워크플로의
+**"고객에게 안내 발송 (승인분)"**(httpRequest) 노드를 실제 발송 대행 API로 연결합니다.
+
+### 준비물
+1. **사업자 + 카카오 채널** — 발신프로필(senderKey) 발급 (채널과 사업자 정보 일치)
+2. **발송 대행 파트너** — 솔라피(solapi)·알리고(aligo)·NHN Cloud 등 중 하나 가입
+3. **템플릿 심사 승인** — [`alimtalk-templates.md`](alimtalk-templates.md)의 T1·T2·T3 등록 → 코드 발급
+4. `data/config.json` → `kakao.alimtalk` 에 `provider`·`templates`(승인 코드) 입력, `enabled: true`
+
+### 노드 구성 (솔라피 예시)
+- **Method/URL**: `POST https://api.solapi.com/messages/v4/send`
+- **인증**: API Key/Secret → **n8n 자격증명**(HTTP Header Auth)으로 보관 (repo 금지)
+- **Body**(예):
+```json
+{
+  "message": {
+    "to": "={{$json.phone}}",
+    "from": "발신번호(사전등록)",
+    "kakaoOptions": {
+      "pfId": "={{$env.KAKAO_SENDER_KEY}}",
+      "templateId": "={{$json.templateCode}}",
+      "variables": {
+        "#{고객명}": "={{$json.name}}",
+        "#{공간요약}": "={{$json.summary}}",
+        "#{예상범위}": "={{$json.estimateRange}}",
+        "#{다음단계}": "={{$json.nextStep}}"
+      }
+    }
+  }
+}
+```
+- **templateCode 매핑**: 승인 여부/단계에 따라 앞선 `set`/`code` 노드에서
+  `templateCode` 를 `config.kakao.alimtalk.templates.intake|survey|estimate` 중 하나로 채웁니다.
+- **실패 폴백**: 알림톡 발송 실패(미채널추가 등) 시 SMS로 대체 발송하는 IF 분기를 두세요.
+
+### 승인 게이트 (중요)
+- **T1(intake)** 은 폼 접수 직후 자동 발송 가능(정보성 확인).
+- **T2(survey)·T3(estimate)** 는 **대표 승인(Wait 재개) 이후에만** 이 노드에 도달하도록
+  연결합니다 — 금액·일정 관련 발송은 사람 승인·기록을 거칩니다(무승인 발송 0).
+
+> 비용: 알림톡은 건당 소액 유료(대행사별 상이). 채널 친구가 아니어도 발송되나,
+> 템플릿 심사·발신프로필 등록이 반드시 선행됩니다.
+
+---
+
 ## 5-1. 알림 미확인 리마인드 (읽음 추적)
 
 고객에게 발송한 카카오톡 알림이 **읽히지 않았을 때** 자동으로 다시 안내합니다.
