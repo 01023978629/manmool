@@ -37,6 +37,19 @@
     });
   }
 
+  /* ----- 예상견적 답변 프리필 ----- */
+  function prefillFromEstimate(a) {
+    if (!a) return;
+    const setVal = (id, v) => { const el = $(id); if (el && v != null && v !== '') el.value = v; };
+    if (a.type) setVal('iType', a.type);
+    if (a.area) setVal('iArea', a.area);
+    const scopeVal = a.scope === '부분공사' ? '부분' : (a.scope === '전체공사' ? '전체' : null);
+    if (scopeVal) { const r = document.querySelector(`input[name="scope"][value="${scopeVal}"]`); if (r) r.checked = true; }
+    const budgetMap = { '~3천만원': '~3천만원', '3~5천만원': '3천~5천만원', '5~8천만원': '5천~8천만원', '8천만원 이상': '8천만원~', '미정': '미정' };
+    if (a.budget && budgetMap[a.budget]) setVal('iBudget', budgetMap[a.budget]);
+    if (step === TOTAL_STEPS) renderSummary();
+  }
+
   /* ----- 스텝 UI ----- */
   function renderStepper() {
     const el = $('stepper');
@@ -68,6 +81,11 @@
     renderStepper();
     const sec = $('inquiry');
     if (sec && n > 1) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // 새 단계 첫 입력으로 포커스 이동(접근성) — 초기 로드/스텝1 제외
+    if (n > 1) {
+      const first = document.querySelector(`.inquiry-form .step[data-step="${step}"] input:not([type=radio]):not([type=checkbox]), .inquiry-form .step[data-step="${step}"] select, .inquiry-form .step[data-step="${step}"] textarea`);
+      if (first) setTimeout(() => { try { first.focus({ preventScroll: true }); } catch (e) { first.focus(); } }, 140);
+    }
   }
 
   /* ----- 데이터 수집 ----- */
@@ -112,14 +130,52 @@
       rows.map(([k, v]) => `<div class="sum-row"><span>${k}</span><b>${v}</b></div>`).join('');
   }
 
-  /* ----- 검증 ----- */
+  /* ----- 검증 (필드별 인라인 오류) ----- */
   function validateStep(n) {
     if (n === 3) {
-      if (!$('iName').value.trim()) return '이름을 입력해 주세요.';
+      if (!$('iName').value.trim()) return { field: 'iName', msg: '이름을 입력해 주세요.' };
       const phone = $('iPhone').value.trim();
-      if (!/^01[0-9][-\s]?\d{3,4}[-\s]?\d{4}$/.test(phone)) return '올바른 휴대폰 번호를 입력해 주세요.';
+      if (!/^01[0-9][-\s]?\d{3,4}[-\s]?\d{4}$/.test(phone)) return { field: 'iPhone', msg: '올바른 휴대폰 번호를 입력해 주세요. (예: 010-1234-5678)' };
     }
     return null;
+  }
+
+  function clearFieldErrors() {
+    document.querySelectorAll('.inquiry-form .field-error').forEach((e) => e.remove());
+    document.querySelectorAll('.inquiry-form [aria-invalid]').forEach((e) => e.removeAttribute('aria-invalid'));
+  }
+  function showFieldError(fieldId, msg) {
+    const input = $(fieldId);
+    if (!input) return;
+    input.setAttribute('aria-invalid', 'true');
+    const field = input.closest('.field') || input.parentElement;
+    let err = field.querySelector('.field-error');
+    if (!err) {
+      err = document.createElement('p');
+      err.className = 'field-error';
+      err.setAttribute('role', 'alert');
+      field.appendChild(err);
+    }
+    err.textContent = msg;
+    input.focus();
+  }
+
+  // '다음' 및 Enter 진행 공통 처리
+  function advance() {
+    clearFieldErrors();
+    const status = $('inquiryStatus');
+    const err = validateStep(step);
+    if (err) { showFieldError(err.field, err.msg); return; }
+    if (status) { status.textContent = ''; status.className = 'form-status'; }
+    showStep(step + 1);
+  }
+
+  // 전화번호 자동 하이픈 (010-1234-5678)
+  function formatPhone(v) {
+    const d = String(v).replace(/[^0-9]/g, '').slice(0, 11);
+    if (d.length < 4) return d;
+    if (d.length < 8) return d.slice(0, 3) + '-' + d.slice(3);
+    return d.slice(0, 3) + '-' + d.slice(3, 7) + '-' + d.slice(7);
   }
 
   /* ----- 제출 ----- */
@@ -143,44 +199,49 @@
     status.className = 'form-status';
     status.textContent = '접수 중입니다...';
 
+    const hasBackend = backendConfigured();
+    try {
+      const delivered = await deliver(payload);
+      saveLocal(payload);
+      showSuccess(payload, { delivered, hasBackend });
+    } catch (err) {
+      // 백엔드 실패 시에도 리드를 잃지 않도록: 로컬 저장 + 재시도/직접 전송 안내
+      saveLocal(payload);
+      showSuccess(payload, { delivered: false, hasBackend, failed: true });
+    }
+  }
+
+  function backendConfigured() {
     const n8n = CONFIG.n8n || {};
     const forms = CONFIG.forms || {};
-    const useN8n = n8n.enabled && n8n.inquiryWebhookUrl;
-    const useForm = !useN8n && forms.enabled && forms.endpoint;
+    return !!((n8n.enabled && n8n.inquiryWebhookUrl) || (forms.enabled && forms.endpoint));
+  }
 
-    try {
-      let delivered = false;
-      if (useN8n) {
-        const res = await fetch(n8n.inquiryWebhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error('n8n 응답 오류 ' + res.status);
-        delivered = true;
-      } else if (useForm) {
-        // 무료 폼→이메일 서비스(Web3Forms/Formspree 등)로 대표에게 즉시 전달
-        const body = Object.assign({}, payload, {
-          subject: '[홈페이지 상담] ' + (payload.name || '') + ' · ' + (payload.type || ''),
-          from_name: '만물인테리어 홈페이지',
-          message: buildLeadText(payload)
-        }, forms.accessKey ? { access_key: forms.accessKey } : {});
-        const res = await fetch(forms.endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify(body)
-        });
-        if (!res.ok) throw new Error('폼 전송 오류 ' + res.status);
-        delivered = true;
-      }
-      // 항상 로컬에도 저장(관리자 화면 확인용) + 접수 완료 화면
-      saveLocal(payload);
-      showSuccess(payload, { delivered });
-    } catch (err) {
-      // 백엔드 실패 시에도 리드를 잃지 않도록: 로컬 저장 + 고객이 직접 보낼 수 있는 안내
-      saveLocal(payload);
-      showSuccess(payload, { delivered: false, fallback: true });
+  // 실제 전송(백엔드 있으면 전송, 없으면 false). 실패 시 throw.
+  async function deliver(payload) {
+    const n8n = CONFIG.n8n || {};
+    const forms = CONFIG.forms || {};
+    if (n8n.enabled && n8n.inquiryWebhookUrl) {
+      const res = await fetch(n8n.inquiryWebhookUrl, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('n8n 응답 오류 ' + res.status);
+      return true;
     }
+    if (forms.enabled && forms.endpoint) {
+      // 무료 폼→이메일 서비스(Web3Forms/Formspree 등)로 대표에게 즉시 전달
+      const body = Object.assign({}, payload, {
+        subject: '[홈페이지 상담] ' + (payload.name || '') + ' · ' + (payload.type || ''),
+        from_name: '만물인테리어 홈페이지',
+        message: buildLeadText(payload)
+      }, forms.accessKey ? { access_key: forms.accessKey } : {});
+      const res = await fetch(forms.endpoint, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error('폼 전송 오류 ' + res.status);
+      return true;
+    }
+    return false; // 백엔드 없음 → 고객 직접 전송 경로로 안내
   }
 
   // 문의 내용을 사람이 읽는 텍스트로(문자·카카오 전달용)
@@ -227,31 +288,54 @@
     opts = opts || {};
     const form = $('inquiryForm');
     const phone = (COMPANY.phone || '').replace(/[^0-9]/g, '');
-    const kakaoUrl = (CONFIG.kakao && (CONFIG.kakao.chatUrl || CONFIG.kakao.channelAddUrl)) || '';
+    const kakao = CONFIG.kakao || {};
+    const kakaoUrl = kakao.chatUrl || kakao.channelAddUrl || '';
+    const kakaoReady = !!(kakao.ready && kakaoUrl);
     const text = buildLeadText(payload);
     const smsHref = phone ? `sms:${phone}?body=${encodeURIComponent(text)}` : '';
-    const lead = opts.delivered
+
+    const delivered = !!opts.delivered;
+    const failed = !!opts.failed;
+    const icon = delivered ? '✓' : (failed ? '!' : '↗');
+    const iconCls = delivered ? 'done-check ok' : (failed ? 'done-check warn' : 'done-check send');
+    const head = delivered ? '상담 신청이 전달되었습니다'
+      : (failed ? '아직 전송되지 않았습니다' : '거의 다 됐어요 — 마지막으로 보내주세요');
+    const lead = delivered
       ? '접수 내용이 담당자에게 전달되었습니다. 영업시간 기준 빠르게 회신드립니다.'
-      : '아래 방법으로 신청 내용을 보내주시면 <b>담당자가 바로 확인</b>해 드립니다.';
+      : (failed
+        ? '자동 전송에 실패했습니다. <b>다시 시도</b>하거나 전화·문자로 보내주세요.'
+        : '아래 방법 중 하나로 신청 내용을 보내주시면 <b>담당자가 바로 확인</b>해 드립니다.');
+
     form.innerHTML = `
       <div class="inquiry-done">
-        <div class="done-check">✓</div>
-        <h3>상담 신청이 접수되었습니다</h3>
+        <div class="${iconCls}">${icon}</div>
+        <h3>${head}</h3>
         <p><b>${payload.name || '고객'}</b>님, 감사합니다. ${lead}</p>
-        <div class="done-actions">
-          ${phone ? `<a class="btn btn-primary btn-lg" href="tel:${phone}">📞 전화 상담</a>` : ''}
-          ${kakaoUrl ? `<button type="button" class="btn btn-kakao btn-lg" id="doneKakao">💬 카카오톡으로 문의 보내기</button>` : ''}
+        ${delivered ? '' : `<div class="done-actions">
+          ${failed && opts.hasBackend ? '<button type="button" class="btn btn-primary btn-lg" id="doneRetry">🔄 자동 접수 다시 시도</button>' : ''}
+          ${phone ? `<a class="btn ${failed ? 'btn-ghost' : 'btn-primary'} btn-lg" href="tel:${phone}">📞 전화 상담</a>` : ''}
+          ${kakaoReady ? '<button type="button" class="btn btn-kakao btn-lg" id="doneKakao">💬 카카오톡으로 보내기</button>' : ''}
           ${smsHref ? `<a class="btn btn-ghost btn-lg" href="${smsHref}">✉️ 문자로 문의 보내기</a>` : ''}
-        </div>
+        </div>`}
         <p class="done-eta">영업시간(평일 09:00–17:30) 기준 빠른 회신 · 금액·계약은 대표 확인 후 안내됩니다</p>
-        ${opts.fallback ? '<p class="done-note">※ 자동 접수 서버가 아직 연결되지 않아, 위 버튼으로 보내주시면 확실히 전달됩니다.</p>' : ''}
         <a href="#top" class="btn btn-ghost btn-sm">처음으로</a>
       </div>`;
+
     const dk = $('doneKakao');
     if (dk) dk.addEventListener('click', () => {
       copyToClipboard(text);
       if (kakaoUrl) window.open(kakaoUrl, '_blank', 'noopener');
       dk.textContent = '✓ 내용 복사됨 · 채널 열림 (붙여넣기 전송)';
+    });
+    const rt = $('doneRetry');
+    if (rt) rt.addEventListener('click', async () => {
+      rt.disabled = true; rt.textContent = '다시 시도 중…';
+      try {
+        const ok = await deliver(payload);
+        showSuccess(payload, { delivered: ok, hasBackend: true });
+      } catch (e) {
+        rt.disabled = false; rt.textContent = '🔄 다시 시도 (전송 실패)';
+      }
     });
   }
 
@@ -267,6 +351,9 @@
     // 선택한 디자인 반영(초기값 + 이후 선택 이벤트)
     if (ctx && typeof ctx.getDesign === 'function') SELECTED_DESIGN = ctx.getDesign();
     renderSelectedDesign();
+    // 예상견적 답변을 폼에 자동 채움 (같은 질문 반복 방지)
+    document.addEventListener('manmul:estimate', (e) => prefillFromEstimate(e.detail || {}));
+
     document.addEventListener('manmul:design', (e) => {
       SELECTED_DESIGN = e.detail || null;
       renderSelectedDesign();
@@ -276,15 +363,26 @@
       }
     });
 
-    $('nextStep').addEventListener('click', () => {
-      const err = validateStep(step);
-      const status = $('inquiryStatus');
-      if (err) { status.textContent = err; status.className = 'form-status err'; return; }
-      status.textContent = ''; status.className = 'form-status';
-      showStep(step + 1);
-    });
+    $('nextStep').addEventListener('click', advance);
     $('prevStep').addEventListener('click', () => showStep(step - 1));
     $('inquiryForm').addEventListener('submit', (e) => { e.preventDefault(); submit(); });
+
+    // Enter로 다음 단계 진행 (마지막 단계·textarea 제외)
+    $('inquiryForm').addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      if ((e.target.tagName || '').toLowerCase() === 'textarea') return;
+      if (step < TOTAL_STEPS) { e.preventDefault(); advance(); }
+    });
+
+    // 전화번호 자동 하이픈
+    const phoneEl = $('iPhone');
+    if (phoneEl) phoneEl.addEventListener('input', () => {
+      const start = phoneEl.selectionStart;
+      const before = phoneEl.value;
+      phoneEl.value = formatPhone(phoneEl.value);
+      // 끝에서 입력 중이면 커서를 끝으로(단순화)
+      if (start >= before.length) phoneEl.setSelectionRange(phoneEl.value.length, phoneEl.value.length);
+    });
   }
 
   window.initInquiry = init;

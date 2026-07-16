@@ -389,6 +389,10 @@ ul, ol { list-style: none; }
 .done-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 18px 0 6px; }
 .done-actions .btn { margin-top: 0; }
 @media (max-width: 520px) { .done-actions { flex-direction: column; } .done-actions .btn { width: 100%; } }
+.done-check.warn { background: #d98a3c; }
+.done-check.send { background: var(--brand); }
+.field-error { color: #b5443a; font-size: 13px; font-weight: 700; margin-top: 6px; }
+.inquiry-form [aria-invalid="true"] { border-color: #d98a7f; box-shadow: 0 0 0 3px rgba(217,138,127,.18); }
 
 /* ===== Contact list (row) ===== */
 .contact-list-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 900px; margin: 0 auto; }
@@ -444,6 +448,8 @@ ul, ol { list-style: none; }
 
 /* ===== 시공 사례 카드 (참고 자료 레이아웃) ===== */
 .folio-count { text-align: center; color: var(--ink-soft); font-size: 14px; font-weight: 700; margin: 2px 0 24px; }
+.folio-reset { border: 1px solid var(--brand); background: var(--surface); color: var(--brand-dark); font-weight: 700; font-size: 13px; padding: 4px 12px; border-radius: 999px; cursor: pointer; font-family: inherit; margin-left: 6px; }
+.folio-reset:hover { background: var(--brand); color: #fff; }
 .portfolio-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .folio-group-head { grid-column: 1 / -1; font-size: 18px; font-weight: 800; color: var(--ink); margin: 6px 0 -6px; display: flex; align-items: center; gap: 9px; }
 .folio-group-head:not(:first-child) { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
@@ -522,6 +528,15 @@ ul, ol { list-style: none; }
 .utility-nav a { color: #d8c6ab; font-weight: 600; transition: color .15s; }
 .utility-nav a:hover { color: #fff; }
 .utility-nav a.util-primary { color: #f0dcc4; font-weight: 800; }
+.utility-contact { font-weight: 600; color: #cbbfae; }
+.utility-contact a { color: #f0dcc4; font-weight: 800; }
+.utility-contact a:hover { color: #fff; }
+.util-admin { opacity: .55; }
+.util-admin:hover { opacity: 1; }
+
+/* 키보드 포커스 표시 (접근성) */
+:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+.chip:focus-within, .fg-chip:focus-visible, .ce-chip:focus-visible, .fab:focus-visible, .btn:focus-visible { outline: 3px solid var(--brand-dark); outline-offset: 3px; }
 
 /* ===== 면허·보증·A/S (신뢰) ===== */
 .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
@@ -552,6 +567,10 @@ ul, ol { list-style: none; }
 .ce-bubble.user { background: var(--brand); color: #fff; border-bottom-right-radius: 5px; align-self: flex-end; }
 .ce-input { padding: 14px 18px; border-top: 1px solid var(--line); background: var(--surface); min-height: 8px; }
 .ce-input:empty { display: none; }
+.ce-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.ce-progress { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+.ce-back { border: none; background: none; color: var(--brand-dark); font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; padding: 2px 4px; }
+.ce-back:hover { text-decoration: underline; }
 .ce-quick { display: flex; flex-wrap: wrap; gap: 8px; }
 .ce-chip, .ce-btn { border: 1.5px solid var(--brand); background: var(--surface); color: var(--brand-dark); font-weight: 700; font-size: 14px; padding: 9px 16px; border-radius: 999px; cursor: pointer; font-family: inherit; transition: .15s; }
 .ce-chip:hover, .ce-btn:hover { background: var(--brand); color: #fff; }
@@ -613,7 +632,7 @@ ul, ol { list-style: none; }
 /* ===== Responsive ===== */
 @media (max-width: 960px) {
   .hero-inner { grid-template-columns: 1fr; }
-  .hero-card { order: -1; max-width: 420px; }
+  .hero-card { order: 1; max-width: 420px; }
   .cards-grid, .reviews-grid, .insights-grid { grid-template-columns: repeat(2, 1fr); }
   .process-loop { grid-template-columns: repeat(2, 1fr); }
   .process-step::after { display: none; }
@@ -650,6 +669,7 @@ ul, ol { list-style: none; }
   .cr-similar-grid { grid-template-columns: 1fr; }
   .utility-nav { gap: 12px; font-size: 12px; }
   .utility-label { display: none; }
+  .util-sep { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

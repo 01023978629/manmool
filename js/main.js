@@ -150,7 +150,7 @@ function renderPortfolio(items, filterConfig) {
   filtersEl.innerHTML = `
     <div class="folio-search">
       <input type="search" id="folioComplex" placeholder="디자인·스타일 검색 (예: 모던)" aria-label="디자인 검색" />
-      <span class="folio-ai-note">🤖 우리 집 사진을 올리면 AI가 어울리는 디자인을 추천합니다</span>
+      <span class="folio-ai-note">📷 상담 시 우리 집 사진을 보내주시면 어울리는 디자인을 추천해 드려요</span>
     </div>
     ${groups.map((g) => `
     <div class="folio-filter-group" data-group="${g.key}">
@@ -182,8 +182,13 @@ function renderPortfolio(items, filterConfig) {
       (!q || [it.title, it.style, it.mood, it.spaceType, (it.materials || []).join(' ')]
         .some((v) => v && String(v).toLowerCase().includes(q.toLowerCase()))));
 
-    countEl.textContent = `총 ${list.length}개 디자인`;
+    const hasActive = !!(state.complex && state.complex.trim()) || groups.some((g) => state[g.key]);
+    countEl.innerHTML = `총 ${list.length}개 디자인` +
+      (hasActive ? ' · <button type="button" class="folio-reset" data-folio-reset>필터 초기화</button>' : '');
     emptyEl.hidden = list.length !== 0;
+    if (list.length === 0) {
+      emptyEl.innerHTML = '조건에 맞는 디자인이 없습니다. <button type="button" class="folio-reset" data-folio-reset>필터 초기화</button>';
+    }
 
     const cardHTML = (i, idx) => {
       // 값이 있는 항목만 노출 (모르는 수치는 지어내지 않음)
@@ -249,6 +254,22 @@ function renderPortfolio(items, filterConfig) {
 
   const complexInput = document.getElementById('folioComplex');
   if (complexInput) complexInput.addEventListener('input', (e) => { state.complex = e.target.value; draw(); });
+
+  // 필터 초기화 (0건 탈출 + 활성 필터 리셋)
+  function resetFilters() {
+    state.complex = '';
+    groups.forEach((g) => { state[g.key] = null; });
+    if (complexInput) complexInput.value = '';
+    filtersEl.querySelectorAll('.folio-filter-group').forEach((grp) => {
+      grp.querySelectorAll('.fg-chip').forEach((c) => c.classList.remove('active'));
+      const all = grp.querySelector('.fg-chip[data-val=""]');
+      if (all) all.classList.add('active');
+    });
+    draw();
+  }
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-folio-reset]')) resetFilters();
+  });
 
   // 카드 클릭 → 상세 모달
   const openById = (id) => openFolioModal(items.find((x) => x.id === id), items);
@@ -465,9 +486,16 @@ function renderTrust(trust) {
 
 /* ---------- 리뷰 ---------- */
 function renderReviews(reviews) {
+  const section = document.getElementById('reviews');
+  // 실제 고객 후기가 없으면 섹션을 숨긴다(허위 후기 미노출)
+  if (!Array.isArray(reviews) || reviews.length === 0) {
+    if (section) section.hidden = true;
+    return;
+  }
+  if (section) section.hidden = false;
   document.getElementById('reviewsGrid').innerHTML = reviews.map((r) => `
     <article class="review reveal">
-      <div class="stars">★★★★★</div>
+      ${r.rating ? `<div class="stars" aria-label="별점 ${r.rating}점">${'★'.repeat(r.rating)}${'☆'.repeat(Math.max(0, 5 - r.rating))}</div>` : ''}
       <p>“${r.text}”</p>
       <div class="who"><b>${r.name}</b><small>${r.space}</small></div>
     </article>`).join('');
@@ -548,11 +576,18 @@ function renderFaq(faq) {
 
 /* ---------- 연락처 ---------- */
 function renderContact(company) {
+  const cfg = (window.MANMUL && window.MANMUL.config) || {};
+  const kakao = cfg.kakao || {};
+  const chatUrl = kakao.chatUrl || kakao.channelAddUrl || '';
+  const kakaoReady = !!(kakao.ready && chatUrl);
   const rep = company.rep ? company.rep + (company.repTitle ? ' ' + company.repTitle : '') : '';
+  const tel = company.phone ? 'tel:' + company.phone.replace(/[^0-9]/g, '') : '';
   const items = [
-    { ic: '📞', label: '전화 상담', value: company.phone },
-    { ic: '💬', label: '카카오톡 채널', value: '<a href="#" id="contactKakao">채널 추가 / 상담하기</a>' },
-    { ic: '✉️', label: '이메일', value: company.email },
+    { ic: '📞', label: '전화 상담', value: company.phone ? `<a href="${tel}">${company.phone}</a>` : '' },
+    kakaoReady
+      ? { ic: '💬', label: '카카오톡 채널', value: `<a href="${chatUrl}" id="contactKakao" target="_blank" rel="noopener">채널 추가 / 상담하기</a>` }
+      : { ic: '💬', label: '카카오톡 채널', value: '준비 중 — 전화·문자로 상담해 주세요' },
+    { ic: '✉️', label: '이메일', value: company.email ? `<a href="mailto:${company.email}">${company.email}</a>` : '' },
     { ic: '🧑‍🔧', label: '담당', value: rep },
     { ic: '🕐', label: '운영 시간', value: company.hours },
     { ic: '📍', label: '오시는 길', value: company.address },
@@ -573,28 +608,34 @@ async function loadConfig() {
   return null;
 }
 
-function setupKakao(config) {
+// 카카오 채널이 실제 개설(ready)되면 카카오 버튼을 노출, 아니면 전화가 기본 CTA.
+// 미개설 채널로 유도하거나 운영자용 alert를 띄우지 않는다(정직·사용성).
+function setupContactCtas(config, company) {
   const kakao = (config && config.kakao) || {};
-  const chatUrl = kakao.chatUrl || kakao.channelAddUrl || '#';
-  const addUrl = kakao.channelAddUrl || kakao.chatUrl || '#';
-  const open = (url) => window.open(url, '_blank', 'noopener');
+  const chatUrl = kakao.chatUrl || kakao.channelAddUrl || '';
+  const ready = !!(kakao.ready && chatUrl);
+  const phoneRaw = (company && company.phone) || '';
+  const tel = phoneRaw ? 'tel:' + phoneRaw.replace(/[^0-9]/g, '') : '';
 
-  const bind = (id, url) => {
+  // 전화 CTA 연결 (항상 동작)
+  ['heroCall', 'fabCall', 'inquiryCall', 'utilPhone'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el && tel) el.setAttribute('href', tel);
+  });
+
+  // 카카오 준비 시에만 노출 + 연결
+  ['heroKakao', 'fabKakao', 'inquiryKakao', 'contactKakao'].forEach((id) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (!url || url === '#') {
-        alert('카카오톡 채널이 아직 연결되지 않았습니다.\n운영자는 data/config.json의 kakao 설정을 입력하세요.');
-        return;
-      }
-      open(url);
-    });
-  };
-  bind('heroKakao', chatUrl);
-  bind('inquiryKakao', chatUrl);
-  bind('fabKakao', chatUrl);
-  bind('contactKakao', addUrl);
+    if (ready) {
+      el.hidden = false;
+      el.setAttribute('href', chatUrl);
+      el.setAttribute('target', '_blank');
+      el.setAttribute('rel', 'noopener');
+    } else {
+      el.hidden = true;
+    }
+  });
 }
 
 /* ---------- 히어로 챗봇 애니메이션 ---------- */
@@ -670,7 +711,7 @@ async function init() {
   const [data, config] = await Promise.all([loadSite(), loadConfig()]);
   window.MANMUL = { config: config || {}, data: data || {} };
 
-  setupKakao(config);
+  setupContactCtas(config, data && data.company);
 
   if (!data) { renderFallbackNotice(); observeReveal(); return; }
 
