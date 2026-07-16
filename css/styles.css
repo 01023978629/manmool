@@ -74,7 +74,7 @@ ul, ol { list-style: none; }
 .main-nav a { font-size: 15px; font-weight: 600; color: var(--ink-soft); transition: color .18s; }
 .main-nav a:hover { color: var(--brand-dark); }
 .header-cta { flex: none; }
-.nav-toggle { display: none; background: none; border: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 6px; }
+.nav-toggle { display: none; background: none; border: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 10px; min-width: 44px; min-height: 44px; align-items: center; justify-content: center; }
 .nav-toggle span { width: 24px; height: 2px; background: var(--ink); border-radius: 2px; transition: .25s; }
 
 /* ===== Hero ===== */
