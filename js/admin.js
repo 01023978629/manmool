@@ -75,6 +75,7 @@
         <div class="inq-title">
           <span class="status ${STATUS_CLASS[d.status] || 'st-new'}">${d.status}</span>
           <span class="prio prio-${p.c}">우선순위 ${p.t} · ${ai.score}점</span>
+          ${d.sentAt ? '<span class="prio sent-chip">✓ 발송됨</span>' : ''}
         </div>
         <time>${when}</time>
       </div>
@@ -114,7 +115,76 @@
       `문의 주신 ${ai.summary} 건 확인했습니다.\n` +
       `유사 조건 기준 참고 예상 범위를 안내드리며, 정확한 금액·일정은 현장 실측 후 확정됩니다.\n` +
       `실측 일정을 잡아드릴까요? 가능하신 날짜를 알려주세요.\n\n` +
-      `※ 본 메시지는 초안입니다. 대표 승인 후 발송하세요.`;
+      `- 만물인테리어 (${(CONFIG.company && CONFIG.company.phone) || '010-2397-8629'})`;
+  }
+
+  /* ----- 수동 발송 UI (초안·발송 분리, 사람이 직접 발송) ----- */
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function fmtSent(d) {
+    if (!d.sentAt) return '';
+    const t = d.sentAt.replace('T', ' ').slice(0, 16);
+    const n = (d.sentLog && d.sentLog.length) || 1;
+    return `<span class="sent-mark">✓ 발송 기록 · ${d.sentVia || ''} · ${t}${n > 1 ? ` (총 ${n}회)` : ''}</span>`;
+  }
+  function draftBoxHTML(d) {
+    const msg = draftMessage(d);
+    const kakao = CONFIG.kakao || {};
+    const hasKakao = !!(kakao.chatUrl || kakao.channelAddUrl);
+    const approved = d.status === '승인';
+    return `
+      <div class="draft-head">
+        <b>고객 안내문 · 수동 발송</b>
+        <span class="draft-hint ${approved ? 'ok' : 'warn'}">${approved
+          ? '승인된 리드입니다. 내용 확인 후 직접 발송하세요.'
+          : '⚠ 아직 승인 전 리드입니다. 발송 전 반드시 내용을 확인하세요.'}</span>
+      </div>
+      <textarea class="draft-text" rows="7" aria-label="고객 안내문 내용">${escapeHtml(msg)}</textarea>
+      <div class="draft-actions">
+        <button class="mini ok" data-act="copy">📋 내용 복사</button>
+        <button class="mini" data-act="sms">📱 문자로 발송</button>
+        <button class="mini kakao" data-act="kakao"${hasKakao ? '' : ' disabled title="data/config.json의 kakao.chatUrl을 설정하세요"'}>💬 카카오톡 열고 발송</button>
+      </div>
+      <small class="draft-foot">복사·문자·카카오톡 중 하나로 발송하면 발송 기록이 남습니다. 자동 발송은 없으며, 대표가 직접 발송합니다.</small>
+      <div class="sent-line">${fmtSent(d)}</div>`;
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+    }
+    fallbackCopy(text);
+    return Promise.resolve();
+  }
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  function flash(btn, txt) {
+    const orig = btn.textContent;
+    btn.textContent = txt; btn.disabled = true;
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1400);
+  }
+  function recordSent(id, via) {
+    const list = load();
+    const it = list.find((x) => x.id === id);
+    if (!it) return;
+    const now = new Date().toISOString();
+    it.sentAt = now; it.sentVia = via;
+    (it.sentLog = it.sentLog || []).push({ via, at: now });
+    save(list);
+    const cardEl = document.querySelector('.inq-card[data-id="' + id + '"]');
+    if (!cardEl) return;
+    const line = cardEl.querySelector('.sent-line');
+    if (line) line.innerHTML = fmtSent(it);
+    const title = cardEl.querySelector('.inq-title');
+    if (title && !title.querySelector('.sent-chip')) {
+      title.insertAdjacentHTML('beforeend', '<span class="prio sent-chip">✓ 발송됨</span>');
+    }
   }
 
   function render() {
@@ -166,12 +236,39 @@
       return;
     }
     if (act === 'draft') {
-      const list = load();
-      const d = list.find((x) => x.id === id);
+      const d = load().find((x) => x.id === id);
       const box = cardEl.querySelector('.draft-box');
       box.hidden = !box.hidden;
-      box.innerHTML = box.hidden ? '' :
-        `<pre>${draftMessage(d)}</pre><small>승인 전에는 자동 발송되지 않습니다 (초안·발송 분리).</small>`;
+      box.innerHTML = box.hidden ? '' : draftBoxHTML(d);
+      if (!box.hidden) btn.classList.add('open'); else btn.classList.remove('open');
+      return;
+    }
+    if (act === 'copy' || act === 'sms' || act === 'kakao') {
+      const d = load().find((x) => x.id === id);
+      if (!d) return;
+      const box = cardEl.querySelector('.draft-box');
+      const ta = box && box.querySelector('.draft-text');
+      const text = ta ? ta.value : draftMessage(d);
+      if (act === 'copy') {
+        copyText(text).then(() => flash(btn, '✓ 복사됨'));
+        recordSent(id, '복사');
+      } else if (act === 'sms') {
+        const phone = (d.phone || '').replace(/[^0-9]/g, '');
+        if (!phone) { alert('고객 전화번호가 없습니다.'); return; }
+        window.open('sms:' + phone + '?body=' + encodeURIComponent(text), '_blank');
+        recordSent(id, '문자');
+      } else if (act === 'kakao') {
+        const kakao = CONFIG.kakao || {};
+        const url = kakao.chatUrl || kakao.channelAddUrl;
+        if (!url) {
+          alert('카카오톡 채널 URL이 설정되지 않았습니다.\n운영자는 data/config.json의 kakao.chatUrl을 입력하세요.');
+          return;
+        }
+        // 카카오 1:1 채팅은 자동 전송 API가 아니므로, 내용을 복사한 뒤 채널 채팅을 엽니다(붙여넣기 발송).
+        copyText(text).then(() => flash(btn, '✓ 복사됨 · 채널 열림'));
+        window.open(url, '_blank', 'noopener');
+        recordSent(id, '카카오톡');
+      }
       return;
     }
     setStatus(id, act);
