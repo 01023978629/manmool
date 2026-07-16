@@ -9,7 +9,17 @@
     "channelPublicId": "_manmul",
     "channelAddUrl": "http://pf.kakao.com/_manmul",
     "chatUrl": "http://pf.kakao.com/_manmul/chat",
-    "_help": "카카오톡 채널 관리자센터에서 발급받은 채널 홈 URL(채널 추가)과 1:1 채팅 URL을 넣으세요. 챗봇 자동응대는 카카오 i 오픈빌더 스킬서버(n8n 웹훅)로 처리됩니다."
+    "_help": "카카오톡 채널 관리자센터에서 발급받은 채널 홈 URL(채널 추가)과 1:1 채팅 URL을 넣으세요. 챗봇 자동응대는 카카오 i 오픈빌더 스킬서버(n8n 웹훅)로 처리됩니다.",
+    "alimtalk": {
+      "enabled": false,
+      "provider": "",
+      "templates": {
+        "intake": "manmul_intake",
+        "survey": "manmul_survey",
+        "estimate": "manmul_estimate"
+      },
+      "_help": "카카오 알림톡 자동발송 설정. provider는 발송 대행(solapi/aligo/nhncloud 등) 이름. templates는 심사 승인된 템플릿 코드. API키·발신프로필키(senderKey) 같은 비밀값은 여기 넣지 말고 n8n 자격증명/환경변수로 관리하세요. 템플릿 문구는 integrations/alimtalk-templates.md 참고. T2·T3는 대표 승인 후에만 발송됩니다(무승인 발송 0)."
+    }
   },
   "hyeonjang": {
     "appUrl": "https://01023978629.github.io/hyeonjang/",

@@ -302,10 +302,14 @@
       badge.textContent = live ? '🟢 실서비스 연결됨' : '🟡 데모 모드';
       badge.className = 'conn-badge ' + (live ? 'on' : 'demo');
     }
+    const at = kakao.alimtalk || {};
+    const atTemplates = at.templates ? Object.keys(at.templates).length : 0;
+    const atOn = !!(at.enabled && at.provider && atTemplates);
     const rows = [
       ['n8n 웹훅', n8n.inquiryWebhookUrl || '(미설정)', !!n8n.inquiryWebhookUrl],
       ['n8n enabled', String(!!n8n.enabled), !!n8n.enabled],
       ['카카오 채널', kakao.chatUrl || kakao.channelAddUrl || '(미설정)', !!(kakao.chatUrl || kakao.channelAddUrl)],
+      ['알림톡 자동발송', atOn ? `${at.provider} · 템플릿 ${atTemplates}종` : '(미설정 · 수동 발송만)', atOn],
       ['현장 앱(hyeonjang)', hj.appUrl || '(미설정)', !!hj.appUrl],
       ['demoMode', String(!!CONFIG.demoMode), !CONFIG.demoMode]
     ];

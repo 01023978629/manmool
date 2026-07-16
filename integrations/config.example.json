@@ -7,7 +7,16 @@
   "kakao": {
     "channelPublicId": "_yourchannel",
     "channelAddUrl": "http://pf.kakao.com/_yourchannel",
-    "chatUrl": "http://pf.kakao.com/_yourchannel/chat"
+    "chatUrl": "http://pf.kakao.com/_yourchannel/chat",
+    "alimtalk": {
+      "enabled": true,
+      "provider": "solapi",
+      "templates": {
+        "intake": "manmul_intake",
+        "survey": "manmul_survey",
+        "estimate": "manmul_estimate"
+      }
+    }
   },
   "hyeonjang": {
     "appUrl": "https://your-org.github.io/hyeonjang/"
