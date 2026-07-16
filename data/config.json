@@ -21,6 +21,13 @@
       "_help": "카카오 알림톡 자동발송 설정. provider는 발송 대행(solapi/aligo/nhncloud 등) 이름. templates는 심사 승인된 템플릿 코드. API키·발신프로필키(senderKey) 같은 비밀값은 여기 넣지 말고 n8n 자격증명/환경변수로 관리하세요. 템플릿 문구는 integrations/alimtalk-templates.md 참고. T2·T3는 대표 승인 후에만 발송됩니다(무승인 발송 0)."
     }
   },
+  "forms": {
+    "enabled": false,
+    "provider": "",
+    "endpoint": "",
+    "accessKey": "",
+    "_help": "n8n 없이도 상담 신청을 대표 이메일로 바로 받는 무료 경로. Web3Forms(https://web3forms.com, 가입 없이 access_key 발급) 또는 Formspree를 추천. endpoint에 서비스 URL, accessKey에 발급키를 넣고 enabled:true. n8n(inquiryWebhookUrl)이 켜져 있으면 그쪽이 우선합니다. 둘 다 없으면 고객이 접수 후 전화·문자·카카오로 직접 보낼 수 있게 안내됩니다(리드 유실 0)."
+  },
   "hyeonjang": {
     "appUrl": "https://01023978629.github.io/hyeonjang/",
     "_help": "내부 운영앱(현장/hyeonjang) 배포 URL. 관리자 대시보드의 '현장 앱으로 보내기'가 이 주소로 리드를 실은 딥링크(?lead=)를 엽니다. 앱은 v103 이상이어야 리드 인입을 지원합니다. (사장님의 chatgpt.site를 v103으로 재배포하면 그 주소로 바꿔도 됩니다.)"

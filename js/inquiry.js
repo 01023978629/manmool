@@ -14,6 +14,7 @@
   const TOTAL_STEPS = 4;
   let step = 1;
   let CONFIG = {};
+  let COMPANY = {};
   let SELECTED_DESIGN = null;
 
   const $ = (id) => document.getElementById(id);
@@ -143,9 +144,12 @@
     status.textContent = '접수 중입니다...';
 
     const n8n = CONFIG.n8n || {};
+    const forms = CONFIG.forms || {};
     const useN8n = n8n.enabled && n8n.inquiryWebhookUrl;
+    const useForm = !useN8n && forms.enabled && forms.endpoint;
 
     try {
+      let delivered = false;
       if (useN8n) {
         const res = await fetch(n8n.inquiryWebhookUrl, {
           method: 'POST',
@@ -153,24 +157,62 @@
           body: JSON.stringify(payload)
         });
         if (!res.ok) throw new Error('n8n 응답 오류 ' + res.status);
-      } else if (!CONFIG.demoMode) {
-        throw new Error('상담 접수 채널이 설정되지 않았습니다.');
+        delivered = true;
+      } else if (useForm) {
+        // 무료 폼→이메일 서비스(Web3Forms/Formspree 등)로 대표에게 즉시 전달
+        const body = Object.assign({}, payload, {
+          subject: '[홈페이지 상담] ' + (payload.name || '') + ' · ' + (payload.type || ''),
+          from_name: '만물인테리어 홈페이지',
+          message: buildLeadText(payload)
+        }, forms.accessKey ? { access_key: forms.accessKey } : {});
+        const res = await fetch(forms.endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error('폼 전송 오류 ' + res.status);
+        delivered = true;
       }
-      // 데모/보조용: 로컬에도 저장하여 관리자 화면에서 확인 가능
+      // 항상 로컬에도 저장(관리자 화면 확인용) + 접수 완료 화면
       saveLocal(payload);
-
-      showSuccess(payload);
+      showSuccess(payload, { delivered });
     } catch (err) {
-      // n8n 실패 시에도 데모 모드면 로컬 저장으로 폴백
-      if (CONFIG.demoMode) {
-        saveLocal(payload);
-        showSuccess(payload, true);
-      } else {
-        status.textContent = '접수에 실패했습니다. 잠시 후 다시 시도하거나 전화로 문의해 주세요. (' + err.message + ')';
-        status.className = 'form-status err';
-        btn.disabled = false;
-      }
+      // 백엔드 실패 시에도 리드를 잃지 않도록: 로컬 저장 + 고객이 직접 보낼 수 있는 안내
+      saveLocal(payload);
+      showSuccess(payload, { delivered: false, fallback: true });
     }
+  }
+
+  // 문의 내용을 사람이 읽는 텍스트로(문자·카카오 전달용)
+  function buildLeadText(d) {
+    const L = ['[만물인테리어 상담 신청]'];
+    if (d.name) L.push('이름: ' + d.name);
+    if (d.phone) L.push('연락처: ' + d.phone);
+    const space = [d.type, d.area ? d.area + '평' : '', d.region].filter(Boolean).join(' · ');
+    if (space) L.push('공간: ' + space);
+    const scope = [d.scope, (d.works || []).join(',')].filter(Boolean).join(' · ');
+    if (scope) L.push('범위: ' + scope);
+    const bm = [d.budget, d.movein].filter(Boolean).join(' · ');
+    if (bm) L.push('예산/시기: ' + bm);
+    if (d.selectedDesign) L.push('관심 디자인: ' + d.selectedDesign);
+    if (d.estimateHint) L.push('참고 견적: ' + d.estimateHint);
+    if (d.memo) L.push('메모: ' + d.memo);
+    return L.join('\n');
+  }
+
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+    }
+    fallbackCopy(text);
+    return Promise.resolve();
+  }
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
   }
 
   function saveLocal(payload) {
@@ -181,23 +223,42 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   }
 
-  function showSuccess(payload, fallback) {
+  function showSuccess(payload, opts) {
+    opts = opts || {};
     const form = $('inquiryForm');
+    const phone = (COMPANY.phone || '').replace(/[^0-9]/g, '');
+    const kakaoUrl = (CONFIG.kakao && (CONFIG.kakao.chatUrl || CONFIG.kakao.channelAddUrl)) || '';
+    const text = buildLeadText(payload);
+    const smsHref = phone ? `sms:${phone}?body=${encodeURIComponent(text)}` : '';
+    const lead = opts.delivered
+      ? '접수 내용이 담당자에게 전달되었습니다. 영업시간 기준 빠르게 회신드립니다.'
+      : '아래 방법으로 신청 내용을 보내주시면 <b>담당자가 바로 확인</b>해 드립니다.';
     form.innerHTML = `
       <div class="inquiry-done">
         <div class="done-check">✓</div>
         <h3>상담 신청이 접수되었습니다</h3>
-        <p><b>${payload.name}</b>님, 감사합니다. 루프 에이전트가 내용을 분석한 뒤
-        대표 검토를 거쳐 <b>카카오톡</b>으로 예상 범위와 실측 일정을 안내드립니다.</p>
-        <p class="done-eta">평균 응답 시간: 영업시간 기준 10분 이내 1차 회신</p>
-        ${fallback ? '<p class="done-note">※ 현재 데모 모드로 접수되었습니다 (localStorage 저장).</p>' : ''}
-        <a href="#top" class="btn btn-ghost">처음으로</a>
+        <p><b>${payload.name || '고객'}</b>님, 감사합니다. ${lead}</p>
+        <div class="done-actions">
+          ${phone ? `<a class="btn btn-primary btn-lg" href="tel:${phone}">📞 전화 상담</a>` : ''}
+          ${kakaoUrl ? `<button type="button" class="btn btn-kakao btn-lg" id="doneKakao">💬 카카오톡으로 문의 보내기</button>` : ''}
+          ${smsHref ? `<a class="btn btn-ghost btn-lg" href="${smsHref}">✉️ 문자로 문의 보내기</a>` : ''}
+        </div>
+        <p class="done-eta">영업시간(평일 09:00–17:30) 기준 빠른 회신 · 금액·계약은 대표 확인 후 안내됩니다</p>
+        ${opts.fallback ? '<p class="done-note">※ 자동 접수 서버가 아직 연결되지 않아, 위 버튼으로 보내주시면 확실히 전달됩니다.</p>' : ''}
+        <a href="#top" class="btn btn-ghost btn-sm">처음으로</a>
       </div>`;
+    const dk = $('doneKakao');
+    if (dk) dk.addEventListener('click', () => {
+      copyToClipboard(text);
+      if (kakaoUrl) window.open(kakaoUrl, '_blank', 'noopener');
+      dk.textContent = '✓ 내용 복사됨 · 채널 열림 (붙여넣기 전송)';
+    });
   }
 
   /* ----- 초기화 ----- */
   function init(ctx) {
     CONFIG = (ctx && ctx.config) || {};
+    COMPANY = (ctx && ctx.data && ctx.data.company) || {};
     if (!$('inquiryForm')) return;
     renderWorks();
     renderStepper();
