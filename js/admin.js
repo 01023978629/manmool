@@ -210,9 +210,17 @@
   }
   function fieldAppLink(d) {
     const app = (CONFIG.hyeonjang && CONFIG.hyeonjang.appUrl) || '';
+    // 기존 키는 그대로 두어 수신기(hyeonjang) 호환을 유지하고, 전송에서 누락되던 필드를 복원한다.
+    // (undefined 값은 JSON.stringify가 자동으로 제외하므로 URL이 불필요하게 길어지지 않는다)
     const lead = {
+      schemaVersion: 'lead.v103',
+      leadId: d.id || ('INQ-' + Date.now()),
+      source: d.source || 'website',
+      submittedAt: d.submittedAt,
+      consent: d.consent === true,
       name: d.name, phone: d.phone, region: d.region, type: d.type, area: d.area,
-      scope: d.scope, works: d.works, budget: d.budget, movein: d.movein,
+      scope: d.scope, works: d.works, budget: d.budget, movein: d.movein, live: d.live,
+      selectedDesign: d.selectedDesign,
       estimateHint: d.estimateHint, memo: d.memo
     };
     const url = app ? app + (app.indexOf('?') >= 0 ? '&' : '?') + 'lead=' + utf8ToB64url(JSON.stringify(lead)) : '';
