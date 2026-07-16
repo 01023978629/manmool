@@ -442,6 +442,10 @@ ul, ol { list-style: none; }
 /* ===== 시공 사례 카드 (참고 자료 레이아웃) ===== */
 .folio-count { text-align: center; color: var(--ink-soft); font-size: 14px; font-weight: 700; margin: 2px 0 24px; }
 .portfolio-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.folio-group-head { grid-column: 1 / -1; font-size: 18px; font-weight: 800; color: var(--ink); margin: 6px 0 -6px; display: flex; align-items: center; gap: 9px; }
+.folio-group-head:not(:first-child) { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
+.folio-group-head em { font-style: normal; font-size: 12.5px; font-weight: 800; color: var(--brand-dark); background: var(--brand-soft); padding: 2px 11px; border-radius: 999px; }
+.folio-style-tag { position: absolute; left: 12px; bottom: 12px; background: rgba(255,255,255,.92); color: var(--ink); font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 999px; box-shadow: var(--shadow-sm); }
 .portfolio-cards .folio { cursor: pointer; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: var(--shadow-sm); transition: transform .18s ease, box-shadow .25s ease; display: flex; flex-direction: column; }
 .portfolio-cards .folio:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
 .folio-photo { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }

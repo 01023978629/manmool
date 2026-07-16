@@ -445,6 +445,116 @@
       "tip": "큰 타일로 줄눈을 줄이면 넓고 깔끔해 보입니다. 간접 조명은 필수예요.",
       "photo": "assets/designs/hotel-bath.jpg",
       "aiDesign": true
+    },
+    {
+      "id": "design-natural-bed",
+      "title": "내추럴 우드 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "style": "내추럴",
+      "mood": "편안하고 아늑한",
+      "palette": [
+        "#ece2d2",
+        "#d8bd90",
+        "#b5843f",
+        "#8f6c40"
+      ],
+      "materials": [
+        "원목 헤드보드",
+        "린넨 침구",
+        "우드 사이드테이블"
+      ],
+      "tip": "침실은 채도를 낮춘 우드톤이 숙면에 좋아요. 조명은 전구색(따뜻한 빛)으로 맞춰주세요.",
+      "photo": "assets/designs/natural-bed.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-white-kitchen",
+      "title": "미니멀 화이트 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f2efe9",
+        "#f0eee9",
+        "#d8bd94",
+        "#b9b3a8"
+      ],
+      "materials": [
+        "무광 화이트 도어",
+        "세라믹 상판",
+        "히든 손잡이"
+      ],
+      "tip": "손잡이를 숨긴 히든 도어로 라인을 정리하면 주방이 넓어 보여요.",
+      "photo": "assets/designs/white-kitchen.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-wood-kitchen",
+      "title": "내추럴 우드 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "style": "내추럴",
+      "mood": "따뜻하고 편안한",
+      "palette": [
+        "#ede4d5",
+        "#caa068",
+        "#b98a4b",
+        "#8a6636"
+      ],
+      "materials": [
+        "우드 도어",
+        "아이보리 타일",
+        "황동 수전"
+      ],
+      "tip": "우드 도어엔 아이보리 타일과 황동 수전이 따뜻하게 어울립니다.",
+      "photo": "assets/designs/wood-kitchen.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-white-bath",
+      "title": "모던 화이트 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "style": "모던",
+      "mood": "깔끔하고 밝은",
+      "palette": [
+        "#eef0f0",
+        "#eef0f1",
+        "#c6a877",
+        "#5a6166"
+      ],
+      "materials": [
+        "대형 화이트 타일",
+        "그레이 줄눈",
+        "슬림 수전"
+      ],
+      "tip": "화이트 타일에 밝은 그레이 줄눈을 쓰면 때가 덜 타 보이고 깔끔합니다.",
+      "photo": "assets/designs/white-bath.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-wood-bath",
+      "title": "내추럴 우드 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "style": "내추럴",
+      "mood": "차분하고 따뜻한",
+      "palette": [
+        "#ebe3d6",
+        "#d3b382",
+        "#b3894f",
+        "#7c5c34"
+      ],
+      "materials": [
+        "우드 무늬 포세린 타일",
+        "방수 우드 선반",
+        "무광 브론즈 수전"
+      ],
+      "tip": "욕실 우드는 방수가 핵심입니다. 원목 대신 우드 무늬 포세린 타일을 추천해요.",
+      "photo": "assets/designs/wood-bath.jpg",
+      "aiDesign": true
     }
   ],
   "reviews": [
