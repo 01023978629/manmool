@@ -18,6 +18,7 @@
 
   function renderList(list) {
     document.title = '인사이트 · 만물인테리어';
+    list = list.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))); // 최신순
     root.innerHTML = `
       <div class="section-head" style="text-align:center">
         <span class="eyebrow">INSIGHTS</span>
@@ -37,8 +38,21 @@
       </div>`;
   }
 
+  // 글별 SEO: 제목·설명·canonical·OG를 해당 글로 교체
+  // (canonical이 목록(blog.html)을 가리키면 검색엔진이 모든 글을 중복으로 취급한다)
+  function applyPostSeo(a) {
+    const url = 'https://01023978629.github.io/manmool/blog.html?post=' + encodeURIComponent(a.slug);
+    const set = (sel, attr, val) => { const el = document.querySelector(sel); if (el) el.setAttribute(attr, val); };
+    set('meta[name="description"]', 'content', a.excerpt || '');
+    set('link[rel="canonical"]', 'href', url);
+    set('meta[property="og:url"]', 'content', url);
+    set('meta[property="og:title"]', 'content', a.title + ' · 만물인테리어');
+    set('meta[property="og:description"]', 'content', a.excerpt || '');
+  }
+
   function renderArticle(a, list) {
     document.title = `${a.title} · 만물인테리어`;
+    applyPostSeo(a);
     const related = list.filter((x) => x.slug !== a.slug).slice(0, 3);
     root.innerHTML = `
       <article class="post">
