@@ -222,7 +222,9 @@
       "빈티지",
       "웜 베이지",
       "프렌치",
-      "호텔식"
+      "호텔식",
+      "재팬디",
+      "스마트 수납"
     ]
   },
   "portfolio": [
@@ -554,6 +556,156 @@
       ],
       "tip": "욕실 우드는 방수가 핵심입니다. 원목 대신 우드 무늬 포세린 타일을 추천해요.",
       "photo": "assets/designs/wood-bath.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-trend-white-oak-living",
+      "title": "화이트 오크 정돈형 거실",
+      "category": "AI추천",
+      "spaceType": "거실",
+      "style": "미니멀",
+      "mood": "밝고 차분한",
+      "palette": [
+        "#f3f1ed",
+        "#d8c4a2",
+        "#9a9b98",
+        "#68765a"
+      ],
+      "materials": [
+        "라이트 오크 강마루",
+        "무광 웜화이트 도장",
+        "린넨 패브릭",
+        "매립형 수납장"
+      ],
+      "tip": "가구 높이를 낮추고 TV 벽과 수납장을 한 선으로 정리하면 24평 거실도 시야가 길어집니다. 올리브 체어처럼 포인트 색은 한 곳에만 두세요.",
+      "trendLabel": "2026 트렌드 · AI 시안",
+      "trendNote": "오늘의집 집들이의 화이트+우드 미니멀 사례에서 반복되는 낮은 가구, 넓은 여백, 숨은 수납 구성을 참고해 새롭게 설계했습니다.",
+      "photo": "assets/designs/white-oak-living.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-trend-sage-storage-living",
+      "title": "세이지 수납형 거실",
+      "category": "AI추천",
+      "spaceType": "거실",
+      "style": "내추럴",
+      "mood": "편안하고 생기 있는",
+      "palette": [
+        "#e9e6df",
+        "#9ca28b",
+        "#b98a5f",
+        "#30362d"
+      ],
+      "materials": [
+        "세이지 무광 도어",
+        "내추럴 오크 마루",
+        "패브릭 모듈 소파",
+        "라탄 수납 바스켓"
+      ],
+      "tip": "TV 벽 전체를 수납으로 쓰되 오픈 선반을 섞으면 답답함을 줄일 수 있습니다. 큰 식물은 동선을 피한 창가 모서리에 배치하세요.",
+      "trendLabel": "수납 트렌드 · AI 시안",
+      "trendNote": "오늘의집 수납형 거실에서 자주 보이는 벽면 일체형 장과 플랜테리어를 참고해 가족형 아파트에 맞게 재구성했습니다.",
+      "photo": "assets/designs/sage-storage-living.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-trend-compact-blue-living",
+      "title": "블루 포인트 컴팩트 거실",
+      "category": "AI추천",
+      "spaceType": "거실",
+      "style": "스마트 수납",
+      "mood": "산뜻하고 효율적인",
+      "palette": [
+        "#f4f4f1",
+        "#d7d2c9",
+        "#2f5d9b",
+        "#e77b61"
+      ],
+      "materials": [
+        "화이트 무광 수납장",
+        "애쉬 강마루",
+        "블루 금속 선반",
+        "폴딩 데스크"
+      ],
+      "tip": "18평 안팎은 거실 한쪽을 벽면 수납과 업무 공간으로 함께 쓰는 것이 효율적입니다. 이동식 테이블로 소파 앞 통로를 확보하세요.",
+      "trendLabel": "소형 평수 · AI 시안",
+      "trendNote": "오늘의집 소형 아파트 집들이에서 보이는 벽면 수납, 홈오피스 결합, 선명한 포인트 컬러 흐름을 참고했습니다.",
+      "photo": "assets/designs/compact-blue-living.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-trend-navy-oak-kitchen",
+      "title": "네이비 오크 아일랜드 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "style": "모던",
+      "mood": "선명하고 실용적인",
+      "palette": [
+        "#f1eee8",
+        "#c49a6c",
+        "#1f2d41",
+        "#a7a8a3"
+      ],
+      "materials": [
+        "네이비 무광 도어",
+        "오크 무늬목 키큰장",
+        "라이트 쿼츠 상판",
+        "화이트 수공예 타일"
+      ],
+      "tip": "아일랜드만 짙은 색으로 잡으면 주방 중심이 선명해지고 생활 얼룩도 덜 보입니다. 냉장고와 오븐은 키큰장 한쪽에 모아 동선을 줄이세요.",
+      "trendLabel": "컬러 주방 · AI 시안",
+      "trendNote": "오늘의집 주방 사례의 투톤 아일랜드와 우드 키큰장 조합을 참고해 조리·수납 동선이 드러나도록 설계했습니다.",
+      "photo": "assets/designs/navy-oak-kitchen.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-trend-japandi-indigo-bedroom",
+      "title": "재팬디 인디고 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "style": "재팬디",
+      "mood": "고요하고 깊이 있는",
+      "palette": [
+        "#d9d3cb",
+        "#c4aa83",
+        "#283f63",
+        "#f2eee8"
+      ],
+      "materials": [
+        "오크 헤드보드 선반",
+        "무기질 질감 도장",
+        "린넨 침구",
+        "한지형 펜던트"
+      ],
+      "tip": "헤드보드를 선반과 협탁으로 연결하면 좁은 침실의 가구 수를 줄일 수 있습니다. 인디고 패브릭 한 장으로 차분한 깊이를 더하세요.",
+      "trendLabel": "재팬디 · AI 시안",
+      "trendNote": "오늘의집 침실 집들이의 낮은 침대, 우드 헤드보드, 질감 벽과 재팬디 흐름을 참고해 한국 아파트 안방 비율로 구성했습니다.",
+      "photo": "assets/designs/japandi-indigo-bedroom.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-trend-travertine-spa-bath",
+      "title": "트래버틴 스파 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "style": "호텔식",
+      "mood": "차분하고 정돈된",
+      "palette": [
+        "#ded8cf",
+        "#b49b7d",
+        "#31302d",
+        "#68745a"
+      ],
+      "materials": [
+        "트래버틴 질감 포세린",
+        "건메탈 수전",
+        "오크 하부장",
+        "거울 수납장"
+      ],
+      "tip": "작은 욕실은 욕조 대신 유리 파티션 샤워부스를 두고, 거울장을 천장 가까이 올리면 수납과 개방감을 함께 확보할 수 있습니다.",
+      "trendLabel": "스파 욕실 · AI 시안",
+      "trendNote": "오늘의집 호텔식 욕실 사례에서 보이는 대형 석재 질감 타일, 간접 조명, 건식 수납 구성을 소형 욕실에 맞게 축소했습니다.",
+      "photo": "assets/designs/travertine-spa-bath.jpg",
       "aiDesign": true
     }
   ],

@@ -205,13 +205,13 @@ function renderPortfolio(items, filterConfig) {
         ['집 구조', i.structure],
         ['시공', i.year ? i.year + '년' : null]
       ].filter(([, v]) => v).slice(0, 6);
-      const badge = i.aiDesign ? '<span class="ai-badge">✨ AI 추천 디자인</span>'
+      const badge = i.aiDesign ? `<span class="ai-badge">${i.trendLabel || '✨ AI 추천 디자인'}</span>`
         : (i.photo ? '' : '<span class="ai-badge">AI 스타일 참고 이미지</span>');
       const styleTag = i.style ? `<span class="folio-style-tag">${i.style}</span>` : '';
       return `
       <article class="folio reveal" data-id="${i.id}" tabindex="0" role="button" aria-label="${i.title} 상세보기">
         <div class="folio-photo">
-          ${i.photo ? `<img class="scene" src="${i.photo}" alt="${i.title}" loading="lazy" />` : roomScene(i, idx, i.afterColor)}
+          ${i.photo ? `<img class="scene" src="${i.photo}" alt="${i.title}" loading="lazy" decoding="async" />` : roomScene(i, idx, i.afterColor)}
           ${badge}
           ${styleTag}
         </div>
@@ -425,6 +425,7 @@ function openFolioModal(item, all) {
       ${gridRows.length ? `<dl class="fm-grid">${gridRows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>` : ''}
       ${(item.palette || []).length ? `<div class="fm-block"><h4>컬러 팔레트</h4><div class="fm-palette">${item.palette.map((c) => `<span style="background:${c}" title="${c}"></span>`).join('')}</div></div>` : ''}
       ${item.tip ? `<div class="fm-block"><h4>💡 AI 추천 포인트</h4><p>${item.tip}</p></div>` : ''}
+      ${item.trendNote ? `<div class="fm-block fm-trend-note"><h4>트렌드 리서치</h4><p>${item.trendNote}</p></div>` : ''}
       ${item.problem ? `<div class="fm-block"><h4>핵심 문제</h4><p>${item.problem}</p></div>` : ''}
       ${item.solution ? `<div class="fm-block"><h4>해결 방법</h4><p>${item.solution}</p></div>` : ''}
       ${(item.materials || []).length ? `<div class="fm-block"><h4>${matLabel}</h4><div class="fm-tags">${item.materials.map((m) => `<span>${m}</span>`).join('')}</div></div>` : ''}
