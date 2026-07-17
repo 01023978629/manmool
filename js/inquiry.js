@@ -27,7 +27,7 @@
     const d = SELECTED_DESIGN;
     el.hidden = false;
     el.innerHTML = `<span class="sd-ico">🎨</span>
-      <span class="sd-text">선택한 디자인 · <b>${d.title}</b>${d.style ? ` (${d.style})` : ''}${d.area ? ` · ${d.area}평 추천` : ''}</span>
+      <span class="sd-text">선택한 디자인 · <b>${d.title}</b>${d.style ? ` (${d.style})` : ''}${d.area ? ` · ${d.area}평 추천` : ''}${d.budget ? ` · 예산 ${d.budget}` : ''}</span>
       <button type="button" class="sd-clear" id="sdClear" aria-label="선택 해제">✕</button>`;
     const c = $('sdClear');
     if (c) c.addEventListener('click', () => {
@@ -72,6 +72,23 @@
     });
   }
 
+  function setBudgetValue(value) {
+    const budget = $('iBudget');
+    if (!budget || !value) return;
+    const values = {
+      '3천만원 이하': '~3천만원',
+      '~3천만원': '~3천만원',
+      '3~5천만원': '3천~5천만원',
+      '3천~5천만원': '3천~5천만원',
+      '5~8천만원': '5천~8천만원',
+      '5천~8천만원': '5천~8천만원',
+      '8천만원 이상': '8천만원~',
+      '8천만원~': '8천만원~',
+      '미정': '미정'
+    };
+    budget.value = values[value] || value;
+  }
+
   /* ----- 예상견적 답변 프리필 ----- */
   function prefillFromEstimate(a) {
     if (!a) return;
@@ -80,8 +97,7 @@
     if (a.area) setAreaValue(a.area);
     const scopeVal = a.scope === '부분공사' ? '부분' : (a.scope === '전체공사' ? '전체' : null);
     if (scopeVal) { const r = document.querySelector(`input[name="scope"][value="${scopeVal}"]`); if (r) r.checked = true; }
-    const budgetMap = { '~3천만원': '~3천만원', '3~5천만원': '3천~5천만원', '5~8천만원': '5천~8천만원', '8천만원 이상': '8천만원~', '미정': '미정' };
-    if (a.budget && budgetMap[a.budget]) setVal('iBudget', budgetMap[a.budget]);
+    if (a.budget) setBudgetValue(a.budget);
     if (step === TOTAL_STEPS) renderSummary();
   }
 
@@ -395,6 +411,7 @@
       renderSelectedDesign();
       if (SELECTED_DESIGN) {
         if (SELECTED_DESIGN.area) setAreaValue(SELECTED_DESIGN.area);
+        if (SELECTED_DESIGN.budget) setBudgetValue(SELECTED_DESIGN.budget);
         const sec = $('inquiry');
         if (sec) setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
       }

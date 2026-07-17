@@ -141,7 +141,7 @@ function renderPortfolio(items, filterConfig) {
     { key: 'scope', label: '공사범위', options: cfg.scope || [] },
     { key: 'region', label: '지역', options: regions },
     { key: 'area', label: '평수', options: (cfg.area || []).map((a) => a.label) },
-    { key: 'budget', label: '공사비', options: cfg.budget || [] },
+    { key: 'budget', label: '예산', options: cfg.budget || [] },
     { key: 'style', label: '스타일', options: cfg.style || [] },
     { key: 'year', label: '공사연도', options: years.map((y) => String(y)) }
   // 옵션이 없는 필터 그룹은 숨김 (데이터에 없는 기준은 표시하지 않음)
@@ -150,7 +150,7 @@ function renderPortfolio(items, filterConfig) {
   filtersEl.innerHTML = `
     <div class="folio-search">
       <input type="search" id="folioComplex" placeholder="디자인·스타일 검색 (예: 모던)" aria-label="디자인 검색" />
-      <span class="folio-ai-note">📷 상담 시 우리 집 사진을 보내주시면 어울리는 디자인을 추천해 드려요</span>
+      <span class="folio-ai-note">📷 우리 집 사진을 보내주시면 어울리는 디자인을 추천해 드려요 · 예산은 전체공사 참고 범위</span>
     </div>
     ${groups.map((g) => `
     <div class="folio-filter-group" data-group="${g.key}">
@@ -199,7 +199,7 @@ function renderPortfolio(items, filterConfig) {
         ['주요 공정', i.process],
         ['공사 범위', i.scope],
         ['평수', i.area ? i.area + '평' : null],
-        ['공사비', i.cost || i.budget || null],
+        ['예산', i.cost || i.budget || null],
         ['공사 기간', i.period],
         ['지역', i.region],
         ['집 구조', i.structure],
@@ -464,7 +464,8 @@ function openFolioModal(item, all) {
           title: item.title,
           style: item.style,
           spaceType: item.spaceType,
-          area: item.area || null
+          area: item.area || null,
+          budget: item.budget || null
         });
       }
     });
