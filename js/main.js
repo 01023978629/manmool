@@ -548,7 +548,9 @@ function renderAbout(about) {
 function renderInsights(insights) {
   const grid = document.getElementById('insightsGrid');
   if (!grid || !Array.isArray(insights) || !insights.length) return;
-  grid.innerHTML = insights.slice(0, 3).map((a) => `
+  // 최신 글이 홈에 먼저 보이도록 날짜 내림차순 (날짜 없으면 뒤로)
+  const latest = insights.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+  grid.innerHTML = latest.slice(0, 3).map((a) => `
     <a class="insight-card reveal" href="blog.html?post=${encodeURIComponent(a.slug)}">
       <span class="ic-cover" style="background:linear-gradient(150deg, ${a.cover || '#d8c3a5'}, ${shade(a.cover || '#d8c3a5', -16)})">
         <span class="ic-cat">${a.category}</span>
