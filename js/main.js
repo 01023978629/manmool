@@ -561,6 +561,7 @@ function renderInsights(insights) {
   grid.innerHTML = latest.slice(0, 3).map((a) => `
     <a class="insight-card reveal" href="blog.html?post=${encodeURIComponent(a.slug)}">
       <span class="ic-cover" style="background:linear-gradient(150deg, ${a.cover || '#d8c3a5'}, ${shade(a.cover || '#d8c3a5', -16)})">
+        ${a.image ? `<img class="ic-image" src="${a.image}" alt="${a.imageAlt || a.title}" loading="lazy" decoding="async">` : ''}
         <span class="ic-cat">${a.category}</span>
       </span>
       <span class="ic-body">

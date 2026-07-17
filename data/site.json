@@ -1006,6 +1006,8 @@
       "date": "2026-07-10",
       "readMin": 5,
       "cover": "#d8c3a5",
+      "image": "assets/insights/budget-guide-34py.jpg",
+      "imageAlt": "아파트 평면도와 마감재 샘플로 리모델링 예산을 계획하는 테이블",
       "excerpt": "전체공사 기준으로 6천만원 예산이 어느 범위까지 커버되는지, 어디서 비용이 크게 갈리는지 실제 항목별로 정리했습니다.",
       "body": [
         {
@@ -1029,6 +1031,8 @@
       "date": "2026-07-04",
       "readMin": 4,
       "cover": "#c9d6df",
+      "image": "assets/cases/case-blue-mesh.jpg",
+      "imageAlt": "욕실 바닥 방수 보강망을 시공한 실제 현장",
       "excerpt": "방수 2년·마감 1년. 건설 기준 하자담보책임기간을 근거로, 계약 전 반드시 확인해야 할 보증 항목을 정리했습니다.",
       "body": [
         {
@@ -1056,6 +1060,8 @@
       "date": "2026-06-27",
       "readMin": 4,
       "cover": "#e0cfc0",
+      "image": "assets/insights/contract-checklist.jpg",
+      "imageAlt": "세부 항목이 구분된 견적서와 마감재 샘플을 검토하는 테이블",
       "excerpt": "'추가 비용 없음'이라는 말보다 중요한 것은 명세입니다. 분쟁을 막는 견적서·계약서 확인 포인트.",
       "body": [
         {
@@ -1079,6 +1085,8 @@
       "date": "2026-06-20",
       "readMin": 3,
       "cover": "#cfcfcf",
+      "image": "assets/insights/ai-operated-interior.jpg",
+      "imageAlt": "완성된 인테리어 공간에서 공정 관리 화면과 도면을 확인하는 작업대",
       "excerpt": "AI가 대신 결정한다는 뜻이 아닙니다. 빠른 응대는 AI가, 중요한 결정은 사람이 — 그 경계를 시스템으로 지킵니다.",
       "body": [
         {
@@ -1102,6 +1110,8 @@
       "date": "2026-07-16",
       "readMin": 5,
       "cover": "#9fb4c4",
+      "image": "assets/cases/case-blue-floor.jpg",
+      "imageAlt": "파란색 방수층을 꼼꼼하게 시공한 실제 욕실 바닥 현장",
       "excerpt": "아랫집 천장에 얼룩이 생겼다면 이미 늦었을 수 있습니다. 욕실 방수가 수명을 다했다는 신호 5가지와, 재시공 비용·기간의 현실적인 기준을 정리했습니다.",
       "body": [
         {
@@ -1141,6 +1151,8 @@
       "date": "2026-07-16",
       "readMin": 5,
       "cover": "#c9a86a",
+      "image": "assets/insights/partial-vs-full-remodel.jpg",
+      "imageAlt": "기존 주방과 전체 리모델링 공간이 한 집 안에서 이어지는 모습",
       "excerpt": "욕실만? 주방만? 아니면 한 번에 전체? 같은 예산이라도 순서를 잘못 잡으면 두 번 공사하게 됩니다. 부분과 전체의 갈림길에서 확인할 기준을 정리했습니다.",
       "body": [
         {

@@ -15,6 +15,12 @@
   }
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const cover = (a) => `linear-gradient(150deg, ${a.cover || '#d8c3a5'}, ${shade(a.cover || '#d8c3a5', -16)})`;
+  const image = (a, className, priority) => a.image
+    ? `<img class="${className}" src="${esc(a.image)}" alt="${esc(a.imageAlt || a.title)}"${priority ? ' fetchpriority="high"' : ' loading="lazy"'} decoding="async">`
+    : '';
+  const absoluteImage = (a) => a.image
+    ? 'https://01023978629.github.io/manmool/' + String(a.image).replace(/^\.\//, '')
+    : 'https://01023978629.github.io/manmool/og-image.png';
 
   function renderList(list) {
     document.title = '인사이트 · 만물인테리어';
@@ -28,7 +34,7 @@
       <div class="insights-grid" style="margin-top:40px">
         ${list.map((a) => `
           <a class="insight-card" href="blog.html?post=${encodeURIComponent(a.slug)}">
-            <span class="ic-cover" style="background:${cover(a)}"><span class="ic-cat">${esc(a.category)}</span></span>
+            <span class="ic-cover" style="background:${cover(a)}">${image(a, 'ic-image', true)}<span class="ic-cat">${esc(a.category)}</span></span>
             <span class="ic-body">
               <b>${esc(a.title)}</b>
               <span class="ic-excerpt">${esc(a.excerpt)}</span>
@@ -48,6 +54,7 @@
     set('meta[property="og:url"]', 'content', url);
     set('meta[property="og:title"]', 'content', a.title + ' · 만물인테리어');
     set('meta[property="og:description"]', 'content', a.excerpt || '');
+    set('meta[property="og:image"]', 'content', absoluteImage(a));
   }
 
   function renderArticle(a, list) {
@@ -60,7 +67,7 @@
         <span class="post-cat">${esc(a.category)}</span>
         <h1 class="post-title">${esc(a.title)}</h1>
         <p class="post-meta">${esc(a.date)} · ${esc(a.readMin)}분 읽기</p>
-        <div class="post-cover" style="background:${cover(a)}"></div>
+        <div class="post-cover" style="background:${cover(a)}">${image(a, 'post-cover-image', true)}</div>
         <div class="post-body">
           <p class="post-excerpt">${esc(a.excerpt)}</p>
           ${(a.body || []).map((s) => `<h2>${esc(s.h)}</h2><p>${esc(s.p)}</p>`).join('')}
@@ -77,7 +84,7 @@
         <div class="insights-grid">
           ${related.map((x) => `
             <a class="insight-card" href="blog.html?post=${encodeURIComponent(x.slug)}">
-              <span class="ic-cover" style="background:${cover(x)}"><span class="ic-cat">${esc(x.category)}</span></span>
+              <span class="ic-cover" style="background:${cover(x)}">${image(x, 'ic-image')}<span class="ic-cat">${esc(x.category)}</span></span>
               <span class="ic-body"><b>${esc(x.title)}</b><span class="ic-meta">${esc(x.date)} · ${esc(x.readMin)}분 읽기</span></span>
             </a>`).join('')}
         </div>
@@ -92,6 +99,7 @@
         description: a.excerpt,
         articleSection: a.category,
         datePublished: a.date,
+        image: absoluteImage(a),
         author: { '@type': 'Organization', name: '만물인테리어' },
         publisher: { '@type': 'Organization', name: '만물인테리어' },
         mainEntityOfPage: 'https://01023978629.github.io/manmool/blog.html?post=' + encodeURIComponent(a.slug)
