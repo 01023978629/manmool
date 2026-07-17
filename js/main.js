@@ -459,7 +459,13 @@ function openFolioModal(item, all) {
     const ctaBtn = body.querySelector('a[href="#inquiry"]');
     if (ctaBtn) ctaBtn.addEventListener('click', () => {
       if (window.MANMUL && typeof window.MANMUL.selectDesign === 'function') {
-        window.MANMUL.selectDesign({ id: item.id, title: item.title, style: item.style, spaceType: item.spaceType });
+        window.MANMUL.selectDesign({
+          id: item.id,
+          title: item.title,
+          style: item.style,
+          spaceType: item.spaceType,
+          area: item.area || null
+        });
       }
     });
   }

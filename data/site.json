@@ -210,7 +210,13 @@
     }
   ],
   "portfolioFilters": {
-    "area": [],
+    "area": [
+      { "label": "10~19평", "min": 1, "max": 20 },
+      { "label": "20~29평", "min": 20, "max": 30 },
+      { "label": "30~39평", "min": 30, "max": 40 },
+      { "label": "40~49평", "min": 40, "max": 50 },
+      { "label": "50평 이상", "min": 50, "max": 501 }
+    ],
     "budget": [],
     "scope": [],
     "style": [
@@ -233,6 +239,7 @@
       "title": "미니멀 화이트 거실",
       "category": "AI추천",
       "spaceType": "거실",
+      "area": 24,
       "style": "미니멀",
       "mood": "밝고 정돈된",
       "palette": [
@@ -255,6 +262,7 @@
       "title": "내추럴 우드 거실",
       "category": "AI추천",
       "spaceType": "거실",
+      "area": 32,
       "style": "내추럴",
       "mood": "따뜻하고 편안한",
       "palette": [
@@ -277,6 +285,7 @@
       "title": "북유럽 스칸디 거실",
       "category": "AI추천",
       "spaceType": "거실",
+      "area": 25,
       "style": "북유럽",
       "mood": "밝고 산뜻한",
       "palette": [
@@ -299,6 +308,7 @@
       "title": "모던 그레이 거실",
       "category": "AI추천",
       "spaceType": "거실",
+      "area": 34,
       "style": "모던",
       "mood": "시크하고 세련된",
       "palette": [
@@ -321,6 +331,7 @@
       "title": "인더스트리얼 거실",
       "category": "AI추천",
       "spaceType": "거실",
+      "area": 50,
       "style": "인더스트리얼",
       "mood": "빈티지하고 감각적인",
       "palette": [
@@ -343,6 +354,7 @@
       "title": "빈티지 레트로 거실",
       "category": "AI추천",
       "spaceType": "거실",
+      "area": 24,
       "style": "빈티지",
       "mood": "따뜻하고 개성 있는",
       "palette": [
@@ -365,6 +377,7 @@
       "title": "웜 베이지 침실",
       "category": "AI추천",
       "spaceType": "침실",
+      "area": 18,
       "style": "웜 베이지",
       "mood": "포근하고 아늑한",
       "palette": [
@@ -387,6 +400,7 @@
       "title": "프렌치 모던 침실",
       "category": "AI추천",
       "spaceType": "침실",
+      "area": 34,
       "style": "프렌치",
       "mood": "우아하고 부드러운",
       "palette": [
@@ -409,6 +423,7 @@
       "title": "모던 화이트 주방",
       "category": "AI추천",
       "spaceType": "주방",
+      "area": 30,
       "style": "모던",
       "mood": "깔끔하고 실용적",
       "palette": [
@@ -431,6 +446,7 @@
       "title": "호텔식 욕실",
       "category": "AI추천",
       "spaceType": "욕실",
+      "area": 34,
       "style": "호텔식",
       "mood": "차분하고 고급스러운",
       "palette": [
@@ -453,6 +469,7 @@
       "title": "내추럴 우드 침실",
       "category": "AI추천",
       "spaceType": "침실",
+      "area": 24,
       "style": "내추럴",
       "mood": "편안하고 아늑한",
       "palette": [
@@ -475,6 +492,7 @@
       "title": "미니멀 화이트 주방",
       "category": "AI추천",
       "spaceType": "주방",
+      "area": 20,
       "style": "미니멀",
       "mood": "밝고 정돈된",
       "palette": [
@@ -497,6 +515,7 @@
       "title": "내추럴 우드 주방",
       "category": "AI추천",
       "spaceType": "주방",
+      "area": 32,
       "style": "내추럴",
       "mood": "따뜻하고 편안한",
       "palette": [
@@ -519,6 +538,7 @@
       "title": "모던 화이트 욕실",
       "category": "AI추천",
       "spaceType": "욕실",
+      "area": 24,
       "style": "모던",
       "mood": "깔끔하고 밝은",
       "palette": [
@@ -541,6 +561,7 @@
       "title": "내추럴 우드 욕실",
       "category": "AI추천",
       "spaceType": "욕실",
+      "area": 30,
       "style": "내추럴",
       "mood": "차분하고 따뜻한",
       "palette": [
@@ -563,6 +584,7 @@
       "title": "화이트 오크 정돈형 거실",
       "category": "AI추천",
       "spaceType": "거실",
+      "area": 24,
       "style": "미니멀",
       "mood": "밝고 차분한",
       "palette": [
@@ -588,6 +610,7 @@
       "title": "세이지 수납형 거실",
       "category": "AI추천",
       "spaceType": "거실",
+      "area": 34,
       "style": "내추럴",
       "mood": "편안하고 생기 있는",
       "palette": [
@@ -613,6 +636,7 @@
       "title": "블루 포인트 컴팩트 거실",
       "category": "AI추천",
       "spaceType": "거실",
+      "area": 18,
       "style": "스마트 수납",
       "mood": "산뜻하고 효율적인",
       "palette": [
@@ -638,6 +662,7 @@
       "title": "네이비 오크 아일랜드 주방",
       "category": "AI추천",
       "spaceType": "주방",
+      "area": 32,
       "style": "모던",
       "mood": "선명하고 실용적인",
       "palette": [
@@ -663,6 +688,7 @@
       "title": "재팬디 인디고 침실",
       "category": "AI추천",
       "spaceType": "침실",
+      "area": 24,
       "style": "재팬디",
       "mood": "고요하고 깊이 있는",
       "palette": [
@@ -688,6 +714,7 @@
       "title": "트래버틴 스파 욕실",
       "category": "AI추천",
       "spaceType": "욕실",
+      "area": 34,
       "style": "호텔식",
       "mood": "차분하고 정돈된",
       "palette": [
@@ -706,6 +733,110 @@
       "trendLabel": "스파 욕실 · AI 시안",
       "trendNote": "오늘의집 호텔식 욕실 사례에서 보이는 대형 석재 질감 타일, 간접 조명, 건식 수납 구성을 소형 욕실에 맞게 축소했습니다.",
       "photo": "assets/designs/travertine-spa-bath.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-trend-arch-entry-24",
+      "title": "아치형 수납 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "area": 24,
+      "style": "내추럴",
+      "mood": "밝고 환영하는",
+      "palette": [
+        "#f0ece5",
+        "#c9a77d",
+        "#858c77",
+        "#77716a"
+      ],
+      "materials": [
+        "라이트 오크 신발장",
+        "웜화이트 무광 도장",
+        "테라조 바닥",
+        "전신 거울"
+      ],
+      "tip": "신발장은 천장까지 올리고 벤치와 거울을 한쪽에 모으면 좁은 현관에서도 수납과 외출 준비 동선을 함께 확보할 수 있습니다.",
+      "trendLabel": "24평 현관 · 신규 AI 시안",
+      "trendNote": "아치형 진입부와 숨은 신발장, 착석 벤치를 결합해 20평대 아파트 현관에 맞게 자체 설계한 추천 시안입니다.",
+      "photo": "assets/designs/arch-entry-24.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-trend-sage-study-34",
+      "title": "세이지 라이브러리 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "area": 34,
+      "style": "모던",
+      "mood": "집중되고 깊이 있는",
+      "palette": [
+        "#e9e3da",
+        "#394239",
+        "#966f4c",
+        "#783f46"
+      ],
+      "materials": [
+        "세이지 무광 책장",
+        "오크 원목 책상",
+        "울 패브릭 체어",
+        "간접 선반 조명"
+      ],
+      "tip": "책장은 하부 도어 수납과 상부 오픈 선반을 나누고, 창가에는 독서 의자를 두면 업무와 휴식을 한 방에서 분리할 수 있습니다.",
+      "trendLabel": "34평 홈오피스 · 신규 AI 시안",
+      "trendNote": "벽면 서재와 창가 독서 공간을 결합해 재택근무와 취미를 함께 담도록 자체 제작한 추천 시안입니다.",
+      "photo": "assets/designs/sage-study-34.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-trend-modular-kids-30",
+      "title": "성장형 모듈 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "area": 30,
+      "style": "스마트 수납",
+      "mood": "밝고 유연한",
+      "palette": [
+        "#f1eee8",
+        "#d2b38c",
+        "#8498a7",
+        "#c96e58"
+      ],
+      "materials": [
+        "자작나무 모듈 가구",
+        "저상 수납 침대",
+        "코르크 게시판",
+        "무광 컬러 도어"
+      ],
+      "tip": "수납은 아이 손높이에 맞추고 침대 아래 서랍을 활용하세요. 중앙 바닥을 비워두면 놀이방에서 공부방으로 바꾸기 쉽습니다.",
+      "trendLabel": "30평 가족형 · 신규 AI 시안",
+      "trendNote": "수납·수면·학습 영역을 벽면에 모아 아이의 성장에 따라 가구 역할을 바꿀 수 있도록 자체 설계했습니다.",
+      "photo": "assets/designs/modular-kids-30.jpg",
+      "aiDesign": true
+    },
+    {
+      "id": "design-trend-wardrobe-laundry-42",
+      "title": "호텔형 드레스룸 세탁존",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "area": 42,
+      "style": "모던",
+      "mood": "정돈되고 고급스러운",
+      "palette": [
+        "#ddd5ca",
+        "#66574b",
+        "#192d4b",
+        "#a8a29a"
+      ],
+      "materials": [
+        "스모크 오크 붙박이장",
+        "그레이지 무광 도어",
+        "라이트 스톤 상판",
+        "선형 수납 조명"
+      ],
+      "tip": "세탁기와 건조기는 도어 안에 숨기되 환기 공간을 확보하고, 중앙 아일랜드를 접기·액세서리 수납에 함께 쓰면 집안일 동선이 짧아집니다.",
+      "trendLabel": "42평 수납 동선 · 신규 AI 시안",
+      "trendNote": "드레스룸과 세탁실 사이 이동을 줄이도록 보관·세탁·접기 기능을 한 공간에 통합한 자체 제작 추천 시안입니다.",
+      "photo": "assets/designs/wardrobe-laundry-42.jpg",
       "aiDesign": true
     }
   ],

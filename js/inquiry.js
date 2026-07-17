@@ -27,7 +27,7 @@
     const d = SELECTED_DESIGN;
     el.hidden = false;
     el.innerHTML = `<span class="sd-ico">🎨</span>
-      <span class="sd-text">선택한 디자인 · <b>${d.title}</b>${d.style ? ` (${d.style})` : ''}</span>
+      <span class="sd-text">선택한 디자인 · <b>${d.title}</b>${d.style ? ` (${d.style})` : ''}${d.area ? ` · ${d.area}평 추천` : ''}</span>
       <button type="button" class="sd-clear" id="sdClear" aria-label="선택 해제">✕</button>`;
     const c = $('sdClear');
     if (c) c.addEventListener('click', () => {
@@ -37,12 +37,47 @@
     });
   }
 
+  /* ----- 평수 목록 + 직접 입력 ----- */
+  function setAreaValue(value) {
+    const preset = $('iAreaPreset');
+    const custom = $('iArea');
+    if (!preset || !custom) return;
+    const area = Number(value);
+    if (!Number.isFinite(area) || area <= 0) {
+      preset.value = '';
+      custom.value = '';
+      custom.hidden = true;
+      return;
+    }
+    const areaText = String(area);
+    const listed = Array.from(preset.options).some((o) => o.value === areaText);
+    preset.value = listed ? areaText : 'custom';
+    custom.value = areaText;
+    custom.hidden = listed;
+  }
+
+  function setupAreaControl() {
+    const preset = $('iAreaPreset');
+    const custom = $('iArea');
+    if (!preset || !custom) return;
+    preset.addEventListener('change', () => {
+      if (preset.value === 'custom') {
+        custom.value = '';
+        custom.hidden = false;
+        custom.focus();
+        return;
+      }
+      custom.value = preset.value;
+      custom.hidden = true;
+    });
+  }
+
   /* ----- 예상견적 답변 프리필 ----- */
   function prefillFromEstimate(a) {
     if (!a) return;
     const setVal = (id, v) => { const el = $(id); if (el && v != null && v !== '') el.value = v; };
     if (a.type) setVal('iType', a.type);
-    if (a.area) setVal('iArea', a.area);
+    if (a.area) setAreaValue(a.area);
     const scopeVal = a.scope === '부분공사' ? '부분' : (a.scope === '전체공사' ? '전체' : null);
     if (scopeVal) { const r = document.querySelector(`input[name="scope"][value="${scopeVal}"]`); if (r) r.checked = true; }
     const budgetMap = { '~3천만원': '~3천만원', '3~5천만원': '3천~5천만원', '5~8천만원': '5천~8천만원', '8천만원 이상': '8천만원~', '미정': '미정' };
@@ -345,6 +380,7 @@
     COMPANY = (ctx && ctx.data && ctx.data.company) || {};
     if (!$('inquiryForm')) return;
     renderWorks();
+    setupAreaControl();
     renderStepper();
     showStep(1);
 
@@ -358,6 +394,7 @@
       SELECTED_DESIGN = e.detail || null;
       renderSelectedDesign();
       if (SELECTED_DESIGN) {
+        if (SELECTED_DESIGN.area) setAreaValue(SELECTED_DESIGN.area);
         const sec = $('inquiry');
         if (sec) setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
       }
