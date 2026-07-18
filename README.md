@@ -18,6 +18,26 @@
 3. **개발 0 운영** — 내용을 바꾸는 데 코드가 필요 없다(데이터 분리)
 4. **돈은 승인·기록을 거친다** — 계약금·중도금·잔금·추가공사 모두 승인 후 기록
 
+## 🚀 지금 실서비스로 전환하기 (대표님 우선순위)
+
+현재는 **데모 모드**(`data/config.json`의 `demoMode: true`)입니다. 아래 순서로 켜면 됩니다.
+각 단계는 독립적이라 **1번만 해도 상담이 실제로 대표님께 도착**합니다.
+
+**1️⃣ 상담이 이메일로 오게 — 가장 빠름 · 약 2분 · 무료**
+Web3Forms에 이메일만 넣고 `access_key`를 발급(회원가입 없음)받아 저(AI)에게 알려주시면,
+`config.json`에 넣고 `demoMode`를 끕니다. 그 순간부터 홈페이지 상담이 **대표 이메일로 자동 도착**합니다.
+현재 코드 그대로 동작하므로 서버·배포가 필요 없습니다. → 상세 [`integrations/INTEGRATION.md`](integrations/INTEGRATION.md) §3-1
+
+**2️⃣ 검색에 노출되게 — 유입 · 무료**
+네이버 스마트플레이스(지도)·서치어드바이저 등록. 동네 손님 대부분이 여기서 옵니다.
+등록 순서 [`integrations/GROWTH.md`](integrations/GROWTH.md) · 실제 검색 데이터 기반 콘텐츠·복붙 초안 [`integrations/CONTENT-PLAN.md`](integrations/CONTENT-PLAN.md)
+
+**3️⃣ 자동화 고도화 — 선택 · 무료**
+n8n 무료 워크플로(규칙엔진 + Google Sheets)로 리드 저장·알림·대표 승인·카카오 챗봇까지.
+설치 [`integrations/SETUP-n8n-kakao.md`](integrations/SETUP-n8n-kakao.md) · 버전 선택 [`integrations/n8n/README.md`](integrations/n8n/README.md)
+
+> 진행 상태는 관리자 화면(`admin.html`)의 **연동 상태** 패널에서 언제든 확인·테스트할 수 있습니다.
+
 ## 구조: 공개 사이트 ↔ 운영 앱 (역할 분리)
 
 - **manmool (이 저장소)** = **대외 공개 홈페이지** — 홍보·시공사례·AI 예상견적·상담 유입 + 웹 리드 관리.
@@ -70,9 +90,10 @@ integrations/n8n/*.workflow.json        n8n 워크플로(import용)
 
 ## n8n · 카카오톡 연동
 
-1. `integrations/n8n/`의 워크플로 2개를 n8n에 **Import** 합니다.
-   - `manmul-inquiry.workflow.json` — 문의 접수 → AI요약 → 카카오 알림 → 대표 승인 → 고객 발송
+1. `integrations/n8n/`의 워크플로를 n8n에 **Import** 합니다. **1인 운영이면 무료 lite 버전을 켜세요.**
+   - ⭐ `manmul-inquiry-lite.workflow.json` — **무료**(규칙엔진 + Google Sheets). API 키·DB 불필요
    - `kakao-chatbot-skill.workflow.json` — 카카오 i 오픈빌더 챗봇 스킬서버
+   - 〈고급〉 `manmul-inquiry.workflow.json` — Claude 요약 + Postgres (문의량 많을 때). lite와 **동시 활성 금지**(웹훅 경로 동일)
 2. `data/config.json`에 n8n 웹훅 URL과 카카오 채널 URL을 넣고 `enabled: true`, `demoMode: false`로 전환합니다.
 3. 자세한 절차는 [`integrations/INTEGRATION.md`](integrations/INTEGRATION.md) 참고.
 4. **n8n을 아직 안 띄웠다면** — 무료 클라우드부터 처음부터 세우는
