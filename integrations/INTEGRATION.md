@@ -35,9 +35,12 @@
 ## 2. n8n 워크플로 가져오기
 
 1. n8n에서 **Workflows → Import from File**을 선택합니다.
-2. 아래 두 파일을 각각 가져옵니다.
-   - `integrations/n8n/manmul-inquiry.workflow.json` — 상담 문의 처리
+2. 아래 파일을 가져옵니다. **1인 운영이면 lite(무료)만 켜면 됩니다.**
+   - ⭐ `integrations/n8n/manmul-inquiry-lite.workflow.json` — 상담 처리(무료·규칙 엔진+Sheets)
    - `integrations/n8n/kakao-chatbot-skill.workflow.json` — 카카오 챗봇 스킬서버
+   - 〈고급〉 `integrations/n8n/manmul-inquiry.workflow.json` — Claude+Postgres 버전
+   - ⚠️ lite와 고급은 웹훅 경로(`manmul-inquiry`)가 같아 **동시에 Active 금지** — 하나만 켭니다.
+   - 두 버전 비교: [`n8n/README.md`](n8n/README.md)
 3. 각 워크플로의 **Webhook** 노드에서 **Production URL**을 복사해 둡니다.
    - 예: `https://your-n8n.example.com/webhook/manmul-inquiry`
    - 예: `https://your-n8n.example.com/webhook/kakao-skill`

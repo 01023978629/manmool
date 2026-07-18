@@ -1,7 +1,13 @@
 # 무료 클라우드 n8n · 카카오톡 셋업 가이드
 
 만물인테리어 공개 사이트를 **실서비스**로 전환하는 처음부터 끝까지 순서입니다.
-목표: **웹 상담 폼 → n8n → (Claude 요약·DB 저장·카카오 알림) → 대표 승인 → 고객 발송**.
+목표: **웹 상담 폼 → n8n → (규칙 분석·시트 저장·카카오 알림) → 대표 승인 → 고객 발송**.
+
+> **1인 운영이면 무료 `lite` 워크플로로 시작하세요.** 이 가이드는 기본적으로
+> `manmul-inquiry-lite`(규칙 엔진 Code 노드 + Google Sheets, **API 키·DB 서버 불필요**)
+> 기준으로 설명합니다. 유료 Claude 요약 + Postgres 버전은 문의량이 많아졌을 때의
+> 선택지이며, 각 장 끝의 **〈고급〉** 표시에서 다룹니다.
+> 두 버전 선택 기준은 [`n8n/README.md`](n8n/README.md) 참고.
 
 > 이 문서는 "n8n을 어떻게 띄우나"부터 다룹니다. n8n이 이미 있으면
 > [`INTEGRATION.md`](INTEGRATION.md)의 3~5장으로 바로 가도 됩니다.
@@ -14,12 +20,13 @@
 |---|---|
 | **n8n 자체** | 오픈소스 = 무료. 단, "공개 URL로 24시간 떠 있게" 하려면 호스팅이 필요 |
 | **호스팅** | Oracle Cloud Always Free(무료·평생) / Render 무료(잠자기) / n8n Cloud(14일 체험 후 유료) |
-| **Postgres DB** | Supabase·Neon 무료 티어로 충분 |
-| **Claude API** | 종량제(소액 유료). 문의 1건 요약 ≈ 수 원 |
+| **상담 분석** | **lite = 규칙 엔진 Code 노드 → 무료.** 〈고급〉 Claude API는 종량제(문의 1건 ≈ 수 원) |
+| **리드 저장** | **lite = Google Sheets → 무료.** 〈고급〉 Postgres(Supabase·Neon 무료 티어)도 가능 |
 | **카카오 채널** | 개설 무료 / **알림톡 발송**은 사업자 등록 + 건당 소액 요금 |
 
-> 개발·테스트까지는 **완전 무료**로 가능합니다. 실제 고객 알림 발송(알림톡)과
-> Claude 요약은 소액이 듭니다. 아래는 **무료로 시작**하는 경로 기준입니다.
+> **lite 워크플로는 알림톡 발송 전까지 완전 무료입니다.** (분석·저장 모두 무료 구성)
+> 유일하게 소액이 드는 건 정식 **알림톡**(사업자 등록 후)뿐입니다. 그전에는
+> 대표 알림을 텔레그램/이메일/문자로 받으면 여전히 0원으로 운영됩니다.
 
 ---
 
@@ -58,9 +65,25 @@ cloudflared tunnel --url http://localhost:5678
 
 ---
 
-## 2. 데이터베이스 준비 (Postgres 무료)
+## 2. 리드 저장 준비 (Google Sheets · 무료)
 
-상담 워크플로에 **DB 저장(Postgres)** 노드가 있습니다.
+**lite 워크플로는 Google Sheets에 저장합니다.** DB 서버가 필요 없습니다.
+
+1. 구글 드라이브에서 새 스프레드시트 생성 (예: `만물_상담리드`)
+2. 첫 행에 헤더를 넣습니다:
+   ```
+   submittedAt | leadId | status | name | phone | type | region | area | scope | works | budget | movein | live | memo | selectedDesign | ai.summary | ai.priority | ai.score
+   ```
+3. n8n의 **Google Sheets Credential**(OAuth 또는 서비스계정)을 연결하고,
+   `리드 저장 (Google Sheets)` 노드에서 이 시트를 지정합니다.
+   (노드는 헤더명 기준 자동 매핑 = *Map Automatically*로 설정되어 있습니다.)
+
+> 스프레드시트 한 장이 곧 상담 대장(臺帳)이 됩니다. 대표가 폰에서 바로 열어
+> 보고, 필터·정렬로 관리할 수 있어 1인 운영에 충분합니다.
+
+### 〈고급〉 Postgres로 저장하려면 (`manmul-inquiry` 버전)
+
+문의량이 많아 관계형 조회·통계가 필요하면 Postgres 버전을 씁니다.
 
 1. https://supabase.com (또는 https://neon.tech) 무료 프로젝트 생성
 2. 연결 정보(host·port·database·user·password) 확보
@@ -77,16 +100,19 @@ create table if not exists inquiries (
   ai_summary text, ai_priority int
 );
 ```
-> 규모가 작으면 DB 노드를 빼고 n8n **Data Table**이나 Google Sheets로 대체해도 됩니다.
 
 ---
 
 ## 3. 워크플로 가져오기 (Import)
 
 1. n8n → **Workflows** → **Import from File**
-2. 이 저장소의 파일 2개를 각각 가져옵니다:
-   - `integrations/n8n/manmul-inquiry.workflow.json` (상담 접수 파이프라인)
-   - `integrations/n8n/kakao-chatbot-skill.workflow.json` (카카오 챗봇 스킬)
+2. 이 저장소의 파일을 가져옵니다:
+   - ⭐ `integrations/n8n/manmul-inquiry-lite.workflow.json` — **상담 접수(무료·추천)**
+   - `integrations/n8n/kakao-chatbot-skill.workflow.json` — 카카오 챗봇 스킬(선택)
+   - 〈고급〉 `integrations/n8n/manmul-inquiry.workflow.json` — Claude+Postgres 버전
+
+> **lite와 고급 버전은 동시에 쓰지 마세요.** 웹훅 경로(`manmul-inquiry`)가 같아
+> 충돌합니다. 하나만 **Active**로 켜 둡니다. (기본은 lite)
 
 가져온 뒤 각 노드에 자격증명을 연결합니다(4장).
 
@@ -97,14 +123,24 @@ create table if not exists inquiries (
 n8n **Settings → Variables/Credentials** 또는 컨테이너 환경변수로 설정합니다.
 **절대 repo(config.json)에 넣지 마세요.**
 
+**lite(무료) 워크플로에 필요한 값 — 딱 2가지:**
+
+| 노드 | 필요한 값 |
+|---|---|
+| 정규화 + 규칙 분석 (무료 Code) | **없음** — 외부 API·키가 필요 없습니다 |
+| 리드 저장 (Google Sheets) | Google Sheets Credential(OAuth 또는 서비스계정) |
+| 대표에게 알림 (카카오/텔레그램) | `NOTIFY_WEBHOOK_URL` 등 알림 대상 토큰/URL(5장) |
+
+> 알림 노드는 초기엔 **텔레그램 봇**이나 개인 이메일로 두면 5장을 건너뛰고도 동작합니다.
+
+### 〈고급〉 `manmul-inquiry`(Claude+Postgres) 추가로 필요한 값
+
 | 노드 | 필요한 값 |
 |---|---|
 | AI 1차 분석 (Claude) | `CLAUDE_API_KEY` — https://console.anthropic.com 에서 발급 |
 | DB 저장 (Postgres) | 2장의 Supabase/Neon 접속 정보(Postgres Credential) |
-| 대표에게 카카오 알림 | `KAKAO_ADMIN_TOKEN` 등 채널 메시지 발송 토큰(5장) |
 
 - Claude 노드는 `x-api-key` 헤더에 `CLAUDE_API_KEY`, 모델은 최신 Claude로 설정.
-- 카카오 알림 노드는 5장에서 발급한 값으로 채웁니다.
 
 ---
 
@@ -175,15 +211,16 @@ Access-Control-Allow-Headers: Content-Type
 
 ## 8. 운영 체크리스트
 
-- [ ] 워크플로 **Active** ON (Production Webhook 활성화)
+- [ ] **lite 워크플로 하나만** Active ON (고급 버전과 동시 활성 금지 — 웹훅 경로 충돌)
 - [ ] `demoMode: false`, `n8n.enabled: true`
-- [ ] 비밀값(Claude 키·DB·카카오 토큰)은 **n8n에만**, repo엔 없음
+- [ ] 비밀값(Sheets·카카오 토큰)은 **n8n에만**, repo엔 없음
 - [ ] 승인 전에는 고객에게 아무것도 발송되지 않음(무승인 발송 0)
 - [ ] 개인정보·사진 공개·전자서명 동의 문구 확인
 - [ ] 실패 시 폴백(대표 이메일/문자) 경로 확보
 
 ---
 
-> 요약: **경로 A로 n8n을 띄우고 → 워크플로 2개 import → Claude·DB·카카오 자격증명 연결 →
-> config.json에 Webhook URL 넣고 demoMode 끄기 → admin 연동 상태에서 테스트**.
-> 여기까지면 실서비스 전환 완료입니다.
+> 요약(무료 경로): **경로 A로 n8n을 띄우고 → `manmul-inquiry-lite` + 챗봇 import →
+> Google Sheets·알림 자격증명만 연결 → config.json에 Webhook URL 넣고 demoMode 끄기 →
+> admin 연동 상태에서 테스트**. Claude 키·Postgres 없이 여기까지면 실서비스 전환 완료입니다.
+> 문의량이 늘면 `manmul-inquiry`(Claude+Postgres)로 무중단 교체(웹훅 경로 동일).
