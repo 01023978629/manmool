@@ -12,30 +12,39 @@
       "name": "Webhook (카카오 스킬 요청)",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-560, 300],
+      "position": [
+        -560,
+        300
+      ],
       "webhookId": "kakao-skill",
       "notesInFlow": true,
       "notes": "카카오 i 오픈빌더의 스킬(Skill) URL로 이 Production URL을 등록합니다. 오픈빌더가 여기로 사용자 발화를 POST합니다."
     },
     {
       "parameters": {
-        "jsCode": "// 카카오 i 오픈빌더 스킬 요청 파싱 + 슬롯 추출 (체계적 라우팅)\nconst body = $json.body || {};\nconst utter = (body.userRequest?.utterance || '').trim();\nconst userId = body.userRequest?.user?.id || '';\n// 오픈빌더 엔티티(action.params)가 있으면 우선 사용, 없으면 발화에서 추출\nconst params = body.action?.params || {};\n\n// 평수 추출 (예: '34평', '34 평')\nconst areaMatch = utter.match(/(\\d{1,3})\\s*평/);\nconst area = params.area ? Number(params.area) : (areaMatch ? Number(areaMatch[1]) : null);\n\n// 예산 추출 (예: '5천', '오천만원')\nlet budget = params.budget || null;\nif (!budget) {\n  if (/8\\s*천|8000|팔천/.test(utter)) budget = '8천만원 이상';\n  else if (/5\\s*천|5000|오천/.test(utter)) budget = '5~8천만원';\n  else if (/3\\s*천|3000|삼천/.test(utter)) budget = '3~5천만원';\n}\n\n// 스타일 추출\nconst STYLES = ['모던','미니멀','내추럴','클래식','인더스트리얼'];\nconst style = params.style || STYLES.find((s) => utter.includes(s)) || null;\n\n// 인텐트 분류\nlet intent = 'fallback';\nif (/견적|비용|가격|얼마/.test(utter)) intent = 'estimate';\nelse if (/상담|문의|예약|실측/.test(utter)) intent = 'consult';\nelse if (/사례|포트폴리오|시공|사진/.test(utter)) intent = 'portfolio';\nelse if (/A\\/?S|하자|보수/i.test(utter)) intent = 'as';\n\nreturn [{ json: { utter, userId, intent, area, budget, style } }];"
+        "jsCode": "// 카카오 i 오픈빌더 스킬 요청 파싱 + 슬롯 추출 (체계적 라우팅)\nconst body = $json.body || {};\nconst utter = (body.userRequest?.utterance || '').trim();\nconst userId = body.userRequest?.user?.id || '';\n// 오픈빌더 엔티티(action.params)가 있으면 우선 사용, 없으면 발화에서 추출\nconst params = body.action?.params || {};\n\n// 평수 추출 (예: '34평', '34 평')\nconst areaMatch = utter.match(/(\\d{1,3})\\s*평/);\nconst area = params.area ? Number(params.area) : (areaMatch ? Number(areaMatch[1]) : null);\n\n// 예산 추출 (예: '5천', '오천만원')\nlet budget = params.budget || null;\nif (!budget) {\n  if (/8\\s*천|8000|팔천/.test(utter)) budget = '8천만원 이상';\n  else if (/5\\s*천|5000|오천/.test(utter)) budget = '5~8천만원';\n  else if (/3\\s*천|3000|삼천/.test(utter)) budget = '3~5천만원';\n}\n\n// 스타일 추출\nconst STYLES = ['모던','미니멀','내추럴','클래식','인더스트리얼'];\nconst style = params.style || STYLES.find((s) => utter.includes(s)) || null;\n\n// 인텐트 분류 (구체적인 것부터 매칭)\nlet intent = 'fallback';\nif (/견적|비용|가격|얼마|평당/.test(utter)) intent = 'estimate';\nelse if (/보증|하자|A\\/?S|보수/i.test(utter)) intent = 'as';\nelse if (/위치|주소|어디|오시는|오는\\s*길|찾아|약도|지도/.test(utter)) intent = 'location';\nelse if (/영업|몇\\s*시|시간|언제.*(열|해|하나요|되나요)|휴무|오픈|문\\s*여/.test(utter)) intent = 'hours';\nelse if (/사례|포트폴리오|시공|사진|둘러/.test(utter)) intent = 'portfolio';\nelse if (/상담|문의|예약|실측|연락/.test(utter)) intent = 'consult';\n\nreturn [{ json: { utter, userId, intent, area, budget, style } }];"
       },
       "id": "b2000000-0000-4000-8000-000000000002",
       "name": "발화 분석 · 슬롯 추출",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-340, 300]
+      "position": [
+        -340,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// 인텐트/슬롯 기반 카카오 응답(2.0) 생성 — 체계적·효율적 응대\nconst { intent, area, budget, style } = $json;\nconst HOME = 'https://your-site.example.com';\nconst PYEONG_UNIT = 900000; // 주거 평당 참고 단가(표준형)\n\nconst outputs = [];\nconst quickReplies = [];\n\nfunction textCard(title, desc, buttons) {\n  outputs.push({ textCard: { title, description: desc, buttons } });\n}\nfunction webBtn(label, path) { return { action: 'webLink', label, webLinkUrl: HOME + path }; }\nfunction msgBtn(label, text) { return { action: 'message', label, messageText: text }; }\n\nif (intent === 'estimate') {\n  if (area) {\n    const mid = area * PYEONG_UNIT * 1.35;\n    const low = Math.round(mid * 0.9 / 10000) * 10000;\n    const high = Math.round(mid * 1.15 / 10000) * 10000;\n    const won = (n) => '₩' + n.toLocaleString('ko-KR');\n    textCard(`${area}평 예상 견적(참고)`, `표준형 기준 약 ${won(low)} ~ ${won(high)}\\n※ 최종 금액은 현장 실측 후 확정됩니다.`, [webBtn('30초 정밀 견적', '/#estimator'), webBtn('상담 신청', '/#inquiry')]);\n  } else {\n    outputs.push({ simpleText: { text: '견적을 계산해드릴게요! 평수를 알려주시면 참고 예상 범위를 바로 안내드립니다. 🙂' } });\n    ['20평','30평','34평','45평'].forEach((a) => quickReplies.push(msgBtn(a + ' 견적', a + ' 견적')));\n  }\n} else if (intent === 'portfolio') {\n  const q = [area ? area + '평' : '', budget || '', style || ''].filter(Boolean).join(' ');\n  textCard('비슷한 시공 사례 찾기', (q ? `\"${q}\" 조건과 ` : '') + '평수·예산·스타일로 우리 집과 비슷한 사례를 골라보세요. Before/After와 자재까지 공개합니다.', [webBtn('사례 둘러보기', '/#portfolio')]);\n  if (!style) STYLES_QR();\n} else if (intent === 'consult') {\n  textCard('상담 신청', '단계별 정보를 남겨주시면 대표 검토 후 카카오톡으로 예상 범위와 실측 일정을 안내드립니다.', [webBtn('상담 신청하기', '/#inquiry')]);\n} else if (intent === 'as') {\n  outputs.push({ simpleText: { text: 'A/S 접수는 사진과 함께 남겨주시면 빠르게 배정해드립니다. 증상과 사진을 보내주세요. 🛠️' } });\n} else {\n  outputs.push({ simpleText: { text: '안녕하세요! 만물인테리어 챗봇입니다 🤖\\n무엇을 도와드릴까요?' } });\n}\n\nfunction STYLES_QR() {\n  ['모던','미니멀','내추럴','클래식'].forEach((s) => quickReplies.push(msgBtn(s + ' 사례', s + ' 사례 보여줘')));\n}\n\n// 공통 퀵리플라이 (항상 핵심 액션 제공)\n[['30초 견적','견적 알려줘'],['상담 신청','상담하고 싶어요'],['시공사례','시공사례 보여줘'],['A/S 문의','A/S 접수']].forEach(([l,t]) => {\n  if (!quickReplies.some((q) => q.label === l)) quickReplies.push({ action: 'message', label: l, messageText: t });\n});\n\nreturn [{ json: { version: '2.0', template: { outputs, quickReplies: quickReplies.slice(0, 10) } } }];"
+        "jsCode": "// 인텐트/슬롯 기반 카카오 응답(2.0) 생성 — 체계적·효율적 응대\nconst { intent, area, budget, style } = $json;\nconst HOME = 'https://01023978629.github.io/manmool';\nconst PHONE = '010-2397-8629';\nconst ADDR = '대전 돌다리로19번길 9';\nconst HOURS = '평일 09:00 ~ 17:30 (주말·공휴일 휴무)';\nconst PYEONG_UNIT = 900000; // 주거 평당 참고 단가(표준형) — 사이트 예상견적과 동일\nconst MULT = 1.35;          // 표준형 등급 배수 — estimate.js와 동일\n\nconst outputs = [];\nlet quickReplies = [];\n\nfunction textCard(title, desc, buttons) {\n  outputs.push({ textCard: { title, description: desc, buttons } });\n}\nfunction webBtn(label, path) { return { action: 'webLink', label, webLinkUrl: HOME + path }; }\nfunction phoneBtn(label) { return { action: 'phone', label, phoneNumber: PHONE }; }\nfunction msgBtn(label, text) { return { action: 'message', label, messageText: text }; }\nfunction stylesQR() {\n  ['모던','미니멀','내추럴','클래식'].forEach((s) => quickReplies.push(msgBtn(s + ' 사례', s + ' 사례 보여줘')));\n}\n\nif (intent === 'estimate') {\n  if (area) {\n    const mid = area * PYEONG_UNIT * MULT;\n    const low = Math.round(mid * 0.9 / 10000) * 10000;\n    const high = Math.round(mid * 1.15 / 10000) * 10000;\n    const won = (n) => '₩' + n.toLocaleString('ko-KR');\n    textCard(`${area}평 예상 견적(참고)`, `표준형 기준 약 ${won(low)} ~ ${won(high)}\\n※ 최종 금액은 현장 실측 후 확정됩니다.`, [webBtn('30초 정밀 견적', '/#estimator'), webBtn('상담 신청', '/#inquiry')]);\n  } else {\n    outputs.push({ simpleText: { text: '견적을 계산해드릴게요! 평수를 알려주시면 참고 예상 범위를 바로 안내드립니다. 🙂' } });\n    ['20평','30평','34평','45평'].forEach((a) => quickReplies.push(msgBtn(a + ' 견적', a + ' 견적')));\n  }\n} else if (intent === 'portfolio') {\n  const q = [area ? area + '평' : '', budget || '', style || ''].filter(Boolean).join(' ');\n  textCard('비슷한 시공 사례 찾기', (q ? `\"${q}\" 조건과 ` : '') + '평수·예산·스타일로 우리 집과 비슷한 사례를 골라보세요. Before/After와 자재까지 공개합니다.', [webBtn('사례 둘러보기', '/#portfolio')]);\n  if (!style) stylesQR();\n} else if (intent === 'consult') {\n  textCard('상담 신청', '단계별 정보를 남겨주시면 대표(전병덕 팀장) 검토 후 예상 범위와 실측 일정을 안내드립니다.', [webBtn('상담 신청하기', '/#inquiry'), phoneBtn('전화 상담')]);\n} else if (intent === 'as') {\n  textCard('A/S · 하자보증 안내', 'A/S 접수는 증상과 사진을 함께 남겨주시면 빠르게 배정해드립니다.\\n\\n보증기간(계약서 기준): 도배·타일·도장 등 마감 1년, 급배수·냉난방 설비 2년.', [webBtn('A/S 접수', '/#inquiry'), phoneBtn('전화 접수')]);\n} else if (intent === 'location') {\n  textCard('오시는 길', `만물인테리어\\n📍 ${ADDR}\\n📞 ${PHONE}\\n🕘 ${HOURS}`, [{ action: 'webLink', label: '지도에서 보기', webLinkUrl: 'https://map.naver.com/p/search/' + encodeURIComponent(ADDR) }, phoneBtn('전화하기')]);\n} else if (intent === 'hours') {\n  outputs.push({ simpleText: { text: `만물인테리어 영업시간 안내 🕘\\n${HOURS}\\n\\n현장 방문 중에는 전화를 못 받을 수 있어요. 상담 신청을 남겨주시면 순차적으로 연락드립니다.` } });\n  quickReplies.push(msgBtn('상담 신청', '상담하고 싶어요'));\n} else {\n  outputs.push({ simpleText: { text: '안녕하세요! 만물인테리어 챗봇입니다 🤖\\n대전 인테리어·리모델링, 무엇을 도와드릴까요?' } });\n}\n\n// 공통 퀵리플라이 (항상 핵심 액션 제공 · 최대 10개)\n[['30초 견적','견적 알려줘'],['상담 신청','상담하고 싶어요'],['시공사례','시공사례 보여줘'],['오시는 길','위치 알려줘'],['A/S 문의','A/S 접수']].forEach(([l,t]) => {\n  if (!quickReplies.some((q) => q.label === l)) quickReplies.push({ action: 'message', label: l, messageText: t });\n});\n\nreturn [{ json: { version: '2.0', template: { outputs, quickReplies: quickReplies.slice(0, 10) } } }];"
       },
       "id": "b2000000-0000-4000-8000-000000000003",
       "name": "카카오 응답 생성",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-120, 300],
+      "position": [
+        -120,
+        300
+      ],
       "notesInFlow": true,
       "notes": "HOME 상수를 실제 배포 도메인으로 바꾸세요. 슬롯(평수·예산·스타일)이 채워지면 바로 견적/사례를, 비면 퀵리플라이로 수집합니다."
     },
@@ -49,16 +58,53 @@
       "name": "카카오에 응답",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [100, 300]
+      "position": [
+        100,
+        300
+      ]
     }
   ],
   "connections": {
-    "Webhook (카카오 스킬 요청)": { "main": [[{ "node": "발화 분석 · 슬롯 추출", "type": "main", "index": 0 }]] },
-    "발화 분석 · 슬롯 추출": { "main": [[{ "node": "카카오 응답 생성", "type": "main", "index": 0 }]] },
-    "카카오 응답 생성": { "main": [[{ "node": "카카오에 응답", "type": "main", "index": 0 }]] }
+    "Webhook (카카오 스킬 요청)": {
+      "main": [
+        [
+          {
+            "node": "발화 분석 · 슬롯 추출",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "발화 분석 · 슬롯 추출": {
+      "main": [
+        [
+          {
+            "node": "카카오 응답 생성",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "카카오 응답 생성": {
+      "main": [
+        [
+          {
+            "node": "카카오에 응답",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
   "active": false,
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "pinData": {},
-  "meta": { "templatecredsSetupCompleted": false }
+  "meta": {
+    "templatecredsSetupCompleted": false
+  }
 }
