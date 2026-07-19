@@ -5,6 +5,8 @@
     "enabled": true
   },
   "kakao": {
+    "ready": true,
+    "_ready_help": "필수! 사이트의 카카오 버튼은 ready && chatUrl 둘 다 있어야 노출됩니다. 채널을 실제 개설했으면 true, 아직이면 false(버튼 숨김·전화 안내).",
     "channelPublicId": "_yourchannel",
     "channelAddUrl": "http://pf.kakao.com/_yourchannel",
     "chatUrl": "http://pf.kakao.com/_yourchannel/chat",
