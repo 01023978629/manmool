@@ -170,7 +170,7 @@
         "url": "https://your-n8n.example.com/kakao/alimtalk/send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"to\": \"{{ $('AI 결과 파싱').item.json.phone }}\",\n  \"templateCode\": \"MANMUL_GUIDE\",\n  \"text\": \"안내드립니다. 실측 일정 확정 후 예상 범위를 전달드리겠습니다.\"\n}",
+        "jsonBody": "={\n  \"to\": \"{{ $('AI 결과 파싱').item.json.phone }}\",\n  \"templateCode\": \"manmul_survey\",\n  \"text\": \"안내드립니다. 실측 일정 확정 후 예상 범위를 전달드리겠습니다.\"\n}",
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000010",
@@ -204,5 +204,5 @@
   "active": false,
   "settings": { "executionOrder": "v1" },
   "pinData": {},
-  "meta": { "templatecredsSetupCompleted": false }
+  "meta": { "templateCredsSetupCompleted": false }
 }
