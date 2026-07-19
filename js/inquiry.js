@@ -8,6 +8,7 @@
    ============================================================ */
 
 (function () {
+  const SCROLL = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   const STORAGE_KEY = 'manmul_inquiries';
   const WORKS = ['철거', '샷시', '확장', '바닥', '도배·페인트', '주방', '욕실', '조명·전기', '가구·붙박이', '스마트홈'];
 
@@ -131,7 +132,7 @@
     if (step === TOTAL_STEPS) renderSummary();
     renderStepper();
     const sec = $('inquiry');
-    if (sec && n > 1) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (sec && n > 1) sec.scrollIntoView({ behavior: SCROLL, block: 'start' });
     // 새 단계 첫 입력으로 포커스 이동(접근성) — 초기 로드/스텝1 제외
     if (n > 1) {
       const first = document.querySelector(`.inquiry-form .step[data-step="${step}"] input:not([type=radio]):not([type=checkbox]), .inquiry-form .step[data-step="${step}"] select, .inquiry-form .step[data-step="${step}"] textarea`);
@@ -162,6 +163,8 @@
     };
   }
 
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
   function renderSummary() {
     const d = collect();
     const rows = [
@@ -178,7 +181,7 @@
     ];
     $('inquirySummary').innerHTML =
       '<h4>입력 내용 확인</h4>' +
-      rows.map(([k, v]) => `<div class="sum-row"><span>${k}</span><b>${v}</b></div>`).join('');
+      rows.map(([k, v]) => `<div class="sum-row"><span>${k}</span><b>${esc(v)}</b></div>`).join('');
   }
 
   /* ----- 검증 (필드별 인라인 오류) ----- */
@@ -358,9 +361,9 @@
         : '아래 방법 중 하나로 신청 내용을 보내주시면 <b>담당자가 바로 확인</b>해 드립니다.');
 
     form.innerHTML = `
-      <div class="inquiry-done">
+      <div class="inquiry-done" role="status" aria-live="polite">
         <div class="${iconCls}">${icon}</div>
-        <h3>${head}</h3>
+        <h3 tabindex="-1">${head}</h3>
         <p><b>${payload.name || '고객'}</b>님, 감사합니다. ${lead}</p>
         ${delivered ? '' : `<div class="done-actions">
           ${failed && opts.hasBackend ? '<button type="button" class="btn btn-primary btn-lg" id="doneRetry">🔄 자동 접수 다시 시도</button>' : ''}
@@ -371,6 +374,10 @@
         <p class="done-eta">영업시간(평일 09:00–17:30) 기준 빠른 회신 · 금액·계약은 대표 확인 후 안내됩니다</p>
         <a href="#top" class="btn btn-ghost btn-sm">처음으로</a>
       </div>`;
+
+    // 화면 전환을 스크린리더·키보드 사용자에게 전달 (innerHTML 교체는 포커스를 유실시킨다)
+    const doneHead = form.querySelector('.inquiry-done h3');
+    if (doneHead) doneHead.focus();
 
     const dk = $('doneKakao');
     if (dk) dk.addEventListener('click', () => {
@@ -413,7 +420,7 @@
         if (SELECTED_DESIGN.area) setAreaValue(SELECTED_DESIGN.area);
         if (SELECTED_DESIGN.budget) setBudgetValue(SELECTED_DESIGN.budget);
         const sec = $('inquiry');
-        if (sec) setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+        if (sec) setTimeout(() => sec.scrollIntoView({ behavior: SCROLL, block: 'start' }), 60);
       }
     });
 

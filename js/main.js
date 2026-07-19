@@ -53,6 +53,10 @@ function renderStats(stats) {
   const animate = (el) => {
     const target = +el.dataset.count;
     const suffix = el.dataset.suffix || '';
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.textContent = target.toLocaleString('ko-KR') + suffix;
+      return;
+    }
     const dur = 1400; const start = performance.now();
     const tick = (now) => {
       const p = Math.min((now - start) / dur, 1);
@@ -685,6 +689,7 @@ function playHeroChat() {
     { who: 'bot', text: '예상 견적: 약 ₩ 41,310,000 (현장 실측 후 확정)' },
     { who: 'user', text: '바로 상담 신청할게요!' }
   ];
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let i = 0;
   const next = () => {
     if (i >= script.length) return;
@@ -694,7 +699,8 @@ function playHeroChat() {
     b.textContent = m.text;
     box.appendChild(b);
     box.scrollTop = box.scrollHeight;
-    setTimeout(next, 1100);
+    if (reduce) next();          // 모션 최소화: 순차 등장 없이 즉시 전체 표시
+    else setTimeout(next, 1100);
   };
   next();
 }
@@ -748,6 +754,30 @@ function renderFallbackNotice() {
       <li><span class="ic">📞</span><div><b>전화 상담</b><a href="${tel}">${FALLBACK_CONTACT.phone}</a></div></li>
       <li><span class="ic">✉️</span><div><b>이메일</b><a href="mailto:${FALLBACK_CONTACT.email}">${FALLBACK_CONTACT.email}</a></div></li>
       <li><span class="ic">🕐</span><div><b>운영 시간</b>${FALLBACK_CONTACT.hours}</div></li>`;
+  }
+
+  // 데이터 없이는 AI 견적·상담 폼이 초기화되지 않으므로,
+  // 입력해도 반응 없는 "죽은 UI" 대신 연락 경로를 안내한다
+  const tel = 'tel:' + FALLBACK_CONTACT.phone.replace(/[^0-9]/g, '');
+  const sms = 'sms:' + FALLBACK_CONTACT.phone.replace(/[^0-9]/g, '');
+  const ceBody = document.getElementById('ceBody');
+  if (ceBody && !ceBody.children.length) {
+    ceBody.innerHTML = `<p style="padding:18px 4px;line-height:1.7">⚠ 콘텐츠를 일시적으로 불러오지 못해 AI 예상견적을 시작할 수 없습니다.<br/>
+      새로고침하시거나, 전화로 바로 문의해 주세요. 📞 <a href="${tel}" style="color:inherit"><b>${FALLBACK_CONTACT.phone}</b></a></p>`;
+  }
+  const form = document.getElementById('inquiryForm');
+  if (form) {
+    form.innerHTML = `
+      <div class="inquiry-done" role="status">
+        <div class="done-check warn">⚠️</div>
+        <h3>상담 폼을 불러오지 못했습니다</h3>
+        <p>일시적인 오류입니다. 새로고침해 주시거나, 아래로 바로 연락 주세요.</p>
+        <div class="done-actions">
+          <a class="btn btn-primary btn-lg" href="${tel}">📞 전화 상담 ${FALLBACK_CONTACT.phone}</a>
+          <a class="btn btn-ghost btn-lg" href="${sms}">✉️ 문자 문의</a>
+        </div>
+        <p class="done-eta">${FALLBACK_CONTACT.hours} 기준 빠르게 회신드립니다</p>
+      </div>`;
   }
 }
 
