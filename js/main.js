@@ -563,7 +563,7 @@ function renderInsights(insights) {
   // 최신 글이 홈에 먼저 보이도록 날짜 내림차순 (날짜 없으면 뒤로)
   const latest = insights.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
   grid.innerHTML = latest.slice(0, 3).map((a) => `
-    <a class="insight-card reveal" href="blog.html?post=${encodeURIComponent(a.slug)}">
+    <a class="insight-card reveal" href="posts/${encodeURIComponent(a.slug)}.html">
       <span class="ic-cover" style="background:linear-gradient(150deg, ${a.cover || '#d8c3a5'}, ${shade(a.cover || '#d8c3a5', -16)})">
         ${a.image ? `<img class="ic-image" src="${a.image}" alt="${a.imageAlt || a.title}" loading="lazy" decoding="async">` : ''}
         <span class="ic-cat">${a.category}</span>

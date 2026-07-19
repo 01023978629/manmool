@@ -33,7 +33,7 @@
       </div>
       <div class="insights-grid" style="margin-top:40px">
         ${list.map((a) => `
-          <a class="insight-card" href="blog.html?post=${encodeURIComponent(a.slug)}">
+          <a class="insight-card" href="posts/${encodeURIComponent(a.slug)}.html">
             <span class="ic-cover" style="background:${cover(a)}">${image(a, 'ic-image', true)}<span class="ic-cat">${esc(a.category)}</span></span>
             <span class="ic-body">
               <b>${esc(a.title)}</b>
@@ -45,9 +45,10 @@
   }
 
   // 글별 SEO: 제목·설명·canonical·OG를 해당 글로 교체
-  // (canonical이 목록(blog.html)을 가리키면 검색엔진이 모든 글을 중복으로 취급한다)
+  // canonical은 정적 프리렌더 페이지(posts/<slug>.html)를 가리킨다 —
+  // ?post= 뷰는 그 정적 페이지의 중복본으로 통합(consolidate)된다
   function applyPostSeo(a) {
-    const url = 'https://01023978629.github.io/manmool/blog.html?post=' + encodeURIComponent(a.slug);
+    const url = 'https://01023978629.github.io/manmool/posts/' + encodeURIComponent(a.slug) + '.html';
     const set = (sel, attr, val) => { const el = document.querySelector(sel); if (el) el.setAttribute(attr, val); };
     set('meta[name="description"]', 'content', a.excerpt || '');
     set('link[rel="canonical"]', 'href', url);
@@ -83,7 +84,7 @@
         <h3>다른 인사이트</h3>
         <div class="insights-grid">
           ${related.map((x) => `
-            <a class="insight-card" href="blog.html?post=${encodeURIComponent(x.slug)}">
+            <a class="insight-card" href="posts/${encodeURIComponent(x.slug)}.html">
               <span class="ic-cover" style="background:${cover(x)}">${image(x, 'ic-image')}<span class="ic-cat">${esc(x.category)}</span></span>
               <span class="ic-body"><b>${esc(x.title)}</b><span class="ic-meta">${esc(x.date)} · ${esc(x.readMin)}분 읽기</span></span>
             </a>`).join('')}
@@ -102,7 +103,7 @@
         image: absoluteImage(a),
         author: { '@type': 'Organization', name: '만물인테리어' },
         publisher: { '@type': 'Organization', name: '만물인테리어' },
-        mainEntityOfPage: 'https://01023978629.github.io/manmool/blog.html?post=' + encodeURIComponent(a.slug)
+        mainEntityOfPage: 'https://01023978629.github.io/manmool/posts/' + encodeURIComponent(a.slug) + '.html'
       };
       const s = document.createElement('script');
       s.type = 'application/ld+json';

@@ -110,6 +110,9 @@ integrations/n8n/*.workflow.json        n8n 워크플로(import용)
 
 - 사이트 콘텐츠는 **`data/site.json`**, 연동 설정은 **`data/config.json`** 하나로 관리됩니다.
 - 두 파일만 수정하면 코드 변경 없이 사이트·연동이 갱신되므로, AI 에이전트가 운영할 수 있습니다.
+- **예외 1가지**: `insights`(블로그 글)를 수정했으면 `python3 scripts/prerender-posts.py`를
+  실행해 `posts/` 정적 페이지를 재생성한 뒤 함께 커밋하세요. (네이버 등 JS 렌더링이
+  불안정한 검색엔진이 글을 개별 색인하도록 글마다 정적 페이지를 둡니다 — sitemap도 이 주소 기준)
 
 ## 로컬 실행
 
