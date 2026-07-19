@@ -111,7 +111,22 @@
     } catch (e) { /* noop */ }
   }
 
+  // 헤더 내비 토글 — main.js는 이 페이지에 로드되지 않으므로 여기서 배선한다
+  function setupNav() {
+    const toggle = document.getElementById('navToggle');
+    const nav = document.getElementById('mainNav');
+    if (!toggle || !nav) return;
+    toggle.addEventListener('click', () => {
+      const open = nav.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open);
+    });
+    nav.addEventListener('click', (e) => {
+      if (e.target.tagName === 'A') { nav.classList.remove('open'); toggle.setAttribute('aria-expanded', false); }
+    });
+  }
+
   async function init() {
+    setupNav();
     let insights = [];
     try {
       const r = await fetch('data/site.json', { cache: 'no-cache' });
@@ -119,7 +134,7 @@
     } catch (e) { /* noop */ }
 
     if (!insights.length) {
-      root.innerHTML = '<p class="blog-loading">콘텐츠를 불러오지 못했습니다. 로컬 서버로 실행해 주세요.</p>';
+      root.innerHTML = '<p class="blog-loading">콘텐츠를 일시적으로 불러오지 못했습니다. 새로고침해 주시거나, 급하시면 전화로 문의해 주세요.<br/>📞 <a href="tel:01023978629"><b>010-2397-8629</b></a> (평일 09:00–17:30)</p>';
       return;
     }
     const slug = new URLSearchParams(location.search).get('post');

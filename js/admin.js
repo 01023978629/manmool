@@ -144,7 +144,8 @@
   function draftBoxHTML(d) {
     const msg = draftMessage(d);
     const kakao = CONFIG.kakao || {};
-    const hasKakao = !!(kakao.chatUrl || kakao.channelAddUrl);
+    // 공개 화면(main.js·inquiry.js)과 동일하게 ready를 요구 — 미개설 채널로 유도하지 않는다
+    const hasKakao = !!(kakao.ready && (kakao.chatUrl || kakao.channelAddUrl));
     const approved = d.status === '승인';
     return `
       <div class="draft-head">
@@ -157,7 +158,7 @@
       <div class="draft-actions">
         <button class="mini ok" data-act="copy">📋 내용 복사</button>
         <button class="mini" data-act="sms">📱 문자로 발송</button>
-        <button class="mini kakao" data-act="kakao"${hasKakao ? '' : ' disabled title="data/config.json의 kakao.chatUrl을 설정하세요"'}>💬 카카오톡 열고 발송</button>
+        <button class="mini kakao" data-act="kakao"${hasKakao ? '' : ' disabled title="카카오 채널 개설 후 data/config.json의 kakao.ready:true + chatUrl을 설정하세요"'}>💬 카카오톡 열고 발송</button>
       </div>
       <small class="draft-foot">복사·문자·카카오톡 중 하나로 발송하면 발송 기록이 남습니다. 자동 발송은 없으며, 대표가 직접 발송합니다.</small>
       <div class="sent-line">${fmtSent(d)}</div>`;
@@ -282,9 +283,9 @@
         recordSent(id, '문자');
       } else if (act === 'kakao') {
         const kakao = CONFIG.kakao || {};
-        const url = kakao.chatUrl || kakao.channelAddUrl;
+        const url = kakao.ready && (kakao.chatUrl || kakao.channelAddUrl);
         if (!url) {
-          alert('카카오톡 채널 URL이 설정되지 않았습니다.\n운영자는 data/config.json의 kakao.chatUrl을 입력하세요.');
+          alert('카카오톡 채널이 아직 준비되지 않았습니다.\n채널 개설 후 data/config.json에 kakao.ready:true와 chatUrl을 입력하세요.');
           return;
         }
         // 카카오 1:1 채팅은 자동 전송 API가 아니므로, 내용을 복사한 뒤 채널 채팅을 엽니다(붙여넣기 발송).
@@ -331,7 +332,9 @@
     const rows = [
       ['n8n 웹훅', n8n.inquiryWebhookUrl || '(미설정)', !!n8n.inquiryWebhookUrl],
       ['n8n enabled', String(!!n8n.enabled), !!n8n.enabled],
-      ['카카오 채널', kakao.chatUrl || kakao.channelAddUrl || '(미설정)', !!(kakao.chatUrl || kakao.channelAddUrl)],
+      ['카카오 채널', kakao.ready
+        ? (kakao.chatUrl || kakao.channelAddUrl || '(URL 미설정)')
+        : '(미개설 · ready:false — 개설 후 ready:true로)', !!(kakao.ready && (kakao.chatUrl || kakao.channelAddUrl))],
       ['알림톡 자동발송', atOn ? `${at.provider} · 템플릿 ${atTemplates}종` : '(미설정 · 수동 발송만)', atOn],
       ['현장 앱(hyeonjang)', hj.appUrl || '(미설정)', !!hj.appUrl],
       ['demoMode', String(!!CONFIG.demoMode), !CONFIG.demoMode]

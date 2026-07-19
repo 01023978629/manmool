@@ -73,7 +73,7 @@
     } else if (step.type === 'photo') {
       setInput(`
         <label class="ce-upload">
-          <input type="file" id="cePhoto" accept="image/*" multiple hidden />
+          <input type="file" id="cePhoto" accept="image/*" multiple class="sr-input" />
           <span>📷 사진 첨부</span>
         </label>
         <button type="button" class="ce-btn ghost" id="cePhotoSkip">사진 없이 계속</button>`);
