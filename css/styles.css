@@ -521,6 +521,12 @@ ul, ol { list-style: none; }
 .fm-block { margin-bottom: 16px; }
 .fm-block h4 { font-size: 14px; color: var(--brand-dark); margin-bottom: 6px; }
 .fm-block p { font-size: 15px; color: var(--ink); }
+.fm-tile-plan { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 0; }
+.fm-tile-plan dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 20px; }
+.fm-tile-plan dl div { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.fm-tile-plan dt { color: var(--ink-soft); font-size: 12px; font-weight: 700; }
+.fm-tile-plan dd { color: var(--ink); font-size: 13px; font-weight: 700; }
+.fm-tile-plan p { margin-top: 10px; color: var(--ink-soft); font-size: 12.5px; }
 .fm-trend-note { border-left: 3px solid var(--brand); background: var(--brand-soft); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 12px 14px; }
 .fm-trend-note p { font-size: 13.5px; color: var(--ink-soft); }
 .fm-tags { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -686,6 +692,7 @@ ul, ol { list-style: none; }
   .automation-stats { grid-template-columns: 1fr; }
   .fm-ba { grid-template-columns: 1fr; }
   .fm-grid { grid-template-columns: repeat(2, 1fr); }
+  .fm-tile-plan dl { grid-template-columns: 1fr; }
   .fm-similar-grid { grid-template-columns: 1fr; }
   .folio-filter-group { flex-direction: column; align-items: flex-start; gap: 6px; }
   .area-control { flex-direction: column; }

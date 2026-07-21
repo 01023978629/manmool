@@ -419,6 +419,9 @@ function openFolioModal(item, all) {
     ['지역', item.region]
   ].filter(([, v]) => v).slice(0, 6);
   const matLabel = item.aiDesign ? '추천 자재·마감' : '주요 자재';
+  const tileNote = item.tileNote || (item.spaceType === '욕실'
+    ? '욕실은 현장 배수구 위치와 바닥 높이를 실측한 뒤 물매와 재단선을 최종 확정합니다.'
+    : '현장 치수에 따라 끝단 재단과 줄눈 시작 위치를 최종 조정합니다.');
   const cta = item.aiDesign ? '이 디자인으로 상담 신청' : '이 사례처럼 상담 신청';
 
   body.innerHTML = `
@@ -432,6 +435,7 @@ function openFolioModal(item, all) {
         ${headSub ? `<p>${headSub}</p>` : ''}
       </div>
       ${gridRows.length ? `<dl class="fm-grid">${gridRows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>` : ''}
+      ${(item.tilePlan || []).length ? `<div class="fm-block fm-tile-plan"><h4>실시공 타일 규격</h4><dl>${item.tilePlan.map((row) => `<div><dt>${row.label}</dt><dd>${row.value}</dd></div>`).join('')}</dl><p>${tileNote}</p></div>` : ''}
       ${(item.palette || []).length ? `<div class="fm-block"><h4>컬러 팔레트</h4><div class="fm-palette">${item.palette.map((c) => `<span style="background:${c}" title="${c}"></span>`).join('')}</div></div>` : ''}
       ${item.tip ? `<div class="fm-block"><h4>💡 AI 추천 포인트</h4><p>${item.tip}</p></div>` : ''}
       ${item.trendNote ? `<div class="fm-block fm-trend-note"><h4>트렌드 리서치</h4><p>${item.trendNote}</p></div>` : ''}

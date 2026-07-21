@@ -351,9 +351,13 @@
         "#7f9a7c"
       ],
       "materials": [
-        "그레이 포세린 타일",
+        "600×1200mm 그레이 포세린 타일",
         "무광 블랙 하드웨어",
         "패브릭 소파"
+      ],
+      "tilePlan": [
+        {"label": "거실 바닥", "value": "600×1200mm 무광 포세린"},
+        {"label": "줄눈", "value": "2~3mm 직선 맞춤"}
       ],
       "tip": "채도를 낮춰 고급스럽게. 블랙 포인트로 공간의 라인을 살립니다.",
       "photo": "assets/designs/modern-gray.jpg?v=20260721-real",
@@ -478,7 +482,12 @@
       "materials": [
         "무광 화이트 도어",
         "우드 상판",
-        "블랙 수전"
+        "블랙 수전",
+        "600×1200mm 포세린 백스플래시"
+      ],
+      "tilePlan": [
+        {"label": "조리벽", "value": "600×1200mm 밝은 포세린"},
+        {"label": "줄눈", "value": "2mm 동색 줄눈"}
       ],
       "tip": "화이트에 우드 상판은 질리지 않는 조합입니다. 후드·수전을 블랙으로 포인트 주세요.",
       "photo": "assets/designs/modern-kitchen.jpg?v=20260721-real",
@@ -501,9 +510,15 @@
         "#33373a"
       ],
       "materials": [
-        "대형 포세린 타일",
+        "600×1200mm 대형 포세린 타일",
         "무광 블랙 수전",
         "우드 세면대"
+      ],
+      "tilePlan": [
+        {"label": "벽", "value": "600×1200mm 무광 포세린"},
+        {"label": "건식 바닥", "value": "600×600mm 미끄럼 저항 포세린"},
+        {"label": "샤워 바닥", "value": "600×600mm 단일 물매"},
+        {"label": "배수", "value": "벽측 전폭 선형 배수구"}
       ],
       "tip": "큰 타일로 줄눈을 줄이면 넓고 깔끔해 보입니다. 간접 조명은 필수예요.",
       "photo": "assets/designs/hotel-bath.jpg?v=20260721-real",
@@ -553,7 +568,12 @@
       "materials": [
         "무광 화이트 도어",
         "세라믹 상판",
-        "히든 손잡이"
+        "히든 손잡이",
+        "600×1200mm 세라믹 백스플래시"
+      ],
+      "tilePlan": [
+        {"label": "조리벽", "value": "600×1200mm 세라믹 패널"},
+        {"label": "줄눈", "value": "2mm 동색 줄눈"}
       ],
       "tip": "손잡이를 숨긴 히든 도어로 라인을 정리하면 주방이 넓어 보여요.",
       "photo": "assets/designs/white-kitchen.jpg?v=20260721-real",
@@ -577,8 +597,12 @@
       ],
       "materials": [
         "우드 도어",
-        "아이보리 타일",
+        "100×100mm 아이보리 유약 타일",
         "황동 수전"
+      ],
+      "tilePlan": [
+        {"label": "백스플래시", "value": "100×100mm 유약 타일"},
+        {"label": "줄눈", "value": "2~3mm 아이보리 줄눈"}
       ],
       "tip": "우드 도어엔 아이보리 타일과 황동 수전이 따뜻하게 어울립니다.",
       "photo": "assets/designs/wood-kitchen.jpg?v=20260721-real",
@@ -601,9 +625,15 @@
         "#5a6166"
       ],
       "materials": [
-        "대형 화이트 타일",
+        "300×600mm 화이트 벽타일",
         "그레이 줄눈",
         "슬림 수전"
+      ],
+      "tilePlan": [
+        {"label": "벽", "value": "300×600mm 화이트 자기질 타일"},
+        {"label": "건식 바닥", "value": "300×600mm 미끄럼 저항 타일"},
+        {"label": "샤워 바닥", "value": "300×300mm 다방향 물매"},
+        {"label": "배수", "value": "타일 모듈형 사각 점배수구"}
       ],
       "tip": "화이트 타일에 밝은 그레이 줄눈을 쓰면 때가 덜 타 보이고 깔끔합니다.",
       "photo": "assets/designs/white-bath.jpg?v=20260721-real",
@@ -626,9 +656,15 @@
         "#7c5c34"
       ],
       "materials": [
-        "우드 무늬 포세린 타일",
+        "200×1200mm 우드 무늬 포세린 타일",
         "방수 우드 선반",
         "무광 브론즈 수전"
+      ],
+      "tilePlan": [
+        {"label": "샤워 벽", "value": "200×1200mm 우드룩 포세린"},
+        {"label": "건식 바닥", "value": "600×600mm 미끄럼 저항 포세린"},
+        {"label": "샤워 바닥", "value": "600×600mm 단일 물매"},
+        {"label": "배수", "value": "전폭 선형 배수구"}
       ],
       "tip": "욕실 우드는 방수가 핵심입니다. 원목 대신 우드 무늬 포세린 타일을 추천해요.",
       "photo": "assets/designs/wood-bath.jpg?v=20260721-real",
@@ -738,7 +774,11 @@
         "네이비 무광 도어",
         "오크 무늬목 키큰장",
         "라이트 쿼츠 상판",
-        "화이트 수공예 타일"
+        "100×100mm 화이트 수공예 타일"
+      ],
+      "tilePlan": [
+        {"label": "백스플래시", "value": "100×100mm 유약 수공예 타일"},
+        {"label": "줄눈", "value": "3mm 웜그레이 줄눈"}
       ],
       "tip": "아일랜드만 짙은 색으로 잡으면 주방 중심이 선명해지고 생활 얼룩도 덜 보입니다. 냉장고와 오븐은 키큰장 한쪽에 모아 동선을 줄이세요.",
       "trendLabel": "컬러 주방 · AI 시안",
@@ -791,15 +831,21 @@
         "#68745a"
       ],
       "materials": [
-        "트래버틴 질감 포세린",
+        "600×1200mm 트래버틴 질감 포세린",
         "건메탈 수전",
         "오크 하부장",
         "거울 수납장"
       ],
+      "tilePlan": [
+        {"label": "벽", "value": "600×1200mm 트래버틴룩 포세린"},
+        {"label": "건식 바닥", "value": "600×600mm 미끄럼 저항 포세린"},
+        {"label": "샤워 바닥", "value": "100×100mm 논슬립 모자이크"},
+        {"label": "배수", "value": "타일 모듈형 사각 점배수구"}
+      ],
       "tip": "작은 욕실은 욕조 대신 유리 파티션 샤워부스를 두고, 거울장을 천장 가까이 올리면 수납과 개방감을 함께 확보할 수 있습니다.",
       "trendLabel": "스파 욕실 · AI 시안",
       "trendNote": "오늘의집 호텔식 욕실 사례에서 보이는 대형 석재 질감 타일, 간접 조명, 건식 수납 구성을 소형 욕실에 맞게 축소했습니다.",
-      "photo": "assets/designs/travertine-spa-bath.jpg",
+      "photo": "assets/designs/travertine-spa-bath-buildable.jpg?v=20260721-buildable",
       "aiDesign": true
     },
     {
@@ -959,7 +1005,11 @@
       "style": "빈티지",
       "mood": "개성 있고 따뜻한",
       "palette": ["#ece8df", "#233c31", "#5b3b2c", "#8c2234"],
-      "materials": ["포레스트 그린 도어", "월넛 아일랜드", "브러시드 브라스"],
+      "materials": ["포레스트 그린 도어", "월넛 아일랜드", "브러시드 브라스", "100×100mm 화이트 유약 타일"],
+      "tilePlan": [
+        {"label": "백스플래시", "value": "100×100mm 유약 타일"},
+        {"label": "줄눈", "value": "3mm 웜화이트 줄눈"}
+      ],
       "tip": "짙은 그린과 월넛은 넓은 면보다 하부장과 아일랜드에 집중하면 빈티지한 깊이와 밝기를 함께 잡을 수 있습니다.",
       "trendLabel": "32평 빈티지 · AI 추천",
       "photo": "assets/designs/vintage-green-kitchen-32.jpg?v=20260721-style3",
@@ -1027,7 +1077,13 @@
       "style": "웜 베이지",
       "mood": "차분하고 편안한",
       "palette": ["#eee6da", "#cdb895", "#8b9270", "#7b7f78"],
-      "materials": ["샌드 포세린 타일", "라이트 오크 세면대", "세이지 포인트 타일"],
+      "materials": ["600×1200mm 샌드 포세린 타일", "라이트 오크 세면대", "100×200mm 세이지 포인트 타일"],
+      "tilePlan": [
+        {"label": "벽", "value": "600×1200mm 샌드 포세린"},
+        {"label": "건식 바닥", "value": "600×600mm 미끄럼 저항 포세린"},
+        {"label": "샤워 바닥", "value": "300×300mm 다방향 물매"},
+        {"label": "배수", "value": "타일 모듈형 사각 점배수구"}
+      ],
       "tip": "세면대를 건식 구역으로 분리하면 출근 시간대 동선이 겹치지 않고 목재 마감도 오래 유지됩니다.",
       "trendLabel": "24평 웜 베이지 · AI 추천",
       "photo": "assets/designs/warm-beige-dry-bath-24.jpg?v=20260721-style3",
@@ -1044,7 +1100,11 @@
       "style": "인더스트리얼",
       "mood": "세련되고 실용적인",
       "palette": ["#eceae5", "#34383b", "#5b4131", "#4f7c7e"],
-      "materials": ["차콜 도어", "월넛 상부장", "콘크리트룩 상판"],
+      "materials": ["차콜 도어", "월넛 상부장", "콘크리트룩 상판", "100×100mm 화이트 유약 타일"],
+      "tilePlan": [
+        {"label": "백스플래시", "value": "100×100mm 무광 유약 타일"},
+        {"label": "줄눈", "value": "3mm 라이트그레이 줄눈"}
+      ],
       "tip": "차콜 면적을 하부장 중심으로 제한하고 월넛과 청록 포인트를 섞으면 산업적이면서도 주거다운 온도가 생깁니다.",
       "trendLabel": "32평 인더스트리얼 · AI 추천",
       "photo": "assets/designs/industrial-island-kitchen-32.jpg?v=20260721-style3",
@@ -1095,10 +1155,16 @@
       "style": "재팬디",
       "mood": "고요하고 정갈한",
       "palette": ["#eee9df", "#bd9d72", "#6d7a65", "#242729"],
-      "materials": ["히노키 우드", "오프화이트 포세린 타일", "무광 블랙 수전"],
+      "materials": ["건식존 히노키 루버", "600×1200mm 오프화이트 포세린 타일", "무광 블랙 수전"],
+      "tilePlan": [
+        {"label": "샤워 벽", "value": "600×1200mm 오프화이트 포세린"},
+        {"label": "건식 바닥", "value": "600×600mm 미끄럼 저항 포세린"},
+        {"label": "샤워 바닥", "value": "600×600mm 단일 물매"},
+        {"label": "배수", "value": "벽측 전폭 선형 배수구"}
+      ],
       "tip": "목재는 건식 세면 구역에 집중하고 샤워부스는 포세린 타일로 분리해 재팬디 감성과 내구성을 함께 확보하세요.",
       "trendLabel": "24평 재팬디 · AI 추천",
-      "photo": "assets/designs/japandi-hinoki-bath-24.jpg?v=20260721-style3",
+      "photo": "assets/designs/japandi-hinoki-bath-24-buildable.jpg?v=20260721-buildable",
       "aiDesign": true
     },
     {
@@ -1129,7 +1195,11 @@
       "style": "프렌치",
       "mood": "우아하고 산뜻한",
       "palette": ["#f2eee6", "#8f9980", "#d4bea0", "#6e8492"],
-      "materials": ["세이지 셰이커 도어", "화이트 쿼츠", "브러시드 브라스"],
+      "materials": ["세이지 셰이커 도어", "화이트 쿼츠", "브러시드 브라스", "100×100mm 크림 유약 타일"],
+      "tilePlan": [
+        {"label": "백스플래시", "value": "100×100mm 유약 타일"},
+        {"label": "줄눈", "value": "3mm 크림 줄눈"}
+      ],
       "tip": "ㄱ자 조리대 앞에 작은 원형 식탁을 두면 작업 동선을 방해하지 않으면서 아침 식사 공간을 만들 수 있습니다.",
       "trendLabel": "30평 프렌치 · AI 추천",
       "photo": "assets/designs/french-sage-kitchen-30.jpg?v=20260721-style3",
