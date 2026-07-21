@@ -133,14 +133,16 @@ function renderPortfolio(items, filterConfig) {
   const uniq = (key) => [...new Set(items.map((x) => x[key]).filter((v) => v != null))];
   const regions = uniq('region');
   const spaceTypes = uniq('spaceType');
+  const structures = uniq('structure');
   const processes = uniq('process');
   const years = uniq('year').sort((a, b) => b - a);
 
   // 선택 상태 (그룹별 단일 선택, null = 전체) + 단지·현장명 텍스트 검색
-  const state = { region: null, area: null, budget: null, spaceType: null, process: null, style: null, scope: null, year: null, complex: '' };
+  const state = { region: null, area: null, budget: null, spaceType: null, structure: null, process: null, style: null, scope: null, year: null, complex: '' };
 
   const groups = [
     { key: 'spaceType', label: '공간종류', options: spaceTypes },
+    { key: 'structure', label: '공간형태', options: structures },
     { key: 'process', label: '공정', options: processes },
     { key: 'scope', label: '공사범위', options: cfg.scope || [] },
     { key: 'region', label: '지역', options: regions },
@@ -179,11 +181,12 @@ function renderPortfolio(items, filterConfig) {
       matchArea(it) &&
       (!state.budget || it.budget === state.budget) &&
       (!state.spaceType || it.spaceType === state.spaceType) &&
+      (!state.structure || it.structure === state.structure) &&
       (!state.process || it.process === state.process) &&
       (!state.style || it.style === state.style) &&
       (!state.scope || it.scope === state.scope) &&
       (!state.year || String(it.year) === state.year) &&
-      (!q || [it.title, it.style, it.mood, it.spaceType, (it.materials || []).join(' ')]
+      (!q || [it.title, it.style, it.mood, it.spaceType, it.structure, (it.materials || []).join(' ')]
         .some((v) => v && String(v).toLowerCase().includes(q.toLowerCase()))));
 
     const hasActive = !!(state.complex && state.complex.trim()) || groups.some((g) => state[g.key]);
@@ -198,15 +201,15 @@ function renderPortfolio(items, filterConfig) {
       // 값이 있는 항목만 노출 (모르는 수치는 지어내지 않음)
       const specs = [
         ['공간', i.spaceType],
+        ['공간 형태', i.structure],
+        ['평수', i.area ? i.area + '평' : null],
         ['스타일', i.style],
+        ['예산', i.cost || i.budget || null],
         ['분위기', i.mood],
         ['주요 공정', i.process],
         ['공사 범위', i.scope],
-        ['평수', i.area ? i.area + '평' : null],
-        ['예산', i.cost || i.budget || null],
         ['공사 기간', i.period],
         ['지역', i.region],
-        ['집 구조', i.structure],
         ['시공', i.year ? i.year + '년' : null]
       ].filter(([, v]) => v).slice(0, 6);
       const badge = i.aiDesign ? `<span class="ai-badge">${i.trendLabel || '✨ AI 추천 디자인'}</span>`
@@ -405,13 +408,15 @@ function openFolioModal(item, all) {
   const headSub = [item.region, item.complex].filter(Boolean).join(' · ');
   const gridRows = [
     ['공간', item.spaceType],
+    ['공간 형태', item.structure],
+    ['평수', item.area ? item.area + '평' : null],
     ['스타일', item.style],
+    ['예산', item.cost || item.budget],
     ['분위기', item.mood],
     ['주요 공정', item.process],
     ['공사범위', item.scope],
-    ['면적', item.area ? item.area + '평' : null],
     ['공사기간', item.period],
-    ['예산구간', item.budget]
+    ['지역', item.region]
   ].filter(([, v]) => v).slice(0, 6);
   const matLabel = item.aiDesign ? '추천 자재·마감' : '주요 자재';
   const cta = item.aiDesign ? '이 디자인으로 상담 신청' : '이 사례처럼 상담 신청';
