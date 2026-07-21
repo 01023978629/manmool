@@ -26,9 +26,10 @@
     if (!el) return;
     if (!SELECTED_DESIGN) { el.hidden = true; el.innerHTML = ''; return; }
     const d = SELECTED_DESIGN;
+    const estimate = d.estimateTotal ? ` · 시안 공간 ${Number(d.estimateTotal).toLocaleString('ko-KR')}원` : '';
     el.hidden = false;
     el.innerHTML = `<span class="sd-ico">🎨</span>
-      <span class="sd-text">선택한 디자인 · <b>${d.title}</b>${d.style ? ` (${d.style})` : ''}${d.area ? ` · ${d.area}평 추천` : ''}${d.budget ? ` · 예산 ${d.budget}` : ''}</span>
+      <span class="sd-text">선택한 디자인 · <b>${d.title}</b>${d.style ? ` (${d.style})` : ''}${d.area ? ` · ${d.area}평 추천` : ''}${d.budget ? ` · 예산 ${d.budget}` : ''}${estimate}</span>
       <button type="button" class="sd-clear" id="sdClear" aria-label="선택 해제">✕</button>`;
     const c = $('sdClear');
     if (c) c.addEventListener('click', () => {
@@ -159,7 +160,7 @@
       memo: (fd.get('memo') || '').trim(),
       consent: fd.get('consent') === 'on',
       estimateHint: window.MANMUL && window.MANMUL.getEstimate ? window.MANMUL.getEstimate() : '',
-      selectedDesign: SELECTED_DESIGN ? (SELECTED_DESIGN.title + (SELECTED_DESIGN.style ? ' (' + SELECTED_DESIGN.style + ')' : '')) : ''
+      selectedDesign: SELECTED_DESIGN ? (SELECTED_DESIGN.title + (SELECTED_DESIGN.style ? ' (' + SELECTED_DESIGN.style + ')' : '') + (SELECTED_DESIGN.estimateTotal ? ' · 시안 공간 예상 ' + Number(SELECTED_DESIGN.estimateTotal).toLocaleString('ko-KR') + '원' : '')) : ''
     };
   }
 

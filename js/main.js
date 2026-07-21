@@ -32,6 +32,17 @@ async function loadSite() {
   }
 }
 
+async function loadMaterialCatalog() {
+  try {
+    const res = await fetch('data/material-catalog.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error('자재 카탈로그 로드 실패');
+    return await res.json();
+  } catch (err) {
+    console.error(err);
+    return { categories: [] };
+  }
+}
+
 /* ---------- data-bind: 텍스트 채우기 ---------- */
 function bindText(data) {
   document.querySelectorAll('[data-bind]').forEach((el) => {
@@ -423,6 +434,10 @@ function openFolioModal(item, all) {
     ? '욕실은 현장 배수구 위치와 바닥 높이를 실측한 뒤 물매와 재단선을 최종 확정합니다.'
     : '현장 치수에 따라 끝단 재단과 줄눈 시작 위치를 최종 조정합니다.');
   const cta = item.aiDesign ? '이 디자인으로 상담 신청' : '이 사례처럼 상담 신청';
+  const designBom = item.aiDesign && window.DesignBom
+    ? window.DesignBom.build(item, window.MANMUL && window.MANMUL.materialCatalog)
+    : null;
+  const designBomHtml = designBom && window.DesignBom ? window.DesignBom.render(designBom) : '';
 
   body.innerHTML = `
     <div class="fm-ba${item.photo ? ' fm-ba-single' : ''}">
@@ -442,6 +457,7 @@ function openFolioModal(item, all) {
       ${item.problem ? `<div class="fm-block"><h4>핵심 문제</h4><p>${item.problem}</p></div>` : ''}
       ${item.solution ? `<div class="fm-block"><h4>해결 방법</h4><p>${item.solution}</p></div>` : ''}
       ${(item.materials || []).length ? `<div class="fm-block"><h4>${matLabel}</h4><div class="fm-tags">${item.materials.map((m) => `<span>${m}</span>`).join('')}</div></div>` : ''}
+      ${designBomHtml}
       ${item.consent ? '<p class="fm-consent">✔ 고객 공개 동의 완료</p>' : ''}
       <a href="#inquiry" class="btn btn-primary btn-block" data-close>${cta}</a>
     </div>
@@ -478,7 +494,9 @@ function openFolioModal(item, all) {
           style: item.style,
           spaceType: item.spaceType,
           area: item.area || null,
-          budget: item.budget || null
+          budget: item.budget || null,
+          estimateTotal: designBom ? designBom.total : null,
+          estimateBasis: designBom ? `${designBom.metrics.roomPyeong}평 공간·${designBom.tierLabel} 사양` : null
         });
       }
     });
@@ -795,8 +813,8 @@ async function init() {
   setupUI();
   playHeroChat();
 
-  const [data, config] = await Promise.all([loadSite(), loadConfig()]);
-  window.MANMUL = { config: config || {}, data: data || {} };
+  const [data, config, materialCatalog] = await Promise.all([loadSite(), loadConfig(), loadMaterialCatalog()]);
+  window.MANMUL = { config: config || {}, data: data || {}, materialCatalog: materialCatalog || { categories: [] } };
 
   setupContactCtas(config, data && data.company);
 

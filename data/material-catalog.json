@@ -1,0 +1,210 @@
+{
+  "version": "2026-07-21",
+  "market": "KR",
+  "language": "ko-KR",
+  "title": "인테리어 주요 브랜드 및 대표 자재 카탈로그",
+  "scope": "국내 조달 가능성을 우선한 7개 자재군, 자재군별 주요 브랜드 5개와 대표 제품 10개",
+  "sourcePolicy": "제조사와 국내 공식 법인·공식 판매처의 1차 자료만 사용",
+  "pricePolicy": "가격은 현장·지역·수량·시공 조건에 따라 변동하므로 저장하지 않고 동일 모델코드로 2곳 이상 견적 비교",
+  "tierPolicy": "실속·중급·프리미엄은 견적 추천을 위한 내부 분류이며 제조사 공식 등급이나 판매가격 순위가 아님",
+  "reviewedAt": "2026-07-21",
+  "categories": [
+    {
+      "id": "tile",
+      "name": "타일",
+      "selectionChecks": [
+        "물 사용 공간은 미끄럼 저항과 흡수율을 확인한다.",
+        "대형 타일은 바탕 평활도, 양면 접착, 전용 접착제와 줄눈 폭을 시방서로 지정한다.",
+        "샤워 바닥에는 배수 경사 형성이 어려운 대형 유광 타일을 피한다."
+      ],
+      "brands": [
+        {"name": "KCC글라스 홈씨씨 세렌", "country": "대한민국", "position": "국내 유통·시공 대응형", "officialUrl": "https://webzine.kccworld.co.kr/news/%EB%B3%B4%EB%8F%84%EC%9E%90%EB%A3%8C/kcc%EA%B8%80%EB%9D%BC%EC%8A%A4-%ED%99%88%EC%94%A8%EC%94%A8-%EB%94%94%EC%9E%90%EC%9D%B8%EA%B3%BC-%ED%92%88%EC%A7%88-%EA%B2%B8%EB%B9%84%ED%95%9C-%EC%84%B8%EB%9D%BC%EB%AF%B9-%ED%83%80%EC%9D%BC-%EC%8B%A0/"},
+        {"name": "Marazzi", "country": "이탈리아", "position": "디자인 포세린·벽타일", "officialUrl": "https://www.marazzi.it/"},
+        {"name": "Atlas Concorde", "country": "이탈리아", "position": "프리미엄 포세린·대형 슬래브", "officialUrl": "https://www.atlasconcorde.com/"},
+        {"name": "Florim", "country": "이탈리아", "position": "건축용 대형 포세린", "officialUrl": "https://www.florim.com/"},
+        {"name": "Porcelanosa", "country": "스페인", "position": "프리미엄 공간 통합 마감", "officialUrl": "https://www.porcelanosa.com/"}
+      ],
+      "products": [
+        {"brand": "KCC글라스 홈씨씨 세렌", "name": "세렌 크레마 600x1200", "type": "포세린 타일", "spec": "600x1200 mm, 대형 포세린 계열", "use": ["거실", "주방", "상업공간 벽·바닥"], "tier": "중급", "availability": "domestic", "cautions": ["시공 전 실제 품번·표면 등급 확인", "대형 타일 평활도와 양면 접착 관리"], "source": "https://webzine.kccworld.co.kr/news/%EB%B3%B4%EB%8F%84%EC%9E%90%EB%A3%8C/kcc%EA%B8%80%EB%9D%BC%EC%8A%A4-%ED%99%88%EC%94%A8%EC%94%A8-%EB%94%94%EC%9E%90%EC%9D%B8%EA%B3%BC-%ED%92%88%EC%A7%88-%EA%B2%B8%EB%B9%84%ED%95%9C-%EC%84%B8%EB%9D%BC%EB%AF%B9-%ED%83%80%EC%9D%BC-%EC%8B%A0/"},
+        {"brand": "KCC글라스 홈씨씨 세렌", "name": "세렌 사비아 300x300", "type": "포세린 타일", "spec": "300x300 mm, 습식 공간 대응 규격", "use": ["욕실 바닥", "현관", "다용도실"], "tier": "중급", "availability": "domestic", "cautions": ["실물의 미끄럼 저항 성적 확인", "배수구 방향 경사와 줄눈 계획"], "source": "https://webzine.kccworld.co.kr/news/%EB%B3%B4%EB%8F%84%EC%9E%90%EB%A3%8C/kcc%EA%B8%80%EB%9D%BC%EC%8A%A4-%ED%99%88%EC%94%A8%EC%94%A8-%EB%94%94%EC%9E%90%EC%9D%B8%EA%B3%BC-%ED%92%88%EC%A7%88-%EA%B2%B8%EB%B9%84%ED%95%9C-%EC%84%B8%EB%9D%BC%EB%AF%B9-%ED%83%80%EC%9D%BC-%EC%8B%A0/"},
+        {"brand": "Marazzi", "name": "SistemN", "type": "기술 포세린", "spec": "10.5 mm, 60x120·60x60·30x60 cm 등", "use": ["주거 바닥", "상업공간", "실내외 연결 공간"], "tier": "프리미엄", "availability": "import_check", "cautions": ["색상·두께·미끄럼 등급별 재고 확인", "동일 생산 로트 확보"], "source": "https://www.marazzi.it/collezioni/SistemN/"},
+        {"brand": "Marazzi", "name": "Lume", "type": "유약 벽타일", "spec": "10x10·6x24·21x18.2 cm 등", "use": ["주방 벽", "욕실 벽", "포인트 월"], "tier": "프리미엄", "availability": "import_check", "cautions": ["수공예풍 색상 편차를 디자인 요소로 검토", "바닥 적용 가능 여부를 품번별 확인"], "source": "https://www.marazzi.it/collezioni/lume/"},
+        {"brand": "Atlas Concorde", "name": "Boost Stone", "type": "석재 무늬 포세린", "spec": "다규격·대형 슬래브·논슬립 옵션", "use": ["거실", "욕실", "테라스", "상업공간"], "tier": "프리미엄", "availability": "import_check", "cautions": ["실내·실외 마감별 미끄럼 등급 구분", "대형 규격 운반 동선 검토"], "source": "https://www.atlasconcorde.com/en/ac-collection/boost-stone"},
+        {"brand": "Atlas Concorde", "name": "Marvel Travertine", "type": "트래버틴 무늬 포세린", "spec": "천연석 재현 포세린 컬렉션", "use": ["거실", "욕실 벽", "호텔·상업공간"], "tier": "프리미엄", "availability": "import_check", "cautions": ["베인 방향과 패턴 반복 사전 배치", "마감면별 오염·미끄럼 성능 확인"], "source": "https://www.atlasconcorde.com/en/collections/ac/marvel-travertine"},
+        {"brand": "Florim", "name": "Buildtech/2.0", "type": "건축용 포세린", "spec": "콘크리트·석재·금속 계열 통합 컬렉션", "use": ["주거 공용부", "상업공간", "파사드 검토"], "tier": "프리미엄", "availability": "import_check", "cautions": ["용도별 두께와 시공 시스템 확인", "국내 수입 로트·납기 확인"], "source": "https://www.florim.com/en/products/all-collections"},
+        {"brand": "Florim", "name": "Stones & More 2.0", "type": "대형 포세린 슬래브", "spec": "160x320·120x280·120x240 cm 등, R10 옵션", "use": ["대형 벽체", "거실 바닥", "상판·가구 마감 검토"], "tier": "프리미엄", "availability": "import_check", "cautions": ["전용 절단·운반·흡착 장비 필요", "품번별 두께와 상판 적용 적합성 확인"], "source": "https://www.florim.com/en/products/all-collections/stones-more-20"},
+        {"brand": "Porcelanosa", "name": "Bottega Caliza", "type": "콘크리트 무늬 포세린", "spec": "59.6x180·59.6x120·59.6x59.6 cm 등", "use": ["거실", "욕실", "상업공간"], "tier": "프리미엄", "availability": "import_check", "cautions": ["규격별 벽·바닥 적합성 확인", "수입 재고와 보수분 확보"], "source": "https://www.porcelanosa.sk/produkty/bottega-caliza-4/"},
+        {"brand": "Porcelanosa", "name": "Harlem Acero", "type": "전신 포세린", "spec": "120x120 cm 대표 규격", "use": ["대형 거실", "로비", "상업공간"], "tier": "프리미엄", "availability": "import_check", "cautions": ["바탕면 허용오차와 절단 계획 필수", "젖은 공간 적용 시 표면 등급 확인"], "source": "https://store.porcelanosa.com/uk/harlem-acero-120x120"}
+      ]
+    },
+    {
+      "id": "sanitary",
+      "name": "변기·위생도기",
+      "selectionChecks": [
+        "배수 중심거리, 배수 방식, 급수 위치와 제품 외형 치수를 실측한다.",
+        "비데 일체형은 수압·전원·접지·누전차단기와 서비스망을 확인한다.",
+        "절수량만 보지 말고 실제 현장 배관 조건과 세척 성능을 함께 검토한다."
+      ],
+      "brands": [
+        {"name": "대림바스", "country": "대한민국", "position": "국내 종합 욕실·서비스망", "officialUrl": "https://www.daelimbath.com/"},
+        {"name": "INUS", "country": "대한민국", "position": "국내 욕실·위생도기", "officialUrl": "https://www.inusmall.com/"},
+        {"name": "아메리칸스탠다드", "country": "글로벌", "position": "중고급 위생도기", "officialUrl": "https://www.americanstandard.co.kr/"},
+        {"name": "KOHLER", "country": "미국", "position": "프리미엄 욕실", "officialUrl": "https://www.kohler.co.kr/"},
+        {"name": "TOTO", "country": "일본", "position": "프리미엄 위생도기·워시렛", "officialUrl": "https://kr.toto.com/"}
+      ],
+      "products": [
+        {"brand": "대림바스", "name": "SMARTLET Edge", "type": "비데 일체형 양변기", "spec": "2026 공식 욕실 카탈로그 수록 모델", "use": ["주거 욕실", "프리미엄 리모델링"], "tier": "프리미엄", "availability": "domestic", "cautions": ["정확한 모델코드와 배수거리 확인", "전원·수압·서비스 공간 확보"], "source": "https://www.daelimbath.com/upload/down/2026_bk_bath_catalog1.pdf"},
+        {"brand": "대림바스", "name": "SMARTLET Pisa", "type": "비데 일체형 양변기", "spec": "2026 공식 욕실 카탈로그 수록 모델", "use": ["주거 욕실", "호텔·고급 상업공간"], "tier": "프리미엄", "availability": "domestic", "cautions": ["현장 배관과 설치 키트 호환 확인", "정전 시 사용 방식과 AS 조건 확인"], "source": "https://www.daelimbath.com/upload/down/2026_bk_bath_catalog1.pdf"},
+        {"brand": "INUS", "name": "IC705E", "type": "투피스 양변기", "spec": "탱크·도기 분리형", "use": ["아파트", "임대·상업공간"], "tier": "실속", "availability": "domestic", "cautions": ["배수거리와 시트 포함 여부 확인", "설치 부속과 철거비 별도 확인"], "source": "https://www.inusmall.com/"},
+        {"brand": "INUS", "name": "IC859E", "type": "원피스 양변기", "spec": "도기 일체형", "use": ["주거 욕실", "중급 리모델링"], "tier": "중급", "availability": "domestic", "cautions": ["제품 외형과 문 간섭 실측", "배수 부속·시트 구성 확인"], "source": "https://inusmall.com/category/%EC%9B%90%ED%94%BC%EC%8A%A4/60/"},
+        {"brand": "아메리칸스탠다드", "name": "Acacia E 1PC", "type": "원피스 양변기", "spec": "Acacia E 컬렉션", "use": ["주거 욕실", "호텔"], "tier": "중급", "availability": "domestic", "cautions": ["국내 판매 품번·배수거리 확인", "시트와 설치부속 포함 범위 확인"], "source": "https://www.americanstandard.co.kr/main/site/product_cate/toilets.do"},
+        {"brand": "아메리칸스탠다드", "name": "Boston 1PC", "type": "원피스 양변기", "spec": "Boston 컬렉션", "use": ["주거 욕실", "상업공간"], "tier": "중급", "availability": "domestic", "cautions": ["현장 수압·배수 조건 검토", "공식 대리점 재고·AS 확인"], "source": "https://www.americanstandard.co.kr/main/site/product_cate/toilets.do"},
+        {"brand": "KOHLER", "name": "Veil K-1381T-S-0", "type": "원피스 양변기", "spec": "3/4.5 L, 배수거리 305 mm 사양", "use": ["고급 주거", "호텔"], "tier": "프리미엄", "availability": "import_check", "cautions": ["국내 유통 사양과 부속 확인", "설치 전 배수 중심거리 실측"], "source": "https://www.kohler.co.kr/browse/bathroom/Categories/toilets/ToiletType/1%ED%94%BC%EC%8A%A4"},
+        {"brand": "KOHLER", "name": "Karess K-3902T-S-0", "type": "원피스 양변기", "spec": "3/4.8 L 사양", "use": ["고급 주거", "프리미엄 상업공간"], "tier": "프리미엄", "availability": "import_check", "cautions": ["유통 모델의 세부 사양과 인증 확인", "도기 파손 대비 납기·보수 정책 확인"], "source": "https://www.kohler.co.kr/browse/bathroom/Categories/toilets/ToiletType/1%ED%94%BC%EC%8A%A4"},
+        {"brand": "TOTO", "name": "NEOREST EX CES992WK", "type": "비데 일체형 양변기", "spec": "W448xD800xH527 mm, 3.8/3 L, 배수거리 305 mm", "use": ["고급 주거", "호텔·VIP 공간"], "tier": "프리미엄", "availability": "domestic", "cautions": ["800 mm 깊이와 문 동선 확인", "전원·수압·접지 조건 준수"], "source": "https://kr.toto.com/products/ces992wk/"},
+        {"brand": "TOTO", "name": "CW822REA + WASHLET S7 TCF47360GKR", "type": "벽걸이 양변기·워시렛", "spec": "도기 W380xD540xH330 mm, 토네이도 세척 4.8 L", "use": ["고급 주거", "공간 절약형 욕실"], "tier": "프리미엄", "availability": "domestic", "cautions": ["매립 탱크·벽체 보강·점검구 계획", "도기와 워시렛 호환 조합 확인"], "source": "https://kr.toto.com/en/product/view.php?pl_idx=778"}
+      ]
+    },
+    {
+      "id": "flooring",
+      "name": "마루",
+      "selectionChecks": [
+        "바탕 함수율과 평활도, 난방 상태를 측정한 뒤 시공한다.",
+        "접착식·클릭식 시공법과 전용 접착제, 신축 이격 기준을 확인한다.",
+        "물 사용 공간 경계와 누수 위험 구간에는 마루보다 내수 마감을 우선 검토한다."
+      ],
+      "brands": [
+        {"name": "LX Z:IN", "country": "대한민국", "position": "종합 인테리어·마루", "officialUrl": "https://www.lxzin.com/"},
+        {"name": "동화자연마루", "country": "대한민국", "position": "마루 전문·국내 유통", "officialUrl": "https://www.greendongwha.com/"},
+        {"name": "한솔홈데코", "country": "대한민국", "position": "보드·마루 전문", "officialUrl": "https://www.hansolhomedeco.co.kr/"},
+        {"name": "현대L&C", "country": "대한민국", "position": "종합 건자재·바닥재", "officialUrl": "https://www.hyundailnc.com/"},
+        {"name": "구정마루", "country": "대한민국", "position": "프리미엄 마루 전문", "officialUrl": "https://www.kujungmaru.com/"}
+      ],
+      "products": [
+        {"brand": "LX Z:IN", "name": "에디톤 마루 브리즈 오크 EDW7776", "type": "복합 마루", "spec": "5.0T x 180W x 1220L mm, NSC 코어, 접착 시공", "use": ["거실", "침실", "상업공간"], "tier": "프리미엄", "availability": "domestic", "cautions": ["바탕 함수율·난방 건조 확인", "동일 로트 색상 확보"], "source": "https://www.lxzin.com/zin/product/101685"},
+        {"brand": "LX Z:IN", "name": "강그린 수퍼 Art White FMKGS012-B009500SW", "type": "강화 복합마루", "spec": "6T x 95W x 800L mm, 3.19 m²/box, SE0", "use": ["아파트", "주거 리모델링"], "tier": "중급", "availability": "domestic", "cautions": ["접착제·부자재를 공식 시방으로 통일", "습기 유입 구간 분리"], "source": "https://www.lxzin.com/zin/product/12716"},
+        {"brand": "동화자연마루", "name": "진 그란데 사하라 라이트", "type": "광폭 마루", "spec": "325W x 805L x 7T mm, NAF 코어", "use": ["거실", "주방 인접 건식 구간", "상업공간"], "tier": "중급", "availability": "domestic", "cautions": ["이중 고정·필수 접착제 시방 확인", "패턴 배열을 시공 전 검수"], "source": "https://www.greendongwha.com/product/detail/2083/"},
+        {"brand": "동화자연마루", "name": "진 테라맥스 내추럴 JM6003", "type": "장폭 마루", "spec": "195W x 2040L x 7.5T mm, NAF 코어", "use": ["대형 거실", "주거·오피스"], "tier": "중급", "availability": "domestic", "cautions": ["긴 판재의 바탕 평활도 기준 강화", "운반·엘리베이터 동선 확인"], "source": "https://www.greendongwha.com/product/brand/jin/"},
+        {"brand": "한솔홈데코", "name": "SB마루 스퀘어800", "type": "대형 정사각 마루", "spec": "800x800급 SB마루 컬렉션", "use": ["거실", "오피스", "패턴 바닥"], "tier": "중급", "availability": "domestic", "cautions": ["공식 카탈로그의 품번·표면 사양 확인", "바탕 평활도와 줄맞춤 관리"], "source": "https://www.hansolhomedeco.co.kr/home/brand/sbcollection.jsp"},
+        {"brand": "한솔홈데코", "name": "SB마루 스톤800", "type": "석재 무늬 마루", "spec": "800W x 800L x 7.5T mm", "use": ["거실", "상업공간", "석재 대체 디자인"], "tier": "중급", "availability": "domestic", "cautions": ["타일과 다른 열·수분 거동을 고려", "절단면과 경계부 마감 계획"], "source": "https://www.hansolhomedeco.co.kr/download/catalogue_sb_Stone.pdf"},
+        {"brand": "현대L&C", "name": "센트라 프라임 7.5", "type": "프리미엄 마루", "spec": "7.5 mm급 센트라 라인", "use": ["아파트", "고급 주거"], "tier": "중급", "availability": "domestic", "cautions": ["세부 규격·시공법을 선택 품번으로 확인", "난방 시공 양생 기준 준수"], "source": "https://www.hyundailnc.com/product/contents?mng_cd=525894F0"},
+        {"brand": "현대L&C", "name": "센트라 스퀘어", "type": "대형 패턴 마루", "spec": "스퀘어 디자인 컬렉션", "use": ["거실", "상업공간"], "tier": "중급", "availability": "domestic", "cautions": ["패턴 기준선과 손실률 산출", "제품별 내수·표면 성능 확인"], "source": "https://www.hyundailnc.com/product/contents?mng_cd=41AD835A"},
+        {"brand": "구정마루", "name": "그랜드 텍스처 165 그랜드 어바인 165", "type": "광폭 원목 질감 마루", "spec": "165W x 1200L x 7.5T mm, 접착 시공", "use": ["거실", "고급 주거", "부티크 상업공간"], "tier": "프리미엄", "availability": "domestic", "cautions": ["천연 질감 편차와 샘플 승인", "접착제·바탕 함수율 관리"], "source": "https://www.kujungmaru.com/product/detail?id=116"},
+        {"brand": "구정마루", "name": "블론테 엘리엇 오크", "type": "장폭 프리미엄 마루", "spec": "230W x 2420L x 8.7T mm, 접착 시공", "use": ["대형 거실", "고급 주거", "전시장"], "tier": "프리미엄", "availability": "domestic", "cautions": ["장척재 운반 동선과 손실률 확인", "바탕 평활도·실내 습도 관리"], "source": "https://www.kujungmaru.com/product/detail?id=174"}
+      ]
+    },
+    {
+      "id": "windows",
+      "name": "샤시·창호",
+      "selectionChecks": [
+        "프레임 이름만으로 성능을 판단하지 말고 유리·간봉·보강재를 포함한 인증 조합을 확인한다.",
+        "창 크기, 풍압, 개폐 방식, 방충망, 하드웨어와 결로 위험을 함께 검토한다.",
+        "실측·제작·충전·실란트·외부 방수까지 공식 시공 범위를 계약서에 적는다."
+      ],
+      "brands": [
+        {"name": "LX Z:IN", "country": "대한민국", "position": "종합 창호·리모델링", "officialUrl": "https://www.lxzin.com/zin/category/a010000"},
+        {"name": "KCC 클렌체", "country": "대한민국", "position": "고단열 프리미엄 창호", "officialUrl": "https://www.kccworld.co.kr/m/materials/window/klenze.do"},
+        {"name": "현대L&C L-Safe", "country": "대한민국", "position": "안전·단열 창호", "officialUrl": "https://www.hyundailnc.com/l-safe/index.html"},
+        {"name": "윈체", "country": "대한민국", "position": "PVC 시스템 창호", "officialUrl": "https://winche.co.kr/pages/web/product/product_list.asp"},
+        {"name": "금호석유화학 휴그린", "country": "대한민국", "position": "PVC 창호·건자재", "officialUrl": "https://hugreen.kr/"}
+      ],
+      "products": [
+        {"brand": "LX Z:IN", "name": "뷰프레임 F-145/265 패밀리", "type": "PVC 단창·이중창", "spec": "145/265 mm급 프레임 패밀리", "use": ["아파트 외창", "발코니", "거실"], "tier": "중급", "availability": "domestic", "cautions": ["선택 유리 조합의 에너지 성적서 확인", "창 크기별 보강재·풍압 검토"], "source": "https://www.lxzin.com/zin/product/window"},
+        {"brand": "LX Z:IN", "name": "E9-PTT85 Tilt & Turn", "type": "시스템창", "spec": "틸트앤턴 개폐 시스템", "use": ["고급 주거", "단독주택", "환기 중시 공간"], "tier": "프리미엄", "availability": "domestic", "cautions": ["개폐 반경과 하드웨어 유지관리 공간 확보", "현장별 유리·방충망 옵션 확인"], "source": "https://www.lxzin.com/zin/category/a010000"},
+        {"brand": "KCC 클렌체", "name": "M700", "type": "고단열 PVC 이중창", "spec": "프레임 265 mm, T60 4중 아르곤 조합 예시 U=0.657 W/m²K", "use": ["고급 아파트", "외기에 직접 면한 거실"], "tier": "프리미엄", "availability": "domestic", "cautions": ["표기 열관류율은 인증 유리 조합에 한정", "공식 가공·시공 인증점 확인"], "source": "https://www.kccemaxclub.co.kr/m/product/klenze/M700.do"},
+        {"brand": "KCC 클렌체", "name": "M500", "type": "고단열 PVC 창호", "spec": "T51 3중 아르곤 조합 예시 U=0.697 W/m²K", "use": ["아파트", "고단열 리모델링"], "tier": "프리미엄", "availability": "domestic", "cautions": ["계약 유리 사양을 성적서와 대조", "기밀 테이프·실란트 시공 범위 확인"], "source": "https://www.kccemaxclub.co.kr/product/klenze/M500.do"},
+        {"brand": "현대L&C L-Safe", "name": "L-3", "type": "PVC 단창·이중창", "spec": "단창 120 mm, 이중창 252 mm", "use": ["아파트", "발코니", "일반 주거"], "tier": "중급", "availability": "domestic", "cautions": ["유리 조합별 단열·기밀 등급 확인", "안전 잠금과 방충망 옵션 확인"], "source": "https://www.hyundailnc.com/l-safe/l-3_detail.html"},
+        {"brand": "현대L&C L-Safe", "name": "L-7", "type": "고단열 PVC 단창·이중창", "spec": "단창 140 mm, 이중창 260 mm, 1등급 단열·기밀 조합 제공", "use": ["고단열 아파트", "확장 발코니"], "tier": "프리미엄", "availability": "domestic", "cautions": ["1등급 해당 인증 조합을 계약서에 명시", "결로 검토와 실내 환기 계획 병행"], "source": "https://www.hyundailnc.com/l-safe/index.html"},
+        {"brand": "윈체", "name": "DF-271R", "type": "발코니 이중창", "spec": "271 mm급 PVC 이중창", "use": ["아파트 발코니", "확장 거실"], "tier": "중급", "availability": "domestic", "cautions": ["창 크기별 허용 범위와 보강 사양 확인", "실측 업체의 공식 대리점 여부 확인"], "source": "https://winche.co.kr/pages/web/product/product_list.asp"},
+        {"brand": "윈체", "name": "TF-146H/TF-221H", "type": "틸트앤턴 시스템창", "spec": "146/221 mm급 T&T 시스템", "use": ["단독주택", "고급 주거", "환기창"], "tier": "프리미엄", "availability": "domestic", "cautions": ["하드웨어 하중·개폐 크기 제한 확인", "수입 부속 교체 납기 확인"], "source": "https://winche.co.kr/pages/web/product/product_list.asp"},
+        {"brand": "금호석유화학 휴그린", "name": "PB-120S", "type": "발코니 단창", "spec": "120 mm급 PVC 발코니 창", "use": ["비확장 발코니", "보조창"], "tier": "실속", "availability": "domestic", "cautions": ["외기에 직접 면하는 위치의 단열 요구 검토", "유리 두께·보강재·풍압 사양 확인"], "source": "https://hugreen.kr/product/balconyBest"},
+        {"brand": "금호석유화학 휴그린", "name": "PB-235D", "type": "발코니 이중창", "spec": "235 mm급 PVC 이중창", "use": ["아파트 발코니", "거실 외창"], "tier": "중급", "availability": "domestic", "cautions": ["프로파일과 유리의 인증 조합 확인", "누수 방지를 위한 외부 실란트·배수홀 검수"], "source": "https://hugreen.kr/product/balconyBest"}
+      ]
+    },
+    {
+      "id": "waterproofing",
+      "name": "방수재",
+      "selectionChecks": [
+        "제품 하나가 아니라 프라이머·보강포·중도·상도까지 한 제조사 시스템으로 지정한다.",
+        "바탕 양생·함수율, 균열·모서리·배수구·관통부 보강과 최소 건조 도막 두께를 기록한다.",
+        "욕실은 담수 시험 후 후속 타일 공정을 진행하고 옥상은 배수·자외선·보행 조건을 반영한다."
+      ],
+      "brands": [
+        {"name": "KCC", "country": "대한민국", "position": "우레탄·건축 방수 시스템", "officialUrl": "https://www.kccworld.co.kr/"},
+        {"name": "Sika Korea", "country": "스위스", "position": "건설 화학·방수 시스템", "officialUrl": "https://kor.sika.com/"},
+        {"name": "Mapei Korea", "country": "이탈리아", "position": "타일·시멘트계 방수", "officialUrl": "https://www.mapei.com/kr/ko/"},
+        {"name": "ARDEX", "country": "독일", "position": "타일 하부·특수 방수", "officialUrl": "https://www.ardexendura.com/"},
+        {"name": "삼화페인트", "country": "대한민국", "position": "건축 도료·우레탄 방수", "officialUrl": "https://samhwa.com/"}
+      ],
+      "products": [
+        {"brand": "KCC", "name": "스포탄 KS 1류 방수재 K", "type": "2액형 비노출 우레탄", "spec": "KS F 3211 1류, 3 mm 기준 약 4.2 kg/m²", "use": ["옥상 비노출", "콘크리트 방수층"], "tier": "중급", "availability": "domestic", "cautions": ["콘크리트 28일 양생·함수율 6% 이하 등 시방 준수", "정확한 프라이머·상도 시스템 적용"], "source": "https://www.kccworld.co.kr/techdoc/c01/cvt/C01F202207080053093kor.pdf"},
+        {"brand": "KCC", "name": "모노탄 1액형 노출 플러스", "type": "1액형 노출 우레탄", "spec": "2 mm 기준 약 3.2 kg/m²", "use": ["옥상", "외부 노출 방수"], "tier": "중급", "availability": "domestic", "cautions": ["강우·이슬·바탕 수분 조건 확인", "보행 빈도와 상도 재도장 주기 계획"], "source": "https://www.kccworld.co.kr/techdoc/c01/cvt/C01F202002140042422kor.pdf"},
+        {"brand": "Sika Korea", "name": "Sikalastic-1K", "type": "1액형 시멘트계 탄성 방수", "spec": "물 혼합형, 타일 하부 적용 가능", "use": ["욕실", "발코니", "수영장", "타일 하부"], "tier": "중급", "availability": "domestic", "cautions": ["모서리·배수구 보강재 적용", "도막 양생 후 제조사 허용 접착제 사용"], "source": "https://kor.sika.com/ko/construction/46904/70387/70484/sikalastic-1k.html"},
+        {"brand": "Sika Korea", "name": "SikaTop-107", "type": "2액형 폴리머 시멘트 방수", "spec": "25 kg 세트 사양", "use": ["콘크리트 수조", "욕실", "발코니", "습윤 바탕"], "tier": "중급", "availability": "domestic", "cautions": ["혼합비와 가사시간 준수", "균열 거동이 큰 부위는 별도 보강 설계"], "source": "https://kor.sika.com/content/dam/dms/kr01/d/sikatop_-107.pdf"},
+        {"brand": "Mapei Korea", "name": "Mapelastic 70KS", "type": "2액형 시멘트계 탄성 방수", "spec": "한국 시장용 탄성 방수 시스템", "use": ["욕실", "발코니", "콘크리트 구조물"], "tier": "중급", "availability": "domestic", "cautions": ["메시·밴드 등 지정 보강재 사용", "권장 도막 두께와 양생 시간 준수"], "source": "https://www.mapei.com/kr/ko/products-and-solutions/products/detail/mapelastic-70ks%28%EB%A7%88%ED%8E%98%EB%9D%BC%EC%8A%A4%ED%8B%B1-70ks%29"},
+        {"brand": "Mapei Korea", "name": "Mapelastic AquaDefense", "type": "사용 준비형 액상 멤브레인", "spec": "속건형 타일 하부 방수", "use": ["욕실", "샤워실", "세탁실", "발코니"], "tier": "프리미엄", "availability": "domestic", "cautions": ["상시 침수·외부 노출 적용 범위 확인", "전용 밴드와 타일 접착제 조합 준수"], "source": "https://www.mapei.com/kr/ko/products-and-solutions/products/detail/mapelastic-aquadefense"},
+        {"brand": "ARDEX", "name": "WPM 002", "type": "2액형 타일 하부 멤브레인", "spec": "일반 조건에서 16~24시간 후 타일 시공 가능", "use": ["욕실", "샤워실", "발코니"], "tier": "프리미엄", "availability": "import_check", "cautions": ["국내 유통 제품의 인증·시방 확인", "코너·관통부 보강 디테일 준수"], "source": "https://www.ardexendura.com/products/waterproofing-systems/liquid-applied-membranes/wpm-002/"},
+        {"brand": "ARDEX", "name": "WPM 300", "type": "수성 에폭시 멤브레인", "spec": "습윤 바탕·수조용 에폭시 방수 시스템", "use": ["습윤 콘크리트", "수조", "특수 바탕 차단"], "tier": "프리미엄", "availability": "import_check", "cautions": ["음수압·수조 적용은 기술 검토 필수", "후속 접착층과의 호환성 확인"], "source": "https://www.ardexendura.com/products/waterproofing-systems/liquid-applied-membranes/wpm-300/"},
+        {"brand": "삼화페인트", "name": "방수에이스 시스템", "type": "건축 방수 시스템", "spec": "현장 부위별 하도·중도·상도 구성", "use": ["옥상", "외벽", "보수 공사"], "tier": "중급", "availability": "domestic", "cautions": ["단일 제품명이 아닌 현장별 시스템 확정", "균열·들뜸 원인 보수 후 적용"], "source": "https://samhwa.com/newsletter/%EC%82%BC%ED%99%94s-pick"},
+        {"brand": "삼화페인트", "name": "원샷탄", "type": "1액형 우레탄 방수", "spec": "1 mm 기준 약 1.6 kg/m², 1~2회 도장", "use": ["옥상 보수", "소규모 노출 방수"], "tier": "실속", "availability": "domestic", "cautions": ["대면적·균열이 큰 바탕은 전문 시스템 우선", "비·이슬 없는 양생 시간 확보"], "source": "https://samhwa.com/paint/3090700"}
+      ]
+    },
+    {
+      "id": "finishes",
+      "name": "도장·마감재",
+      "selectionChecks": [
+        "바탕 종류와 상태에 맞는 퍼티·실러·프라이머를 포함해 도장 시스템을 정한다.",
+        "광도는 오염 저항과 바탕 결점 노출에 영향을 주므로 큰 면 샘플로 승인한다.",
+        "욕실·주방·외부는 세척성, 곰팡이 저항, 내후성과 충분한 환기·양생 시간을 확인한다."
+      ],
+      "brands": [
+        {"name": "KCC", "country": "대한민국", "position": "종합 건축 도료", "officialUrl": "https://www.kccworld.co.kr/"},
+        {"name": "노루페인트", "country": "대한민국", "position": "건축·인테리어 도료", "officialUrl": "https://www.noroopaint.com/"},
+        {"name": "삼화페인트", "country": "대한민국", "position": "건축·친환경 도료", "officialUrl": "https://samhwa.com/"},
+        {"name": "Benjamin Moore", "country": "미국", "position": "프리미엄 인테리어 도료", "officialUrl": "https://www.benjaminmoore.com/"},
+        {"name": "Dulux", "country": "글로벌", "position": "실내외 기능성 도료", "officialUrl": "https://www.dulux.co.uk/"}
+      ],
+      "products": [
+        {"brand": "KCC", "name": "숲으로 올인원", "type": "수성 내외부용 도료", "spec": "내·외부 통합형 건축 도료", "use": ["실내 벽·천장", "외부 콘크리트 검토"], "tier": "중급", "availability": "domestic", "cautions": ["바탕별 하도와 제품 세부형 확인", "외부는 날씨·도막 두께 시방 준수"], "source": "https://www.kccworld.co.kr/techdoc/b02/cvt/B02F202107267118723kor.pdf"},
+        {"brand": "KCC", "name": "숲으로 웰빙", "type": "친환경 수성 내부용 도료", "spec": "주거 실내 벽·천장용", "use": ["아파트", "침실", "거실", "교육시설"], "tier": "중급", "availability": "domestic", "cautions": ["오염이 많은 곳은 세척 성능 등급 확인", "충분한 건조·환기 후 입주"], "source": "https://www.kccworld.co.kr/techdoc/b02/cvt/B02F202107267118723kor.pdf"},
+        {"brand": "노루페인트", "name": "순앤수 원터치 인테리어", "type": "수성 내부용 도료", "spec": "인테리어 벽면 도장 제품", "use": ["거실", "침실", "셀프 리폼"], "tier": "실속", "availability": "domestic", "cautions": ["진한 색·오염 바탕은 하도와 추가 도장 고려", "도장 면적은 바탕 흡수율에 따라 재산정"], "source": "https://www.noroopaint.com/kor/product/category/view.asp?cat1=AE6F8152&cat2=E0EA87F4&cat3=&goodkey=%7B26FD810B-CD56-458F-99AB-76A152B7A058%7D&page=2&search_product_nm="},
+        {"brand": "노루페인트", "name": "팬톤페인트 인테리어", "type": "컬러 수성 내부용 도료", "spec": "PANTONE 색채 기반 인테리어 라인", "use": ["포인트 벽", "상업공간", "주거 컬러 계획"], "tier": "중급", "availability": "domestic", "cautions": ["화면 색이 아닌 실물 샘플 승인", "조명 색온도별 색상 확인"], "source": "https://www.noroopaint.com/kor/product/category/view.asp?cat1=AE6F8152&cat2=E0EA87F4&cat3=&goodkey=%7B0BC52FBB-5341-49EC-B6E6-5386CA376DAB%7D&page=1&search_product_nm="},
+        {"brand": "삼화페인트", "name": "아이럭스 듀로-X", "type": "고내구성 수성 내부용 도료", "spec": "스크래치·마모·오염 대응 인테리어 라인", "use": ["복도", "상업공간", "반려동물 가정", "아동 공간"], "tier": "중급", "availability": "domestic", "cautions": ["광도별 표면 느낌과 보수 흔적 확인", "바탕 강도가 약하면 선행 보강"], "source": "https://samhwa.com/newsletter/%EC%82%BC%ED%99%94n%EC%9D%B4%EC%8A%88-4"},
+        {"brand": "삼화페인트", "name": "아이생각 수성외부프로", "type": "수성 외부용 도료", "spec": "콘크리트·몰탈 외벽용", "use": ["건물 외벽", "외부 콘크리트"], "tier": "중급", "availability": "domestic", "cautions": ["균열·백화·수분 원인 보수 후 도장", "강우·기온·습도 조건 준수"], "source": "https://samhwa.com/paint/3051945"},
+        {"brand": "Benjamin Moore", "name": "Aura Bath & Spa", "type": "욕실용 프리미엄 수성 도료", "spec": "고습도 공간용 무광 계열", "use": ["욕실 건식 벽·천장", "파우더룸", "스파"], "tier": "프리미엄", "availability": "import_check", "cautions": ["직접 물이 닿는 방수 마감 대체 불가", "곰팡이 원인과 환기 문제 선행 해결"], "source": "https://www.benjaminmoore.com/en-us/b/aura-interior-paint"},
+        {"brand": "Benjamin Moore", "name": "Scuff-X Eggshell", "type": "고내구성 수성 내부용 도료", "spec": "스크래치·오염 대응 에그쉘 광도", "use": ["복도", "매장", "사무실", "다중이용공간"], "tier": "프리미엄", "availability": "domestic", "cautions": ["에그쉘 광도가 바탕 결점을 드러낼 수 있음", "국내 판매 용량·조색 가능 색상 확인"], "source": "https://www.benjaminmoore.co.kr/goods/goods_view.php?goodsNo=642"},
+        {"brand": "Dulux", "name": "Easycare Washable & Tough Matt", "type": "세척형 무광 내부용 도료", "spec": "오염 세척 대응 매트 마감", "use": ["주방 인접 벽", "복도", "아이 방", "거실"], "tier": "프리미엄", "availability": "import_check", "cautions": ["국내 유통 제품명·인증·조색 체계 확인", "수입 로트와 추가 보수분 확보"], "source": "https://www.dulux.co.uk/en/products/dulux-easycare-washable-and-tough-matt/cccId_2440838"},
+        {"brand": "Dulux", "name": "Weathershield Smooth Masonry", "type": "외부 조적·콘크리트용 도료", "spec": "내후성 외부용 평활 마감", "use": ["외벽", "몰탈", "조적 마감"], "tier": "프리미엄", "availability": "import_check", "cautions": ["국내 기후·바탕에 맞는 공식 유통 사양 확인", "외벽 누수·균열 보수 후 전체 시스템 적용"], "source": "https://www.dulux.co.uk/en/dulux-weathershield?pp=1"}
+      ]
+    },
+    {
+      "id": "wallcovering",
+      "name": "도배지·벽지",
+      "selectionChecks": [
+        "누수·결로·곰팡이 원인을 먼저 해결하고 바탕 함수율과 건조 상태를 확인한다.",
+        "벽지 종류에 맞는 초배지·퍼티·실러·도배풀과 이음 방식, 무늬 맞춤 손실률을 시방서에 적는다.",
+        "동일 공간은 같은 생산 로트를 확보하고 실제 조명 아래 큰 샘플로 색상과 이음매를 승인한다.",
+        "다중이용·상업공간은 해당 품번의 방염 성적서와 현장 방염표지 발급 조건을 확인한다."
+      ],
+      "brands": [
+        {"name": "LX Z:IN", "country": "대한민국", "position": "프리미엄·기능성 종합 벽지", "officialUrl": "https://www.lxzin.com/zin/category/a070000"},
+        {"name": "GNI개나리벽지", "country": "대한민국", "position": "프리미엄·친환경 벽지 전문", "officialUrl": "https://www.gniwallpaper.com/"},
+        {"name": "KCC신한벽지", "country": "대한민국", "position": "실크·합지·기능성 벽지", "officialUrl": "https://shinhanwall.co.kr/"},
+        {"name": "DID벽지", "country": "대한민국", "position": "고내구·디자인 벽지", "officialUrl": "https://www.didwallpaper.com/"},
+        {"name": "서울벽지", "country": "대한민국", "position": "프리미엄·실크·합지·방염 벽지", "officialUrl": "https://www.seoulwallpaper.co.kr/"}
+      ],
+      "products": [
+        {"brand": "LX Z:IN", "name": "디아망 회벽/크림 화이트 PR002-12", "type": "프리미엄 PVC 벽지", "spec": "106 cm(W) x 15.6 m(L)", "use": ["거실", "주방", "침실", "고급 주거"], "tier": "프리미엄", "availability": "domestic", "cautions": ["화면색 대신 실물 샘플과 로트 확인", "두꺼운 엠보의 코너·이음 마감 숙련도 확인"], "source": "https://www.lxzin.com/zin/product/102540"},
+        {"brand": "LX Z:IN", "name": "실크벽지 베스트 캔버스 베이지 82610-03", "type": "PVC 실크벽지", "spec": "106 cm(W) x 15.6 m(L), 기존 베스띠 제품명 변경", "use": ["거실", "침실", "일반 주거"], "tier": "중급", "availability": "domestic", "cautions": ["실제 실크 섬유가 아닌 PVC 코팅 벽지임을 확인", "저탄소 인증도 선택 품번과 유효 인증서로 확인"], "source": "https://www.lxzin.com/zin/product/103091"},
+        {"brand": "GNI개나리벽지", "name": "2026 PRIMO", "type": "프리미엄 실크벽지 컬렉션", "spec": "2026 하이엔드 실크 컬렉션, 품번별 규격 확인", "use": ["거실", "마스터 침실", "고급 주거"], "tier": "프리미엄", "availability": "domestic", "cautions": ["공식 샘플북에서 정확한 품번·규격 확인", "입체 엠보와 이음매를 실제 벽 샘플로 승인"], "source": "https://www.gniwallpaper.com/"},
+        {"brand": "GNI개나리벽지", "name": "2026 LOHAS+", "type": "프리미엄 실크벽지 컬렉션", "spec": "자연 질감·와이드 화이트 디자인, 품번별 규격 확인", "use": ["거실", "침실", "내추럴 인테리어"], "tier": "중급", "availability": "domestic", "cautions": ["제품별 기능·인증 범위를 샘플북에서 확인", "화이트 계열은 조명 색온도별 색차 검토"], "source": "https://www.gniwallpaper.com/"},
+        {"brand": "KCC신한벽지", "name": "LIVING 프라임 스톤 70302-3", "type": "프리미엄 실크벽지", "spec": "2026 LIVING 컬렉션, 내오염 제품군 수록", "use": ["거실", "침실", "상업공간"], "tier": "중급", "availability": "domestic", "cautions": ["내오염 성능이 적용되는 정확한 품번 확인", "UL 그린가드·환경표지 등 인증서 유효 범위 확인"], "source": "https://www.shinhanwall.co.kr/brands/view.html?depth1=1&depth2=4"},
+        {"brand": "KCC신한벽지", "name": "IRIS 코르델 6892-3", "type": "합지벽지", "spec": "2026 IRIS 합지 컬렉션", "use": ["침실", "임대 주거", "예산형 리모델링"], "tier": "실속", "availability": "domestic", "cautions": ["합지는 바탕색·퍼티 자국의 비침을 초배로 관리", "실크벽지와 다른 이음·오염 관리 특성 안내"], "source": "https://www.shinhanwall.co.kr/brands/view.html?depth1=2&depth2=8"},
+        {"brand": "DID벽지", "name": "GranD", "type": "고강도 부직포 기반 프리미엄 벽지", "spec": "전 제품 고급 부직포 원단·고강도 표면 사양", "use": ["거실", "천장", "반려동물 가정", "고급 주거"], "tier": "프리미엄", "availability": "domestic", "cautions": ["2026 공식 샘플북에서 품번·롤 규격 확인", "고내구성도 모서리 충격·날카로운 긁힘은 별도 보호"], "source": "https://www.jeilwallpaper.com/kor/promote/news.html?bmain=view&search=%26page%3D1&uid=107"},
+        {"brand": "DID벽지", "name": "NINE", "type": "안티스크래칭 실크벽지", "spec": "전 제품 안티스크래칭 기능, 회벽 질감 컬렉션", "use": ["거실", "복도", "아이 방", "반려동물 가정"], "tier": "중급", "availability": "domestic", "cautions": ["기능 시험 조건과 해당 생산연도 샘플북 확인", "진한 색상은 긁힘·풀 오염의 시인성 검토"], "source": "https://www.didwallpaper.com/shops/view/6023aadaab4f462984192381"},
+        {"brand": "서울벽지", "name": "옥수수가 6515-3", "type": "NON-PVC 곡물벽지", "spec": "106 cm(W) x 15.6 m(L), 1롤 약 5평", "use": ["거실", "침실", "친환경 주거"], "tier": "프리미엄", "availability": "domestic", "cautions": ["NON-PVC 특성에 맞는 공식 도배풀·시공법 확인", "선택 품번의 환경 인증서와 생산 로트 확인"], "source": "https://www.seoulwallpaper.co.kr/collection/collection.php?search_category=8"},
+        {"brand": "서울벽지", "name": "LENO 162-3", "type": "프리미엄 장폭 합지벽지", "spec": "93 cm(W) x 17.75 m(L), 1롤 약 5평", "use": ["침실", "임대 주거", "예산형 리모델링"], "tier": "실속", "availability": "domestic", "cautions": ["무늬 맞춤 제품은 표시 면적보다 손실률 가산", "습기·바탕 오염 차단 후 시공"], "source": "https://www.seoulwallpaper.co.kr/collection/collection.php?search_category=7"}
+      ]
+    }
+  ]
+}
