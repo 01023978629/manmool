@@ -229,7 +229,7 @@ function renderPortfolio(items, filterConfig) {
       return `
       <article class="folio reveal" data-id="${i.id}" tabindex="0" role="button" aria-label="${i.title} 상세보기">
         <div class="folio-photo">
-          ${i.photo ? `<img class="scene" src="${i.photo}" alt="${i.title}" loading="lazy" decoding="async" />` : roomScene(i, idx, i.afterColor)}
+          ${i.photo ? `<img class="scene" src="${i.photo}" alt="${i.imageAlt || i.title}" loading="lazy" decoding="async" />` : roomScene(i, idx, i.afterColor)}
           ${badge}
           ${styleTag}
         </div>
@@ -411,7 +411,7 @@ function openFolioModal(item, all) {
 
   const mediaCap = item.aiDesign ? 'AI 추천 디자인 시안' : '시공 현장';
   const media = item.photo
-    ? `<figure class="fm-single"><div class="fm-img"><img class="scene" src="${item.photo}" alt="${item.title}" /></div><figcaption>${mediaCap}</figcaption></figure>`
+    ? `<figure class="fm-single"><div class="fm-img"><img class="scene" src="${item.photo}" alt="${item.imageAlt || item.title}" /></div><figcaption>${mediaCap}</figcaption></figure>`
     : `<figure><div class="fm-img">${roomScene(item, 'b', item.beforeColor)}</div><figcaption>BEFORE</figcaption></figure>
        <figure><div class="fm-img">${roomScene(item, 'a', item.afterColor)}</div><figcaption class="after">AFTER</figcaption></figure>`;
 
@@ -448,6 +448,7 @@ function openFolioModal(item, all) {
         <span class="fm-style">${headTag}</span>
         <h3 id="folioModalTitle">${item.title}</h3>
         ${headSub ? `<p>${headSub}</p>` : ''}
+        ${item.imageCredit && item.imageSource ? `<a class="fm-image-credit" href="${item.imageSource}" target="_blank" rel="noopener">이미지: ${item.imageCredit} · Unsplash</a>` : ''}
       </div>
       ${gridRows.length ? `<dl class="fm-grid">${gridRows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>` : ''}
       ${(item.tilePlan || []).length ? `<div class="fm-block fm-tile-plan"><h4>실시공 타일 규격</h4><dl>${item.tilePlan.map((row) => `<div><dt>${row.label}</dt><dd>${row.value}</dd></div>`).join('')}</dl><p>${tileNote}</p></div>` : ''}
