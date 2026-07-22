@@ -245,16 +245,36 @@
   var steps = [ "intro","verify","summary","full","consent","sign","confirm","done","pdf" ];
 
   // ── 부팅: 링크 열람(GET /api/sign) ──
-  if(!TOKEN){ bootError("유효하지 않은 서명 링크입니다.", "링크에 인증 토큰이 없습니다. 카카오톡으로 받은 링크를 다시 열어주세요."); return; }
-  api("GET","/api/sign").then(function(d){
-    C.no=d.contractNo; C.title=d.title; C.amount=d.amount; C.docHash=d.docHash;
-    $("screenLoad").classList.add("hidden");
-    $("screenSign").classList.remove("hidden");
-    st.step=0; render();
-  }).catch(function(e){
-    bootError("링크를 열 수 없습니다.", e.code==="EXPIRED"?"서명 기한이 지났습니다. 담당자에게 재발송을 요청해 주세요.":
-      e.code==="USED"?"이미 서명이 완료된 링크입니다.":(e.message||"잠시 후 다시 시도해 주세요."));
-  });
+  var VIEWKEY="mm_view_token";
+  if(TOKEN){
+    api("GET","/api/sign").then(function(d){
+      C.no=d.contractNo; C.title=d.title; C.amount=d.amount; C.docHash=d.docHash;
+      $("screenLoad").classList.add("hidden");
+      $("screenSign").classList.remove("hidden");
+      st.step=0; render();
+    }).catch(function(e){
+      bootError("링크를 열 수 없습니다.", e.code==="EXPIRED"?"서명 기한이 지났습니다. 담당자에게 재발송을 요청해 주세요.":
+        e.code==="USED"?"이미 서명이 완료된 링크입니다. 방금 서명하셨다면 이 화면을 새로고침해 완료본을 다시 볼 수 있습니다.":(e.message||"잠시 후 다시 시도해 주세요."));
+    });
+  } else {
+    // 서명 토큰이 없고, 방금 완료해서 저장해 둔 재열람 토큰이 있으면 완료본을 다시 보여준다.
+    var vt=null; try{ vt=sessionStorage.getItem(VIEWKEY); }catch(e){}
+    if(vt){ TOKEN=vt; enterViewMode(); }
+    else bootError("유효하지 않은 서명 링크입니다.", "링크에 인증 토큰이 없습니다. 카카오톡으로 받은 링크를 다시 열어주세요.");
+  }
+
+  function enterViewMode(){
+    api("GET","/api/sign/completed").then(function(d){
+      C.no=d.contractNo; C.title=d.title; C.amount=d.amount; C.body=d.body; C.docHash=d.docHash;
+      C.imageSha256=d.imageSha256; C.signatureImage=d.signatureImage; C.completedAt=d.completedAt;
+      st.viewOnly=true;
+      $("screenLoad").classList.add("hidden"); $("screenSign").classList.remove("hidden");
+      st.step=steps.indexOf("pdf"); render();
+    }).catch(function(e){
+      try{ sessionStorage.removeItem(VIEWKEY); }catch(err){}
+      bootError("완료본을 열 수 없습니다.", e.code==="EXPIRED"?"완료본 열람 링크가 만료되었습니다(15분). 담당자에게 재발급을 요청해 주세요.":(e.message||"잠시 후 다시 시도해 주세요."));
+    });
+  }
 
   function bootError(title, msg){
     $("screenLoad").innerHTML='<div class="load" style="padding:70px 26px"><div style="font-size:38px;margin-bottom:12px">🔒</div>'+
@@ -263,6 +283,8 @@
   }
 
   function render(){
+    // 재열람(viewOnly) 모드에서는 진행바를 숨긴다.
+    $("prog").style.display = st.viewOnly ? "none" : "";
     var p=""; for(var i=0;i<steps.length;i++){ var cls=i<st.step?"done":(i===st.step?"on":""); p+='<i class="'+cls+'"></i>'; }
     $("prog").innerHTML=p;
     $("stepBody").innerHTML=VIEW[steps[st.step]]();
@@ -410,8 +432,12 @@
     },
     sign:function(){ initCanvas(); },
     done:function(){ var e=$("doneAt"); if(e) e.textContent=stamp(); },
-    pdf:function(){ var s=$("pdfSig"); if(s&&st.sigData) s.src=st.sigData; var a=$("pdfAt"); if(a) a.textContent=stamp(); }
+    pdf:function(){
+      var s=$("pdfSig"); if(s){ var img=(st.viewOnly&&C.signatureImage)?C.signatureImage:st.sigData; if(img) s.src=img; }
+      var a=$("pdfAt"); if(a) a.textContent=C.completedAt?fmtTs(C.completedAt):stamp();
+    }
   };
+  function fmtTs(iso){ try{ var d=new Date(iso); function z(n){return(n<10?"0":"")+n;} return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())+" "+z(d.getHours())+":"+z(d.getMinutes()); }catch(e){ return String(iso); } }
 
   function stamp(){ var d=new Date(); function z(n){return(n<10?"0":"")+n;}
     return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())+" "+z(d.getHours())+":"+z(d.getMinutes()); }
@@ -512,7 +538,10 @@
     var base64=String(st.sigData).split(",")[1]||"";
     // 서버가 계산·보관한 문서해시(C.docHash)를 함께 보내 위·변조 대조를 서버가 수행.
     api("POST","/api/sign/signature",{imageBase64:base64, clientDocHash:C.docHash}).then(function(d){
-      st.busy=false; C.imageSha256=d.imageSha256||""; if(d.docHash) C.docHash=d.docHash; go(7);
+      st.busy=false; C.imageSha256=d.imageSha256||""; if(d.docHash) C.docHash=d.docHash;
+      // 완료본 재열람 토큰 저장 → 이 탭에서 새로고침해도 완료 계약서를 다시 볼 수 있음(15분).
+      if(d.viewToken){ try{ sessionStorage.setItem("mm_view_token", d.viewToken); }catch(e){} }
+      go(7);
     }).catch(function(e){ st.busy=false; render();
       toast(e.code==="USED"||e.code==="ALREADY_COMPLETED"?"이미 서명이 완료된 계약입니다.":
         e.code==="DOC_HASH_MISMATCH"?"계약 내용이 변경되었습니다. 처음부터 다시 진행해 주세요.":(e.message||"서명 제출 실패"),true); }); };

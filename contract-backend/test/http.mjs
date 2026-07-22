@@ -1,24 +1,32 @@
 // HTTP 계층 스모크 테스트 — 서버를 실제 기동해 전 플로우를 호출한다.
 import { createApp } from '../src/server.mjs';
 
+process.env.ADMIN_TOKEN = 'http-admin'; // 운영자 라우트는 관리자 토큰 필요
+process.env.CORS_ORIGINS = 'https://app.example';
 const { server } = createApp({ demoOtp: '246810' });
 await new Promise((r) => server.listen(0, r));
 const port = server.address().port;
 const base = `http://localhost:${port}`;
+const ADMIN = { 'x-admin-token': 'http-admin' };
 
 const R = [];
 const ok = (n, c, x) => R.push([c ? '✓' : '✗', n, x || '']);
-async function call(method, path, { json, token } = {}) {
+// admin:true → 운영자 라우트(관리자 토큰), token → 고객 서명 토큰(x-sign-token)
+async function call(method, path, { json, token, admin } = {}) {
   const res = await fetch(base + path, {
     method,
-    headers: { 'content-type': 'application/json', ...(token ? { 'x-sign-token': token } : {}) },
+    headers: { 'content-type': 'application/json', ...(token ? { 'x-sign-token': token } : {}), ...(admin ? ADMIN : {}) },
     body: json ? JSON.stringify(json) : undefined,
   });
   return { status: res.status, data: await res.json() };
 }
 
-// 계약 생성 → 잠금 → 링크 → 발송
-const c = await call('POST', '/api/contracts', { json: {
+// 운영자 라우트는 관리자 토큰 없으면 거부
+const noAuth = await call('POST', '/api/contracts', { json: {} });
+ok('운영자 라우트 무인증 거부(401)', noAuth.status === 401);
+
+// 계약 생성 → 잠금 → 링크 → 발송 (관리자 토큰)
+const c = await call('POST', '/api/contracts', { admin: true, json: {
   contractNo: 'MM-2026-0199', title: '실내건축 공사 계약', amount: 33000000,
   body: { site: '대전 탄방동 26평', scope: ['도배', '장판'], amount: 33000000 },
   operator: { name: '전병덕', phone: '010-5439-8629' },
@@ -27,16 +35,16 @@ const c = await call('POST', '/api/contracts', { json: {
 ok('POST /contracts', c.status === 200 && !!c.data.contractId);
 const cid = c.data.contractId, pid = c.data.parties.customer;
 
-const lock = await call('POST', `/api/contracts/${cid}/lock`);
+const lock = await call('POST', `/api/contracts/${cid}/lock`, { admin: true });
 ok('POST /lock', lock.status === 200 && /^[0-9a-f]{64}$/.test(lock.data.docHash));
 
-const link = await call('POST', `/api/contracts/${cid}/parties/${pid}/sign-link`);
+const link = await call('POST', `/api/contracts/${cid}/parties/${pid}/sign-link`, { admin: true });
 ok('POST /sign-link', link.status === 200 && !!link.data.token);
 const token = link.data.token;
 
-const send = await call('POST', `/api/contracts/${cid}/parties/${pid}/send`, { json: { templateKey: 'contract_sign', variables: { signUrl: 'https://sign.example/#t=redacted' } } });
+const send = await call('POST', `/api/contracts/${cid}/parties/${pid}/send`, { admin: true, json: { templateKey: 'contract_sign', variables: { signUrl: 'https://sign.example/#t=redacted' } } });
 ok('POST /send (Mock)', send.status === 200 && send.data.status === 'SENT');
-const refresh = await call('POST', `/api/deliveries/${send.data.deliveryId}/refresh`);
+const refresh = await call('POST', `/api/deliveries/${send.data.deliveryId}/refresh`, { admin: true });
 ok('POST /refresh → DELIVERED', refresh.data.status === 'DELIVERED');
 
 // 고객 측: 토큰은 헤더로만
@@ -65,8 +73,26 @@ ok('서명 제출 → 완료', sign.status === 200 && sign.data.completed === tr
 const reuse = await call('POST', '/api/sign/signature', { token, json: { imageBase64: 'AA==' } });
 ok('토큰 재사용 거부(400)', reuse.status === 400 && reuse.data.error === 'USED');
 
-const ev = await call('GET', `/api/contracts/${cid}/evidence`);
+const ev = await call('GET', `/api/contracts/${cid}/evidence`, { admin: true });
 ok('GET /evidence 봉인 해시', ev.status === 200 && /^[0-9a-f]{64}$/.test(ev.data.packageHash));
+
+// 원클릭 발송(현장 앱용): 생성→잠금→링크→발송 한 번에
+const qs = await call('POST', '/api/contracts/quick-send', { admin: true, json: {
+  title: '공사 도급계약서', amount: 41310000,
+  body: { site: '대전 갈마동 34평', scope: ['철거', '욕실'], amount: 41310000 },
+  operator: { name: '전병덕', phone: '010-5439-8629' },
+  customer: { name: '김대전', phone: '010-2397-8629' },
+  baseUrl: 'https://contract.example',
+} });
+ok('POST /quick-send → 발송+서명링크', qs.status === 200 && qs.data.delivery.status === 'SENT' && /^\/sign#t=/.test(qs.data.signPath));
+ok('quick-send 무인증 거부', (await call('POST', '/api/contracts/quick-send', { json: {} })).status === 401);
+
+// CORS: 허용 출처의 프리플라이트(OPTIONS) → 204 + 헤더
+const pre = await fetch(base + '/api/contracts/quick-send', { method: 'OPTIONS', headers: { origin: 'https://app.example', 'access-control-request-method': 'POST', 'access-control-request-headers': 'x-admin-token' } });
+ok('CORS 프리플라이트(허용 출처) 204', pre.status === 204 && pre.headers.get('access-control-allow-origin') === 'https://app.example' && /x-admin-token/.test(pre.headers.get('access-control-allow-headers') || ''));
+// 미허용 출처 → CORS 헤더 없음
+const pre2 = await fetch(base + '/api/contracts/quick-send', { method: 'OPTIONS', headers: { origin: 'https://evil.example', 'access-control-request-method': 'POST' } });
+ok('CORS 미허용 출처 차단', !pre2.headers.get('access-control-allow-origin'));
 
 console.log('\n===== HTTP 스모크 =====');
 R.forEach(([m, n, x]) => console.log(m, n, x ? `(${x})` : ''));

@@ -121,10 +121,20 @@ const pdfHtml = await page.textContent('#stepBody');
 ok('pdf: 서버 문서해시(SHA-256) 표시', /문서해시\(SHA-256\)/.test(pdfHtml) && /[0-9a-f]{64}/.test(pdfHtml));
 ok('pdf: 서버 서명해시 표시', /서명해시\(SHA-256\)/.test(pdfHtml));
 
+ok('pdf: 완료본에 서명 이미지 표시', await page.$eval('#pdfSig', (i) => (i.getAttribute('src') || '').startsWith('data:image')).catch(() => false));
+
+// 완료 후 새로고침(토큰 없이) → sessionStorage 재열람 토큰으로 완료본 재표시(#14 해소)
+await page.goto(base + '/sign', { waitUntil: 'networkidle' });
+await page.waitForSelector('#screenSign:not(.hidden)', { timeout: 5000 });
+const reHtml = await page.textContent('#stepBody');
+ok('새로고침 재열람: 완료 계약서 재표시', /최종 계약서/.test(reHtml) && /문서해시\(SHA-256\)/.test(reHtml));
+ok('재열람: 서버 보관 서명 이미지 표시', await page.$eval('#pdfSig', (i) => (i.getAttribute('src') || '').startsWith('data:image')).catch(() => false));
+ok('재열람: 진행바 숨김(viewOnly)', await page.$eval('#prog', (e) => getComputedStyle(e).display === 'none').catch(() => false));
+
 // 브라우저가 실제 엔드포인트들을 호출했는지
-const need = ['GET /api/sign', 'POST /api/sign/otp', 'POST /api/sign/verify', 'GET /api/sign/full', 'POST /api/sign/viewed', 'POST /api/sign/consent', 'POST /api/sign/signature'];
+const need = ['GET /api/sign', 'POST /api/sign/otp', 'POST /api/sign/verify', 'GET /api/sign/full', 'POST /api/sign/viewed', 'POST /api/sign/consent', 'POST /api/sign/signature', 'GET /api/sign/completed'];
 const missing = need.filter((n) => !apiCalls.includes(n));
-ok('브라우저가 7개 엔드포인트 실제 호출', missing.length === 0, missing.join(','));
+ok('브라우저가 8개 엔드포인트 실제 호출', missing.length === 0, missing.join(','));
 
 // 서버 증거 패키지로 최종 대조
 const ev = svc.evidencePackage(seed.contractId);

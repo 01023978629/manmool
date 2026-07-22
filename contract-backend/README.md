@@ -90,4 +90,17 @@ contract-backend/
 
 > 카카오 템플릿 **승인 전·본인번호 테스트 전에는 실제 고객에게 발송하지 않습니다.**
 
+## 배포 (공개 서버)
+
+고객이 폰에서 서명 링크를 열려면 이 서버가 공개 주소에 떠야 합니다. 운영 엔트리포인트는
+`src/prod.mjs`(데모 없음·영속 DB·시크릿 필수·`0.0.0.0`), 컨테이너는 `Dockerfile`(Node 22).
+
+```bash
+npm run prod   # CONTRACT_PEPPER 필수 · DB_PATH 로 영속 저장소 지정
+```
+
+- 운영자 라우트(계약 생성·발송·증거)는 `ADMIN_TOKEN` 필수. 고객 서명 라우트는 토큰(`x-sign-token`) 기반.
+- 헬스체크 `GET /healthz`. SQLite 특성상 **인스턴스 1개** 전제(볼륨 필수).
+- Fly.io/Render 단계별 절차는 [DEPLOY.md](./DEPLOY.md) 참조.
+
 자세한 설계는 [DESIGN.md](./DESIGN.md) 참조.
