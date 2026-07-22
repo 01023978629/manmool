@@ -2,6 +2,7 @@
 import { createApp } from '../src/server.mjs';
 
 process.env.ADMIN_TOKEN = 'http-admin'; // 운영자 라우트는 관리자 토큰 필요
+process.env.CORS_ORIGINS = 'https://app.example';
 const { server } = createApp({ demoOtp: '246810' });
 await new Promise((r) => server.listen(0, r));
 const port = server.address().port;
@@ -85,6 +86,13 @@ const qs = await call('POST', '/api/contracts/quick-send', { admin: true, json: 
 } });
 ok('POST /quick-send → 발송+서명링크', qs.status === 200 && qs.data.delivery.status === 'SENT' && /^\/sign#t=/.test(qs.data.signPath));
 ok('quick-send 무인증 거부', (await call('POST', '/api/contracts/quick-send', { json: {} })).status === 401);
+
+// CORS: 허용 출처의 프리플라이트(OPTIONS) → 204 + 헤더
+const pre = await fetch(base + '/api/contracts/quick-send', { method: 'OPTIONS', headers: { origin: 'https://app.example', 'access-control-request-method': 'POST', 'access-control-request-headers': 'x-admin-token' } });
+ok('CORS 프리플라이트(허용 출처) 204', pre.status === 204 && pre.headers.get('access-control-allow-origin') === 'https://app.example' && /x-admin-token/.test(pre.headers.get('access-control-allow-headers') || ''));
+// 미허용 출처 → CORS 헤더 없음
+const pre2 = await fetch(base + '/api/contracts/quick-send', { method: 'OPTIONS', headers: { origin: 'https://evil.example', 'access-control-request-method': 'POST' } });
+ok('CORS 미허용 출처 차단', !pre2.headers.get('access-control-allow-origin'));
 
 console.log('\n===== HTTP 스모크 =====');
 R.forEach(([m, n, x]) => console.log(m, n, x ? `(${x})` : ''));

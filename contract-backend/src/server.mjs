@@ -114,8 +114,27 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
     return svc.submitSignature(tok(req), { imageBytes: bytes, clientDocHash: b.clientDocHash }, ctx(req));
   });
 
+  // CORS: 교차출처(현장 앱 등) 운영자 호출 허용. 명시적으로 지정한 출처만.
+  const CORS_ORIGINS = (process.env.CORS_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean);
+  const corsFor = (req) => {
+    const origin = req.headers.origin;
+    if (origin && CORS_ORIGINS.includes(origin)) {
+      return {
+        'access-control-allow-origin': origin,
+        'access-control-allow-methods': 'GET,POST,OPTIONS',
+        'access-control-allow-headers': 'content-type,x-admin-token,x-sign-token,x-request-id',
+        'access-control-max-age': '600',
+        vary: 'Origin',
+      };
+    }
+    return null;
+  };
+
   const server = createServer(async (req, res) => {
     try {
+      const cors = corsFor(req);
+      if (cors) for (const [k, v] of Object.entries(cors)) res.setHeader(k, v);
+      if (req.method === 'OPTIONS') { res.writeHead(cors ? 204 : 405); res.end(); return; }
       const url = new URL(req.url, 'http://localhost');
       for (const r of routes) {
         if (r.method !== req.method) continue;

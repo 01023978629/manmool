@@ -24,6 +24,7 @@
 | `DB_PATH` | (기본 `/data/contract.db`) | 영속 볼륨 경로 |
 | `PORT` | (기본 8787) | 호스팅이 지정하면 그 값 |
 | `ALIMTALK_LIVE`, `SOLAPI_*` | ❌ | 알림톡 실제발송(나중에 `/admin`에서 입력 가능) |
+| `CORS_ORIGINS` | ▲ | 현장 앱 등 **교차출처**에서 운영자 API 호출 시. 쉼표구분 허용 출처. 예: `https://01023978629.github.io` |
 
 `NODE_ENV=production` 은 Docker 이미지에 이미 설정돼 있습니다(데모/기본페퍼 fail-fast).
 
