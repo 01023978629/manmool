@@ -75,6 +75,17 @@ ok('토큰 재사용 거부(400)', reuse.status === 400 && reuse.data.error === 
 const ev = await call('GET', `/api/contracts/${cid}/evidence`, { admin: true });
 ok('GET /evidence 봉인 해시', ev.status === 200 && /^[0-9a-f]{64}$/.test(ev.data.packageHash));
 
+// 원클릭 발송(현장 앱용): 생성→잠금→링크→발송 한 번에
+const qs = await call('POST', '/api/contracts/quick-send', { admin: true, json: {
+  title: '공사 도급계약서', amount: 41310000,
+  body: { site: '대전 갈마동 34평', scope: ['철거', '욕실'], amount: 41310000 },
+  operator: { name: '전병덕', phone: '010-5439-8629' },
+  customer: { name: '김대전', phone: '010-2397-8629' },
+  baseUrl: 'https://contract.example',
+} });
+ok('POST /quick-send → 발송+서명링크', qs.status === 200 && qs.data.delivery.status === 'SENT' && /^\/sign#t=/.test(qs.data.signPath));
+ok('quick-send 무인증 거부', (await call('POST', '/api/contracts/quick-send', { json: {} })).status === 401);
+
 console.log('\n===== HTTP 스모크 =====');
 R.forEach(([m, n, x]) => console.log(m, n, x ? `(${x})` : ''));
 const fails = R.filter(([m]) => m === '✗').length;

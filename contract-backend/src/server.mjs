@@ -91,6 +91,11 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   });
   on('POST', /^\/api\/deliveries\/([^/]+)\/refresh$/, async (req, [id]) => { requireAdmin(req); return svc.refreshDelivery(id, currentProvider(resolveProvider)); });
   on('GET', /^\/api\/contracts\/([^/]+)\/evidence$/, async (req, [id]) => { requireAdmin(req); return svc.evidencePackage(id); });
+  // 원클릭: 생성→잠금→서명링크→발송 을 한 번에(현장 앱 "알림톡 보내기"용).
+  on('POST', /^\/api\/contracts\/quick-send$/, async (req) => {
+    requireAdmin(req); const b = await body(req);
+    return quickSend(svc, currentProvider(resolveProvider), b);
+  });
 
   // ── 고객(서명자) 측: 토큰은 헤더 x-sign-token 로만 ──
   const tok = (req) => req.headers['x-sign-token'] || '';
@@ -169,6 +174,29 @@ async function runSelfTest(svc, resolveProvider, phone, baseUrl) {
   const res = await svc.sendMessage(contractId, parties.customer, 'contract_sign', sel.provider,
     { site: '테스트 현장', amount: '0', signUrl }, digits);
   return { status: res.status, reason: res.reason || null, provider: sel.provider.name };
+}
+
+// 원클릭 발송: 생성→잠금→서명링크→발송. 현장 앱이 계약 데이터를 넘기면 한 번에 처리.
+let _qsSeq = 0;
+async function quickSend(svc, provider, b) {
+  if (!b || !b.customer || !b.customer.phone) throw new AppError('BAD_INPUT', '고객 정보(이름·전화)가 필요합니다.');
+  if (!b.operator || !b.operator.phone) throw new AppError('BAD_INPUT', '사업자 정보가 필요합니다.');
+  _qsSeq += 1;
+  const contractNo = b.contractNo || `MM-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(_qsSeq).padStart(3, '0')}`;
+  const amount = b.amount | 0;
+  const body = b.body || {};
+  const { contractId, parties } = svc.createContract({
+    contractNo, title: b.title || '공사 도급계약서', amount, body,
+    operator: b.operator, customer: b.customer,
+  });
+  svc.lockDocument(contractId);
+  const { token } = svc.issueSignLink(contractId, parties.customer, 'sign');
+  const base = (b.baseUrl || '').replace(/\/$/, '');
+  const signUrl = base ? `${base}/sign#t=${token}` : `/sign#t=${token}`;
+  const variables = { site: body.site || '', amount: String(amount), signUrl };
+  // 고객 번호를 rawPhone 으로 넘겨 실제 발송(Mock 이면 무시). 서버가 당사자 해시 대조.
+  const delivery = await svc.sendMessage(contractId, parties.customer, b.templateKey || 'contract_sign', provider, variables, b.customer.phone);
+  return { contractId, contractNo, signPath: `/sign#t=${token}`, provider: provider.name, delivery };
 }
 
 // 데모용 계약 시드: 실제 만물 계약 형태의 본문으로 생성→잠금→서명링크.
