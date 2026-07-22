@@ -164,19 +164,50 @@ function renderPortfolio(items, filterConfig) {
   // 옵션이 없는 필터 그룹은 숨김 (데이터에 없는 기준은 표시하지 않음)
   ].filter((g) => (g.options || []).length > 0);
 
+  const optionCount = (key, option) => {
+    if (key === 'area') {
+      const range = (cfg.area || []).find((entry) => entry.label === option);
+      return range ? items.filter((item) => item.area >= range.min && item.area < range.max).length : 0;
+    }
+    if (key === 'year') return items.filter((item) => String(item.year) === String(option)).length;
+    return items.filter((item) => item[key] === option).length;
+  };
+
+  const filterChip = (group, option) => {
+    const showCount = group.key === 'area' || group.key === 'style';
+    const count = option ? optionCount(group.key, option) : items.length;
+    const label = option || '전체';
+    const countHtml = showCount ? `<span class="fg-chip-count" aria-hidden="true">${count}</span>` : '';
+    return `<button class="fg-chip${option ? '' : ' active'}" data-val="${option || ''}"${showCount ? ` aria-label="${label} ${count}개 사례"` : ''}>${label}${countHtml}</button>`;
+  };
+
+  const filterGroup = (group) => {
+    if (group.options.length > 12) {
+      return `
+      <div class="folio-filter-group" data-group="${group.key}">
+        <label class="fg-label" for="folioFilter-${group.key}">${group.label}</label>
+        <select class="folio-filter-select" id="folioFilter-${group.key}">
+          <option value="">전체 ${group.label} (${items.length})</option>
+          ${group.options.map((option) => `<option value="${option}">${option} (${optionCount(group.key, option)})</option>`).join('')}
+        </select>
+      </div>`;
+    }
+    return `
+    <div class="folio-filter-group" data-group="${group.key}">
+      <span class="fg-label">${group.label}</span>
+      <div class="fg-chips">
+        ${filterChip(group, '')}
+        ${group.options.map((option) => filterChip(group, option)).join('')}
+      </div>
+    </div>`;
+  };
+
   filtersEl.innerHTML = `
     <div class="folio-search">
       <input type="search" id="folioComplex" placeholder="디자인·스타일 검색 (예: 모던)" aria-label="디자인 검색" />
       <span class="folio-ai-note">📷 우리 집 사진을 보내주시면 어울리는 디자인을 추천해 드려요 · 예산은 전체공사 참고 범위</span>
     </div>
-    ${groups.map((g) => `
-    <div class="folio-filter-group" data-group="${g.key}">
-      <span class="fg-label">${g.label}</span>
-      <div class="fg-chips">
-        <button class="fg-chip active" data-val="">전체</button>
-        ${g.options.map((o) => `<button class="fg-chip" data-val="${o}">${o}</button>`).join('')}
-      </div>
-    </div>`).join('')}`;
+    ${groups.map(filterGroup).join('')}`;
 
   const matchArea = (item) => {
     if (!state.area) return true;
@@ -270,6 +301,14 @@ function renderPortfolio(items, filterConfig) {
     draw();
   });
 
+  filtersEl.addEventListener('change', (e) => {
+    const select = e.target.closest('.folio-filter-select');
+    if (!select) return;
+    const group = select.closest('.folio-filter-group').dataset.group;
+    state[group] = select.value || null;
+    draw();
+  });
+
   const complexInput = document.getElementById('folioComplex');
   if (complexInput) complexInput.addEventListener('input', (e) => { state.complex = e.target.value; draw(); });
 
@@ -283,6 +322,7 @@ function renderPortfolio(items, filterConfig) {
       const all = grp.querySelector('.fg-chip[data-val=""]');
       if (all) all.classList.add('active');
     });
+    filtersEl.querySelectorAll('.folio-filter-select').forEach((select) => { select.value = ''; });
     draw();
   }
   document.addEventListener('click', (e) => {
@@ -766,6 +806,17 @@ function setupUI() {
   document.getElementById('year').textContent = '2024–2026';
 }
 
+function setupPortfolioFabVisibility() {
+  const portfolio = document.getElementById('portfolio');
+  const fabGroup = document.querySelector('.fab-group');
+  if (!portfolio || !fabGroup || !('IntersectionObserver' in window)) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    document.body.classList.toggle('portfolio-in-view', entries.some((entry) => entry.isIntersecting));
+  }, { rootMargin: '-72px 0px -72px 0px', threshold: 0 });
+  observer.observe(portfolio);
+}
+
 /* ---------- 폴백 (데이터 로드 실패 시 index.html의 기본 문구 유지) ---------- */
 // site.json 로드 실패 시에도 고객이 연락할 수 있도록 핵심 연락처는 하드코딩 폴백
 const FALLBACK_CONTACT = { phone: '010-2397-8629', email: '1dncjf@naver.com', hours: '평일 09:00 - 17:30' };
@@ -812,6 +863,7 @@ function renderFallbackNotice() {
 /* ---------- 부트스트랩 ---------- */
 async function init() {
   setupUI();
+  setupPortfolioFabVisibility();
   playHeroChat();
 
   const [data, config, materialCatalog] = await Promise.all([loadSite(), loadConfig(), loadMaterialCatalog()]);
