@@ -126,3 +126,12 @@ CREATE TABLE IF NOT EXISTS message_deliveries (
   failed_reason   TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_deliv_contract ON message_deliveries(contract_id);
+
+-- 운영자 연결 설정(웹 관리자에서 저장). 키는 환경변수와 동일 이름을 쓴다(병합 편의).
+-- 시크릿(API secret 등)은 여기 저장되며, 응답으로는 원문을 절대 반환하지 않는다(마스킹).
+-- DB 파일 자체를 외부에 노출하지 말 것(계약·서명 데이터와 함께 비공개 보관).
+CREATE TABLE IF NOT EXISTS app_settings (
+  key        TEXT PRIMARY KEY,
+  value      TEXT,
+  updated_at TEXT NOT NULL
+);

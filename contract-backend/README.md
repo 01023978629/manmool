@@ -21,17 +21,40 @@
 | 전화번호 원문 로그 금지 | 마스킹 + HMAC 해시만 저장 |
 | 일회용 토큰 ≥128bit, DB엔 해시만 | `crypto.issueToken()`(256bit) + `token_hash` |
 | 완료본 장기 공개 URL 금지 | 15분 만료 `view` 토큰 |
+| 동의 증거 위조 방지 | 동의문 정본은 서버 상수, 서버가 해시 계산(클라이언트 텍스트 불신) |
+| 완료 계약 봉인 | COMPLETED 후 재서명·서명링크 재발급 거부 |
+| 문서 위·변조 대조 | 서명 시 클라이언트 `docHash`와 서버 정본 일치 검증 |
+| 안전한 기본값 | 데모/시크릿 기본 off·운영에서 fail-fast |
 
 ## 실행
 
 ```bash
 cd contract-backend
-node test/e2e.mjs     # 서비스 계층 E2E (24건)
-node test/http.mjs    # HTTP 계층 스모크 (12건)
-node src/server.mjs   # Mock 서버 기동 (http://localhost:8787)
+node test/e2e.mjs          # 서비스 계층 E2E (30건)
+node test/http.mjs         # HTTP 계층 스모크 (13건)
+node test/integration.mjs  # 브라우저↔서버 통합 (25건, playwright 있을 때)
+node src/server.mjs        # Mock 서버 기동 → 콘솔에 서명 URL 출력
 ```
 
+`node src/server.mjs` 를 실행하면 데모 계약 1건을 자동 생성하고 **바로 열 수 있는
+서명 URL**(`http://localhost:8787/sign#t=…`)을 콘솔에 찍어줍니다. 그 링크를 열면
+아래 "연결된 서명 화면"이 뜹니다.
+
 의존성 0개 — Node 22 내장 `node:http` / `node:crypto` / `node:sqlite` 만 사용합니다.
+
+## 연결된 서명 화면 (`public/sign.html`)
+
+시제품 서명 UI를 **같은 서버가 서빙**하고, 각 단계가 실제 REST 엔드포인트를 `fetch`
+로 호출합니다(동일 출처 → CORS 불필요). 시제품 Artifact가 인메모리 Mock이었다면,
+이 화면은 진짜로 서버에 저장·검증합니다.
+
+- 토큰은 URL 프래그먼트(`#t=…`)로만 받고, 매 요청 `x-sign-token` 헤더로 전달 →
+  경로/쿼리/서버 로그에 토큰이 남지 않습니다.
+- 계약 **전문은 본인확인(OTP) 성공 이후에만** 서버에서 받아옵니다(`GET /api/sign/full`).
+- 완료 화면의 **문서해시·서명해시는 서버가 계산한 값**을 그대로 표시합니다(클라이언트 계산 아님).
+- 만료·사용됨·네트워크 오류는 전용 안내 화면으로 처리합니다.
+
+흐름: `GET /api/sign` → `otp` → `verify` → `full` → `viewed` → `consent` → `signature`.
 
 ## 구조
 
@@ -51,11 +74,20 @@ contract-backend/
   DESIGN.md               설계 문서 (데이터모델·API·보안·증거)
 ```
 
-## 실제 발송으로 전환할 때 (승인 후)
+## 실제 알림톡 발송 (솔라피 연동)
 
-1. `providers/` 에 실제 Provider(예: `SolapiProvider`) 를 `KakaoMessageProvider` 계약대로 구현
-2. `CONTRACT_PEPPER` 등 시크릿을 환경변수/시크릿 매니저로 주입 (코드/저장소에 두지 않음)
-3. 알림톡 템플릿 사전심사 통과본으로 `message_templates` 갱신
-4. `demoOtp` 제거 → OTP는 메시지 채널로만 전달, 서버는 코드를 반환하지 않음
+실제 발송 코드는 구현되어 있습니다(`src/providers/solapi.mjs`). 다만 알림톡은 대행사·카카오
+심사가 필요하므로, **사장님이 계정·발신프로필·템플릿 승인·API키**를 준비해야 켜집니다.
 
-자세한 내용은 [DESIGN.md](./DESIGN.md) 참조.
+- 켜는 법(택1): **웹 관리자 페이지 `/admin`** 에서 입력·저장(권장), 또는 환경변수 `ALIMTALK_LIVE=1` +
+  `SOLAPI_*` + `CONTRACT_PEPPER`. 관리자 페이지는 `ADMIN_TOKEN` 환경변수 설정 시 활성화되며,
+  시크릿은 저장 후 원문을 다시 보여주지 않습니다(끝 4자리만). 운영자 라우트는 관리자 토큰으로 보호됩니다.
+- 수신번호 원문은 **발송 시점 요청 본문(`rawPhone`)으로만** 받아 대행사로 넘기고, 로그/DB엔 마스킹·해시만 남깁니다.
+- 본인번호 테스트: `node bin/selftest-send.mjs 01012345678` (고객 아님).
+
+단계별 셋업은 [SETUP-ALIMTALK.md](./SETUP-ALIMTALK.md), 심사용 템플릿 문안은
+[templates/alimtalk-templates.md](./templates/alimtalk-templates.md) 참조.
+
+> 카카오 템플릿 **승인 전·본인번호 테스트 전에는 실제 고객에게 발송하지 않습니다.**
+
+자세한 설계는 [DESIGN.md](./DESIGN.md) 참조.

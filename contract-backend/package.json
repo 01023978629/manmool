@@ -7,6 +7,8 @@
   "engines": { "node": ">=22.5.0" },
   "scripts": {
     "start": "node src/server.mjs",
-    "test": "node test/e2e.mjs && node test/http.mjs"
+    "test": "node test/e2e.mjs && node test/http.mjs && node test/solapi.mjs && node test/admin.mjs",
+    "test:integration": "node test/integration.mjs",
+    "selftest:alimtalk": "node bin/selftest-send.mjs"
   }
 }

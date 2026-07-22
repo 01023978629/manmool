@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--
+  전자계약 서명 화면 (백엔드 연결본).
+  프로토타입(Artifact)의 UI를 그대로 쓰되, 인메모리 Mock 데이터 대신
+  같은 출처(this server)의 REST 엔드포인트를 fetch 로 실제 호출한다.
+    * 토큰은 URL 프래그먼트(#t=...)로만 받고, 매 요청 x-sign-token 헤더로 전달(경로/쿼리 로그에 안 남김).
+    * 계약 전문은 본인확인(OTP) 성공 이후에만 서버에서 받아온다.
+    * 서명 해시·문서 해시는 서버가 계산한 값을 표시(클라이언트 계산 아님).
+-->
+<title>전자계약 서명 · 만물인테리어</title>
+<style>
+  :root{
+    --bg:#ece5d9; --sheet:#faf7f2; --sheet-2:#f2ede4;
+    --ink:#241f1b; --ink-soft:#6c6259; --ink-faint:#948a7f;
+    --line:#e4dccf; --line-strong:#d3c7b4;
+    --brand:#a86c40; --brand-press:#8c572f; --brand-tint:#f3e7d8;
+    --trust:#2f4a42; --trust-tint:#e3ebe6;
+    --ok:#2c7a55; --ok-tint:#dcefe4;
+    --warn:#b5473b; --warn-tint:#f6e2de;
+    --shadow:0 1px 2px rgba(60,40,20,.06), 0 8px 24px -14px rgba(60,40,20,.28);
+    --r:14px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#14100c; --sheet:#211b15; --sheet-2:#1a150f;
+      --ink:#f0e8dc; --ink-soft:#b3a898; --ink-faint:#8a7f70;
+      --line:#352b20; --line-strong:#463a2b;
+      --brand:#cf9260; --brand-press:#e0a877; --brand-tint:#33271b;
+      --trust:#9fc7b7; --trust-tint:#20302a;
+      --ok:#6cc79a; --ok-tint:#1c3529;
+      --warn:#e08a7e; --warn-tint:#3a221e;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -16px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#ece5d9;--sheet:#faf7f2;--sheet-2:#f2ede4;--ink:#241f1b;--ink-soft:#6c6259;--ink-faint:#948a7f;
+    --line:#e4dccf;--line-strong:#d3c7b4;--brand:#a86c40;--brand-press:#8c572f;--brand-tint:#f3e7d8;
+    --trust:#2f4a42;--trust-tint:#e3ebe6;--ok:#2c7a55;--ok-tint:#dcefe4;--warn:#b5473b;--warn-tint:#f6e2de;
+    --shadow:0 1px 2px rgba(60,40,20,.06), 0 8px 24px -14px rgba(60,40,20,.28);
+  }
+  :root[data-theme="dark"]{
+    --bg:#14100c;--sheet:#211b15;--sheet-2:#1a150f;--ink:#f0e8dc;--ink-soft:#b3a898;--ink-faint:#8a7f70;
+    --line:#352b20;--line-strong:#463a2b;--brand:#cf9260;--brand-press:#e0a877;--brand-tint:#33271b;
+    --trust:#9fc7b7;--trust-tint:#20302a;--ok:#6cc79a;--ok-tint:#1c3529;--warn:#e08a7e;--warn-tint:#3a221e;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -16px rgba(0,0,0,.7);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",system-ui,sans-serif;
+    -webkit-text-size-adjust:100%;line-height:1.6;
+  }
+  .num{font-variant-numeric:tabular-nums}
+
+  .frame{max-width:460px;margin:0 auto;min-height:100vh;background:var(--sheet);
+    display:flex;flex-direction:column;box-shadow:var(--shadow);position:relative}
+  @media(min-width:520px){.frame{margin:18px auto;min-height:calc(100vh - 36px);border-radius:20px;overflow:hidden}}
+
+  .demo{background:repeating-linear-gradient(135deg,var(--warn-tint),var(--warn-tint) 12px,transparent 12px,transparent 24px);
+    border-bottom:1px solid var(--line);padding:7px 16px;font-size:11px;color:var(--warn);
+    display:flex;align-items:center;gap:7px;font-weight:700;letter-spacing:.01em;line-height:1.45}
+  .demo b{color:var(--warn)}
+
+  header{padding:16px 18px 12px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:11px;background:var(--sheet)}
+  .mark{width:36px;height:36px;border-radius:10px;background:var(--trust);color:#fff;
+    display:grid;place-items:center;font-size:19px;font-weight:800;flex:0 0 auto}
+  .co strong{display:block;font-size:15px;letter-spacing:-.01em}
+  .co span{display:block;font-size:11.5px;color:var(--ink-faint);letter-spacing:.06em}
+
+  .prog{display:flex;gap:5px;padding:12px 18px 0}
+  .prog i{height:4px;border-radius:2px;flex:1;background:var(--line);transition:background .3s}
+  .prog i.on{background:var(--brand)}
+  .prog i.done{background:var(--trust)}
+
+  main{flex:1;padding:18px 18px 120px;overflow-y:auto}
+  .eyebrow{font-size:11.5px;font-weight:800;letter-spacing:.1em;color:var(--trust);
+    text-transform:uppercase;margin:0 0 8px}
+  h1{font-size:21px;line-height:1.35;margin:0 0 8px;letter-spacing:-.02em;text-wrap:balance;font-weight:800}
+  .lead{font-size:14px;color:var(--ink-soft);margin:0 0 18px}
+
+  .card{background:var(--sheet);border:1px solid var(--line);border-radius:var(--r);padding:15px 16px;margin:0 0 12px}
+  .card.tint{background:var(--sheet-2)}
+  .rowline{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .rowline:last-child{border-bottom:none}
+  .rowline .k{color:var(--ink-soft);flex:0 0 auto}
+  .rowline .v{text-align:right;font-weight:600}
+  .amt{font-size:25px;font-weight:800;letter-spacing:-.02em;color:var(--trust)}
+  .note{font-size:12px;color:var(--ink-soft);line-height:1.6;margin-top:10px}
+  .linkbtn{margin-top:12px;background:none;border:none;color:var(--brand);font-weight:700;font-size:13.5px;
+    font-family:inherit;cursor:pointer;padding:11px 6px;min-height:44px;text-decoration:underline;text-underline-offset:3px}
+  .linkbtn:disabled{color:var(--ink-faint);cursor:default;text-decoration:none}
+  .disclaim{font-size:12px;color:var(--ink-soft);background:var(--trust-tint);border-radius:10px;padding:11px 13px;margin-top:12px;line-height:1.6}
+
+  label.fld{display:block;font-size:12.5px;font-weight:700;color:var(--ink-soft);margin:14px 0 6px}
+  input[type=text],input[type=tel]{width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line-strong);
+    border-radius:11px;background:var(--sheet);color:var(--ink);font-family:inherit}
+  input:focus-visible{outline:2px solid var(--brand);outline-offset:1px;border-color:var(--brand)}
+  .consent:focus-visible,.btn:focus-visible,.linkbtn:focus-visible,.clear:focus-visible,h1:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+  h1:focus{outline:none} /* 포커스 이동용 tabindex=-1 은 마우스에선 테두리 숨김 */
+  .otp-row{display:flex;gap:8px;align-items:stretch;margin-top:6px}
+  .otp-row input{flex:1;letter-spacing:.3em;text-align:center;font-weight:700}
+
+  .consent{display:flex;gap:11px;align-items:flex-start;padding:13px 14px;border:1.5px solid var(--line);
+    border-radius:12px;margin-bottom:9px;cursor:pointer;background:var(--sheet);transition:border-color .15s,background .15s}
+  .consent.checked{border-color:var(--trust);background:var(--trust-tint)}
+  .consent .box{width:22px;height:22px;border-radius:7px;border:2px solid var(--line-strong);flex:0 0 auto;
+    display:grid;place-items:center;color:#fff;font-size:13px;margin-top:1px;transition:all .15s}
+  .consent.checked .box{background:var(--trust);border-color:var(--trust)}
+  .consent .txt{font-size:13.5px;line-height:1.5}
+  .consent .txt b{font-weight:700}
+  .consent .req{color:var(--warn);font-weight:800;font-size:11px}
+
+  .doc{background:var(--sheet-2);border:1px solid var(--line);border-radius:12px;
+    height:340px;overflow-y:auto;padding:16px 15px;font-size:13px;line-height:1.75;color:var(--ink)}
+  .doc h3{font-size:14px;margin:16px 0 6px;color:var(--trust)}
+  .doc h3:first-child{margin-top:0}
+  .doc p{margin:0 0 8px}
+  .readflag{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-faint);margin-top:10px;transition:color .2s}
+  .readflag.ok{color:var(--ok);font-weight:700}
+
+  .sigwrap{position:relative;border:1.5px dashed var(--line-strong);border-radius:12px;background:var(--sheet-2);
+    height:210px;touch-action:none;overflow:hidden}
+  .sigwrap canvas{width:100%;height:100%;display:block;touch-action:none}
+  .sigwrap .ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--ink-faint);
+    font-size:14px;pointer-events:none;transition:opacity .2s}
+  .sigline{position:absolute;left:16px;right:16px;bottom:44px;border-bottom:1.5px solid var(--line-strong);pointer-events:none}
+  .sigtools{display:flex;justify-content:space-between;align-items:center;margin-top:9px}
+  .sigtools .clear{font-size:13px;color:var(--brand);font-weight:700;background:none;border:none;padding:11px 10px;cursor:pointer;min-height:44px}
+  .sigtools .hint{font-size:11.5px;color:var(--ink-faint)}
+
+  .seal{width:78px;height:78px;border-radius:50%;background:var(--ok-tint);color:var(--ok);
+    display:grid;place-items:center;font-size:40px;margin:8px auto 16px}
+  .center{text-align:center}
+
+  .pdf{background:#fff;color:#1c1a17;border-radius:12px;border:1px solid var(--line);
+    padding:20px 18px;font-size:12.5px;line-height:1.7;box-shadow:var(--shadow)}
+  :root[data-theme="dark"] .pdf,@media(prefers-color-scheme:dark){.pdf{background:#f7f4ee;color:#1c1a17}}
+  .pdf .ph-title{font-size:16px;font-weight:800;text-align:center;color:#2f4a42;margin:0 0 3px}
+  .pdf .ph-sub{text-align:center;font-size:11px;color:#8a8377;margin:0 0 14px}
+  .pdf .ph-row{display:flex;justify-content:space-between;border-bottom:1px solid #eadfce;padding:6px 0}
+  .pdf .ph-sign{margin-top:14px;border-top:2px solid #2f4a42;padding-top:12px;display:flex;justify-content:space-between;align-items:flex-end}
+  .pdf .ph-sign img{height:52px}
+  .pdf .ph-hash{margin-top:12px;font-size:9.5px;color:#9a9384;word-break:break-all;font-family:ui-monospace,monospace}
+
+  .ktalk{background:#b2c7d9;border-radius:16px;padding:14px 13px 13px;position:relative}
+  :root[data-theme="dark"] .ktalk,@media(prefers-color-scheme:dark){.ktalk{background:#2b3742}}
+  .ktalk .ksender{font-size:12px;color:#3a4a57;font-weight:700;margin:0 0 6px;padding-left:2px}
+  :root[data-theme="dark"] .ktalk .ksender,@media(prefers-color-scheme:dark){.ktalk .ksender{color:#c3d3df}}
+  .kmsg{background:#fff;border-radius:4px 14px 14px 14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .kmsg .khead{background:var(--trust);color:#fff;font-size:13px;font-weight:800;padding:11px 15px;display:flex;align-items:center;gap:7px}
+  .kmsg .kbody{padding:15px 15px 6px;font-size:13.5px;color:#2a2620;line-height:1.65}
+  .kmsg .kbtn{display:block;width:calc(100% - 24px);margin:8px 12px 12px;text-align:center;background:#f7e600;color:#181600;
+    font-weight:800;padding:13px;border-radius:9px;font-size:14px;border:none;cursor:pointer;font-family:inherit}
+
+  .bar{position:sticky;bottom:0;left:0;right:0;padding:14px 18px calc(16px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top,var(--sheet) 72%,transparent);display:flex;gap:10px}
+  .btn{flex:1;padding:15px 18px;border-radius:13px;border:none;font-size:15.5px;font-weight:800;
+    font-family:inherit;cursor:pointer;letter-spacing:-.01em;transition:transform .06s,background .15s,opacity .15s}
+  .btn:active{transform:translateY(1px)}
+  .btn.pri{background:var(--brand);color:#fff}
+  .btn.pri:active{background:var(--brand-press)}
+  .btn.pri:disabled{background:var(--line-strong);color:var(--ink-faint);cursor:not-allowed}
+  .btn.ghost{flex:0 0 auto;background:transparent;color:var(--ink-soft);border:1.5px solid var(--line-strong);padding:15px 18px}
+
+  .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:50;max-width:400px;width:calc(100% - 40px);
+    background:var(--ink);color:var(--sheet);font-size:13px;font-weight:600;padding:12px 15px;border-radius:11px;
+    box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+  .toast.err{background:var(--warn)}
+  .spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;
+    border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .load{padding:60px 20px;text-align:center;color:var(--ink-faint);font-size:14px}
+  .hidden{display:none!important}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="demo">⚠️ <b>시제품(DEMO)</b> · 로컬 Mock 서버에 저장됩니다. 실제 카카오 발송·법적 효력은 없습니다.</div>
+  <header>
+    <div class="mark">萬</div>
+    <div class="co"><strong>만물인테리어</strong><span>전자계약 · 대전</span></div>
+  </header>
+  <div id="screenSign" class="hidden">
+    <div class="prog" id="prog"></div>
+    <main id="stepBody"></main>
+    <div class="bar" id="bar"></div>
+  </div>
+  <div id="screenLoad"><div class="load"><span class="spin" style="border-color:rgba(120,100,70,.25);border-top-color:var(--brand)"></span> 계약서를 불러오는 중…</div></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+  function won(n){ return Number(n||0).toLocaleString('en-US'); }
+
+  // ── 토큰: URL 프래그먼트(#t=...)에서만 읽는다(경로/쿼리에 안 실림) ──
+  function readToken(){
+    var h = location.hash || "";
+    var m = h.match(/[#&]t=([^&]+)/);
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+  var TOKEN = readToken();
+  // 읽은 뒤 표시 URL에서 토큰 제거(뒤로가기·공유·화면캡처로 토큰이 남지 않도록)
+  if(TOKEN){ try{ history.replaceState(null,"",location.pathname); }catch(e){} }
+
+  // ── API 헬퍼: 매 요청 x-sign-token 헤더로 토큰 전달 ──
+  function api(method, path, bodyObj){
+    return fetch(path, {
+      method: method,
+      headers: Object.assign({ "x-sign-token": TOKEN }, bodyObj?{"content-type":"application/json"}:{}),
+      body: bodyObj ? JSON.stringify(bodyObj) : undefined
+    }).then(function(r){ return r.json().then(function(j){
+      if(!r.ok){ var e=new Error(j.message||j.error||("HTTP "+r.status)); e.code=j.error; throw e; }
+      return j;
+    }); });
+  }
+
+  var toastT;
+  function toast(msg, isErr){ var t=$("toast"); t.textContent=msg; t.className="toast show"+(isErr?" err":"");
+    // 스크린리더 전달: 오류는 assertive(즉시), 안내는 polite. 오류는 더 오래 유지.
+    t.setAttribute("role", isErr?"alert":"status"); t.setAttribute("aria-live", isErr?"assertive":"polite");
+    clearTimeout(toastT); toastT=setTimeout(function(){ t.className="toast"; }, isErr?5000:2600); }
+
+  // 서버에서 받은 계약 정보(요약 → 본인확인 후 전문으로 확장)
+  var C = { no:"", title:"", amount:0, docHash:"", body:null, imageSha256:"" };
+  var st = { step:0, otpSent:false, otpOk:false, read:false, consents:[false,false,false,false], signed:false, finalOk:false, sigData:null, busy:false };
+  var CONSENTS = [
+    { key:"terms",   label:"공사 도급계약 체결 및 계약 조건에 동의합니다." },
+    { key:"payment", label:"대금 지급 조건(계약금·중도금·잔금)에 동의합니다." },
+    { key:"privacy", label:"개인정보 수집·이용(계약 이행 목적, 보유 5년)에 동의합니다." },
+    { key:"esign",   label:"전자문서 및 전자서명으로 계약을 체결하는 것에 동의합니다." }
+  ];
+  var steps = [ "intro","verify","summary","full","consent","sign","confirm","done","pdf" ];
+
+  // ── 부팅: 링크 열람(GET /api/sign) ──
+  if(!TOKEN){ bootError("유효하지 않은 서명 링크입니다.", "링크에 인증 토큰이 없습니다. 카카오톡으로 받은 링크를 다시 열어주세요."); return; }
+  api("GET","/api/sign").then(function(d){
+    C.no=d.contractNo; C.title=d.title; C.amount=d.amount; C.docHash=d.docHash;
+    $("screenLoad").classList.add("hidden");
+    $("screenSign").classList.remove("hidden");
+    st.step=0; render();
+  }).catch(function(e){
+    bootError("링크를 열 수 없습니다.", e.code==="EXPIRED"?"서명 기한이 지났습니다. 담당자에게 재발송을 요청해 주세요.":
+      e.code==="USED"?"이미 서명이 완료된 링크입니다.":(e.message||"잠시 후 다시 시도해 주세요."));
+  });
+
+  function bootError(title, msg){
+    $("screenLoad").innerHTML='<div class="load" style="padding:70px 26px"><div style="font-size:38px;margin-bottom:12px">🔒</div>'+
+      '<div style="font-size:17px;font-weight:800;color:var(--ink);margin-bottom:8px">'+esc(title)+'</div>'+
+      '<div style="font-size:13.5px;line-height:1.6">'+esc(msg)+'</div></div>';
+  }
+
+  function render(){
+    var p=""; for(var i=0;i<steps.length;i++){ var cls=i<st.step?"done":(i===st.step?"on":""); p+='<i class="'+cls+'"></i>'; }
+    $("prog").innerHTML=p;
+    $("stepBody").innerHTML=VIEW[steps[st.step]]();
+    $("bar").innerHTML=BAR[steps[st.step]]?BAR[steps[st.step]]():"";
+    // 단계 전환 시 새 단계 제목으로 포커스 이동(스크린리더가 새 화면을 읽도록)
+    var hh=$("stepBody").querySelector("h1"); if(hh){ hh.setAttribute("tabindex","-1"); try{ hh.focus({preventScroll:true}); }catch(e){ hh.focus(); } }
+    if(AFTER[steps[st.step]]) AFTER[steps[st.step]]();
+    $("stepBody").scrollTop=0;
+    try{ document.querySelector(".frame").scrollIntoView({block:"start"}); }catch(e){}
+  }
+  function go(n){ st.step=Math.max(0,Math.min(steps.length-1,n)); render(); }
+  window.__go=go;
+
+  function row(k,v,num){ return '<div class="rowline"><span class="k">'+k+'</span><span class="v'+(num?" num":"")+'">'+v+'</span></div>'; }
+
+  // 계약 전문: 서버에서 받은 body.clauses 로 렌더(하드코딩 아님).
+  function contractHtml(){
+    var b=C.body||{}; var cl=b.clauses||[]; var h="";
+    for(var i=0;i<cl.length;i++){ h+='<h3>제'+esc(cl[i].no)+'조 ('+esc(cl[i].title)+')</h3><p>'+esc(cl[i].text)+'</p>'; }
+    h+='<p style="margin-top:14px;color:var(--ink-faint)">— 이하 여백. 본 계약서는 시제품용 예시이며 법적 효력이 없습니다. —</p>';
+    return h;
+  }
+
+  var VIEW = {
+    intro:function(){ return ''+
+      '<p class="eyebrow">전자계약 안내</p>'+
+      '<h1>공사계약서에<br>서명해 주세요</h1>'+
+      '<p class="lead">만물인테리어에서 보내드린 계약서입니다. 내용을 확인하고 본인 서명으로 계약을 체결합니다. 서명 전까지는 계약이 확정되지 않습니다.</p>'+
+      '<div class="card"><div class="rowline"><span class="k">계약번호</span><span class="v num">'+esc(C.no)+'</span></div>'+
+      row("계약서","공사 도급계약서")+
+      '<div class="rowline"><span class="k">계약금액</span><span class="v num">'+won(C.amount)+'원</span></div></div>'+
+      '<div class="disclaim">진행 순서: 본인확인 → 계약 조건 확인 → 계약서 전문 → 약관 동의 → 서명 → 최종 확인. 언제든 뒤로 돌아갈 수 있습니다.</div>'; },
+
+    verify:function(){ return ''+
+      '<p class="eyebrow">1 · 본인확인</p><h1>본인확인</h1>'+
+      '<p class="lead">계약 당사자 확인을 위해 휴대폰 문자 인증을 진행합니다. <b>링크를 받은 사실만으로는 본인확인이 완료되지 않습니다.</b></p>'+
+      '<div id="otpArea"></div>'; },
+
+    summary:function(){ var b=C.body||{}; var pay=b.payment||{}; return ''+
+      '<p class="eyebrow">2 · 계약 주요 조건</p><h1>계약 핵심조건 요약</h1>'+
+      '<div class="card tint" style="text-align:center;padding:18px"><div style="font-size:12px;color:var(--ink-soft);margin-bottom:4px">총 계약금액 (부가세 포함)</div><div class="amt num">'+won(C.amount)+'원</div></div>'+
+      '<div class="card">'+
+        row("계약 당사자", esc((b.operator&&b.operator.co)||"만물인테리어")+" · "+esc(b.customerName||""))+
+        row("현장 주소", esc(b.site||""))+
+        row("공사 범위", esc(b.scope||""))+
+        row("계약금 (10%)", won(pay.down)+"원", true)+
+        row("중도금 (40%)", won(pay.mid)+"원", true)+
+        row("잔금 (50%)", won(pay.bal)+"원", true)+
+        row("공사 예정일", esc(b.period||""))+
+        row("하자보증기간", esc(b.warranty||""))+
+      '</div>'+
+      '<div class="disclaim">위 내용은 주요 조건을 이해하기 쉽게 요약한 것이며, 실제 계약 내용은 전체 계약서를 기준으로 합니다.</div>'; },
+
+    full:function(){ return ''+
+      '<p class="eyebrow">3 · 계약서 전문</p><h1>계약서 전체 보기</h1>'+
+      '<p class="lead">아래 계약서를 끝까지 확인해 주세요. 끝까지 스크롤하면 다음으로 넘어갈 수 있습니다.</p>'+
+      '<div class="doc" id="doc">'+contractHtml()+'</div>'+
+      '<div class="readflag" id="readflag">▽ 계약서를 끝까지 내려주세요</div>'; },
+
+    consent:function(){
+      var h='<p class="eyebrow">4 · 약관 동의</p><h1>필수 약관 동의</h1>'+
+        '<p class="lead">각 항목을 직접 확인하고 체크해 주세요. 필수 항목에 모두 동의해야 서명할 수 있습니다.</p>';
+      for(var i=0;i<CONSENTS.length;i++){
+        h+='<div class="consent'+(st.consents[i]?" checked":"")+'" role="checkbox" tabindex="0" aria-checked="'+(st.consents[i]?"true":"false")+'"'+
+          ' onclick="__consent('+i+')" onkeydown="__consentKey(event,'+i+')">'+
+          '<div class="box" aria-hidden="true">'+(st.consents[i]?"✓":"")+'</div>'+
+          '<div class="txt"><span class="req">[필수]</span> '+esc(CONSENTS[i].label)+'</div></div>';
+      }
+      return h; },
+
+    sign:function(){ return ''+
+      '<p class="eyebrow">5 · 전자서명</p><h1>서명 입력</h1>'+
+      '<p class="lead">아래 칸에 손가락으로 서명해 주세요. (페이지가 아니라 서명칸만 그려집니다)</p>'+
+      '<div class="sigwrap" id="sigwrap"><canvas id="sig"></canvas><div class="sigline"></div><div class="ph" id="sigph">여기에 서명</div></div>'+
+      '<div class="sigtools"><span class="hint">'+esc((C.body&&C.body.customerName)||"")+' (본인)</span><button class="clear" onclick="__clearSig()">✕ 지우고 다시</button></div>'; },
+
+    confirm:function(){ return ''+
+      '<p class="eyebrow">6 · 최종 확인</p><h1>계약 체결 최종 확인</h1>'+
+      '<div class="card tint">'+row("계약번호",esc(C.no))+row("서명자",esc((C.body&&C.body.customerName)||""))+row("계약금액",won(C.amount)+"원",true)+'</div>'+
+      '<div class="consent'+(st.finalOk?" checked":"")+'" role="checkbox" tabindex="0" aria-checked="'+(st.finalOk?"true":"false")+'" onclick="__final()" onkeydown="__finalKey(event)" style="margin-top:6px">'+
+        '<div class="box" aria-hidden="true">'+(st.finalOk?"✓":"")+'</div>'+
+        '<div class="txt">위 계약 내용을 확인하였으며, <b>본인의 의사로 만물인테리어와 공사 도급계약을 체결</b>하는 것에 동의합니다.</div></div>'+
+      '<div class="disclaim">‘계약 체결하기’를 누르면 서명·문서해시·동의기록이 서버에 함께 확정 저장됩니다.</div>'; },
+
+    done:function(){ return ''+
+      '<div class="center" style="padding-top:14px"><div class="seal">✓</div>'+
+      '<p class="eyebrow" style="text-align:center">전자서명 완료</p>'+
+      '<h1 style="text-align:center">계약이 체결되었습니다</h1>'+
+      '<p class="lead" style="text-align:center">전자서명이 완료되어 서버에 저장되었습니다. 아래에서 최종 계약서를 확인할 수 있습니다.</p></div>'+
+      '<div class="card"><div class="rowline"><span class="k">계약번호</span><span class="v num">'+esc(C.no)+'</span></div>'+
+      '<div class="rowline"><span class="k">완료일시</span><span class="v num" id="doneAt"></span></div>'+
+      '<div class="rowline"><span class="k">상태</span><span class="v" style="color:var(--ok)">체결 완료</span></div></div>'+
+      '<div class="ktalk" style="margin-top:14px"><p class="ksender">만물인테리어</p><div class="kmsg">'+
+        '<div class="khead">✅ 전자계약 완료 안내</div>'+
+        '<div class="kbody">계약의 전자서명이 완료되었습니다.<br>아래 버튼에서 완료된 계약서를 확인하실 수 있습니다.</div>'+
+        '<button class="kbtn" onclick="__go(8)">완료 계약서 확인</button></div></div>'; },
+
+    pdf:function(){ var b=C.body||{}; var op=b.operator||{}; return ''+
+      '<p class="eyebrow">완료 계약서</p><h1>최종 계약서 미리보기</h1>'+
+      '<p class="lead">서명·문서해시가 포함된 최종본입니다. 인쇄 또는 PDF 저장할 수 있습니다.</p>'+
+      '<div class="pdf">'+
+        '<div class="ph-title">공사 도급계약서</div>'+
+        '<div class="ph-sub">'+esc(op.co||"만물인테리어")+' · 계약번호 '+esc(C.no)+'</div>'+
+        '<div class="ph-row"><span>도급인(고객)</span><b>'+esc(b.customerName||"")+'</b></div>'+
+        '<div class="ph-row"><span>수급인(시공)</span><b>'+esc(op.co||"만물인테리어")+' ('+esc(op.rep||"")+')</b></div>'+
+        '<div class="ph-row"><span>현장</span><b>'+esc(b.site||"")+'</b></div>'+
+        '<div class="ph-row"><span>계약금액</span><b class="num">'+won(C.amount)+'원</b></div>'+
+        '<div class="ph-row"><span>공사기간</span><b>'+esc(b.period||"")+'</b></div>'+
+        '<div class="ph-row"><span>하자보증</span><b>'+esc(b.warranty||"")+'</b></div>'+
+        '<div class="ph-sign"><div><div style="font-size:10px;color:#8a8377">도급인 서명</div><img id="pdfSig" alt="서명"></div>'+
+          '<div style="text-align:right;font-size:10px;color:#8a8377">체결 <span id="pdfAt"></span></div></div>'+
+        '<div class="ph-hash">문서해시(SHA-256): '+esc(C.docHash)+'</div>'+
+        (C.imageSha256?'<div class="ph-hash">서명해시(SHA-256): '+esc(C.imageSha256)+'</div>':'')+
+      '</div>'; }
+  };
+
+  var BAR = {
+    intro:function(){ return '<button class="btn pri" onclick="__go(1)">본인확인 시작 →</button>'; },
+    verify:function(){ return back()+'<button class="btn pri" id="nextV" '+(st.otpOk?"":"disabled")+' onclick="__toSummary()">다음 →</button>'; },
+    summary:function(){ return back()+'<button class="btn pri" onclick="__go(3)">계약서 전문 보기 →</button>'; },
+    full:function(){ return back()+'<button class="btn pri" id="nextF" '+(st.read?"":"disabled")+' onclick="__go(4)">확인했습니다 →</button>'; },
+    consent:function(){ var all=st.consents.every(Boolean); return back()+'<button class="btn pri" id="nextC" '+(all?"":"disabled")+' onclick="__toSign()">서명하기 →</button>'; },
+    sign:function(){ return back()+'<button class="btn pri" id="nextS" '+(st.signed?"":"disabled")+' onclick="__go(6)">서명 완료 →</button>'; },
+    confirm:function(){ return back()+'<button class="btn pri" id="nextY" '+(st.finalOk?"":"disabled")+' onclick="__complete()">계약 체결하기</button>'; },
+    done:function(){ return '<button class="btn pri" onclick="__go(8)">완료 계약서 확인 →</button>'; },
+    pdf:function(){ return '<button class="btn ghost" onclick="window.print()">인쇄·저장</button>'; }
+  };
+  function back(){ return '<button class="btn ghost" onclick="__go('+(st.step-1)+')">이전</button>'; }
+
+  function markRead(){
+    if(st.read) return;
+    st.read=true; var rf=$("readflag"); if(rf){rf.textContent="✓ 계약서 전문을 끝까지 확인했습니다"; rf.classList.add("ok");}
+    var b=$("nextF"); if(b) b.disabled=false;
+    api("POST","/api/sign/viewed").catch(function(){}); // 열람 완료 기록(실패해도 진행 막지 않음)
+  }
+  var AFTER = {
+    verify:function(){ renderOtp(); },
+    full:function(){ var d=$("doc"); if(!d)return;
+      // 짧은 계약서: 스크롤이 필요 없으면 즉시 열람 완료 처리(스크롤 이벤트가 안 오는 경우 방지)
+      if(d.scrollHeight <= d.clientHeight+4){ markRead(); return; }
+      d.addEventListener("scroll",function(){
+        if(st.read) return;
+        if(d.scrollTop+d.clientHeight >= d.scrollHeight-24){ markRead(); }
+      });
+    },
+    sign:function(){ initCanvas(); },
+    done:function(){ var e=$("doneAt"); if(e) e.textContent=stamp(); },
+    pdf:function(){ var s=$("pdfSig"); if(s&&st.sigData) s.src=st.sigData; var a=$("pdfAt"); if(a) a.textContent=stamp(); }
+  };
+
+  function stamp(){ var d=new Date(); function z(n){return(n<10?"0":"")+n;}
+    return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())+" "+z(d.getHours())+":"+z(d.getMinutes()); }
+
+  // ── 본인확인(OTP) ──
+  function renderOtp(){
+    var area=$("otpArea"); if(!area)return;
+    if(!st.otpSent){
+      area.innerHTML='<p class="lead">아래 버튼을 누르면 등록된 휴대폰으로 인증번호가 발송됩니다.</p>'+
+        '<button class="btn pri" style="width:100%" id="otpBtn" onclick="__sendOtp()">문자 인증번호 받기</button>';
+    } else {
+      area.innerHTML='<label class="fld">인증번호 6자리</label>'+
+        '<div class="otp-row"><input type="tel" id="otpInput" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code"></div>'+
+        '<div id="otpHint" class="note"></div><div id="otpMsg" class="note" role="status" aria-live="polite"></div>'+
+        '<button type="button" id="otpResend" class="linkbtn" onclick="__sendOtp()">인증번호 다시 받기</button>';
+      if(st._demoCode){ $("otpHint").innerHTML='📩 (시제품) 인증번호는 <b>'+esc(st._demoCode)+'</b> 입니다. 실제로는 문자(SMS)로 발송됩니다.'; }
+      else { $("otpHint").textContent='📩 문자로 인증번호를 발송했습니다.'; }
+      var inp=$("otpInput");
+      inp.addEventListener("input",function(){
+        if(st.otpOk) return; // 이미 본인확인 완료면 재검증하지 않음(NO_OTP 자기잠금 방지)
+        var v=inp.value.replace(/\D/g,""); inp.value=v;
+        if(v.length===6) verifyOtp(v);
+      });
+      inp.focus();
+    }
+  }
+  window.__sendOtp=function(){ if(st.busy)return; st.busy=true;
+    var btn=$("otpBtn")||$("otpResend"); if(btn){btn.disabled=true;btn.dataset.orig=btn.textContent;btn.innerHTML='<span class="spin"></span>발송 중…';}
+    api("POST","/api/sign/otp").then(function(d){ st.otpSent=true; st.otpOk=false; st._demoCode=d.demoCode||null; st.busy=false; renderOtp(); })
+      .catch(function(e){ st.busy=false; if(btn){btn.disabled=false;btn.textContent=btn.dataset.orig||'인증번호 받기';}
+        toast(e.code==="OTP_TOO_MANY"?"인증번호 발급 횟수를 초과했습니다. 담당자에게 문의해 주세요.":(e.message||"인증번호 발송 실패"),true); }); };
+
+  function otpErrText(code){
+    if(code==="OTP_EXPIRED") return "인증번호가 만료되었습니다. ‘다시 받기’를 눌러 주세요.";
+    if(code==="OTP_LOCKED") return "시도 횟수를 초과했습니다. ‘다시 받기’로 재발송해 주세요.";
+    if(code==="NO_OTP") return "먼저 인증번호를 받아 주세요.";
+    return "인증번호가 일치하지 않습니다. 다시 확인해 주세요.";
+  }
+  function verifyOtp(code){
+    var msg=$("otpMsg"); if(msg) msg.innerHTML='<span class="spin" style="border-color:rgba(120,100,70,.25);border-top-color:var(--brand)"></span> 확인 중…';
+    api("POST","/api/sign/verify",{code:code}).then(function(){
+      st.otpOk=true; if($("otpMsg")) $("otpMsg").innerHTML='<span style="color:var(--ok);font-weight:700">✓ 본인확인 완료</span>';
+      var b=$("nextV"); if(b) b.disabled=false;
+    }).catch(function(e){
+      st.otpOk=false; var b=$("nextV"); if(b) b.disabled=true;
+      if($("otpMsg")) $("otpMsg").innerHTML='<span style="color:var(--warn);font-weight:700">'+esc(otpErrText(e.code))+'</span>';
+    });
+  }
+
+  // verify → summary: 본인확인 이후에만 계약 전문(GET /api/sign/full)을 받아온다.
+  window.__toSummary=function(){ if(!st.otpOk||st.busy)return; st.busy=true; var b=$("nextV"); if(b){b.disabled=true;b.innerHTML='<span class="spin"></span>불러오는 중…';}
+    api("GET","/api/sign/full").then(function(d){ C.body=d.body; C.docHash=d.docHash; st.busy=false; go(2); })
+      .catch(function(e){ st.busy=false; render(); toast(e.message||"계약 전문을 불러오지 못했습니다.",true); }); };
+
+  // consent → sign: 동의 4건을 서버에 기록(POST /api/sign/consent) 후 진행.
+  window.__toSign=function(){ if(!st.consents.every(Boolean)||st.busy)return; st.busy=true; var b=$("nextC"); if(b){b.disabled=true;b.innerHTML='<span class="spin"></span>기록 중…';}
+    var payload=CONSENTS.map(function(c){ return {key:c.key, text:c.label}; });
+    api("POST","/api/sign/consent",{consents:payload}).then(function(){ st.busy=false; go(5); })
+      .catch(function(e){ st.busy=false; render(); toast(e.message||"동의 기록 실패",true); }); };
+
+  // 동의 토글은 제자리 갱신(재렌더 없음) — 키보드 포커스가 항목에 남도록.
+  function paintConsent(el, on){ if(!el)return; el.classList.toggle("checked",on); el.setAttribute("aria-checked",on?"true":"false"); var bx=el.querySelector(".box"); if(bx) bx.textContent=on?"✓":""; }
+  window.__consent=function(i){ st.consents[i]=!st.consents[i];
+    paintConsent(document.querySelectorAll(".consent")[i], st.consents[i]);
+    var btn=$("nextC"); if(btn) btn.disabled=!st.consents.every(Boolean); };
+  window.__final=function(){ st.finalOk=!st.finalOk;
+    paintConsent(document.querySelector(".consent"), st.finalOk);
+    var btn=$("nextY"); if(btn) btn.disabled=!st.finalOk; };
+  // 키보드(Enter/Space)로 동의 토글 — role=checkbox 접근성
+  function toggleKey(e, fn){ if(e.key==="Enter"||e.key===" "||e.key==="Spacebar"){ e.preventDefault(); fn(); } }
+  window.__consentKey=function(e,i){ toggleKey(e,function(){ window.__consent(i); }); };
+  window.__finalKey=function(e){ toggleKey(e,window.__final); };
+
+  // ── 서명 캔버스 ──
+  var ctx,cv,drawing=false,last=null;
+  function initCanvas(){
+    cv=$("sig"); if(!cv)return;
+    var wrap=$("sigwrap"); var r=wrap.getBoundingClientRect();
+    var dpr=Math.min(window.devicePixelRatio||1,3);
+    cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr);
+    ctx=cv.getContext("2d"); ctx.scale(dpr,dpr); ctx.lineWidth=2.6; ctx.lineCap="round"; ctx.lineJoin="round";
+    ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue("--ink").trim()||"#241f1b";
+    if(st.sigData){ var img=new Image(); img.onload=function(){ ctx.drawImage(img,0,0,r.width,r.height); }; img.src=st.sigData; var ph=$("sigph"); if(ph) ph.style.opacity=0; }
+    function pos(e){ var b=cv.getBoundingClientRect(); var t=e.touches?e.touches[0]:e; return {x:t.clientX-b.left,y:t.clientY-b.top}; }
+    function start(e){ e.preventDefault(); drawing=true; last=pos(e); var ph=$("sigph"); if(ph) ph.style.opacity=0; }
+    function move(e){ if(!drawing)return; e.preventDefault(); var p=pos(e); ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last=p; }
+    function end(){ if(!drawing)return; drawing=false; try{ st.sigData=cv.toDataURL("image/png"); }catch(err){} st.signed=true; var b=$("nextS"); if(b) b.disabled=false; }
+    cv.addEventListener("pointerdown",start); cv.addEventListener("pointermove",move); window.addEventListener("pointerup",end);
+    cv.addEventListener("touchstart",start,{passive:false}); cv.addEventListener("touchmove",move,{passive:false}); cv.addEventListener("touchend",end);
+  }
+  window.__clearSig=function(){ if(!ctx||!cv)return; ctx.clearRect(0,0,cv.width,cv.height); st.sigData=null; st.signed=false;
+    var ph=$("sigph"); if(ph) ph.style.opacity=1; var b=$("nextS"); if(b) b.disabled=true; };
+
+  // 서명 제출(POST /api/sign/signature) → 서버가 완료 처리·해시 반환
+  window.__complete=function(){ if(!st.finalOk||st.busy)return;
+    if(!st.sigData){ toast("서명이 비어 있습니다.",true); go(5); return; }
+    st.busy=true; var b=$("nextY"); if(b){b.disabled=true;b.innerHTML='<span class="spin"></span>체결 중…';}
+    var base64=String(st.sigData).split(",")[1]||"";
+    // 서버가 계산·보관한 문서해시(C.docHash)를 함께 보내 위·변조 대조를 서버가 수행.
+    api("POST","/api/sign/signature",{imageBase64:base64, clientDocHash:C.docHash}).then(function(d){
+      st.busy=false; C.imageSha256=d.imageSha256||""; if(d.docHash) C.docHash=d.docHash; go(7);
+    }).catch(function(e){ st.busy=false; render();
+      toast(e.code==="USED"||e.code==="ALREADY_COMPLETED"?"이미 서명이 완료된 계약입니다.":
+        e.code==="DOC_HASH_MISMATCH"?"계약 내용이 변경되었습니다. 처음부터 다시 진행해 주세요.":(e.message||"서명 제출 실패"),true); }); };
+})();
+</script>
+</body>
+</html>

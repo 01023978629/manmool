@@ -74,20 +74,39 @@ const ver = svc.verifyOtp(token, '246810', { ip: '1.2.3.4', ua: 'iPhone' });
 ok('본인확인 성공', ver.verified === true);
 
 // ── 8) 전체 열람 → 동의 → 서명 순서 강제 ──────────────────
-await throws('열람 없이 서명 거부', () => svc.submitSignature(token, { imageBytes: 'PNGDATA' }), 'CONSENT_MISSING');
+// 열람 전 동의 거부(서버가 순서 강제)
+await throws('열람 없이 동의 거부', () => svc.recordConsents(token, [{ key: 'terms' }]), 'NOT_VIEWED');
+// 동의 없이 서명 거부(서명용 페이로드는 8바이트 이상)
+await throws('동의 없이 서명 거부', () => svc.submitSignature(token, { imageBytes: Buffer.from('PNG_LONG_BYTES') }), 'CONSENT_MISSING');
 svc.markViewed(token);
+// 알 수 없는 동의 키 거부
+await throws('알 수 없는 동의 키 거부', () => svc.recordConsents(token, [{ key: 'unknown' }]), 'BAD_CONSENT');
+// 정본 동의 4건(payment 포함) — 클라이언트가 보낸 text 는 무시되고 서버 정본 해시가 저장됨
 svc.recordConsents(token, [
-  { key: 'terms', text: '계약 조항 전체에 동의합니다.' },
-  { key: 'privacy', text: '개인정보 수집·이용에 동의합니다.' },
-  { key: 'esign', text: '전자서명의 법적 효력에 동의합니다.' },
+  { key: 'terms', text: '조작된 동의문(무시됨)' },
+  { key: 'payment', text: '조작된 동의문(무시됨)' },
+  { key: 'privacy', text: '조작된 동의문(무시됨)' },
+  { key: 'esign', text: '조작된 동의문(무시됨)' },
 ], { ip: '1.2.3.4', ua: 'iPhone' });
 
 // ── 9) 서명 제출 → 완료 ──────────────────────────────────
-const sig = svc.submitSignature(token, { imageBytes: Buffer.from('PNG_SIGNATURE_BYTES') }, { ip: '1.2.3.4', ua: 'iPhone' });
-ok('서명 제출·계약 완료', sig.completed === true && /^[0-9a-f]{64}$/.test(sig.imageSha256));
+// 빈 서명 거부
+await throws('빈 서명 거부', () => svc.submitSignature(token, { imageBytes: Buffer.from('') }), 'EMPTY_SIGNATURE');
+// 문서해시 불일치 서명 거부(위·변조 대조) — 토큰은 소진되지 않음
+await throws('문서해시 불일치 서명 거부', () => svc.submitSignature(token, { imageBytes: Buffer.from('PNG_SIGNATURE_BYTES'), clientDocHash: 'a'.repeat(64) }), 'DOC_HASH_MISMATCH');
+const sig = svc.submitSignature(token, { imageBytes: Buffer.from('PNG_SIGNATURE_BYTES'), clientDocHash: docHash }, { ip: '1.2.3.4', ua: 'iPhone' });
+ok('서명 제출·계약 완료(해시대조 통과)', sig.completed === true && /^[0-9a-f]{64}$/.test(sig.imageSha256));
+
+// 정본 동의 해시가 서버 CONSENT_TEXTS 와 일치(클라이언트 text 무시 검증)
+const { sha256 } = await import('../src/crypto.mjs');
+const termsRow = db.prepare("SELECT consent_text_hash h FROM consents WHERE party_id=? AND consent_key='terms'").get(parties.customer);
+ok('동의 해시 = 서버 정본(클라이언트 위조 무시)', termsRow.h === sha256('공사 도급계약 체결 및 계약 조건에 동의합니다.'));
 
 // 토큰 1회성 — 재사용 거부
-await throws('서명 토큰 재사용 거부', () => svc.submitSignature(token, { imageBytes: 'X' }), 'USED');
+await throws('서명 토큰 재사용 거부', () => svc.submitSignature(token, { imageBytes: Buffer.from('PNG_SIGNATURE_BYTES') }), 'USED');
+
+// 완료 후 새 서명 링크 발급 거부(완료본 봉인)
+await throws('완료 후 서명 링크 재발급 거부', () => svc.issueSignLink(contractId, parties.customer, 'sign'), 'NOT_SIGNABLE');
 
 // ── 10) 완료본 단기열람(15분 view 토큰) ──────────────────
 const view = svc.issueViewLink(contractId, parties.customer);
