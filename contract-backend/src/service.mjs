@@ -194,6 +194,14 @@ export class ContractService {
     return { verified: true };
   }
 
+  // 8-b) 전체 계약 본문 반환. 본인확인 이후에만 전문을 노출(열람 전에는 요약만).
+  getFullContract(rawToken) {
+    const tk = this._validToken(rawToken, 'sign');
+    this._requireVerified(tk.party_id);
+    const c = this._contract(tk.contract_id);
+    return { contractNo: c.contract_no, title: c.title, amount: c.amount, docHash: c.doc_hash, body: JSON.parse(c.body_snapshot) };
+  }
+
   // 9) 전체 계약서 열람 완료(스크롤 끝까지). 본인확인 필수.
   markViewed(rawToken) {
     const tk = this._validToken(rawToken, 'sign');

@@ -26,12 +26,31 @@
 
 ```bash
 cd contract-backend
-node test/e2e.mjs     # 서비스 계층 E2E (24건)
-node test/http.mjs    # HTTP 계층 스모크 (12건)
-node src/server.mjs   # Mock 서버 기동 (http://localhost:8787)
+node test/e2e.mjs          # 서비스 계층 E2E (24건)
+node test/http.mjs         # HTTP 계층 스모크 (12건)
+node test/integration.mjs  # 브라우저↔서버 통합 (23건, playwright 있을 때)
+node src/server.mjs        # Mock 서버 기동 → 콘솔에 서명 URL 출력
 ```
 
+`node src/server.mjs` 를 실행하면 데모 계약 1건을 자동 생성하고 **바로 열 수 있는
+서명 URL**(`http://localhost:8787/sign#t=…`)을 콘솔에 찍어줍니다. 그 링크를 열면
+아래 "연결된 서명 화면"이 뜹니다.
+
 의존성 0개 — Node 22 내장 `node:http` / `node:crypto` / `node:sqlite` 만 사용합니다.
+
+## 연결된 서명 화면 (`public/sign.html`)
+
+시제품 서명 UI를 **같은 서버가 서빙**하고, 각 단계가 실제 REST 엔드포인트를 `fetch`
+로 호출합니다(동일 출처 → CORS 불필요). 시제품 Artifact가 인메모리 Mock이었다면,
+이 화면은 진짜로 서버에 저장·검증합니다.
+
+- 토큰은 URL 프래그먼트(`#t=…`)로만 받고, 매 요청 `x-sign-token` 헤더로 전달 →
+  경로/쿼리/서버 로그에 토큰이 남지 않습니다.
+- 계약 **전문은 본인확인(OTP) 성공 이후에만** 서버에서 받아옵니다(`GET /api/sign/full`).
+- 완료 화면의 **문서해시·서명해시는 서버가 계산한 값**을 그대로 표시합니다(클라이언트 계산 아님).
+- 만료·사용됨·네트워크 오류는 전용 안내 화면으로 처리합니다.
+
+흐름: `GET /api/sign` → `otp` → `verify` → `full` → `viewed` → `consent` → `signature`.
 
 ## 구조
 
