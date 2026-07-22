@@ -93,10 +93,14 @@ interface KakaoMessageProvider {
 }
 ```
 
-- 현재 구현: `MockKakaoMessageProvider` — 결정적 ID, 전달완료 시뮬레이션, 실패 시나리오.
-- 승인 후: 동일 인터페이스로 `SolapiProvider`/`NhnCloudProvider` 등을 끼운다. 서비스
-  로직은 Provider 교체에 영향받지 않는다.
+- 구현체: `MockKakaoMessageProvider`(기본) + `SolapiProvider`(실제 알림톡, `src/providers/solapi.mjs`).
+- 선택: `selectProvider()` 가 환경변수로 결정 — `ALIMTALK_LIVE=1` + 자격증명 완비일 때만 실 발송,
+  그 외에는 항상 Mock. live 인데 설정이 없으면 기동 거부(fail-fast).
+- 수신번호 원문은 **발송 시점 `rawPhone` 인자로만** 전달(메모리) → Provider 로. 로그/DB엔 남기지 않으며,
+  넘어온 번호가 당사자 해시와 다르면 `PHONE_MISMATCH` 로 오발송 차단.
 - **Provider는 서명·본인확인을 절대 판단하지 않는다.** 배달 성공조차 본인확인이 아니다.
+- 실제 발송 셋업/템플릿: `SETUP-ALIMTALK.md`, `templates/alimtalk-templates.md`. Solapi 연동은
+  `test/solapi.mjs` 가 fetch 주입으로 HMAC 인증·페이로드·응답 파싱을 오프라인 검증(20건).
 
 ## 5. 토큰 수명주기
 
@@ -165,7 +169,8 @@ KAKAO_MESSAGE_DELIVERED  (단말 전달완료)
 
 ## 11. 미결·후속 (승인 필요 항목)
 
-- 실제 알림톡 Provider 계약(발신프로필·템플릿 사전심사) — **미진행(사용자 확인)**
+- 실제 알림톡 발송: 코드(`SolapiProvider`)·심사용 템플릿·셋업 가이드 완료. 남은 것은 **사장님의
+  계정 작업**(채널·발신프로필·템플릿 카카오 심사·API키) — `SETUP-ALIMTALK.md` 참조.
 - 완료 PDF 렌더링(서버측) 및 장기 보관 정책(보존기간·파기)
 - **운영자(사업자) API 인증/인가** — 현재 Mock은 `/api/sign*` 외 운영자 라우트가 무인증.
   실제 배포 전 세션/서버 API키/mTLS 등으로 보호 필요(서명링크 발급·증거 조회는 특권 동작).

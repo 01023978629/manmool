@@ -10,18 +10,22 @@ import { dirname, join } from 'node:path';
 import { openDb } from './db.mjs';
 import { ContractService, AppError } from './service.mjs';
 import { MockKakaoMessageProvider } from './providers/kakao.mjs';
+import { selectProvider } from './providers/index.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
 // 안전한 기본값: 데모 기능은 명시적으로 켜야만 동작한다(enableDemo=false, demoOtp=null 기본).
 // 운영(NODE_ENV=production)에서 데모가 켜져 있으면 기동을 거부한다(fail-fast).
-export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = false } = {}) {
+export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = false, provider = null } = {}) {
   if (process.env.NODE_ENV === 'production' && (enableDemo || demoOtp)) {
     throw new Error('보안: 운영 환경에서는 데모 모드(enableDemo/demoOtp)를 사용할 수 없습니다.');
   }
   const db = openDb(dbPath);
   const svc = new ContractService(db, { demoOtp });
-  const provider = new MockKakaoMessageProvider({ deliverAfterMs: 0 });
+  // 실제 발송 여부는 환경변수로 결정(기본 Mock). ALIMTALK_LIVE=1 + 자격증명 있을 때만 실 발송.
+  const sel = provider ? { provider, live: false, reason: '주입된 Provider' } : selectProvider();
+  provider = sel.provider;
+  const providerLive = sel.live;
 
   const routes = [];
   const on = (method, re, fn) => routes.push({ method, re, fn });
@@ -46,7 +50,8 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
     svc.issueSignLink(id, pid, 'sign'));
   on('POST', /^\/api\/contracts\/([^/]+)\/parties\/([^/]+)\/send$/, async (req, [id, pid]) => {
     const b = await body(req);
-    return svc.sendMessage(id, pid, b.templateKey || 'contract_sign', provider, b.variables || {});
+    // rawPhone 은 실제 발송 시에만 넘어온다. 여기서 로그하지 않는다(민감정보).
+    return svc.sendMessage(id, pid, b.templateKey || 'contract_sign', provider, b.variables || {}, b.rawPhone || null);
   });
   on('POST', /^\/api\/deliveries\/([^/]+)\/refresh$/, async (_r, [id]) => svc.refreshDelivery(id, provider));
   on('GET', /^\/api\/contracts\/([^/]+)\/evidence$/, async (_r, [id]) => svc.evidencePackage(id));
@@ -86,7 +91,7 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
       json(res, 500, { error: 'INTERNAL', message: '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.' });
     }
   });
-  return { server, db, svc, provider };
+  return { server, db, svc, provider, providerLive };
 }
 
 const SENT = Symbol('response-sent');
@@ -151,11 +156,12 @@ function body(req) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   if (process.env.NODE_ENV === 'production') { console.error('운영 환경에서는 이 데모 서버를 직접 실행할 수 없습니다.'); process.exit(1); }
   const demoOtp = process.env.DEMO_OTP || '246810';
-  const { server, svc, provider } = createApp({ enableDemo: true, demoOtp });
+  const { server, svc, provider, providerLive } = createApp({ enableDemo: true, demoOtp });
   const port = process.env.PORT || 8787;
   server.listen(port, () => {
     const seed = seedDemoContract(svc, provider);
-    console.log(`\n전자계약 Mock 서버 http://localhost:${port}  (실제 발송 없음 · 전부 Mock · 데모 모드)`);
+    const mode = providerLive ? `⚠️ 실제 발송(${provider.name}) 활성` : '실제 발송 없음 · 전부 Mock';
+    console.log(`\n전자계약 서버 http://localhost:${port}  (${mode} · 데모 모드)`);
     console.log(`서명 화면 열기 →  http://localhost:${port}${seed.signPath}`);
     console.log(`(데모 본인확인 번호: ${demoOtp} · 로컬 데모 전용)\n`);
   });

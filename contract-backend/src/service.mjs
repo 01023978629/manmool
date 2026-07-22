@@ -99,10 +99,16 @@ export class ContractService {
     return { token: raw }; // 호출자는 이걸 URL 프래그먼트로만 전달(로그 금지)
   }
 
-  // 4) 서명 요청 메시지 발송(Provider 경유). 승인 전엔 Mock 만 사용.
-  async sendMessage(contractId, partyId, templateKey, provider, extraVars = {}) {
+  // 4) 서명 요청 메시지 발송(Provider 경유).
+  //    rawPhone: 실제 발송 시 수신번호 원문. 발송 시점 메모리로만 쓰고 로그/DB엔 남기지 않는다.
+  //    (실제 발송은 승인 템플릿 + 실 Provider 설정이 있을 때만. 기본 Mock 은 rawPhone 을 무시)
+  async sendMessage(contractId, partyId, templateKey, provider, extraVars = {}, rawPhone = null) {
     const c = this._contract(contractId);
     const p = this._party(partyId);
+    // 원문 번호가 넘어오면 등록된 마스킹/해시와 동일인인지 대조(오발송 방지)
+    if (rawPhone && hmac(String(rawPhone).replace(/\D/g, '')) !== p.phone_hash) {
+      throw new AppError('PHONE_MISMATCH', '수신번호가 계약 당사자와 일치하지 않습니다.');
+    }
     const tpl = this.db.prepare(
       'SELECT * FROM message_templates WHERE template_key=? ORDER BY version DESC LIMIT 1'
     ).get(templateKey);
@@ -114,11 +120,12 @@ export class ContractService {
       `INSERT INTO message_deliveries(id,contract_id,party_id,template_key,provider,status,requested_at)
        VALUES(?,?,?,?,?, 'QUEUED', ?)`
     ).run(deliveryId, contractId, partyId, templateKey, provider.name, now);
-    audit(this.db, { contractId, partyId, event: EVENTS.KAKAO_MESSAGE_QUEUED, at: now, meta: { templateKey } });
+    audit(this.db, { contractId, partyId, event: EVENTS.KAKAO_MESSAGE_QUEUED, at: now, meta: { templateKey, provider: provider.name } });
 
     const res = await provider.send({
       toPhoneMasked: p.phone_masked,
       toPhoneHash: p.phone_hash,
+      toPhoneRaw: rawPhone || null, // 실 Provider 만 사용. 여기서 audit/log 하지 않음.
       templateKey,
       variables: { name: p.name, contractNo: c.contract_no, ...extraVars },
       buttons: tpl.buttons_json ? JSON.parse(tpl.buttons_json) : [],
