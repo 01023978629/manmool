@@ -30,6 +30,28 @@
 
 ---
 
+## ⚡ 자동 배포(GitHub Actions) — 1회 설정 후 푸시하면 자동
+
+저장소에 `.github/workflows/deploy-contract.yml` 이 준비돼 있습니다. **딱 한 번만** 아래를 하면,
+이후 `contract-backend` 변경이 main 에 들어올 때마다 **자동 배포**됩니다.
+
+```bash
+# 1) fly 앱·볼륨 1회 생성
+cd contract-backend
+fly launch --no-deploy --name <원하는앱이름>
+fly volumes create contract_data --region nrt --size 1
+# 2) 시크릿 주입(1회)
+fly secrets set CONTRACT_PEPPER=$(openssl rand -hex 32) ADMIN_TOKEN=$(openssl rand -hex 16) \
+  CORS_ORIGINS=https://01023978629.github.io
+# 3) 배포 토큰 발급 → GitHub 저장소 Settings → Secrets → Actions 에 FLY_API_TOKEN 으로 추가
+fly tokens create deploy
+```
+
+→ 이후 `git push`(main) 하면 Actions 가 `flyctl deploy` 실행. `FLY_API_TOKEN` 없으면 워크플로는
+**조용히 건너뜁니다**(설정 전 실패 소음 없음). 첫 배포만 위 `fly launch` 로 앱을 만들면 됩니다.
+
+수동으로 하고 싶으면 아래 A(Fly) 또는 B(Render)를 따르세요.
+
 ## A. Fly.io (권장 — Docker + 볼륨 + Node22 궁합)
 
 ```bash
