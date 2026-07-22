@@ -11,6 +11,7 @@ import { openDb } from './db.mjs';
 import { ContractService, AppError } from './service.mjs';
 import { MockKakaoMessageProvider } from './providers/kakao.mjs';
 import { selectProvider } from './providers/index.mjs';
+import { settingsStatus, writeSettings, mergedSource, checkAdmin } from './settings.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
@@ -22,10 +23,21 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   }
   const db = openDb(dbPath);
   const svc = new ContractService(db, { demoOtp });
-  // 실제 발송 여부는 환경변수로 결정(기본 Mock). ALIMTALK_LIVE=1 + 자격증명 있을 때만 실 발송.
-  const sel = provider ? { provider, live: false, reason: '주입된 Provider' } : selectProvider();
-  provider = sel.provider;
-  const providerLive = sel.live;
+  // Provider 는 매 발송 시점에 (env + DB설정) 을 병합해 해석 → 관리자 저장이 즉시 반영된다.
+  // 주입된 provider(테스트)가 있으면 항상 그것을 쓴다.
+  const injected = provider;
+  let _cached = null, _cachedKey = null;
+  const resolveProvider = () => {
+    if (injected) return { provider: injected, live: false };
+    const src = mergedSource(process.env, db);
+    // 설정이 바뀔 때만 재해석(그 외엔 동일 인스턴스 재사용 → Mock 상태·연결 유지).
+    const key = JSON.stringify(['ALIMTALK_LIVE', 'SOLAPI_API_KEY', 'SOLAPI_API_SECRET', 'SOLAPI_PF_ID', 'SOLAPI_SENDER', 'SOLAPI_TEMPLATE_SIGN', 'SOLAPI_TEMPLATE_DONE', 'SOLAPI_DISABLE_SMS'].map((k) => src[k] || ''));
+    if (_cached && _cachedKey === key) return _cached;
+    _cached = selectProvider(src); _cachedKey = key;
+    return _cached;
+  };
+  provider = resolveProvider().provider;
+  const providerLive = () => { try { return resolveProvider().live; } catch { return false; } };
 
   const routes = [];
   const on = (method, re, fn) => routes.push({ method, re, fn });
@@ -33,6 +45,26 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   // 서명 화면(동일 출처로 서빙 → CORS 불필요, 토큰은 프래그먼트로만 전달)
   const signHtml = readFileSync(join(__dir, '..', 'public', 'sign.html'), 'utf8');
   on('GET', /^\/sign\/?$/, async (_r, _m, res) => { html(res, signHtml); return SENT; });
+
+  // 관리자 설정 화면(로그인은 페이지 안에서 관리자 토큰 입력 → 이후 API는 헤더로 인증)
+  const adminHtml = readFileSync(join(__dir, '..', 'public', 'admin.html'), 'utf8');
+  on('GET', /^\/admin\/?$/, async (_r, _m, res) => { html(res, adminHtml); return SENT; });
+
+  // 관리자 인증: x-admin-token 헤더. ADMIN_TOKEN 미설정이면 관리자 기능 비활성.
+  const requireAdmin = (req) => {
+    const r = checkAdmin(process.env, req.headers['x-admin-token']);
+    if (!r.ok) { const e = new AppError(r.code, r.code === 'ADMIN_DISABLED' ? '관리자 기능이 비활성화되어 있습니다(ADMIN_TOKEN 미설정).' : '관리자 인증에 실패했습니다.'); e.httpStatus = r.code === 'ADMIN_DISABLED' ? 403 : 401; throw e; }
+  };
+  on('GET', /^\/admin\/status$/, async (req) => { requireAdmin(req); return settingsStatus(process.env, db); });
+  on('POST', /^\/admin\/settings$/, async (req) => {
+    requireAdmin(req); const b = await body(req);
+    const n = writeSettings(db, b.settings || {}, new Date().toISOString());
+    return { saved: n, status: settingsStatus(process.env, db) };
+  });
+  on('POST', /^\/admin\/selftest$/, async (req) => {
+    requireAdmin(req); const b = await body(req);
+    return runSelfTest(svc, resolveProvider, String(b.phone || ''), b.baseUrl || '');
+  });
 
   // 데모 부트스트랩: 계약 생성→잠금→서명링크 발급까지 한 번에. enableDemo 일 때만.
   on('POST', /^\/api\/demo\/seed$/, async () => {
@@ -51,9 +83,9 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   on('POST', /^\/api\/contracts\/([^/]+)\/parties\/([^/]+)\/send$/, async (req, [id, pid]) => {
     const b = await body(req);
     // rawPhone 은 실제 발송 시에만 넘어온다. 여기서 로그하지 않는다(민감정보).
-    return svc.sendMessage(id, pid, b.templateKey || 'contract_sign', provider, b.variables || {}, b.rawPhone || null);
+    return svc.sendMessage(id, pid, b.templateKey || 'contract_sign', currentProvider(resolveProvider), b.variables || {}, b.rawPhone || null);
   });
-  on('POST', /^\/api\/deliveries\/([^/]+)\/refresh$/, async (_r, [id]) => svc.refreshDelivery(id, provider));
+  on('POST', /^\/api\/deliveries\/([^/]+)\/refresh$/, async (_r, [id]) => svc.refreshDelivery(id, currentProvider(resolveProvider)));
   on('GET', /^\/api\/contracts\/([^/]+)\/evidence$/, async (_r, [id]) => svc.evidencePackage(id));
 
   // ── 고객(서명자) 측: 토큰은 헤더 x-sign-token 로만 ──
@@ -104,6 +136,33 @@ function json(res, status, obj) {
 function html(res, s) {
   res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'content-length': Buffer.byteLength(s) });
   res.end(s);
+}
+
+// 현재 유효 Provider 해석(설정 불완전 시 깔끔한 오류로 변환).
+function currentProvider(resolveProvider) {
+  try { return resolveProvider().provider; }
+  catch (e) { throw new AppError('PROVIDER_CONFIG', e.message); }
+}
+
+// 관리자 본인번호 테스트 발송(고객 아님). 실제 발송이 켜져 있을 때만.
+async function runSelfTest(svc, resolveProvider, phone, baseUrl) {
+  const digits = phone.replace(/\D/g, '');
+  if (!/^01[016789]\d{7,8}$/.test(digits)) throw new AppError('BAD_PHONE', '휴대폰 번호 형식이 올바르지 않습니다.');
+  let sel; try { sel = resolveProvider(); } catch (e) { throw new AppError('PROVIDER_CONFIG', e.message); }
+  if (!sel.live || sel.provider.name === 'mock') throw new AppError('NOT_LIVE', '실제 발송이 꺼져 있어 테스트할 수 없습니다. 설정을 저장하고 실제 발송을 켜주세요.');
+  const { contractId, parties } = svc.createContract({
+    contractNo: `TEST-${new Date().toISOString().slice(0, 10)}`,
+    title: '전자계약 발송 테스트', amount: 0,
+    body: { note: '본인번호 테스트(법적 효력 없음)', clauses: [] },
+    operator: { name: '전병덕', phone: '010-5439-8629' },
+    customer: { name: '테스트', phone: digits },
+  });
+  svc.lockDocument(contractId);
+  const { token } = svc.issueSignLink(contractId, parties.customer, 'sign');
+  const signUrl = baseUrl ? `${String(baseUrl).replace(/\/$/, '')}/sign#t=${token}` : `/sign#t=${token}`;
+  const res = await svc.sendMessage(contractId, parties.customer, 'contract_sign', sel.provider,
+    { site: '테스트 현장', amount: '0', signUrl }, digits);
+  return { status: res.status, reason: res.reason || null, provider: sel.provider.name };
 }
 
 // 데모용 계약 시드: 실제 만물 계약 형태의 본문으로 생성→잠금→서명링크.
@@ -160,9 +219,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const port = process.env.PORT || 8787;
   server.listen(port, () => {
     const seed = seedDemoContract(svc, provider);
-    const mode = providerLive ? `⚠️ 실제 발송(${provider.name}) 활성` : '실제 발송 없음 · 전부 Mock';
+    const mode = providerLive() ? `⚠️ 실제 발송(${provider.name}) 활성` : '실제 발송 없음 · 전부 Mock';
     console.log(`\n전자계약 서버 http://localhost:${port}  (${mode} · 데모 모드)`);
     console.log(`서명 화면 열기 →  http://localhost:${port}${seed.signPath}`);
+    console.log(`관리자 설정   →  http://localhost:${port}/admin  ${process.env.ADMIN_TOKEN ? '' : '(ADMIN_TOKEN 미설정 → 비활성)'}`);
     console.log(`(데모 본인확인 번호: ${demoOtp} · 로컬 데모 전용)\n`);
   });
 }
