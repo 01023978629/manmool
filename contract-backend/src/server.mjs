@@ -42,6 +42,9 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   const routes = [];
   const on = (method, re, fn) => routes.push({ method, re, fn });
 
+  // 헬스체크(호스팅 상태 점검용). 인증·민감정보 없음.
+  on('GET', /^\/healthz$/, async () => ({ ok: true, live: providerLive() }));
+
   // 서명 화면(동일 출처로 서빙 → CORS 불필요, 토큰은 프래그먼트로만 전달)
   const signHtml = readFileSync(join(__dir, '..', 'public', 'sign.html'), 'utf8');
   on('GET', /^\/sign\/?$/, async (_r, _m, res) => { html(res, signHtml); return SENT; });
@@ -72,21 +75,22 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
     return seedDemoContract(svc, provider);
   });
 
-  // ── 운영자(사업자) 측 ──
+  // ── 운영자(사업자) 측 — 전부 관리자 토큰 필요(공개 배포 시 계약·증거 보호) ──
   on('POST', /^\/api\/contracts$/, async (req) => {
-    const b = await body(req);
+    requireAdmin(req); const b = await body(req);
     return svc.createContract(b);
   });
-  on('POST', /^\/api\/contracts\/([^/]+)\/lock$/, async (_r, [id]) => svc.lockDocument(id));
-  on('POST', /^\/api\/contracts\/([^/]+)\/parties\/([^/]+)\/sign-link$/, async (_r, [id, pid]) =>
-    svc.issueSignLink(id, pid, 'sign'));
+  on('POST', /^\/api\/contracts\/([^/]+)\/lock$/, async (req, [id]) => { requireAdmin(req); return svc.lockDocument(id); });
+  on('POST', /^\/api\/contracts\/([^/]+)\/parties\/([^/]+)\/sign-link$/, async (req, [id, pid]) => {
+    requireAdmin(req); return svc.issueSignLink(id, pid, 'sign');
+  });
   on('POST', /^\/api\/contracts\/([^/]+)\/parties\/([^/]+)\/send$/, async (req, [id, pid]) => {
-    const b = await body(req);
+    requireAdmin(req); const b = await body(req);
     // rawPhone 은 실제 발송 시에만 넘어온다. 여기서 로그하지 않는다(민감정보).
     return svc.sendMessage(id, pid, b.templateKey || 'contract_sign', currentProvider(resolveProvider), b.variables || {}, b.rawPhone || null);
   });
-  on('POST', /^\/api\/deliveries\/([^/]+)\/refresh$/, async (_r, [id]) => svc.refreshDelivery(id, currentProvider(resolveProvider)));
-  on('GET', /^\/api\/contracts\/([^/]+)\/evidence$/, async (_r, [id]) => svc.evidencePackage(id));
+  on('POST', /^\/api\/deliveries\/([^/]+)\/refresh$/, async (req, [id]) => { requireAdmin(req); return svc.refreshDelivery(id, currentProvider(resolveProvider)); });
+  on('GET', /^\/api\/contracts\/([^/]+)\/evidence$/, async (req, [id]) => { requireAdmin(req); return svc.evidencePackage(id); });
 
   // ── 고객(서명자) 측: 토큰은 헤더 x-sign-token 로만 ──
   const tok = (req) => req.headers['x-sign-token'] || '';

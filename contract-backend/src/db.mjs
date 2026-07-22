@@ -1,12 +1,16 @@
 // SQLite 접근 계층 (node:sqlite, 무의존성). 스키마 로드 + 시드.
 import { DatabaseSync } from 'node:sqlite';
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
 export function openDb(path = ':memory:') {
+  // 파일 DB면 상위 디렉터리를 보장(영속 저장소 마운트 경로 등).
+  if (path !== ':memory:' && path.includes('/')) {
+    try { mkdirSync(dirname(path), { recursive: true }); } catch { /* 이미 있음 */ }
+  }
   const db = new DatabaseSync(path);
   const schema = readFileSync(join(__dir, '..', 'schema.sql'), 'utf8');
   db.exec(schema);

@@ -1,0 +1,39 @@
+# Fly.io 배포 설정(예시). `app` 이름은 사장님이 정한 이름으로 바꾸세요.
+# 시크릿(CONTRACT_PEPPER, ADMIN_TOKEN, SOLAPI_*)은 여기 두지 말고 `fly secrets set` 으로 주입.
+app = "manmool-contract"          # ← 원하는 이름으로 변경(전역 고유)
+primary_region = "nrt"            # 도쿄(한국에서 지연 낮음)
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8787"
+  DB_PATH = "/data/contract.db"
+
+# SQLite 는 단일 인스턴스 전제 — 절대 2개 이상으로 스케일하지 말 것.
+[http_service]
+  internal_port = 8787
+  force_https = true
+  auto_stop_machines = "suspend"  # 트래픽 없으면 절전(볼륨은 유지)
+  auto_start_machines = true
+  min_machines_running = 0
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 200
+    soft_limit = 150
+
+[[http_service.checks]]
+  method = "GET"
+  path = "/healthz"
+  interval = "30s"
+  timeout = "5s"
+  grace_period = "5s"
+
+# 영속 볼륨(계약·서명·설정 데이터). 이름은 아래 create 명령과 일치시킬 것.
+[mounts]
+  source = "contract_data"
+  destination = "/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

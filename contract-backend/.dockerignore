@@ -1,0 +1,6 @@
+test
+data
+*.db
+*.db-*
+.git
+node_modules
