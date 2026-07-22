@@ -73,12 +73,14 @@ CREATE TABLE IF NOT EXISTS consents (
   ua_hash           TEXT
 );
 
--- 전자서명. 서명 이미지 자체가 아니라 SHA-256 지문 + 파일 포인터를 남긴다.
+-- 전자서명. SHA-256 지문 + 서명 이미지(파생 아티팩트, base64)를 함께 보관한다.
+-- 완료본 재열람·증거 대조에 쓰이며, 이미지의 진위는 image_sha256 으로 검증한다.
 CREATE TABLE IF NOT EXISTS signatures (
   id            TEXT PRIMARY KEY,
   contract_id   TEXT NOT NULL REFERENCES contracts(id) ON DELETE CASCADE,
   party_id      TEXT NOT NULL REFERENCES contract_parties(id) ON DELETE CASCADE,
   image_sha256  TEXT NOT NULL,                 -- 서명 PNG 원본의 SHA-256
+  image_data    TEXT,                          -- 서명 PNG(base64). 완료본 재열람용 파생 보관.
   image_ref     TEXT,                          -- 서버 저장 위치 포인터(공개 URL 아님)
   doc_hash_seen TEXT NOT NULL,                 -- 서명 당시 고객이 본 계약 doc_hash(위변조 대조)
   signed_at     TEXT NOT NULL,

@@ -297,11 +297,12 @@ export class ContractService {
 
     const { ipHash, uaHash } = this._ctx(ctx);
     const imgHash = sha256(buf);
+    const imgB64 = buf.toString('base64'); // 완료본 재열람용 파생 보관(진위는 image_sha256로 검증)
     const now = this.clock();
     this.db.prepare(
-      `INSERT INTO signatures(id,contract_id,party_id,image_sha256,image_ref,doc_hash_seen,signed_at,ip_hash,ua_hash)
-       VALUES(?,?,?,?,?,?,?,?,?)`
-    ).run(newId('sg'), tk.contract_id, tk.party_id, imgHash, `server://sig/${tk.contract_id}/${tk.party_id}`, c.doc_hash, now, ipHash, uaHash);
+      `INSERT INTO signatures(id,contract_id,party_id,image_sha256,image_data,image_ref,doc_hash_seen,signed_at,ip_hash,ua_hash)
+       VALUES(?,?,?,?,?,?,?,?,?,?)`
+    ).run(newId('sg'), tk.contract_id, tk.party_id, imgHash, imgB64, `server://sig/${tk.contract_id}/${tk.party_id}`, c.doc_hash, now, ipHash, uaHash);
     // 서명 토큰 1회성 소진
     this.db.prepare('UPDATE sign_tokens SET used_at=? WHERE id=?').run(now, tk.id);
     // 종료상태로만 전이(경합 방지: 서명 가능 상태에서만 COMPLETED 로)
@@ -309,7 +310,9 @@ export class ContractService {
     if (upd.changes === 0) throw new AppError('ALREADY_COMPLETED', '이미 체결이 완료된 계약입니다.');
     audit(this.db, { contractId: tk.contract_id, partyId: tk.party_id, event: EVENTS.SIGNATURE_SUBMITTED, at: now, meta: { imageSha256: imgHash, docHashSeen: c.doc_hash } });
     audit(this.db, { contractId: tk.contract_id, event: EVENTS.CONTRACT_COMPLETED, at: now });
-    return { completed: true, imageSha256: imgHash, docHash: c.doc_hash };
+    // 완료 직후 재열람용 단기(15분) view 토큰 발급 → 새로고침해도 완료본을 다시 볼 수 있게.
+    const view = this.issueSignLink(tk.contract_id, tk.party_id, 'view');
+    return { completed: true, imageSha256: imgHash, docHash: c.doc_hash, viewToken: view.token };
   }
 
   _hasViewed(partyId) {
@@ -321,7 +324,7 @@ export class ContractService {
     return this.issueSignLink(contractId, partyId, 'view');
   }
 
-  // 13) 완료본 접근
+  // 13) 완료본 접근(요약)
   accessCompleted(rawViewToken, ctx = {}) {
     const tk = this._validToken(rawViewToken, 'view');
     const c = this._contract(tk.contract_id);
@@ -329,6 +332,24 @@ export class ContractService {
     const { requestId } = this._ctx(ctx);
     audit(this.db, { contractId: c.id, partyId: tk.party_id, event: EVENTS.COMPLETED_DOC_ACCESSED, at: this.clock(), requestId });
     return { contractNo: c.contract_no, title: c.title, amount: c.amount, docHash: c.doc_hash, completedAt: c.completed_at };
+  }
+
+  // 13-b) 완료본 전체(본문·서명 이미지·해시) — 재열람/PDF 렌더용. view 토큰 필요.
+  getCompletedDoc(rawViewToken, ctx = {}) {
+    const tk = this._validToken(rawViewToken, 'view');
+    const c = this._contract(tk.contract_id);
+    if (c.status !== 'COMPLETED') throw new AppError('NOT_COMPLETED', '완료된 계약이 아닙니다.');
+    const sig = this.db.prepare('SELECT image_sha256, image_data, signed_at FROM signatures WHERE contract_id=? ORDER BY signed_at DESC LIMIT 1').get(tk.contract_id);
+    const signer = this.db.prepare('SELECT name FROM contract_parties WHERE id=?').get(tk.party_id);
+    const { requestId } = this._ctx(ctx);
+    audit(this.db, { contractId: c.id, partyId: tk.party_id, event: EVENTS.COMPLETED_DOC_ACCESSED, at: this.clock(), requestId, meta: { full: true } });
+    return {
+      contractNo: c.contract_no, title: c.title, amount: c.amount,
+      body: JSON.parse(c.body_snapshot), docHash: c.doc_hash,
+      completedAt: c.completed_at, signerName: signer ? signer.name : '',
+      imageSha256: sig ? sig.image_sha256 : null,
+      signatureImage: sig && sig.image_data ? `data:image/png;base64,${sig.image_data}` : null,
+    };
   }
 
   // 14) 증거 패키지 — 계약·당사자·해시·동의·서명·전체 감사추적을 한 번에 봉인.

@@ -109,9 +109,13 @@ await throws('서명 토큰 재사용 거부', () => svc.submitSignature(token, 
 await throws('완료 후 서명 링크 재발급 거부', () => svc.issueSignLink(contractId, parties.customer, 'sign'), 'NOT_SIGNABLE');
 
 // ── 10) 완료본 단기열람(15분 view 토큰) ──────────────────
-const view = svc.issueViewLink(contractId, parties.customer);
-const acc = svc.accessCompleted(view.token, { requestId: 'req-view-1' });
-ok('완료본 단기열람', acc.contractNo === 'MM-2026-0142' && acc.docHash === docHash);
+ok('서명 완료 시 재열람 토큰 발급', typeof sig.viewToken === 'string' && sig.viewToken.length >= 22);
+const acc = svc.accessCompleted(sig.viewToken, { requestId: 'req-view-1' });
+ok('완료본 단기열람(요약)', acc.contractNo === 'MM-2026-0142' && acc.docHash === docHash);
+// 완료본 전체(본문·서명 이미지·해시) 재열람
+const full = svc.getCompletedDoc(sig.viewToken, { requestId: 'req-view-2' });
+ok('완료본 전체: 본문·해시 재열람', full.body && full.docHash === docHash && full.imageSha256 === sig.imageSha256);
+ok('완료본: 서명 이미지 보관·반환', typeof full.signatureImage === 'string' && /^data:image\/png;base64,/.test(full.signatureImage));
 
 // ── 11) 증거 패키지 ──────────────────────────────────────
 const pkg = svc.evidencePackage(contractId);

@@ -93,6 +93,8 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   const ctx = (req) => ({ ip: req.socket.remoteAddress, ua: req.headers['user-agent'], requestId: req.headers['x-request-id'] });
   on('GET', /^\/api\/sign$/, async (req) => svc.openLink(tok(req), ctx(req)));
   on('GET', /^\/api\/sign\/full$/, async (req) => svc.getFullContract(tok(req)));
+  // 완료본 재열람(단기 view 토큰). 토큰은 헤더로만.
+  on('GET', /^\/api\/sign\/completed$/, async (req) => svc.getCompletedDoc(tok(req), ctx(req)));
   on('POST', /^\/api\/sign\/otp$/, async (req) => svc.requestOtp(tok(req)));
   on('POST', /^\/api\/sign\/verify$/, async (req) => { const b = await body(req); return svc.verifyOtp(tok(req), b.code, ctx(req)); });
   on('POST', /^\/api\/sign\/viewed$/, async (req) => svc.markViewed(tok(req)));
