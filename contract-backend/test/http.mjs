@@ -54,9 +54,12 @@ ok('본인확인 성공', verify.data.verified === true);
 
 await call('POST', '/api/sign/viewed', { token });
 await call('POST', '/api/sign/consent', { token, json: { consents: [
-  { key: 'terms', text: '계약 전체 동의' }, { key: 'privacy', text: '개인정보 동의' }, { key: 'esign', text: '전자서명 효력 동의' },
+  { key: 'terms', text: '계약 전체 동의' }, { key: 'payment', text: '대금 동의' }, { key: 'privacy', text: '개인정보 동의' }, { key: 'esign', text: '전자서명 효력 동의' },
 ] } });
-const sign = await call('POST', '/api/sign/signature', { token, json: { imageBase64: Buffer.from('PNG_SIG').toString('base64') } });
+// 빈 서명 거부
+const empty = await call('POST', '/api/sign/signature', { token, json: { imageBase64: '' } });
+ok('빈 서명 거부(400)', empty.status === 400 && empty.data.error === 'EMPTY_SIGNATURE');
+const sign = await call('POST', '/api/sign/signature', { token, json: { imageBase64: Buffer.from('PNG_SIGNATURE').toString('base64') } });
 ok('서명 제출 → 완료', sign.status === 200 && sign.data.completed === true);
 
 const reuse = await call('POST', '/api/sign/signature', { token, json: { imageBase64: 'AA==' } });

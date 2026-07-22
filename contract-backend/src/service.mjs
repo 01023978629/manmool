@@ -8,8 +8,22 @@ import { audit, EVENTS, trail } from './audit.mjs';
 
 const OTP_TTL_MS = 5 * 60 * 1000;       // 본인확인 OTP 5분
 const OTP_MAX_ATTEMPTS = 5;
+const OTP_MAX_ISSUE = 5;                 // 당사자당 OTP 발급 상한(무제한 재발급 방지)
 const SIGN_TOKEN_TTL_MS = 72 * 60 * 60 * 1000;  // 서명 링크 72시간
 const VIEW_TOKEN_TTL_MS = 15 * 60 * 1000;        // 완료본 열람 15분(장기 공개 금지)
+const MIN_SIGNATURE_BYTES = 8;           // 빈/무의미 서명 거부 하한
+
+// 동의문 "정본"은 서버가 보관한다. 클라이언트가 보낸 텍스트는 신뢰하지 않고,
+// consent_key 로 서버 정본을 조회해 그 해시를 증거로 남긴다(증거 위조 방지).
+const CONSENT_TEXTS = Object.freeze({
+  terms: '공사 도급계약 체결 및 계약 조건에 동의합니다.',
+  payment: '대금 지급 조건(계약금·중도금·잔금)에 동의합니다.',
+  privacy: '개인정보 수집·이용(계약 이행 목적, 보유 5년)에 동의합니다.',
+  esign: '전자문서 및 전자서명으로 계약을 체결하는 것에 동의합니다.',
+});
+const REQUIRED_CONSENTS = Object.freeze(['terms', 'payment', 'privacy', 'esign']);
+// 서명 가능한 계약 상태(종료상태 COMPLETED/VOID 에서는 서명 링크 발급·서명 불가)
+const SIGNABLE_STATUSES = Object.freeze(['LOCKED', 'SENT', 'VIEWED']);
 
 export class ContractService {
   // clock: () => ISO8601 문자열. 테스트에서 시간 고정용.
@@ -66,8 +80,13 @@ export class ContractService {
   // 3) 일회용 서명 링크 발급. raw 토큰은 이 반환값에서만 노출(DB엔 해시만).
   issueSignLink(contractId, partyId, purpose = 'sign') {
     const c = this._contract(contractId);
-    if (purpose === 'sign' && c.status === 'DRAFT') {
-      throw new AppError('NOT_LOCKED', '문서 잠금(해시 확정) 후에만 서명 링크를 발급할 수 있습니다.');
+    if (purpose === 'sign') {
+      if (c.status === 'DRAFT') throw new AppError('NOT_LOCKED', '문서 잠금(해시 확정) 후에만 서명 링크를 발급할 수 있습니다.');
+      // 완료·취소된 계약에는 새 서명 링크를 발급하지 않는다(완료본 변조 방지)
+      if (!SIGNABLE_STATUSES.includes(c.status)) throw new AppError('NOT_SIGNABLE', '서명 링크를 발급할 수 없는 계약 상태입니다.');
+    }
+    if (purpose === 'view' && c.status !== 'COMPLETED') {
+      throw new AppError('NOT_COMPLETED', '완료된 계약에만 열람 링크를 발급할 수 있습니다.');
     }
     const { raw, hash } = issueToken();
     const now = this.clock();
@@ -157,9 +176,13 @@ export class ContractService {
     };
   }
 
-  // 7) 본인확인 OTP 발급
+  // 7) 본인확인 OTP 발급. 당사자당 발급 상한으로 무제한 재발급(무차별 대입 창 확장)을 막는다.
   requestOtp(rawToken) {
     const tk = this._validToken(rawToken, 'sign');
+    const issued = this.db.prepare('SELECT COUNT(*) c FROM otp_challenges WHERE party_id=?').get(tk.party_id).c;
+    if (issued >= OTP_MAX_ISSUE) throw new AppError('OTP_TOO_MANY', '인증번호 발급 횟수를 초과했습니다. 담당자에게 문의해 주세요.');
+    // 재발급 시 이전 미검증 챌린지는 만료 처리(동시 유효 코드 최소화)
+    this.db.prepare("UPDATE otp_challenges SET expires_at=? WHERE party_id=? AND verified_at IS NULL").run(this.clock(), tk.party_id);
     const { code, hash } = issueOtp(this.demoOtp);
     const now = this.clock();
     this.db.prepare(
@@ -213,42 +236,60 @@ export class ContractService {
     return { viewed: true };
   }
 
-  // 10) 동의 기록. 각 동의문 원문 해시를 남긴다.
+  // 10) 동의 기록. 동의문 "정본"은 서버가 보관하고, 그 원문 해시를 증거로 남긴다.
+  //     (클라이언트가 보낸 텍스트는 신뢰하지 않는다 — 증거 위조 방지)
   recordConsents(rawToken, consents, ctx = {}) {
     const tk = this._validToken(rawToken, 'sign');
     this._requireVerified(tk.party_id);
+    // 열람 선행 강제: viewed → consent → signature 순서를 서버가 보장.
+    if (!this._hasViewed(tk.party_id)) throw new AppError('NOT_VIEWED', '전체 계약서 열람 후 동의할 수 있습니다.');
     const { ipHash, uaHash } = this._ctx(ctx);
     const now = this.clock();
+    const keys = [];
     for (const c of consents) {
+      const canonical = CONSENT_TEXTS[c.key];
+      if (!canonical) throw new AppError('BAD_CONSENT', `알 수 없는 동의 항목: ${c.key}`);
       this.db.prepare(
         `INSERT INTO consents(id,contract_id,party_id,consent_key,consent_text_hash,agreed_at,ip_hash,ua_hash)
          VALUES(?,?,?,?,?,?,?,?)`
-      ).run(newId('cs'), tk.contract_id, tk.party_id, c.key, sha256(c.text), now, ipHash, uaHash);
+      ).run(newId('cs'), tk.contract_id, tk.party_id, c.key, sha256(canonical), now, ipHash, uaHash);
+      keys.push(c.key);
     }
-    audit(this.db, { contractId: tk.contract_id, partyId: tk.party_id, event: EVENTS.CONSENT_AGREED, at: now, meta: { keys: consents.map((c) => c.key) } });
-    return { count: consents.length };
+    audit(this.db, { contractId: tk.contract_id, partyId: tk.party_id, event: EVENTS.CONSENT_AGREED, at: now, meta: { keys } });
+    return { count: keys.length };
   }
 
-  // 11) 서명 제출 → 계약 완료. 본인확인+동의 선행 필수. 서명 당시 doc_hash 대조.
-  submitSignature(rawToken, { imageBytes, consentKeysRequired = ['terms', 'privacy', 'esign'] }, ctx = {}) {
+  // 11) 서명 제출 → 계약 완료. 본인확인+열람+동의 선행 필수.
+  //     clientDocHash: 고객 화면이 표시했던 문서해시. 서버 doc_hash 와 대조해 위·변조 차단.
+  submitSignature(rawToken, { imageBytes, clientDocHash }, ctx = {}) {
     const tk = this._validToken(rawToken, 'sign');
     this._requireVerified(tk.party_id);
     const c = this._contract(tk.contract_id);
+    // 종료상태 봉인: 이미 완료된 계약은 재서명 불가(완료본 변조 방지)
+    if (c.status === 'COMPLETED') throw new AppError('ALREADY_COMPLETED', '이미 체결이 완료된 계약입니다.');
+    if (!SIGNABLE_STATUSES.includes(c.status)) throw new AppError('NOT_SIGNABLE', '서명할 수 없는 계약 상태입니다.');
 
-    // 필수 동의 확인
+    // 빈/무의미 서명 거부
+    const buf = Buffer.isBuffer(imageBytes) ? imageBytes : Buffer.from(String(imageBytes || ''));
+    if (buf.length < MIN_SIGNATURE_BYTES) throw new AppError('EMPTY_SIGNATURE', '서명이 비어 있습니다.');
+
+    // 서버가 요구하는 필수 동의(정본 기준). 클라이언트 입력이 아니라 서버 상수로 확정.
     const agreed = new Set(this.db.prepare('SELECT consent_key FROM consents WHERE party_id=?')
       .all(tk.party_id).map((r) => r.consent_key));
-    for (const k of consentKeysRequired) {
+    for (const k of REQUIRED_CONSENTS) {
       if (!agreed.has(k)) throw new AppError('CONSENT_MISSING', `필수 동의 누락: ${k}`);
     }
     // 전체 열람 확인
-    const viewed = this.db.prepare(
-      "SELECT 1 FROM audit_logs WHERE party_id=? AND event='DOCUMENT_VIEWED' LIMIT 1"
-    ).get(tk.party_id);
-    if (!viewed) throw new AppError('NOT_VIEWED', '전체 계약서 열람 후 서명할 수 있습니다.');
+    if (!this._hasViewed(tk.party_id)) throw new AppError('NOT_VIEWED', '전체 계약서 열람 후 서명할 수 있습니다.');
+
+    // 문서 위·변조 대조: 고객이 본 해시가 서버 정본과 일치해야 서명 유효.
+    if (clientDocHash && !safeEqualHex(clientDocHash, c.doc_hash)) {
+      audit(this.db, { contractId: tk.contract_id, partyId: tk.party_id, event: EVENTS.SIGNATURE_SUBMITTED, at: this.clock(), meta: { rejected: 'DOC_HASH_MISMATCH', clientDocHash } });
+      throw new AppError('DOC_HASH_MISMATCH', '계약서 내용이 변경되었습니다. 처음부터 다시 진행해 주세요.');
+    }
 
     const { ipHash, uaHash } = this._ctx(ctx);
-    const imgHash = sha256(Buffer.isBuffer(imageBytes) ? imageBytes : Buffer.from(String(imageBytes)));
+    const imgHash = sha256(buf);
     const now = this.clock();
     this.db.prepare(
       `INSERT INTO signatures(id,contract_id,party_id,image_sha256,image_ref,doc_hash_seen,signed_at,ip_hash,ua_hash)
@@ -256,10 +297,16 @@ export class ContractService {
     ).run(newId('sg'), tk.contract_id, tk.party_id, imgHash, `server://sig/${tk.contract_id}/${tk.party_id}`, c.doc_hash, now, ipHash, uaHash);
     // 서명 토큰 1회성 소진
     this.db.prepare('UPDATE sign_tokens SET used_at=? WHERE id=?').run(now, tk.id);
-    this.db.prepare(`UPDATE contracts SET status='COMPLETED', completed_at=?, updated_at=? WHERE id=?`).run(now, now, tk.contract_id);
+    // 종료상태로만 전이(경합 방지: 서명 가능 상태에서만 COMPLETED 로)
+    const upd = this.db.prepare(`UPDATE contracts SET status='COMPLETED', completed_at=?, updated_at=? WHERE id=? AND status IN('LOCKED','SENT','VIEWED')`).run(now, now, tk.contract_id);
+    if (upd.changes === 0) throw new AppError('ALREADY_COMPLETED', '이미 체결이 완료된 계약입니다.');
     audit(this.db, { contractId: tk.contract_id, partyId: tk.party_id, event: EVENTS.SIGNATURE_SUBMITTED, at: now, meta: { imageSha256: imgHash, docHashSeen: c.doc_hash } });
     audit(this.db, { contractId: tk.contract_id, event: EVENTS.CONTRACT_COMPLETED, at: now });
-    return { completed: true, imageSha256: imgHash };
+    return { completed: true, imageSha256: imgHash, docHash: c.doc_hash };
+  }
+
+  _hasViewed(partyId) {
+    return !!this.db.prepare("SELECT 1 FROM audit_logs WHERE party_id=? AND event='DOCUMENT_VIEWED' LIMIT 1").get(partyId);
   }
 
   // 12) 완료본 단기 열람 링크(장기 공개 URL 금지 → 15분 view 토큰)

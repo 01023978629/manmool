@@ -5,6 +5,10 @@
 import { randomBytes, createHash, createHmac, timingSafeEqual } from 'node:crypto';
 
 // 운영에서는 반드시 환경변수/시크릿 매니저로 주입. 데모는 고정 페퍼로 재현성 확보.
+// 운영(NODE_ENV=production)에서 PEPPER 미설정이면 기동을 거부한다(fail-fast).
+if (process.env.NODE_ENV === 'production' && !process.env.CONTRACT_PEPPER) {
+  throw new Error('보안: 운영 환경에서는 CONTRACT_PEPPER 를 반드시 설정해야 합니다.');
+}
 const PEPPER = process.env.CONTRACT_PEPPER || 'DEMO_PEPPER_do_not_use_in_prod';
 
 export function newId(prefix) {

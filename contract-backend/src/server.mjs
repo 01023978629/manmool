@@ -13,8 +13,12 @@ import { MockKakaoMessageProvider } from './providers/kakao.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-// enableDemo: 데모 시드/OTP 반환 등 개발 편의 기능. 운영 배포에서는 false.
-export function createApp({ dbPath = ':memory:', demoOtp = '246810', enableDemo = true } = {}) {
+// 안전한 기본값: 데모 기능은 명시적으로 켜야만 동작한다(enableDemo=false, demoOtp=null 기본).
+// 운영(NODE_ENV=production)에서 데모가 켜져 있으면 기동을 거부한다(fail-fast).
+export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = false } = {}) {
+  if (process.env.NODE_ENV === 'production' && (enableDemo || demoOtp)) {
+    throw new Error('보안: 운영 환경에서는 데모 모드(enableDemo/demoOtp)를 사용할 수 없습니다.');
+  }
   const db = openDb(dbPath);
   const svc = new ContractService(db, { demoOtp });
   const provider = new MockKakaoMessageProvider({ deliverAfterMs: 0 });
@@ -59,7 +63,7 @@ export function createApp({ dbPath = ':memory:', demoOtp = '246810', enableDemo 
   on('POST', /^\/api\/sign\/signature$/, async (req) => {
     const b = await body(req);
     const bytes = b.imageBase64 ? Buffer.from(b.imageBase64, 'base64') : Buffer.from('');
-    return svc.submitSignature(tok(req), { imageBytes: bytes }, ctx(req));
+    return svc.submitSignature(tok(req), { imageBytes: bytes, clientDocHash: b.clientDocHash }, ctx(req));
   });
 
   const server = createServer(async (req, res) => {
@@ -76,8 +80,10 @@ export function createApp({ dbPath = ':memory:', demoOtp = '246810', enableDemo 
       }
       json(res, 404, { error: 'NOT_FOUND' });
     } catch (e) {
-      const status = e instanceof AppError ? e.httpStatus : 500;
-      json(res, status, { error: e.code || 'INTERNAL', message: e.message });
+      if (e instanceof AppError) { json(res, e.httpStatus, { error: e.code, message: e.message }); return; }
+      // 비-AppError(예상치 못한 500)는 내부 메시지/스택을 노출하지 않는다.
+      console.error('[contract] 내부 오류:', e && e.stack ? e.stack : e);
+      json(res, 500, { error: 'INTERNAL', message: '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.' });
     }
   });
   return { server, db, svc, provider };
@@ -141,13 +147,16 @@ function body(req) {
 }
 
 // 직접 실행 시 8787 포트로 기동 + 데모 계약 1건 자동 시드.
+// 데모 모드는 여기서 "명시적으로" 켠다(라이브러리 기본값은 안전한 off).
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const { server, svc, provider } = createApp();
+  if (process.env.NODE_ENV === 'production') { console.error('운영 환경에서는 이 데모 서버를 직접 실행할 수 없습니다.'); process.exit(1); }
+  const demoOtp = process.env.DEMO_OTP || '246810';
+  const { server, svc, provider } = createApp({ enableDemo: true, demoOtp });
   const port = process.env.PORT || 8787;
   server.listen(port, () => {
     const seed = seedDemoContract(svc, provider);
-    console.log(`\n전자계약 Mock 서버 http://localhost:${port}  (실제 발송 없음 · 전부 Mock)`);
+    console.log(`\n전자계약 Mock 서버 http://localhost:${port}  (실제 발송 없음 · 전부 Mock · 데모 모드)`);
     console.log(`서명 화면 열기 →  http://localhost:${port}${seed.signPath}`);
-    console.log(`(데모 본인확인 번호: ${process.env.DEMO_OTP || '246810'})\n`);
+    console.log(`(데모 본인확인 번호: ${demoOtp} · 로컬 데모 전용)\n`);
   });
 }

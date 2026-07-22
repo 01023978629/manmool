@@ -21,14 +21,18 @@
 | 전화번호 원문 로그 금지 | 마스킹 + HMAC 해시만 저장 |
 | 일회용 토큰 ≥128bit, DB엔 해시만 | `crypto.issueToken()`(256bit) + `token_hash` |
 | 완료본 장기 공개 URL 금지 | 15분 만료 `view` 토큰 |
+| 동의 증거 위조 방지 | 동의문 정본은 서버 상수, 서버가 해시 계산(클라이언트 텍스트 불신) |
+| 완료 계약 봉인 | COMPLETED 후 재서명·서명링크 재발급 거부 |
+| 문서 위·변조 대조 | 서명 시 클라이언트 `docHash`와 서버 정본 일치 검증 |
+| 안전한 기본값 | 데모/시크릿 기본 off·운영에서 fail-fast |
 
 ## 실행
 
 ```bash
 cd contract-backend
-node test/e2e.mjs          # 서비스 계층 E2E (24건)
-node test/http.mjs         # HTTP 계층 스모크 (12건)
-node test/integration.mjs  # 브라우저↔서버 통합 (23건, playwright 있을 때)
+node test/e2e.mjs          # 서비스 계층 E2E (30건)
+node test/http.mjs         # HTTP 계층 스모크 (13건)
+node test/integration.mjs  # 브라우저↔서버 통합 (25건, playwright 있을 때)
 node src/server.mjs        # Mock 서버 기동 → 콘솔에 서명 URL 출력
 ```
 

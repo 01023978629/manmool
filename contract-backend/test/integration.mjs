@@ -9,7 +9,7 @@ const require = createRequire(import.meta.url);
 const PW = process.env.PW_PATH || '/opt/node22/lib/node_modules/playwright';
 const CHROMIUM = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium';
 
-const { server, svc } = createApp({ demoOtp: '246810' });
+const { server, svc } = createApp({ demoOtp: '246810', enableDemo: true });
 await new Promise((r) => server.listen(0, r));
 const port = server.address().port;
 const base = `http://localhost:${port}`;
@@ -25,6 +25,11 @@ catch (e) { console.log('playwright 미탑재 — 통합 테스트 건너뜀', e
 const seed = await (await fetch(base + '/api/demo/seed', { method: 'POST' })).json();
 ok('데모 시드(계약 생성·잠금·링크)', !!seed.token && !!seed.contractId);
 const signUrl = base + seed.signPath;
+
+// 서빙되는 HTML 이 유효 문서 구조(DOCTYPE·viewport·lang)를 갖는지
+const rawHtml = await (await fetch(base + '/sign')).text();
+ok('서빙 HTML: DOCTYPE·viewport·lang 존재',
+  /^<!DOCTYPE html>/i.test(rawHtml.trim()) && /name="viewport"/.test(rawHtml) && /<html lang="ko"/.test(rawHtml));
 
 const browser = await chromium.launch({ executablePath: CHROMIUM });
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
@@ -80,8 +85,12 @@ ok('full: 끝까지 스크롤 → 다음버튼 활성', await page.$('#nextF[dis
 
 // full → consent
 await clickPri();
-// 4개 동의 체크 — 매 클릭마다 render()로 재생성되므로 nth 로 매번 새로 조회
-for (let i = 0; i < 4; i++) { await page.click(`.consent >> nth=${i}`); await page.waitForTimeout(80); }
+// 키보드 접근성: 첫 항목을 포커스 후 Space 로 토글되는지(role=checkbox)
+await page.focus('.consent >> nth=0');
+await page.keyboard.press('Space'); await page.waitForTimeout(80);
+ok('consent: 키보드(Space)로 토글 + aria-checked', await page.getAttribute('.consent >> nth=0', 'aria-checked') === 'true');
+// 나머지 3건 체크(제자리 갱신이라 핸들 유지되지만 안전하게 nth 재조회)
+for (let i = 1; i < 4; i++) { await page.click(`.consent >> nth=${i}`); await page.waitForTimeout(60); }
 ok('consent: 4건 체크 → 서명 버튼 활성', await page.$('#nextC[disabled]') === null);
 
 // consent → sign (POST /api/sign/consent)
