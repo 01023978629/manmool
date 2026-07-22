@@ -1,0 +1,12 @@
+{
+  "name": "manmool-contract-backend",
+  "version": "0.1.0-mock",
+  "private": true,
+  "type": "module",
+  "description": "만물인테리어 카카오톡 기반 전자계약 — 경량 백엔드 설계 + Mock 참조구현 (실제 발송 없음)",
+  "engines": { "node": ">=22.5.0" },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node test/e2e.mjs && node test/http.mjs"
+  }
+}
