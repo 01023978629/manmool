@@ -43,6 +43,20 @@
   .banner{font-size:12.5px;padding:11px 13px;border-radius:10px;line-height:1.6;margin-bottom:14px}
   .banner.info{background:var(--trust-tint);color:var(--ink-soft)}
   .banner.warn{background:var(--warn-tint);color:var(--warn);font-weight:600}
+  .ct{border-bottom:1px solid var(--line);padding:12px 0}
+  .ct:last-child{border-bottom:none}
+  .ct-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .ct-top b{font-size:14px}
+  .ct-amt{margin-left:auto;font-weight:800}
+  .ct-sub{font-size:12.5px;color:var(--ink-soft);margin-top:3px}
+  .ct-pay{display:flex;align-items:center;gap:9px;margin-top:8px}
+  .pbar{flex:1;height:7px;border-radius:4px;background:var(--sunk);overflow:hidden;max-width:180px}
+  .pbar i{display:block;height:100%;background:var(--ok);border-radius:4px}
+  .ct-recv{font-size:12px;font-weight:800}
+  .ct-recv.due{color:var(--warn)} .ct-recv.ok{color:var(--ok)}
+  .ct-actions{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:8px}
+  .stage{font-size:11.5px;color:var(--ink-soft);display:inline-flex;align-items:center;gap:5px}
+  .linkmini{background:none;border:none;color:var(--brand);font-weight:800;font-size:11.5px;cursor:pointer;padding:4px 4px;min-height:32px}
   .msg{font-size:13px;font-weight:700;margin-top:12px;min-height:18px}
   .msg.ok{color:var(--ok)}.msg.err{color:var(--warn)}
   a{color:var(--brand)}
@@ -74,7 +88,10 @@
 
   <!-- 대시보드 -->
   <div id="dash" class="hidden">
-    <div class="banner info">이 화면에서 저장한 값은 서버(로컬 DB)에 보관되며 <b>즉시 발송에 반영</b>됩니다. 시크릿(Secret)은 화면에 원문을 다시 보여주지 않습니다(끝 4자리만).</div>
+    <p class="eyebrow">계약·대금 현황</p>
+    <div class="card" id="contractsCard"><div class="note">불러오는 중…</div></div>
+
+    <div class="banner info">아래는 연결 설정입니다. 저장한 값은 서버(로컬 DB)에 보관되며 <b>즉시 발송에 반영</b>됩니다. 시크릿은 원문을 다시 보여주지 않습니다(끝 4자리만).</div>
 
     <p class="eyebrow">연결 상태</p>
     <div class="card" id="statusCard"></div>
@@ -129,7 +146,52 @@
   $("loginBtn").onclick=function(){ TOKEN=$("tok").value.trim(); if(!TOKEN)return; sessionStorage.setItem("mm_admin_tok",TOKEN); tryLogin(); };
   $("tok").addEventListener("keydown",function(e){ if(e.key==="Enter") $("loginBtn").click(); });
 
-  function showDash(st){ $("login").classList.add("hidden"); $("dash").classList.remove("hidden"); renderStatus(st); renderForm(st); }
+  function showDash(st){ $("login").classList.add("hidden"); $("dash").classList.remove("hidden"); renderStatus(st); renderForm(st); loadContracts(); }
+
+  function won(n){ return Number(n||0).toLocaleString('en-US'); }
+  var STATUS_KO={DRAFT:'작성중',LOCKED:'잠금',SENT:'발송됨',VIEWED:'열람',SIGNING:'서명중',COMPLETED:'체결완료',VOID:'취소'};
+  function loadContracts(){
+    Promise.all([api("GET","/api/contracts"),api("GET","/api/receivables").catch(function(){return{count:0,total:0};})])
+      .then(function(r){ renderContracts(r[0].contracts||[], r[1]); })
+      .catch(function(e){ $("contractsCard").innerHTML='<div class="note">계약을 불러오지 못했습니다: '+esc(e.message||'')+'</div>'; });
+  }
+  function renderContracts(list, recv){
+    if(!list.length){ $("contractsCard").innerHTML='<div class="note">아직 계약이 없습니다. 현장 앱에서 계약서를 보내면 여기에 표시됩니다.</div>'; return; }
+    var h='<div class="status"><span class="k">미수 총액</span><span class="v"><b class="num" style="color:var(--warn);font-size:16px">'+won(recv&&recv.total)+'원</b> <span style="color:var(--ink-faint);font-size:12px">'+(recv&&recv.count||0)+'건</span></span></div>';
+    list.forEach(function(c){
+      var pay=c.payment||{}; var st=STATUS_KO[c.status]||c.status;
+      var stCls=c.status==='COMPLETED'?'on':(c.status==='VOID'?'off':'env');
+      var recvTxt=pay.stages? (pay.receivable>0? ('미수 '+won(pay.receivable)+'원') : '완납') : '분할없음';
+      h+='<div class="ct">'+
+        '<div class="ct-top"><b>'+esc(c.contractNo)+'</b> <span class="pill '+stCls+'">'+esc(st)+'</span>'+
+          '<span class="ct-amt num">'+won(c.amount)+'원</span></div>'+
+        '<div class="ct-sub">'+esc(c.customerName||'')+(c.customerPhone?(' · <span class="num">'+esc(c.customerPhone)+'</span>'):'')+'</div>'+
+        (pay.stages? ('<div class="ct-pay"><span class="pbar"><i style="width:'+(pay.total?Math.round(pay.paid/pay.total*100):0)+'%"></i></span>'+
+          '<span class="ct-recv '+(pay.receivable>0?'due':'ok')+'">'+recvTxt+'</span></div>'+
+          '<div class="ct-actions" data-cid="'+esc(c.contractId)+'"><span class="note" style="margin:0">불러오는 중…</span></div>') : '')+
+      '</div>';
+    });
+    $("contractsCard").innerHTML=h;
+    // 각 계약의 단계별 액션(입금확인) 로드
+    list.forEach(function(c){ if(!(c.payment&&c.payment.stages))return; loadStages(c.contractId); });
+  }
+  function loadStages(cid){
+    api("GET","/api/contracts/"+cid+"/payments").then(function(r){
+      var box=document.querySelector('.ct-actions[data-cid="'+cid+'"]'); if(!box)return;
+      box.innerHTML=(r.payments||[]).map(function(p){
+        var badge=p.status==='PAID'?'<span class="pill on">입금완료</span>':(p.status==='INVOICED'?'<span class="pill env">청구됨</span>':'<span class="pill off">대기</span>');
+        var btn=p.status!=='PAID'?'<button class="linkmini" data-paid="'+cid+'|'+p.stage+'">입금확인</button>':'';
+        return '<span class="stage">'+esc(p.label)+' '+won(p.amount)+' '+badge+' '+btn+'</span>';
+      }).join('');
+    }).catch(function(){});
+  }
+  // 입금확인(위임)
+  $("contractsCard").addEventListener("click",function(e){
+    var b=e.target.closest('[data-paid]'); if(!b)return;
+    var parts=b.getAttribute('data-paid').split('|'); b.disabled=true; b.textContent='...';
+    api("POST","/api/contracts/"+parts[0]+"/payments/"+parts[1]+"/paid").then(function(){ loadContracts(); })
+      .catch(function(err){ b.disabled=false; b.textContent='입금확인'; alert(err.message||'실패'); });
+  });
 
   function renderStatus(st){
     var live=st.live && st.liveReady;

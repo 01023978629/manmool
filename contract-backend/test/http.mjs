@@ -100,6 +100,12 @@ const recv = await call('GET', '/api/receivables', { admin: true });
 ok('GET /receivables (미수 mid·bal)', recv.status === 200 && recv.data.count >= 2 && recv.data.total >= 13200000 + 16500000);
 ok('receivables 무인증 거부', (await call('GET', '/api/receivables')).status === 401);
 
+// 계약 목록(운영자 대시보드)
+const clist = await call('GET', '/api/contracts', { admin: true });
+ok('GET /api/contracts 목록 + 대금 요약', clist.status === 200 && Array.isArray(clist.data.contracts) && clist.data.contracts.some((c) => c.payment && typeof c.payment.receivable === 'number'));
+ok('계약 목록 무인증 거부', (await call('GET', '/api/contracts')).status === 401);
+ok('계약 목록 전화 마스킹', clist.data.contracts.every((c) => !/\d{4}-\d{4}/.test(c.customerPhone || '')));
+
 // CORS: 허용 출처의 프리플라이트(OPTIONS) → 204 + 헤더
 const pre = await fetch(base + '/api/contracts/quick-send', { method: 'OPTIONS', headers: { origin: 'https://app.example', 'access-control-request-method': 'POST', 'access-control-request-headers': 'x-admin-token' } });
 ok('CORS 프리플라이트(허용 출처) 204', pre.status === 204 && pre.headers.get('access-control-allow-origin') === 'https://app.example' && /x-admin-token/.test(pre.headers.get('access-control-allow-headers') || ''));
