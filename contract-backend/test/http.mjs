@@ -113,6 +113,12 @@ ok('brief 결정에 등급', brief.data.decisions.every((d) => ['AUTO', 'NOTIFY'
 ok('brief 전화 원문 없음', !JSON.stringify(brief.data).match(/\d{3,4}-\d{4}-\d{4}/) && !JSON.stringify(brief.data).includes('1234-5678'));
 ok('operator brief 무인증 거부', (await call('GET', '/api/operator/brief')).status === 401);
 
+// 주간 CEO 리포트
+const weekly = await call('GET', '/api/operator/weekly', { admin: true });
+ok('GET /operator/weekly 형태', weekly.status === 200 && weekly.data.period && weekly.data.thisWeek && weekly.data.outstanding && weekly.data.decisions);
+ok('weekly 전화 원문 없음', !JSON.stringify(weekly.data).match(/\d{3,4}-\d{4}-\d{4}/) && !JSON.stringify(weekly.data).includes('1234-5678'));
+ok('operator weekly 무인증 거부', (await call('GET', '/api/operator/weekly')).status === 401);
+
 // 계약 목록(운영자 대시보드)
 const clist = await call('GET', '/api/contracts', { admin: true });
 ok('GET /api/contracts 목록 + 대금 요약', clist.status === 200 && Array.isArray(clist.data.contracts) && clist.data.contracts.some((c) => c.payment && typeof c.payment.receivable === 'number'));

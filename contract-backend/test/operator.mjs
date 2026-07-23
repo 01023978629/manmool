@@ -103,6 +103,44 @@ const emptySvc = new ContractService(emptyDb, { clock: () => new Date('2026-07-1
 const eb = emptySvc.operatorBrief({});
 ok('빈 상태 브리핑 형태 유지', eb.sense.contracts === 0 && Array.isArray(eb.decisions) && eb.decisions.length === 0 && eb.needsApprovalCount === 0);
 
+// ── 주간 CEO 리포트(독립 시드로 윈도우 경계 검증) ────────
+let wt = Date.parse('2026-08-01T00:00:00.000Z');
+const wdb = openDb(':memory:');
+const wsvc = new ContractService(wdb, { clock: () => { const s = new Date(wt).toISOString(); wt += 60 * 1000; return s; } });
+const wref = '2026-08-01T12:00:00.000Z';           // 리포트 기준(윈도우 = 7/25 12:00 ~ 8/01 12:00)
+const inWin = '2026-07-28T00:00:00.000Z';          // 윈도우 안
+const outWin = '2026-07-20T00:00:00.000Z';         // 윈도우 밖(12일 전)
+function wmk(no, amount, createdAt) {
+  const { contractId } = wsvc.createContract({ contractNo: no, title: '계약', amount, body: { site: '대전', scope: ['도배'], amount }, operator: { name: '전병덕', phone: '010-5439-8629' }, customer: { name: '고객', phone: '010-2222-3333' } });
+  wdb.prepare('UPDATE contracts SET created_at=? WHERE id=?').run(createdAt, contractId);
+  return contractId;
+}
+// 이번주 신규+완료+입금
+const w1 = wmk('W-1', 10000000, inWin);
+wdb.prepare("UPDATE contracts SET status='COMPLETED', completed_at=? WHERE id=?").run(inWin, w1);
+wsvc.seedPaymentSchedule(w1, [{ stage: 'down', label: '계약금', amount: 4000000 }]);
+wdb.prepare("UPDATE payments SET status='PAID', paid_at=? WHERE contract_id=?").run(inWin, w1);
+// 지난주 신규(윈도우 밖)
+wmk('W-2', 20000000, outWin);
+// VOID 이번주 입금(제외되어야)
+const w3 = wmk('W-3', 5000000, inWin);
+wsvc.seedPaymentSchedule(w3, [{ stage: 'down', label: '계약금', amount: 1000000 }]);
+wdb.prepare("UPDATE payments SET status='PAID', paid_at=? WHERE contract_id=?").run(inWin, w3);
+wdb.prepare("UPDATE contracts SET status='VOID' WHERE id=?").run(w3);
+
+const wr = wsvc.weeklyReport({ now: wref });
+ok('주간: 이번주 신규 1건(윈도우 밖 제외)', wr.thisWeek.newContracts.count === 1 && wr.thisWeek.newContracts.value === 10000000);
+ok('주간: 이번주 완료 1건', wr.thisWeek.completed.count === 1 && wr.thisWeek.completed.value === 10000000);
+ok('주간: 이번주 입금 VOID 제외(4M만)', wr.thisWeek.collected === 4000000);
+ok('주간: 기간 7일·기준시각', wr.period.days === 7 && wr.period.end === wref);
+ok('주간: 전화번호 미포함', !JSON.stringify(wr).match(/2222-3333/));
+ok('주간: 잘못된 now 폴백', (() => { const r = wsvc.weeklyReport({ now: 'bad' }); return !!(r && r.thisWeek && r.period); })());
+// 끝 경계 정규화: +09:00 오프셋 now가 동일 순간의 Z 형식과 같은 집계를 내야 함(문자열 비교 오집계 방지)
+const wrTz = wsvc.weeklyReport({ now: '2026-08-01T21:00:00+09:00' }); // == 2026-08-01T12:00:00Z (=wref)
+ok('주간: 타임존 오프셋 now 정규화(Z와 동일)', wrTz.thisWeek.newContracts.count === wr.thisWeek.newContracts.count && wrTz.thisWeek.completed.count === wr.thisWeek.completed.count && wrTz.thisWeek.collected === wr.thisWeek.collected && wrTz.period.end === wr.period.end);
+const ewr = new ContractService(openDb(':memory:'), { clock: () => new Date('2026-08-01T00:00:00Z').toISOString() }).weeklyReport({});
+ok('주간: 빈 상태 형태 유지', ewr.thisWeek.newContracts.count === 0 && ewr.thisWeek.collected === 0 && Array.isArray(ewr.topDecisions));
+
 console.log('\n===== 운영 브리핑(자율 루프) =====');
 R.forEach(([m, n, x]) => console.log(m, n, x ? `(${x})` : ''));
 const fails = R.filter(([m]) => m === '✗').length;

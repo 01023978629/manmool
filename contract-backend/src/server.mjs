@@ -111,6 +111,7 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   on('GET', /^\/api\/receivables$/, async (req) => { requireAdmin(req); return svc.listReceivables(); });
   on('GET', /^\/api\/finance\/summary$/, async (req) => { requireAdmin(req); return svc.financeSummary(); });
   on('GET', /^\/api\/operator\/brief$/, async (req) => { requireAdmin(req); return svc.operatorBrief({}); });
+  on('GET', /^\/api\/operator\/weekly$/, async (req) => { requireAdmin(req); return svc.weeklyReport({}); });
   on('GET', /^\/api\/contracts$/, async (req) => { requireAdmin(req); return { contracts: svc.listContracts() }; });
 
   // 범용 통지(작업지시·공지) — 자유문구 문자 발송. 현장 앱 작업지시 알림톡 버튼용.
