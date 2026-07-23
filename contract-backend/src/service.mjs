@@ -510,6 +510,33 @@ export class ContractService {
     });
   }
 
+  // 20) 재무 요약(운영자 대시보드·Phase 3) — 입금·청구·미수 집계 + 부가세 추정.
+  //     인테리어 견적은 통상 VAT 포함 총액이므로 공급가액=합계/1.1, 부가세=합계-공급가액.
+  //     '추정'이며 실제 세무 신고는 사람(세무사)이 확정한다 — AI는 집계·제안만.
+  financeSummary() {
+    const rows = this.db.prepare(
+      `SELECT p.amount, p.status, p.paid_at FROM payments p`
+    ).all();
+    const sum = (f) => rows.filter(f).reduce((s, r) => s + (r.amount || 0), 0);
+    const collected = sum((r) => r.status === 'PAID');       // 실제 입금(VAT 포함)
+    const invoiced = sum((r) => r.status === 'INVOICED');     // 청구했으나 미입금
+    const pending = sum((r) => r.status === 'PENDING');       // 아직 청구 안 함
+    const receivable = invoiced + pending;                    // 미수 = 청구중 + 대기
+    const supply = Math.round(collected / 1.1);               // 공급가액(추정)
+    const vat = collected - supply;                           // 부가세(추정)
+    // 이번 분기 입금(부가세 신고 참고) — paid_at 기준
+    const now = this.clock();
+    const y = new Date(now).getUTCFullYear();
+    const quarterStart = new Date(Date.UTC(y, Math.floor(new Date(now).getUTCMonth() / 3) * 3, 1)).toISOString();
+    const collectedThisQuarter = sum((r) => r.status === 'PAID' && r.paid_at && r.paid_at >= quarterStart);
+    return {
+      collected, invoiced, pending, receivable,
+      supply, vat, vatRate: 0.1,
+      collectedThisQuarter, quarterStart,
+      note: '부가세는 VAT 포함 총액 기준 추정치입니다. 실제 신고는 세무사가 확정합니다.',
+    };
+  }
+
   // ---- 내부 헬퍼 ----
   _contract(id) {
     const c = this.db.prepare('SELECT * FROM contracts WHERE id=?').get(id);

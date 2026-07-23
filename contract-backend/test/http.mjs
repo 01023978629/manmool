@@ -100,6 +100,12 @@ const recv = await call('GET', '/api/receivables', { admin: true });
 ok('GET /receivables (미수 mid·bal)', recv.status === 200 && recv.data.count >= 2 && recv.data.total >= 13200000 + 16500000);
 ok('receivables 무인증 거부', (await call('GET', '/api/receivables')).status === 401);
 
+// 재무 요약(부가세 추정)
+const fin = await call('GET', '/api/finance/summary', { admin: true });
+ok('GET /finance/summary 입금·부가세', fin.status === 200 && fin.data.collected >= 3300000 && fin.data.vat === fin.data.collected - fin.data.supply && fin.data.vatRate === 0.1);
+ok('finance 미수=청구+대기', fin.data.receivable === fin.data.invoiced + fin.data.pending);
+ok('finance 무인증 거부', (await call('GET', '/api/finance/summary')).status === 401);
+
 // 계약 목록(운영자 대시보드)
 const clist = await call('GET', '/api/contracts', { admin: true });
 ok('GET /api/contracts 목록 + 대금 요약', clist.status === 200 && Array.isArray(clist.data.contracts) && clist.data.contracts.some((c) => c.payment && typeof c.payment.receivable === 'number'));
