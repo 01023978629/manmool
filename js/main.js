@@ -171,13 +171,13 @@ function renderPortfolio(items, filterConfig) {
   const state = { region: null, area: null, budget: null, spaceType: null, process: null, style: null, scope: null, year: null, complex: '' };
 
   const groups = [
+    { key: 'style', label: '스타일', options: cfg.style || [] },
     { key: 'spaceType', label: '공간종류', options: spaceTypes },
     { key: 'process', label: '공정', options: processes },
     { key: 'scope', label: '공사범위', options: cfg.scope || [] },
     { key: 'region', label: '지역', options: regions },
     { key: 'area', label: '평수', options: (cfg.area || []).map((a) => a.label) },
     { key: 'budget', label: '예산', options: cfg.budget || [] },
-    { key: 'style', label: '스타일', options: cfg.style || [] },
     { key: 'year', label: '공사연도', options: years.map((y) => String(y)) }
   // 옵션이 없는 필터 그룹은 숨김 (데이터에 없는 기준은 표시하지 않음)
   ].filter((g) => (g.options || []).length > 0);
@@ -249,7 +249,13 @@ function renderPortfolio(items, filterConfig) {
         .some((v) => v && String(v).toLowerCase().includes(q.toLowerCase()))));
 
     const hasActive = !!(state.complex && state.complex.trim()) || groups.some((g) => state[g.key]);
-    countEl.innerHTML = `총 ${list.length}개 디자인` +
+    const configuredStyles = cfg.style || [];
+    const hasTenPerStyle = configuredStyles.length > 0 &&
+      configuredStyles.every((style) => optionCount('style', style) === 10);
+    const countSummary = !hasActive && hasTenPerStyle
+      ? `${configuredStyles.length}개 스타일 · 스타일별 10개 · 총 ${list.length}개 디자인`
+      : `총 ${list.length}개 디자인`;
+    countEl.innerHTML = countSummary +
       (hasActive ? ' · <button type="button" class="folio-reset" data-folio-reset>필터 초기화</button>' : '');
     emptyEl.hidden = list.length !== 0;
     if (list.length === 0) {
@@ -286,18 +292,18 @@ function renderPortfolio(items, filterConfig) {
       </article>`;
     };
 
-    // 공간별로 묶어 섹션 헤더와 함께 노출 (스타일은 카드 태그로 표시)
-    const SPACE_ORDER = ['거실', '침실', '주방', '욕실'];
-    const bySpace = {};
-    list.forEach((it) => { const k = it.spaceType || '기타'; (bySpace[k] = bySpace[k] || []).push(it); });
+    // 각 스타일의 10개 시안을 연속해서 비교할 수 있도록 스타일별로 묶는다.
+    const STYLE_ORDER = cfg.style || [];
+    const byStyle = {};
+    list.forEach((it) => { const k = it.style || '기타'; (byStyle[k] = byStyle[k] || []).push(it); });
     const keys = [
-      ...SPACE_ORDER.filter((k) => bySpace[k]),
-      ...Object.keys(bySpace).filter((k) => !SPACE_ORDER.includes(k))
+      ...STYLE_ORDER.filter((k) => byStyle[k]),
+      ...Object.keys(byStyle).filter((k) => !STYLE_ORDER.includes(k))
     ];
     let gi = 0;
-    grid.innerHTML = keys.map((space) =>
-      `<h3 class="folio-group-head">${space} 디자인 <em>${bySpace[space].length}</em></h3>` +
-      bySpace[space].map((i) => cardHTML(i, gi++)).join('')
+    grid.innerHTML = keys.map((style) =>
+      `<h3 class="folio-group-head">${style} 스타일 <em>${byStyle[style].length}</em></h3>` +
+      byStyle[style].map((i) => cardHTML(i, gi++)).join('')
     ).join('');
     observeReveal();
   };
