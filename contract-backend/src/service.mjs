@@ -646,8 +646,22 @@ export class ContractService {
     const fin = this.financeSummary();
     const recvCount = this.listReceivables().count;
     const brief = this.operatorBrief({ now: end });
+    // 사람이 읽을 CEO 리포트 텍스트(복사·전달용). 전화번호 등 PII 미포함.
+    const won = (n) => Number(n || 0).toLocaleString('en-US');
+    const dStart = start.slice(5, 10).replace('-', '/');
+    const dEnd = end.slice(5, 10).replace('-', '/');
+    const text = [
+      `📈 만물인테리어 주간 리포트 (${dStart}~${dEnd})`,
+      `• 신규 계약: ${newC.length}건 · ${won(cval(newC))}원`,
+      `• 완료 현장: ${doneC.length}건 · ${won(cval(doneC))}원`,
+      `• 이번주 입금: ${won(collected)}원 / 청구: ${won(invoiced)}원`,
+      `• 미수 잔액: ${won(fin.receivable)}원 (${recvCount}건)`,
+      `• 서명 대기: ${signing}건 · 승인 대기 결정: ${brief.needsApprovalCount}건 (총 ${brief.decisions.length})`,
+      `※ 신규·완료·입금·청구는 서로 다른 축 — 합산 금지. 발송·이체·세무 신고는 대표 결정.`,
+    ].join('\n');
     return {
       period: { start, end, days: 7 },
+      text,
       thisWeek: {
         newContracts: { count: newC.length, value: cval(newC) },
         completed: { count: doneC.length, value: cval(doneC) },
