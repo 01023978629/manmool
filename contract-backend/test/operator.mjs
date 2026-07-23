@@ -66,6 +66,13 @@ ok('등급별 그룹 합 = 결정 수', brief.decisions.length === TIER_ORDER.re
 ok('counts = byTier 길이', TIER_ORDER.every((k) => brief.counts[k] === brief.byTier[k].length));
 ok('승인대기 = APPROVE+HUMAN', brief.needsApprovalCount === brief.byTier.APPROVE.length + brief.byTier.HUMAN.length);
 ok('모든 결정에 등급 부여', brief.decisions.every((d) => TIERS[d.tier]));
+// 우선순위 정렬: 등급 우선(HUMAN<APPROVE<NOTIFY<AUTO), 같은 등급이면 금액 내림차순
+const PRI = { HUMAN: 0, APPROVE: 1, NOTIFY: 2, AUTO: 3 };
+ok('결정 우선순위 정렬(등급→금액)', brief.decisions.every((d, i, a) => {
+  if (i === 0) return true;
+  const p0 = PRI[a[i - 1].tier] ?? 9, p1 = PRI[d.tier] ?? 9;
+  return p0 < p1 || (p0 === p1 && (a[i - 1].amount || 0) >= (d.amount || 0));
+}));
 
 // 프라이버시: 전화 원문 미포함(마스킹조차 응답에서 제거 — 노출면 축소)
 const dump = JSON.stringify(brief);

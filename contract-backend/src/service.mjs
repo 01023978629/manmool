@@ -607,6 +607,10 @@ export class ContractService {
       }
     }
 
+    // 우선순위 정렬: 대표 조치가 필요한 것(HUMAN·APPROVE) 먼저, 같은 등급이면 금액 큰 것 먼저.
+    // → 주간 리포트 topDecisions·API 소비자가 '가장 급한 것'을 먼저 본다.
+    const PRI = { HUMAN: 0, APPROVE: 1, NOTIFY: 2, AUTO: 3 };
+    decisions.sort((a, b) => (PRI[a.tier] ?? 9) - (PRI[b.tier] ?? 9) || (b.amount || 0) - (a.amount || 0));
     const byTier = groupByTier(decisions);
     const counts = {};
     TIER_ORDER.forEach((t) => { counts[t] = byTier[t].length; });
