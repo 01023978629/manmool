@@ -310,10 +310,33 @@ function portfolioPhotoStyle(item) {
 function renderPortfolio(items, filterConfig) {
   const grid = document.getElementById('portfolioGrid');
   const filtersEl = document.getElementById('portfolioFilters');
+  const costGuideEl = document.getElementById('portfolioCostGuide');
   const countEl = document.getElementById('portfolioCount');
   const emptyEl = document.getElementById('portfolioEmpty');
   const cfg = filterConfig || {};
   assignPortfolioDesignSheets(items);
+  const budgetGradeLabels = {
+    '3천만원 이하': '실속형',
+    '3천~5천만원': '표준형',
+    '5천~8천만원': '고급형',
+    '8천만원 이상': '프리미엄'
+  };
+  const designBomFor = (item) => {
+    if (!item || !item.aiDesign || !window.DesignBom) return null;
+    if (!item.__designBom) {
+      item.__designBom = window.DesignBom.build(
+        item,
+        window.MANMUL && window.MANMUL.materialCatalog
+      );
+    }
+    return item.__designBom;
+  };
+  const costRangeFor = (item) => {
+    const bom = designBomFor(item);
+    return bom
+      ? window.DesignBom.formatCompactRange(bom.rangeLow, bom.rangeHigh)
+      : (item.cost || item.budget || null);
+  };
 
   // 데이터에서 옵션 파생 (지역·공간종류·공정·연도)
   const uniq = (key) => [...new Set(items.map((x) => x[key]).filter((v) => v != null))];
@@ -328,8 +351,8 @@ function renderPortfolio(items, filterConfig) {
   const groups = [
     { key: 'spaceType', label: '공간종류', options: spaceTypes, step: 1, requires: [] },
     { key: 'style', label: '스타일', options: cfg.style || [], step: 2, requires: ['spaceType'] },
-    { key: 'area', label: '평수', options: (cfg.area || []).map((a) => a.label), step: 3, requires: ['spaceType', 'style'] },
-    { key: 'budget', label: '예산', options: cfg.budget || [], step: 4, requires: ['spaceType', 'style', 'area'] },
+    { key: 'area', label: '주택 평수', options: (cfg.area || []).map((a) => a.label), step: 3, requires: ['spaceType', 'style'] },
+    { key: 'budget', label: '공간 예상비용', options: cfg.budget || [], step: 4, requires: ['spaceType', 'style', 'area'] },
     { key: 'process', label: '공정', options: processes },
     { key: 'scope', label: '공사범위', options: cfg.scope || [] },
     { key: 'region', label: '지역', options: regions },
@@ -359,10 +382,22 @@ function renderPortfolio(items, filterConfig) {
     return option ? candidates.filter((item) => optionMatches(item, group.key, option)).length : candidates.length;
   };
 
+  const optionLabel = (group, option) => {
+    if (!option || group.key !== 'budget') return option || '전체';
+    const boms = candidatesForGroup(group)
+      .filter((item) => optionMatches(item, group.key, option))
+      .map(designBomFor)
+      .filter(Boolean);
+    if (!boms.length) return budgetGradeLabels[option] || option;
+    const low = Math.min(...boms.map((bom) => bom.rangeLow));
+    const high = Math.max(...boms.map((bom) => bom.rangeHigh));
+    return `${budgetGradeLabels[option] || option} · ${window.DesignBom.formatCompactRange(low, high)}`;
+  };
+
   const filterChip = (group, option, enabled) => {
     const showCount = ['spaceType', 'style', 'area', 'budget'].includes(group.key);
     const count = optionCount(group, option);
-    const label = option || '전체';
+    const label = optionLabel(group, option);
     const countHtml = showCount ? `<span class="fg-chip-count" aria-hidden="true">${count}</span>` : '';
     const active = option ? state[group.key] === option : !state[group.key];
     return `<button class="fg-chip${active ? ' active' : ''}" data-val="${option || ''}"${showCount ? ` aria-label="${label} ${count}개 디자인"` : ''}${enabled ? '' : ' disabled'}>${label}${countHtml}</button>`;
@@ -385,7 +420,7 @@ function renderPortfolio(items, filterConfig) {
         <label class="fg-label" for="folioFilter-${group.key}">${label}</label>
         <select class="folio-filter-select" id="folioFilter-${group.key}">
           <option value="">전체 ${group.label} (${optionCount(group, '')})</option>
-          ${options.map((option) => `<option value="${option}"${state[group.key] === option ? ' selected' : ''}>${option} (${optionCount(group, option)})</option>`).join('')}
+          ${options.map((option) => `<option value="${option}"${state[group.key] === option ? ' selected' : ''}>${optionLabel(group, option)} (${optionCount(group, option)})</option>`).join('')}
         </select>
       </div>`;
     }
@@ -403,7 +438,7 @@ function renderPortfolio(items, filterConfig) {
     filtersEl.innerHTML = `
       <div class="folio-search">
         <input type="search" id="folioComplex" placeholder="공간·스타일 검색 (예: 거실 모던)" aria-label="디자인 검색" />
-        <span class="folio-ai-note">📷 공간종류부터 선택하면 스타일·평수·예산이 순서대로 맞춰집니다</span>
+        <span class="folio-ai-note">공간종류부터 선택하면 스타일·평수·공간 예상비용이 순서대로 맞춰집니다</span>
       </div>
       ${groups.map(filterGroup).join('')}`;
     const searchInput = filtersEl.querySelector('#folioComplex');
@@ -415,6 +450,43 @@ function renderPortfolio(items, filterConfig) {
     const range = (cfg.area || []).find((a) => a.label === state.area);
     if (!range) return true;
     return item.area >= range.min && item.area < range.max;
+  };
+
+  const representativeForSpace = (space) => {
+    const list = items
+      .filter((item) =>
+        item.spaceType === space &&
+        item.budget === '3천~5천만원' &&
+        item.area >= 20 &&
+        item.area < 40 &&
+        designBomFor(item))
+      .sort((a, b) => designBomFor(a).total - designBomFor(b).total);
+    return list[Math.floor(list.length / 2)] || null;
+  };
+
+  const renderCostGuide = () => {
+    if (!costGuideEl) return;
+    costGuideEl.innerHTML = `
+      <div class="space-cost-guide-head">
+        <div>
+          <h3>공간별 대표 예상비용</h3>
+          <p>20~39평형 · 표준형 시안 중앙값 · 해당 공간 한 곳 기준</p>
+        </div>
+        <span>부가세 포함 · 철거·폐기 별도</span>
+      </div>
+      <div class="space-cost-list">
+        ${spaceTypes.map((space) => {
+          const item = representativeForSpace(space);
+          const bom = designBomFor(item);
+          if (!item || !bom) return '';
+          return `
+            <button type="button" class="space-cost-item${state.spaceType === space ? ' active' : ''}" data-cost-space="${space}" aria-label="${space} 디자인 ${window.DesignBom.formatCompactRange(bom.rangeLow, bom.rangeHigh)} 보기">
+              <span>${space}</span>
+              <strong>${window.DesignBom.formatCompactRange(bom.rangeLow, bom.rangeHigh)}</strong>
+              <small>약 ${bom.metrics.roomPyeong}평 공간</small>
+            </button>`;
+        }).join('')}
+      </div>`;
   };
 
   const draw = () => {
@@ -434,6 +506,7 @@ function renderPortfolio(items, filterConfig) {
     const hasActive = !!(state.complex && state.complex.trim()) || groups.some((g) => state[g.key]);
     const hasThirtyPerSpace = spaceTypes.length > 0 &&
       spaceTypes.every((space) => items.filter((item) => item.spaceType === space).length === 30);
+    renderCostGuide();
     const countSummary = !hasActive && hasThirtyPerSpace
       ? `${spaceTypes.length}개 공간 · 공간별 30개 · 총 ${list.length}개 디자인`
       : `총 ${list.length}개 디자인`;
@@ -446,12 +519,20 @@ function renderPortfolio(items, filterConfig) {
 
     const cardHTML = (i, idx) => {
       // 값이 있는 항목만 노출 (모르는 수치는 지어내지 않음)
-      const specs = [
-        ['공간', i.spaceType],
-        ['평수', i.area ? i.area + '평' : null],
-        ['스타일', i.style],
-        ['예산', i.cost || i.budget || null]
-      ].filter(([, v]) => v);
+      const bom = designBomFor(i);
+      const specs = bom
+        ? [
+          ['기준 주택', i.area ? i.area + '평형' : null],
+          ['공간 면적', `${bom.metrics.roomPyeong}평 · ${bom.metrics.floorM2}m²`],
+          ['마감 등급', bom.tierLabel],
+          ['공간 예상비용', costRangeFor(i), 'folio-cost-spec']
+        ].filter(([, v]) => v)
+        : [
+          ['공간', i.spaceType],
+          ['평수', i.area ? i.area + '평' : null],
+          ['스타일', i.style],
+          ['예산', i.cost || i.budget || null]
+        ].filter(([, v]) => v);
       const badge = i.aiDesign ? `<span class="ai-badge">${i.trendLabel || '✨ AI 추천 디자인'}</span>`
         : (i.photo ? '' : '<span class="ai-badge">AI 스타일 참고 이미지</span>');
       const styleTag = i.style ? `<span class="folio-style-tag">${i.style}</span>` : '';
@@ -466,7 +547,7 @@ function renderPortfolio(items, filterConfig) {
           <h3 class="folio-title">${i.title}</h3>
           ${styleFeelTagsMarkup(i, 'folio-feel-tags')}
           <dl class="folio-specs">
-            ${specs.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}
+            ${specs.map(([k, v, className]) => `<div${className ? ` class="${className}"` : ''}><dt>${k}</dt><dd>${v}</dd></div>`).join('')}
           </dl>
           ${(i.palette || []).length ? `<div class="folio-palette" aria-hidden="true">${i.palette.map((c) => `<span style="background:${c}"></span>`).join('')}</div>` : ''}
           <span class="folio-more">${i.aiDesign ? '디자인 자세히 보기 →' : '사례 상세 보기 →'}</span>
@@ -527,6 +608,17 @@ function renderPortfolio(items, filterConfig) {
     state.complex = e.target.value;
     draw();
   });
+
+  if (costGuideEl) {
+    costGuideEl.addEventListener('click', (e) => {
+      const button = e.target.closest('[data-cost-space]');
+      if (!button) return;
+      state.spaceType = button.dataset.costSpace || null;
+      clearDownstream('spaceType');
+      renderFilters();
+      draw();
+    });
+  }
 
   // 필터 초기화 (0건 탈출 + 활성 필터 리셋)
   function resetFilters() {
@@ -674,11 +766,16 @@ function openFolioModal(item, all) {
 
   const headTag = item.style || item.process || item.category || '시공 사례';
   const headSub = [item.region, item.complex].filter(Boolean).join(' · ');
+  const designBom = item.aiDesign && window.DesignBom
+    ? (item.__designBom || window.DesignBom.build(item, window.MANMUL && window.MANMUL.materialCatalog))
+    : null;
   const gridRows = [
     ['공간', item.spaceType],
-    ['평수', item.area ? item.area + '평' : null],
+    ['기준 주택', item.area ? item.area + '평형' : null],
+    ['공간 면적', designBom ? `${designBom.metrics.roomPyeong}평 · ${designBom.metrics.floorM2}m²` : null],
+    ['공간 예상비용', designBom ? window.DesignBom.formatCompactRange(designBom.rangeLow, designBom.rangeHigh) : (item.cost || item.budget)],
+    ['마감 등급', designBom ? designBom.tierLabel : null],
     ['스타일', item.style],
-    ['예산', item.cost || item.budget],
     ['주요 공정', item.process],
     ['공사범위', item.scope],
     ['공사기간', item.period],
@@ -689,9 +786,6 @@ function openFolioModal(item, all) {
     ? '욕실은 현장 배수구 위치와 바닥 높이를 실측한 뒤 물매와 재단선을 최종 확정합니다.'
     : '현장 치수에 따라 끝단 재단과 줄눈 시작 위치를 최종 조정합니다.');
   const cta = item.aiDesign ? '이 디자인으로 상담 신청' : '이 사례처럼 상담 신청';
-  const designBom = item.aiDesign && window.DesignBom
-    ? window.DesignBom.build(item, window.MANMUL && window.MANMUL.materialCatalog)
-    : null;
   const designBomHtml = designBom && window.DesignBom ? window.DesignBom.render(designBom) : '';
 
   body.innerHTML = `
@@ -751,8 +845,10 @@ function openFolioModal(item, all) {
           style: item.style,
           spaceType: item.spaceType,
           area: item.area || null,
-          budget: item.budget || null,
+          budget: null,
+          finishTier: designBom ? designBom.tierLabel : null,
           estimateTotal: designBom ? designBom.total : null,
+          estimateRange: designBom ? window.DesignBom.formatCompactRange(designBom.rangeLow, designBom.rangeHigh) : null,
           estimateBasis: designBom ? `${designBom.metrics.roomPyeong}평 공간·${designBom.tierLabel} 사양` : null
         });
       }

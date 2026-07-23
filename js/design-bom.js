@@ -6,7 +6,9 @@
   const PRICE_BASIS = '2026.07 수도권 소규모 현장';
   const PRICE_SOURCES = [
     { label: '2026 시중노임단가', href: 'https://info.cak.or.kr/lay1/bbs/S1T9C12/A/2/view.do?article_seq=153489&condition=&cpage=1&keyword=&mode=view&rows=10' },
-    { label: '2026 건설공사 표준품셈', href: 'https://www.codil.or.kr/helpdesk/read.do?bbsId=BBSMSTR_900000000202&nttId=13261' }
+    { label: '2026 건설공사 표준품셈', href: 'https://www.codil.or.kr/helpdesk/read.do?bbsId=BBSMSTR_900000000202&nttId=13261' },
+    { label: '욕실 패키지 시장가', href: 'https://soomgo.com/market/products/6560ec0bb9f9d6cebf0a3460' },
+    { label: '2026 도배 시장가', href: 'https://soomgo.com/blog/interior/%EB%8F%84%EB%B0%B0%EA%B0%80%EA%B2%A9/' }
   ];
 
   const CATEGORY_THUMBNAILS = {
@@ -94,6 +96,15 @@
   const roundUnit = (value) => Math.max(0, Math.round(value / 1000) * 1000);
   const roundAmount = (value) => Math.max(0, Math.round(value / 10000) * 10000);
   const formatWon = (value) => '₩' + Math.round(value || 0).toLocaleString('ko-KR');
+  const compactManwon = (value, direction) => {
+    const amount = Math.max(0, Number(value) || 0);
+    const rounded = direction === 'down'
+      ? Math.floor(amount / 100000) * 10
+      : Math.ceil(amount / 100000) * 10;
+    return rounded.toLocaleString('ko-KR');
+  };
+  const formatCompactRange = (low, high) =>
+    `${compactManwon(low, 'down')}~${compactManwon(high, 'up')}만원`;
 
   function thumbnailFor(definition) {
     const text = [definition.category, definition.name, definition.spec].filter(Boolean).join(' ');
@@ -268,35 +279,35 @@
 
     addLine(lines, tier, catalogLine(catalog, tier, 'tile', wallTile, {
       category: '벽타일', name: wallTile, spec: '무광 포세린·접착제·줄눈 포함',
-      quantity: metrics.wallM2 * 1.1, unit: 'm²', materialUnit: 52000, laborUnit: 92000
+      quantity: metrics.wallM2 * 1.1, unit: 'm²', materialUnit: 42000, laborUnit: 74000
     }));
     addLine(lines, tier, catalogLine(catalog, tier, 'tile', floorName, {
       category: '바닥타일', name: floorName, spec: '습식 논슬립 타일·다방향 물매 포함',
-      quantity: metrics.floorM2 * 1.15, unit: 'm²', materialUnit: 47000, laborUnit: 118000
+      quantity: metrics.floorM2 * 1.15, unit: 'm²', materialUnit: 38000, laborUnit: 94000
     }));
     addLine(lines, tier, catalogLine(catalog, tier, 'waterproofing', '욕실 타일 하부 방수', {
       category: '방수', name: '욕실 2차 도막방수', spec: '프라이머·코너 밴드·배수구 보강·담수시험 포함',
-      quantity: metrics.floorM2 * 1.85, unit: 'm²', materialUnit: 19000, laborUnit: 39000
+      quantity: metrics.floorM2 * 1.85, unit: 'm²', materialUnit: 14000, laborUnit: 30000
     }));
     addLine(lines, tier, catalogLine(catalog, tier, 'sanitary', '양변기', {
       category: '위생도기', name: '절수형 양변기', spec: '배수거리 305mm 기준·설치 부속 포함',
-      quantity: 1, unit: '세트', materialUnit: 430000, laborUnit: 160000
+      quantity: 1, unit: '세트', materialUnit: 280000, laborUnit: 110000
     }));
     addLine(lines, tier, {
       category: '세면가구', name: firstMaterial(item, /세면대|거울 수납장/, '하부장 일체형 세면대·거울장'), spec: '세면볼·하부장·거울장·팝업 포함',
-      quantity: 1, unit: '세트', materialUnit: 780000, laborUnit: 220000
+      quantity: 1, unit: '세트', materialUnit: 550000, laborUnit: 150000
     });
     addLine(lines, tier, {
       category: '수전', name: firstMaterial(item, /수전/, '세면 수전·샤워 수전 세트'), spec: '세면 수전·레인샤워·앵글밸브 포함',
-      quantity: 1, unit: '세트', materialUnit: 620000, laborUnit: 230000
+      quantity: 1, unit: '세트', materialUnit: 400000, laborUnit: 150000
     });
     addLine(lines, tier, {
       category: '샤워부스', name: '강화유리 샤워 파티션', spec: '8T 강화유리·스테인리스 하드웨어',
-      quantity: 1, unit: '세트', materialUnit: 680000, laborUnit: 270000
+      quantity: 1, unit: '세트', materialUnit: 480000, laborUnit: 180000
     });
     addLine(lines, tier, {
       category: '배수·환기', name: '배수구·트랩·욕실 환풍기', spec: '악취차단 트랩·저소음 환풍기·덕트 연결',
-      quantity: 1, unit: '식', materialUnit: 310000, laborUnit: 270000
+      quantity: 1, unit: '식', materialUnit: 250000, laborUnit: 210000
     });
     return lines;
   }
@@ -469,7 +480,7 @@
           <span>${bom.priceBasis}</span>
         </div>
         <div class="fm-bom-summary">
-          <div class="fm-bom-total"><span>시안 공간 예상금액</span><strong>${formatWon(bom.total)}</strong><small>부가세 포함 · 예상 범위 ${formatWon(bom.rangeLow)}~${formatWon(bom.rangeHigh)}</small></div>
+          <div class="fm-bom-total"><span>시안 공간 예상비용</span><strong>${formatCompactRange(bom.rangeLow, bom.rangeHigh)}</strong><small>부가세 포함 · 산출 기준금액 ${formatWon(bom.total)}</small></div>
           <dl>
             <div><dt>자재비</dt><dd>${formatWon(bom.materialTotal)}</dd></div>
             <div><dt>시공비</dt><dd>${formatWon(bom.laborTotal)}</dd></div>
@@ -500,9 +511,9 @@
           </table>
         </div>
         <p class="fm-bom-sources"><b>검산 근거</b>${PRICE_SOURCES.map((source) => `<a href="${source.href}" target="_blank" rel="noopener">${source.label}</a>`).join('')}</p>
-        <p class="fm-bom-note">시안에 표시된 공간만 산정한 참고 견적입니다. 2026년 공표 노임·표준품셈을 바탕으로 수도권 소규모 현장의 최소 출역, 보양, 절단, 운반 부담을 보정했습니다. 작은 이미지는 자재 적용 예시이며 제품 링크는 사양 확인용입니다. 실제 납품가는 대리점·수량·운임에 따라 달라집니다. 현장 예비비 8%를 반영했고 철거·폐기·양중·가전·구조 변경은 제외됩니다. 최종 수량과 금액은 방문 실측 후 확정됩니다.</p>
+        <p class="fm-bom-note">시안에 표시된 공간 한 곳만 산정한 참고 견적입니다. 2026년 공표 노임·표준품셈과 최근 욕실·도배 시장가를 교차 확인해 수도권 소규모 현장의 최소 출역, 보양, 절단, 운반 부담을 반영했습니다. 작은 이미지는 자재 적용 예시이며 제품 링크는 사양 확인용입니다. 실제 납품가는 대리점·수량·운임에 따라 달라집니다. 현장 예비비 8%를 반영했고 기존 마감 철거·폐기·양중·가전·구조 변경은 제외됩니다. 최종 수량과 금액은 방문 실측 후 확정됩니다.</p>
       </section>`;
   }
 
-  root.DesignBom = { build, render, formatWon };
+  root.DesignBom = { build, render, formatWon, formatCompactRange };
 }(window));
