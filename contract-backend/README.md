@@ -32,7 +32,7 @@
 cd contract-backend
 node test/e2e.mjs          # 서비스 계층 E2E (33건)
 node test/http.mjs         # HTTP 계층 스모크 (33건)
-node test/operator.mjs     # 자율 루프·CEO 리포트 (38건)
+node test/operator.mjs     # 자율 루프·CEO 리포트 (39건)
 node test/preflight.mjs    # 배포 전 설정 점검 (10건)
 node test/admin.mjs        # 관리자 설정·인증 (12건)
 node test/payments.mjs     # 대금 청구·입금·미수 (14건)
@@ -42,7 +42,7 @@ node test/integration.mjs  # 브라우저↔서버 통합 (29건, playwright 있
 node src/server.mjs        # Mock 서버 기동 → 콘솔에 서명 URL 출력
 ```
 
-서비스·HTTP 계층 8스위트 합계 **173건** + 통합 29건(playwright).
+서비스·HTTP 계층 8스위트 합계 **174건** + 통합 29건(playwright).
 
 `node src/server.mjs` 를 실행하면 데모 계약 1건을 자동 생성하고 **바로 열 수 있는
 서명 URL**(`http://localhost:8787/sign#t=…`)을 콘솔에 찍어줍니다. 그 링크를 열면
