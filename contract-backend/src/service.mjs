@@ -617,6 +617,51 @@ export class ContractService {
     };
   }
 
+  // 22) 주간 CEO 리포트(Phase 4) — 지난 7일 운영 요약. 읽기전용·집계만.
+  //     VOID(취소) 계약은 전부 제외. 발송·세무 신고는 사람이 결정한다(집계·제안만).
+  weeklyReport({ now } = {}) {
+    let at = now || this.clock();
+    if (Number.isNaN(Date.parse(at))) at = this.clock();
+    const endMs = Date.parse(at);
+    // 끝 경계도 정규화(start와 동일 축). 원본 at의 오프셋(+09:00)·ms 생략 형식차로 인한
+    // 문자열 비교 무증상 오집계를 막는다.
+    const end = new Date(endMs).toISOString();
+    const start = new Date(endMs - 7 * 86400000).toISOString();
+    // 반열림 [start, end) — 연속 주간 실행 시 경계 타임스탬프 이중계상 방지.
+    const inWin = (iso) => !!iso && iso >= start && iso < end;
+    // VOID 제외 — 취소 계약은 매출·미수·완료 어디에도 넣지 않는다.
+    const contracts = this.db.prepare(
+      "SELECT id, contract_no, amount, status, completed_at, created_at FROM contracts WHERE status != 'VOID'"
+    ).all();
+    const pays = this.db.prepare(
+      "SELECT p.amount, p.status, p.paid_at, p.invoiced_at FROM payments p JOIN contracts c ON c.id=p.contract_id WHERE c.status != 'VOID'"
+    ).all();
+    const cval = (arr) => arr.reduce((s, c) => s + (c.amount || 0), 0);
+    const paySum = (f) => pays.filter(f).reduce((s, p) => s + (p.amount || 0), 0);
+    const newC = contracts.filter((c) => inWin(c.created_at));
+    const doneC = contracts.filter((c) => c.status === 'COMPLETED' && inWin(c.completed_at));
+    const collected = paySum((p) => p.status === 'PAID' && inWin(p.paid_at));
+    const invoiced = paySum((p) => inWin(p.invoiced_at));
+    const signing = contracts.filter((c) => c.status === 'SENT' || c.status === 'VIEWED').length;
+    const fin = this.financeSummary();
+    const recvCount = this.listReceivables().count;
+    const brief = this.operatorBrief({ now: end });
+    return {
+      period: { start, end, days: 7 },
+      thisWeek: {
+        newContracts: { count: newC.length, value: cval(newC) },
+        completed: { count: doneC.length, value: cval(doneC) },
+        collected, invoiced,
+      },
+      pipeline: { signing },
+      outstanding: { receivable: fin.receivable, receivableCount: recvCount },
+      decisions: { total: brief.decisions.length, needsApproval: brief.needsApprovalCount, byTier: brief.counts },
+      topDecisions: brief.decisions.slice(0, 5).map((d) => ({ action: d.action, tier: d.tier, contractNo: d.contractNo, reason: d.reason })),
+      generatedAt: end,
+      note: '지난 7일 운영 요약(집계·제안). 신규·완료·입금·청구는 서로 다른 축이라 합산하지 마세요(같은 계약이 여러 축에 나타날 수 있음). "이번주 청구"는 이후 입금 여부와 무관한 활동 지표입니다. 발송·이체·세무 신고는 사람이 결정합니다. 전화번호는 포함하지 않습니다.',
+    };
+  }
+
   // ---- 내부 헬퍼 ----
   _contract(id) {
     const c = this.db.prepare('SELECT * FROM contracts WHERE id=?').get(id);
