@@ -147,10 +147,157 @@ const STYLE_FEEL_TAGS = {
   '스마트 수납': ['실용적인', '공간활용', '정돈된']
 };
 
+const SPACE_DESIGN_SHEETS = {
+  '거실': ['assets/design-sheets/living-a.webp', 'assets/design-sheets/living-b.webp'],
+  '침실': ['assets/design-sheets/bedroom-a.webp', 'assets/design-sheets/bedroom-b.webp'],
+  '주방': ['assets/design-sheets/kitchen-a.webp', 'assets/design-sheets/kitchen-b.webp'],
+  '욕실': ['assets/design-sheets/bathroom-a.webp', 'assets/design-sheets/bathroom-b.webp'],
+  '현관': ['assets/design-sheets/entry-a.webp', 'assets/design-sheets/entry-b.webp'],
+  '서재': ['assets/design-sheets/study-a.webp', 'assets/design-sheets/study-b.webp'],
+  '아이방': ['assets/design-sheets/kids-a.webp', 'assets/design-sheets/kids-b.webp'],
+  '드레스룸': ['assets/design-sheets/dressing-a.webp', 'assets/design-sheets/dressing-b.webp']
+};
+
+const SPACE_STYLE_SCENES = {
+  '거실': {
+    '미니멀': [0, 2, 5],
+    '내추럴': [11, 14, 24],
+    '북유럽': [4, 16, 29],
+    '모던': [3, 10, 30],
+    '인더스트리얼': [6, 22, 28],
+    '빈티지': [15, 20, 23],
+    '스마트 수납': [13, 21, 25],
+    '웜 베이지': [7, 17, 31],
+    '재팬디': [12, 27],
+    '프렌치': [8, 19],
+    '호텔식': [1, 26]
+  },
+  '침실': {
+    '웜 베이지': [0, 8],
+    '프렌치': [3, 12, 20],
+    '내추럴': [6, 11, 16],
+    '재팬디': [15, 19, 29],
+    '북유럽': [7, 9, 25],
+    '빈티지': [10, 13, 26],
+    '스마트 수납': [1, 17, 27],
+    '미니멀': [5, 22, 30],
+    '모던': [14, 18, 23],
+    '인더스트리얼': [4, 31],
+    '호텔식': [21, 28]
+  },
+  '주방': {
+    '모던': [9, 18, 20],
+    '미니멀': [0, 7, 28],
+    '내추럴': [1, 5, 16],
+    '북유럽': [4, 11, 21],
+    '빈티지': [8, 10, 22],
+    '인더스트리얼': [2, 19, 24],
+    '프렌치': [6, 13, 23],
+    '호텔식': [14, 25],
+    '웜 베이지': [3, 17, 31],
+    '재팬디': [15, 26],
+    '스마트 수납': [27, 30]
+  },
+  '욕실': {
+    '호텔식': [1, 2, 7, 26],
+    '모던': [11, 12, 25],
+    '내추럴': [6, 8, 16],
+    '웜 베이지': [3, 10, 18],
+    '재팬디': [14, 22, 30],
+    '미니멀': [0, 27],
+    '북유럽': [4, 13, 17],
+    '인더스트리얼': [5, 19],
+    '빈티지': [9, 21],
+    '프렌치': [15, 20, 24],
+    '스마트 수납': [28, 31]
+  },
+  '현관': {
+    '내추럴': [0, 5, 20],
+    '미니멀': [1, 9, 22],
+    '북유럽': [7, 19, 29],
+    '인더스트리얼': [8, 16, 24],
+    '빈티지': [3, 23, 28],
+    '웜 베이지': [10, 12, 31],
+    '프렌치': [14, 17],
+    '재팬디': [2, 11, 27],
+    '호텔식': [4, 13, 18],
+    '모던': [26, 30],
+    '스마트 수납': [6, 21]
+  },
+  '서재': {
+    '모던': [1, 13, 24],
+    '인더스트리얼': [10, 11, 21],
+    '미니멀': [3, 15, 29],
+    '빈티지': [8, 12, 18],
+    '웜 베이지': [17, 22, 27],
+    '프렌치': [2, 23, 26],
+    '재팬디': [5, 14, 25],
+    '스마트 수납': [4, 19],
+    '호텔식': [6, 28, 30],
+    '내추럴': [0, 31],
+    '북유럽': [7, 16]
+  },
+  '아이방': {
+    '스마트 수납': [2, 12, 21],
+    '미니멀': [5, 15, 31],
+    '내추럴': [0, 11, 19],
+    '북유럽': [1, 4, 17],
+    '빈티지': [7, 26, 29],
+    '웜 베이지': [6, 13],
+    '프렌치': [3, 9, 20],
+    '재팬디': [10, 14, 25],
+    '인더스트리얼': [8, 24, 30],
+    '모던': [18, 22],
+    '호텔식': [16, 23]
+  },
+  '드레스룸': {
+    '모던': [7, 9, 29],
+    '호텔식': [1, 10, 25],
+    '인더스트리얼': [6, 8, 18],
+    '스마트 수납': [3, 11, 30],
+    '웜 베이지': [2, 5, 17],
+    '프렌치': [4, 21, 28],
+    '재팬디': [13, 16, 31],
+    '미니멀': [12, 19, 23],
+    '내추럴': [0, 24],
+    '북유럽': [14, 22],
+    '빈티지': [26, 27]
+  }
+};
+
 function styleFeelTagsMarkup(item, className) {
   const tags = STYLE_FEEL_TAGS[item.style] || ['편안한', '조화로운', '실용적인'];
   const label = `${item.style || '디자인'} 느낌`;
   return `<div class="${className}" aria-label="${label}">${tags.map((tag) => `<span>#${tag}</span>`).join('')}</div>`;
+}
+
+function assignPortfolioDesignSheets(items) {
+  const spaceCounts = {};
+  const styleCounts = {};
+  items.forEach((item) => {
+    const sheets = SPACE_DESIGN_SHEETS[item.spaceType];
+    if (!sheets) return;
+    const spaceIndex = spaceCounts[item.spaceType] || 0;
+    const styleKey = `${item.spaceType}:${item.style || ''}`;
+    const styleIndex = styleCounts[styleKey] || 0;
+    const styleScenes = SPACE_STYLE_SCENES[item.spaceType]?.[item.style] || [];
+    const sceneIndex = styleScenes[styleIndex] ?? spaceIndex;
+    spaceCounts[item.spaceType] = spaceIndex + 1;
+    styleCounts[styleKey] = styleIndex + 1;
+    item.__designSheet = sheets[Math.min(sheets.length - 1, Math.floor(sceneIndex / 16))];
+    item.__designCell = sceneIndex % 16;
+  });
+}
+
+function portfolioSpriteStyle(item) {
+  const cell = Math.max(0, Math.min(15, Number(item.__designCell) || 0));
+  const column = cell % 4;
+  const row = Math.floor(cell / 4);
+  return `background-image:url('${item.__designSheet}');background-size:400% 400%;background-position:${column * 100 / 3}% ${row * 100 / 3}%;`;
+}
+
+function portfolioSpriteMarkup(item, className) {
+  return `<span class="${className} portfolio-sprite" role="img" aria-label="${item.imageAlt || item.title}" style="${portfolioSpriteStyle(item)}"></span>`;
 }
 
 function portfolioPhotoStyle(item) {
@@ -166,6 +313,7 @@ function renderPortfolio(items, filterConfig) {
   const countEl = document.getElementById('portfolioCount');
   const emptyEl = document.getElementById('portfolioEmpty');
   const cfg = filterConfig || {};
+  assignPortfolioDesignSheets(items);
 
   // 데이터에서 옵션 파생 (지역·공간종류·공정·연도)
   const uniq = (key) => [...new Set(items.map((x) => x[key]).filter((v) => v != null))];
@@ -310,7 +458,7 @@ function renderPortfolio(items, filterConfig) {
       return `
       <article class="folio reveal" data-id="${i.id}" tabindex="0" role="button" aria-label="${i.title} 상세보기">
         <div class="folio-photo">
-          ${i.photo ? `<img class="scene" src="${i.photo}" alt="${i.imageAlt || i.title}" style="${portfolioPhotoStyle(i)}" loading="lazy" decoding="async" />` : roomScene(i, idx, i.afterColor)}
+          ${i.__designSheet ? portfolioSpriteMarkup(i, 'scene') : i.photo ? `<img class="scene" src="${i.photo}" alt="${i.imageAlt || i.title}" style="${portfolioPhotoStyle(i)}" loading="lazy" decoding="async" />` : roomScene(i, idx, i.afterColor)}
           ${badge}
           ${styleTag}
         </div>
@@ -507,14 +655,20 @@ function openFolioModal(item, all) {
     .slice(0, 3)
     .map((o) => o.x);
 
-  const simThumb = (s) => s.photo
-    ? `<span class="fm-sim-thumb" style="background-image:url('${s.photo}');background-size:cover;background-position:${s.photoPosition || 'center'}"></span>`
-    : `<span class="fm-sim-thumb" style="background:linear-gradient(150deg, ${s.afterColor || '#cdb8a0'}, ${shade(s.afterColor || '#cdb8a0', -14)})"></span>`;
+  const simThumb = (s) => s.__designSheet
+    ? portfolioSpriteMarkup(s, 'fm-sim-thumb')
+    : s.photo
+      ? `<span class="fm-sim-thumb" style="background-image:url('${s.photo}');background-size:cover;background-position:${s.photoPosition || 'center'}"></span>`
+      : `<span class="fm-sim-thumb" style="background:linear-gradient(150deg, ${s.afterColor || '#cdb8a0'}, ${shade(s.afterColor || '#cdb8a0', -14)})"></span>`;
   const simSub = (s) => [s.spaceType, s.process || s.style].filter(Boolean).join(' · ') || '시공 사례';
 
   const mediaCap = item.aiDesign ? 'AI 추천 디자인 시안' : '시공 현장';
-  const media = item.photo
-    ? `<figure class="fm-single"><div class="fm-img"><img class="scene" src="${item.photo}" alt="${item.imageAlt || item.title}" style="${portfolioPhotoStyle(item)}" /></div><figcaption>${mediaCap}</figcaption></figure>`
+  const hasSingleMedia = !!(item.__designSheet || item.photo);
+  const singleMedia = item.__designSheet
+    ? portfolioSpriteMarkup(item, 'scene')
+    : `<img class="scene" src="${item.photo}" alt="${item.imageAlt || item.title}" style="${portfolioPhotoStyle(item)}" />`;
+  const media = hasSingleMedia
+    ? `<figure class="fm-single"><div class="fm-img">${singleMedia}</div><figcaption>${mediaCap}</figcaption></figure>`
     : `<figure><div class="fm-img">${roomScene(item, 'b', item.beforeColor)}</div><figcaption>BEFORE</figcaption></figure>
        <figure><div class="fm-img">${roomScene(item, 'a', item.afterColor)}</div><figcaption class="after">AFTER</figcaption></figure>`;
 
@@ -541,7 +695,7 @@ function openFolioModal(item, all) {
   const designBomHtml = designBom && window.DesignBom ? window.DesignBom.render(designBom) : '';
 
   body.innerHTML = `
-    <div class="fm-ba${item.photo ? ' fm-ba-single' : ''}">
+    <div class="fm-ba${hasSingleMedia ? ' fm-ba-single' : ''}">
       ${media}
     </div>
     <div class="fm-info">
@@ -550,7 +704,7 @@ function openFolioModal(item, all) {
         <h3 id="folioModalTitle">${item.title}</h3>
         ${styleFeelTagsMarkup(item, 'fm-feel-tags')}
         ${headSub ? `<p>${headSub}</p>` : ''}
-        ${item.imageCredit && item.imageSource ? `<a class="fm-image-credit" href="${item.imageSource}" target="_blank" rel="noopener">이미지: ${item.imageCredit} · Unsplash</a>` : ''}
+        ${!item.__designSheet && item.imageCredit && item.imageSource ? `<a class="fm-image-credit" href="${item.imageSource}" target="_blank" rel="noopener">이미지: ${item.imageCredit} · Unsplash</a>` : ''}
       </div>
       ${gridRows.length ? `<dl class="fm-grid">${gridRows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>` : ''}
       ${(item.tilePlan || []).length ? `<div class="fm-block fm-tile-plan"><h4>실시공 타일 규격</h4><dl>${item.tilePlan.map((row) => `<div><dt>${row.label}</dt><dd>${row.value}</dd></div>`).join('')}</dl><p>${tileNote}</p></div>` : ''}

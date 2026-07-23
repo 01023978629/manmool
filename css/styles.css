@@ -484,6 +484,7 @@ ul, ol { list-style: none; }
 .portfolio-cards .folio:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
 .folio-photo { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
 .folio-photo .scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; }
+.portfolio-sprite { display: block; background-repeat: no-repeat; background-color: #e8e4df; }
 .ai-badge { position: absolute; right: 12px; bottom: 12px; background: rgba(20,20,20,.62); color: #fff; font-size: 11.5px; font-weight: 700; padding: 5px 12px; border-radius: 999px; backdrop-filter: blur(3px); }
 .folio-info { padding: 20px 22px 18px; display: flex; flex-direction: column; flex: 1; }
 .folio-title { font-size: 19px; font-weight: 800; letter-spacing: 0; margin-bottom: 10px; }
