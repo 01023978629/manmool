@@ -5,6 +5,7 @@ import {
   maskPhone, docHash, issueOtp,
 } from './crypto.mjs';
 import { audit, EVENTS, trail } from './audit.mjs';
+import { classify, groupByTier, TIER_ORDER } from './autonomy.mjs';
 
 const OTP_TTL_MS = 5 * 60 * 1000;       // 본인확인 OTP 5분
 const OTP_MAX_ATTEMPTS = 5;
@@ -478,7 +479,7 @@ export class ContractService {
               (SELECT name FROM contract_parties WHERE contract_id=c.id AND role='customer') AS customer_name,
               (SELECT phone_masked FROM contract_parties WHERE contract_id=c.id AND role='customer') AS customer_phone
        FROM payments p JOIN contracts c ON c.id=p.contract_id
-       WHERE p.status IN ('PENDING','INVOICED')
+       WHERE p.status IN ('PENDING','INVOICED') AND c.status != 'VOID'
        ORDER BY (p.status='INVOICED') DESC, p.amount DESC`
     ).all();
     const total = rows.reduce((s, r) => s + (r.amount || 0), 0);
@@ -488,7 +489,7 @@ export class ContractService {
   // 19) 계약 목록(운영자 대시보드) — 상태 + 대금 요약. 전화번호는 마스킹만.
   listContracts() {
     const cs = this.db.prepare(
-      `SELECT id, contract_no, title, amount, status, completed_at, created_at FROM contracts ORDER BY created_at DESC`
+      `SELECT id, contract_no, title, amount, status, completed_at, created_at, updated_at FROM contracts ORDER BY created_at DESC`
     ).all();
     return cs.map((c) => {
       const pays = this.db.prepare('SELECT amount,status FROM payments WHERE contract_id=?').all(c.id);
@@ -496,7 +497,7 @@ export class ContractService {
       const customer = this.db.prepare("SELECT name, phone_masked FROM contract_parties WHERE contract_id=? AND role='customer'").get(c.id);
       return {
         contractId: c.id, contractNo: c.contract_no, title: c.title, amount: c.amount,
-        status: c.status, completedAt: c.completed_at, createdAt: c.created_at,
+        status: c.status, completedAt: c.completed_at, createdAt: c.created_at, updatedAt: c.updated_at,
         customerName: customer ? customer.name : '', customerPhone: customer ? customer.phone_masked : '',
         payment: {
           total: sum(() => true),
@@ -515,7 +516,7 @@ export class ContractService {
   //     '추정'이며 실제 세무 신고는 사람(세무사)이 확정한다 — AI는 집계·제안만.
   financeSummary() {
     const rows = this.db.prepare(
-      `SELECT p.amount, p.status, p.paid_at FROM payments p`
+      `SELECT p.amount, p.status, p.paid_at FROM payments p JOIN contracts c ON c.id=p.contract_id WHERE c.status != 'VOID'`
     ).all();
     const sum = (f) => rows.filter(f).reduce((s, r) => s + (r.amount || 0), 0);
     const collected = sum((r) => r.status === 'PAID');       // 실제 입금(VAT 포함)
@@ -534,6 +535,85 @@ export class ContractService {
       supply, vat, vatRate: 0.1,
       collectedThisQuarter, quarterStart,
       note: '부가세는 VAT 포함 총액 기준 추정치입니다. 실제 신고는 세무사가 확정합니다.',
+    };
+  }
+
+  // 21) 운영 브리핑(자율 루프 SENSE→DECIDE) — 헌장 §2·§3.
+  //     서버 상태(계약·미수·재무)를 읽어 '다음 한 수'를 규칙 기반으로 판단하고 등급을 부여한다.
+  //     이 메서드는 아무것도 발송·실행하지 않는다(정직한 경계). 결정만 반환한다.
+  //     실제 실행은 운영자 승인(APPROVE)·사람(HUMAN) 또는 기존 발송 라우트로만 일어난다.
+  operatorBrief({ now } = {}) {
+    let at = now || this.clock();
+    if (Number.isNaN(Date.parse(at))) at = this.clock(); // 잘못된 now → 무증상 억제 방지, 서버 시계로 폴백
+    const contracts = this.listContracts();
+    const recv = this.listReceivables();
+    const fin = this.financeSummary();
+    const DAY = 86400000;
+    const nowMs = Date.parse(at);
+    const ageDays = (iso) => {
+      if (!iso) return null;
+      const t = Date.parse(iso);
+      if (Number.isNaN(t)) return null;
+      return Math.max(0, Math.floor((nowMs - t) / DAY));
+    };
+    const decisions = [];
+    const mk = (action, ctx, reason, extra) => {
+      const c = classify(action);
+      decisions.push({
+        action, tier: c.tier, tierLabel: c.label, needsApproval: c.needsApproval, humanOnly: c.humanOnly,
+        contractId: ctx.contractId || null, contractNo: ctx.contractNo || null,
+        customer: ctx.customerName || null, // 실명(운영자 식별용, 관리자 게이트 뒤). 전화번호는 응답에 싣지 않음(노출면 축소)
+        amount: ctx.amount != null ? ctx.amount : null,
+        reason, ...(extra || {}),
+      });
+    };
+
+    // 계약 상태 기반 결정
+    let signing = 0, completed = 0;
+    for (const c of contracts) {
+      if (c.status === 'SENT' || c.status === 'VIEWED') {
+        signing += 1;
+        // 나이 기준은 '발송/열람 등 최근 상태 변화'(updated_at) — 계약 생성(createdAt)이 아니라
+        // 실제 서명 대기 시작 시점을 근사한다(협상·초안 기간을 미서명 일수로 과장하지 않음).
+        const age = ageDays(c.updatedAt || c.createdAt);
+        if (age != null && age >= 2) {
+          mk('sign_reminder', c, `발송/열람 후 ${age}일째 미서명(${c.status}) — 서명 리마인드 검토`, { ageDays: age });
+        }
+      }
+      if (c.status === 'COMPLETED') {
+        completed += 1;
+        if (!c.payment || !c.payment.stages) {
+          mk('payment_invoice', c, '완료됐으나 대금 일정이 없음 — 청구 필요');
+        }
+      }
+    }
+
+    // 미수 기반 결정(청구했으나 미입금 → 독촉 / 미청구 → 청구). 모두 APPROVE(돈·고객 접촉).
+    for (const it of recv.items || []) {
+      const ctx = { contractId: it.contract_id, contractNo: it.contract_no, customerName: it.customer_name, customerPhone: it.customer_phone, amount: it.amount };
+      const age = ageDays(it.invoiced_at);
+      if (it.status === 'INVOICED') {
+        mk('payment_remind', ctx, `${it.label} 청구했으나 미입금${age != null ? ` (${age}일 경과)` : ''} — 입금 확인/독촉`, { stage: it.stage, ageDays: age });
+      } else if (it.status === 'PENDING') {
+        mk('payment_invoice', ctx, `${it.label} 미청구 — 청구 검토`, { stage: it.stage });
+      }
+    }
+
+    const byTier = groupByTier(decisions);
+    const counts = {};
+    TIER_ORDER.forEach((t) => { counts[t] = byTier[t].length; });
+    return {
+      sensedAt: at,
+      sense: {
+        contracts: contracts.length, signing, completed,
+        receivableTotal: recv.total || 0, receivableCount: recv.count || 0,
+        collected: fin.collected || 0, quarterCollected: fin.collectedThisQuarter || 0,
+      },
+      decisions,
+      byTier,
+      counts,
+      needsApprovalCount: byTier.APPROVE.length + byTier.HUMAN.length,
+      note: 'AI가 상태를 읽고 판단·우선순위화한 결과입니다. 발송·실행은 하지 않으며, 승인(APPROVE)·사람(HUMAN)은 대표가 결정합니다.',
     };
   }
 
