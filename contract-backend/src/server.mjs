@@ -110,6 +110,13 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   on('POST', /^\/api\/contracts\/([^/]+)\/payments\/([^/]+)\/paid$/, async (req, [id, stage]) => { requireAdmin(req); return svc.markPaid(id, stage); });
   on('GET', /^\/api\/receivables$/, async (req) => { requireAdmin(req); return svc.listReceivables(); });
 
+  // 범용 통지(작업지시·공지) — 자유문구 문자 발송. 현장 앱 작업지시 알림톡 버튼용.
+  on('POST', /^\/api\/notify\/quick-send$/, async (req) => {
+    requireAdmin(req); const b = await body(req);
+    // 앱은 {to, text, kind} 로 보낸다. to 는 발송 시점만 사용, 로그 금지.
+    return svc.sendNotification(currentProvider(resolveProvider), { toPhoneRaw: b.to, text: b.text, kind: b.kind || 'notify', contractId: b.contractId || null });
+  });
+
   // ── 고객(서명자) 측: 토큰은 헤더 x-sign-token 로만 ──
   const tok = (req) => req.headers['x-sign-token'] || '';
   const ctx = (req) => ({ ip: req.socket.remoteAddress, ua: req.headers['user-agent'], requestId: req.headers['x-request-id'] });

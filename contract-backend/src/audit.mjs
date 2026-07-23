@@ -27,6 +27,9 @@ export const EVENTS = Object.freeze({
   PAYMENT_INVOICED: 'PAYMENT_INVOICED',      // 청구 발송
   PAYMENT_REMINDED: 'PAYMENT_REMINDED',      // 독촉(재발송)
   PAYMENT_PAID: 'PAYMENT_PAID',              // 입금 확인(운영자)
+  // --- 범용 통지(작업지시·공지) ---
+  NOTIFY_SENT: 'NOTIFY_SENT',
+  NOTIFY_FAILED: 'NOTIFY_FAILED',
 });
 
 export function audit(db, { contractId = null, partyId = null, event, requestId = null, meta = null, at }) {

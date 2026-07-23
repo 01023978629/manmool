@@ -82,6 +82,31 @@ export class SolapiProvider extends KakaoMessageProvider {
     return { providerMsgId: null, status: 'FAILED', failedReason: data.statusMessage || data.errorMessage || `HTTP_${res.status}` };
   }
 
+  // 자유문구 문자(SMS/LMS) 발송 — 템플릿 없는 통지(작업지시·공지)용. 길이로 SMS/LMS 자동.
+  async sendText(req) {
+    const to = (req.toPhoneRaw || '').replace(/\D/g, '');
+    if (!to) return { providerMsgId: null, status: 'FAILED', failedReason: 'NO_RECIPIENT_RAW' };
+    const text = String(req.text || '');
+    if (!text.trim()) return { providerMsgId: null, status: 'FAILED', failedReason: 'EMPTY_TEXT' };
+    const byteLen = Buffer.byteLength(text, 'utf8');
+    const payload = { message: { to, from: this.cfg.sender, text, type: byteLen > 90 ? 'LMS' : 'SMS' } };
+    let res;
+    try {
+      res = await this._fetch(`${API_BASE}/messages/v4/send`, {
+        method: 'POST',
+        headers: { Authorization: this._authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    } catch (e) {
+      return { providerMsgId: null, status: 'FAILED', failedReason: `NETWORK:${e.message}` };
+    }
+    const data = await safeJson(res);
+    if (res.ok && (data.statusCode === '2000' || data.statusCode === 2000) && (data.messageId || data.groupId)) {
+      return { providerMsgId: data.messageId || data.groupId, status: 'SENT' };
+    }
+    return { providerMsgId: null, status: 'FAILED', failedReason: data.statusMessage || data.errorMessage || `HTTP_${res.status}` };
+  }
+
   async queryStatus(providerMsgId) {
     let res;
     try {
