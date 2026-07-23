@@ -30,11 +30,17 @@
 
 ```bash
 cd contract-backend
-node test/e2e.mjs          # 서비스 계층 E2E (30건)
-node test/http.mjs         # HTTP 계층 스모크 (13건)
-node test/integration.mjs  # 브라우저↔서버 통합 (25건, playwright 있을 때)
+node test/e2e.mjs          # 서비스 계층 E2E (33건)
+node test/http.mjs         # HTTP 계층 스모크 (29건)
+node test/admin.mjs        # 관리자 설정·인증 (12건)
+node test/payments.mjs     # 대금 청구·입금·미수 (14건)
+node test/notify.mjs       # 범용 통지(작업지시·공지) (10건)
+node test/solapi.mjs       # 솔라피 실발송 어댑터 (20건)
+node test/integration.mjs  # 브라우저↔서버 통합 (29건, playwright 있을 때)
 node src/server.mjs        # Mock 서버 기동 → 콘솔에 서명 URL 출력
 ```
+
+서비스·HTTP 계층 6스위트 합계 **118건** + 통합 29건(playwright).
 
 `node src/server.mjs` 를 실행하면 데모 계약 1건을 자동 생성하고 **바로 열 수 있는
 서명 URL**(`http://localhost:8787/sign#t=…`)을 콘솔에 찍어줍니다. 그 링크를 열면
@@ -81,6 +87,7 @@ contract-backend/
 운영자(관리자 토큰 `x-admin-token`):
 - 계약: `POST /api/contracts`(생성)·`/quick-send`(원클릭) · `:id/lock` · `:id/parties/:pid/{sign-link,send}` · `GET /api/contracts`(목록) · `:id/evidence`
 - 대금: `:id/payments`(seed·목록) · `:id/payments/:stage/{invoice,paid}` · `GET /api/receivables`
+- 재무: `GET /api/finance/summary`(입금·공급가액·부가세 10% 추정·분기 입금·미수) — `/admin` 재무 요약 카드·미수 CSV
 - 통지: `POST /api/notify/quick-send`(작업지시·공지 문자)
 - 관리자: `GET/POST /admin/{status,settings,selftest}` · 화면 `GET /admin`
 공용: `GET /healthz` · `GET /sign`(서명화면)
