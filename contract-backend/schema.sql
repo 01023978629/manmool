@@ -88,6 +88,24 @@ CREATE TABLE IF NOT EXISTS signatures (
   ua_hash       TEXT
 );
 
+-- 대금 스케줄(계약금·중도금·잔금). 청구·입금 상태 추적 → 자동 청구/독촉·미수 관리.
+CREATE TABLE IF NOT EXISTS payments (
+  id           TEXT PRIMARY KEY,
+  contract_id  TEXT NOT NULL REFERENCES contracts(id) ON DELETE CASCADE,
+  stage        TEXT NOT NULL,                  -- down | mid | bal
+  label        TEXT NOT NULL,                  -- 계약금 | 중도금 | 잔금
+  seq          INTEGER NOT NULL,               -- 정렬용(0,1,2)
+  amount       INTEGER NOT NULL DEFAULT 0,     -- 원(정수)
+  status       TEXT NOT NULL DEFAULT 'PENDING',-- PENDING | INVOICED | PAID
+  invoiced_at  TEXT,
+  reminded_at  TEXT,
+  paid_at      TEXT,
+  created_at   TEXT NOT NULL,
+  UNIQUE(contract_id, stage)
+);
+CREATE INDEX IF NOT EXISTS idx_pay_contract ON payments(contract_id, seq);
+CREATE INDEX IF NOT EXISTS idx_pay_status ON payments(status);
+
 -- 감사 로그. 모든 상태 전이의 append-only 원장. 전화번호/토큰 원문 금지.
 CREATE TABLE IF NOT EXISTS audit_logs (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -37,4 +37,10 @@ function seedTemplates(db) {
      '계약번호: #{contractNo}',
      '계약서 사본은 아래 버튼에서 15분간 확인하실 수 있습니다.'].join('\n'),
     JSON.stringify([{ name: '계약서 사본 보기', type: 'WL', url: '#{viewUrl}' }]));
+  ins.run('tpl_invoice', 'contract_invoice', 'alimtalk', '공사대금 안내',
+    ['[만물인테리어] #{name}님, #{stageLabel} 안내드립니다.',
+     '계약번호: #{contractNo}',
+     '#{stageLabel}: #{amount}원',
+     '입금계좌: #{payInfo}',
+     '확인 후 입금 부탁드립니다. 감사합니다.'].join('\n'), null);
 }

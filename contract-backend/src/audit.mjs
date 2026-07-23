@@ -22,6 +22,11 @@ export const EVENTS = Object.freeze({
   CONTRACT_COMPLETED: 'CONTRACT_COMPLETED',
   EVIDENCE_PACKAGE_GENERATED: 'EVIDENCE_PACKAGE_GENERATED',
   COMPLETED_DOC_ACCESSED: 'COMPLETED_DOC_ACCESSED',
+  // --- 대금 ---
+  PAYMENT_SCHEDULE_SET: 'PAYMENT_SCHEDULE_SET',
+  PAYMENT_INVOICED: 'PAYMENT_INVOICED',      // 청구 발송
+  PAYMENT_REMINDED: 'PAYMENT_REMINDED',      // 독촉(재발송)
+  PAYMENT_PAID: 'PAYMENT_PAID',              // 입금 확인(운영자)
 });
 
 export function audit(db, { contractId = null, partyId = null, event, requestId = null, meta = null, at }) {

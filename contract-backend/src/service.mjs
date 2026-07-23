@@ -24,6 +24,12 @@ const CONSENT_TEXTS = Object.freeze({
 const REQUIRED_CONSENTS = Object.freeze(['terms', 'payment', 'privacy', 'esign']);
 // 서명 가능한 계약 상태(종료상태 COMPLETED/VOID 에서는 서명 링크 발급·서명 불가)
 const SIGNABLE_STATUSES = Object.freeze(['LOCKED', 'SENT', 'VIEWED']);
+// 대금 단계(계약금·중도금·잔금)
+const PAYMENT_STAGES = Object.freeze([
+  { key: 'down', label: '계약금', seq: 0 },
+  { key: 'mid', label: '중도금', seq: 1 },
+  { key: 'bal', label: '잔금', seq: 2 },
+]);
 
 export class ContractService {
   // clock: () => ISO8601 문자열. 테스트에서 시간 고정용.
@@ -369,6 +375,90 @@ export class ContractService {
     pkg.packageHash = sha256(JSON.stringify(pkg));
     audit(this.db, { contractId, event: EVENTS.EVIDENCE_PACKAGE_GENERATED, at: this.clock(), meta: { packageHash: pkg.packageHash } });
     return pkg;
+  }
+
+  // ===== 대금(청구·입금·미수) =====
+  // 15) 대금 스케줄 설정. installments 없으면 계약 body.payment{down,mid,bal} 에서 유도.
+  seedPaymentSchedule(contractId, installments) {
+    const c = this._contract(contractId);
+    let rows = installments;
+    if (!rows) {
+      const body = JSON.parse(c.body_snapshot || '{}');
+      const p = body.payment || {};
+      rows = PAYMENT_STAGES
+        .map((s) => ({ stage: s.key, label: s.label, amount: p[s.key] | 0 }))
+        .filter((r) => r.amount > 0);
+    }
+    if (!rows.length) return { count: 0 };
+    const now = this.clock();
+    const ins = this.db.prepare(
+      `INSERT INTO payments(id,contract_id,stage,label,seq,amount,created_at) VALUES(?,?,?,?,?,?,?)
+       ON CONFLICT(contract_id,stage) DO UPDATE SET amount=excluded.amount, label=excluded.label`
+    );
+    rows.forEach((r, i) => {
+      const stageDef = PAYMENT_STAGES.find((s) => s.key === r.stage) || { seq: i };
+      ins.run(newId('pay'), contractId, r.stage, r.label || (stageDef.label || r.stage), stageDef.seq ?? i, r.amount | 0, now);
+    });
+    audit(this.db, { contractId, event: EVENTS.PAYMENT_SCHEDULE_SET, at: now, meta: { stages: rows.map((r) => r.stage) } });
+    return { count: rows.length };
+  }
+
+  listPayments(contractId) {
+    this._contract(contractId);
+    return this.db.prepare('SELECT stage,label,seq,amount,status,invoiced_at,reminded_at,paid_at FROM payments WHERE contract_id=? ORDER BY seq').all(contractId);
+  }
+
+  // 16) 대금 청구(알림톡 발송). 이미 청구된 건이면 독촉(재발송)으로 처리.
+  async invoicePayment(contractId, stage, provider, { rawPhone, payInfo } = {}) {
+    const c = this._contract(contractId);
+    const pay = this.db.prepare('SELECT * FROM payments WHERE contract_id=? AND stage=?').get(contractId, stage);
+    if (!pay) throw new AppError('NO_PAYMENT', '해당 대금 항목이 없습니다.');
+    if (pay.status === 'PAID') throw new AppError('ALREADY_PAID', '이미 입금 완료된 항목입니다.');
+    const customer = this.db.prepare("SELECT * FROM contract_parties WHERE contract_id=? AND role='customer'").get(contractId);
+    if (rawPhone && customer && hmac(String(rawPhone).replace(/\D/g, '')) !== customer.phone_hash) {
+      throw new AppError('PHONE_MISMATCH', '수신번호가 계약 당사자와 일치하지 않습니다.');
+    }
+    const isRemind = pay.status === 'INVOICED';
+    const delivery = await this.sendMessage(contractId, customer.id, 'contract_invoice', provider, {
+      stageLabel: pay.label, amount: String(pay.amount), payInfo: payInfo || '계약서 기재 계좌',
+    }, rawPhone);
+    const now = this.clock();
+    if (delivery.status === 'SENT') {
+      if (isRemind) {
+        this.db.prepare("UPDATE payments SET reminded_at=? WHERE id=?").run(now, pay.id);
+        audit(this.db, { contractId, event: EVENTS.PAYMENT_REMINDED, at: now, meta: { stage } });
+      } else {
+        this.db.prepare("UPDATE payments SET status='INVOICED', invoiced_at=? WHERE id=?").run(now, pay.id);
+        audit(this.db, { contractId, event: EVENTS.PAYMENT_INVOICED, at: now, meta: { stage, amount: pay.amount } });
+      }
+    }
+    return { stage, label: pay.label, action: isRemind ? 'REMINDED' : 'INVOICED', delivery };
+  }
+
+  // 17) 입금 확인(운영자). 물리적 입금은 사람이 확인 → 표시만.
+  markPaid(contractId, stage) {
+    const pay = this.db.prepare('SELECT * FROM payments WHERE contract_id=? AND stage=?').get(contractId, stage);
+    if (!pay) throw new AppError('NO_PAYMENT', '해당 대금 항목이 없습니다.');
+    if (pay.status === 'PAID') return { stage, status: 'PAID', already: true };
+    const now = this.clock();
+    this.db.prepare("UPDATE payments SET status='PAID', paid_at=? WHERE id=?").run(now, pay.id);
+    audit(this.db, { contractId, event: EVENTS.PAYMENT_PAID, at: now, meta: { stage, amount: pay.amount } });
+    return { stage, status: 'PAID' };
+  }
+
+  // 18) 미수 목록(대시보드·아침 브리핑용). 전화번호는 마스킹만.
+  listReceivables() {
+    const rows = this.db.prepare(
+      `SELECT p.stage,p.label,p.amount,p.status,p.invoiced_at,
+              c.id AS contract_id, c.contract_no, c.title,
+              (SELECT name FROM contract_parties WHERE contract_id=c.id AND role='customer') AS customer_name,
+              (SELECT phone_masked FROM contract_parties WHERE contract_id=c.id AND role='customer') AS customer_phone
+       FROM payments p JOIN contracts c ON c.id=p.contract_id
+       WHERE p.status IN ('PENDING','INVOICED')
+       ORDER BY (p.status='INVOICED') DESC, p.amount DESC`
+    ).all();
+    const total = rows.reduce((s, r) => s + (r.amount || 0), 0);
+    return { count: rows.length, total, items: rows };
   }
 
   // ---- 내부 헬퍼 ----

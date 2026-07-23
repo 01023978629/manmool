@@ -87,6 +87,19 @@ const qs = await call('POST', '/api/contracts/quick-send', { admin: true, json: 
 ok('POST /quick-send → 발송+서명링크', qs.status === 200 && qs.data.delivery.status === 'SENT' && /^\/sign#t=/.test(qs.data.signPath));
 ok('quick-send 무인증 거부', (await call('POST', '/api/contracts/quick-send', { json: {} })).status === 401);
 
+// 대금(청구·입금·미수) HTTP 경로
+const pseed = await call('POST', `/api/contracts/${cid}/payments/seed`, { admin: true, json: { installments: [
+  { stage: 'down', label: '계약금', amount: 3300000 }, { stage: 'mid', label: '중도금', amount: 13200000 }, { stage: 'bal', label: '잔금', amount: 16500000 },
+] } });
+ok('POST /payments/seed → 3건', pseed.status === 200 && pseed.data.count === 3);
+const pinv = await call('POST', `/api/contracts/${cid}/payments/down/invoice`, { admin: true, json: { rawPhone: '010-1234-5678', payInfo: '농협 123' } });
+ok('POST /payments/down/invoice → 발송', pinv.status === 200 && pinv.data.delivery.status === 'SENT' && pinv.data.action === 'INVOICED');
+const ppaid = await call('POST', `/api/contracts/${cid}/payments/down/paid`, { admin: true });
+ok('POST /payments/down/paid → PAID', ppaid.data.status === 'PAID');
+const recv = await call('GET', '/api/receivables', { admin: true });
+ok('GET /receivables (미수 mid·bal)', recv.status === 200 && recv.data.count >= 2 && recv.data.total >= 13200000 + 16500000);
+ok('receivables 무인증 거부', (await call('GET', '/api/receivables')).status === 401);
+
 // CORS: 허용 출처의 프리플라이트(OPTIONS) → 204 + 헤더
 const pre = await fetch(base + '/api/contracts/quick-send', { method: 'OPTIONS', headers: { origin: 'https://app.example', 'access-control-request-method': 'POST', 'access-control-request-headers': 'x-admin-token' } });
 ok('CORS 프리플라이트(허용 출처) 204', pre.status === 204 && pre.headers.get('access-control-allow-origin') === 'https://app.example' && /x-admin-token/.test(pre.headers.get('access-control-allow-headers') || ''));
