@@ -580,6 +580,14 @@ export class ContractService {
           mk('sign_reminder', c, `발송/열람 후 ${age}일째 미서명(${c.status}) — 서명 리마인드 검토`, { ageDays: age });
         }
       }
+      if (c.status === 'LOCKED') {
+        // 잠금(문서 확정)됐으나 아직 미발송 — 하루 이상 지났으면 '보내는 걸 잊은' 상태로 본다
+        // (당일 잠금→발송 정상 흐름은 노이즈로 띄우지 않음).
+        const age = ageDays(c.updatedAt || c.createdAt);
+        if (age != null && age >= 1) {
+          mk('sign_link_send', c, `잠금 후 ${age}일째 서명 링크 미발송 — 발송 검토`, { ageDays: age });
+        }
+      }
       if (c.status === 'COMPLETED') {
         completed += 1;
         if (!c.payment || !c.payment.stages) {
