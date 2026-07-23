@@ -127,6 +127,7 @@
   "use strict";
   var $=function(id){return document.getElementById(id);};
   var TOKEN=sessionStorage.getItem("mm_admin_tok")||"";
+  var __recv={items:[]};
   function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 
   function api(method,path,bodyObj){
@@ -157,7 +158,9 @@
   }
   function renderContracts(list, recv){
     if(!list.length){ $("contractsCard").innerHTML='<div class="note">아직 계약이 없습니다. 현장 앱에서 계약서를 보내면 여기에 표시됩니다.</div>'; return; }
-    var h='<div class="status"><span class="k">미수 총액</span><span class="v"><b class="num" style="color:var(--warn);font-size:16px">'+won(recv&&recv.total)+'원</b> <span style="color:var(--ink-faint);font-size:12px">'+(recv&&recv.count||0)+'건</span></span></div>';
+    __recv=recv||{items:[]};
+    var h='<div class="status"><span class="k">미수 총액</span><span class="v"><b class="num" style="color:var(--warn);font-size:16px">'+won(recv&&recv.total)+'원</b> <span style="color:var(--ink-faint);font-size:12px">'+(recv&&recv.count||0)+'건</span>'+
+      ((recv&&recv.count)?' <button class="linkmini" id="recvCsv" style="margin-left:8px">📄 CSV</button>':'')+'</span></div>';
     list.forEach(function(c){
       var pay=c.payment||{}; var st=STATUS_KO[c.status]||c.status;
       var stCls=c.status==='COMPLETED'?'on':(c.status==='VOID'?'off':'env');
@@ -185,8 +188,27 @@
       }).join('');
     }).catch(function(){});
   }
-  // 입금확인(위임)
+  // 입금확인·미수 CSV(위임)
+  var STAGE_KO={down:'계약금',mid:'중도금',bal:'잔금'};
+  var RSTATUS_KO={PENDING:'대기',INVOICED:'청구됨',PAID:'입금완료'};
+  function csvCell(v){ v=String(v==null?"":v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+  function downloadReceivablesCsv(){
+    var items=(__recv&&__recv.items)||[]; if(!items.length){ alert('미수 내역이 없습니다.'); return; }
+    var head=['계약번호','제목','고객명','연락처(마스킹)','단계','항목','금액','상태','청구일'];
+    var rows=items.map(function(p){ return [
+      p.contract_no, p.title, p.customer_name, p.customer_phone,
+      STAGE_KO[p.stage]||p.stage, p.label, p.amount, RSTATUS_KO[p.status]||p.status,
+      p.invoiced_at?String(p.invoiced_at).slice(0,10):''
+    ].map(csvCell).join(','); });
+    var csv='﻿'+head.map(csvCell).join(',')+'\n'+rows.join('\n')+'\n';
+    var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    var url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download='만물인테리어_미수내역.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); },1000);
+  }
   $("contractsCard").addEventListener("click",function(e){
+    if(e.target.closest('#recvCsv')){ downloadReceivablesCsv(); return; }
     var b=e.target.closest('[data-paid]'); if(!b)return;
     var parts=b.getAttribute('data-paid').split('|'); b.disabled=true; b.textContent='...';
     api("POST","/api/contracts/"+parts[0]+"/payments/"+parts[1]+"/paid").then(function(){ loadContracts(); })
