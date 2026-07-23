@@ -33,6 +33,7 @@ cd contract-backend
 node test/e2e.mjs          # 서비스 계층 E2E (33건)
 node test/http.mjs         # HTTP 계층 스모크 (33건)
 node test/operator.mjs     # 자율 루프·CEO 리포트 (38건)
+node test/preflight.mjs    # 배포 전 설정 점검 (10건)
 node test/admin.mjs        # 관리자 설정·인증 (12건)
 node test/payments.mjs     # 대금 청구·입금·미수 (14건)
 node test/notify.mjs       # 범용 통지(작업지시·공지) (10건)
@@ -41,7 +42,7 @@ node test/integration.mjs  # 브라우저↔서버 통합 (29건, playwright 있
 node src/server.mjs        # Mock 서버 기동 → 콘솔에 서명 URL 출력
 ```
 
-서비스·HTTP 계층 7스위트 합계 **163건** + 통합 29건(playwright).
+서비스·HTTP 계층 8스위트 합계 **173건** + 통합 29건(playwright).
 
 `node src/server.mjs` 를 실행하면 데모 계약 1건을 자동 생성하고 **바로 열 수 있는
 서명 URL**(`http://localhost:8787/sign#t=…`)을 콘솔에 찍어줍니다. 그 링크를 열면
@@ -117,7 +118,8 @@ contract-backend/
 `src/prod.mjs`(데모 없음·영속 DB·시크릿 필수·`0.0.0.0`), 컨테이너는 `Dockerfile`(Node 22).
 
 ```bash
-npm run prod   # CONTRACT_PEPPER 필수 · DB_PATH 로 영속 저장소 지정
+npm run preflight   # 배포 전 설정 점검(무엇을 채워야 하는지 안내)
+npm run prod        # CONTRACT_PEPPER 필수 · DB_PATH 로 영속 저장소 지정
 ```
 
 - 운영자 라우트(계약 생성·발송·증거)는 `ADMIN_TOKEN` 필수. 고객 서명 라우트는 토큰(`x-sign-token`) 기반.
