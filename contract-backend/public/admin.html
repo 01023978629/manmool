@@ -88,6 +88,9 @@
 
   <!-- 대시보드 -->
   <div id="dash" class="hidden">
+    <p class="eyebrow">🧠 오늘의 운영 판단 <span style="color:var(--ink-faint);font-weight:400;font-size:12px">· AI가 상태를 읽고 다음 한 수를 제안 (발송·실행 안 함)</span></p>
+    <div class="card" id="operatorCard"><div class="note">불러오는 중…</div></div>
+
     <p class="eyebrow">계약·대금 현황</p>
     <div class="card" id="contractsCard"><div class="note">불러오는 중…</div></div>
 
@@ -159,6 +162,37 @@
       .then(function(r){ renderContracts(r[0].contracts||[], r[1]); })
       .catch(function(e){ $("contractsCard").innerHTML='<div class="note">계약을 불러오지 못했습니다: '+esc(e.message||'')+'</div>'; });
     loadFinance();
+    loadOperator();
+  }
+  // 🧠 오늘의 운영 판단(자율 루프 SENSE→DECIDE)
+  var TIER_META={AUTO:{ko:'자동',cls:'on',ic:'🤖'},NOTIFY:{ko:'통보',cls:'env',ic:'📣'},APPROVE:{ko:'승인',cls:'env',ic:'✋'},HUMAN:{ko:'사람',cls:'off',ic:'🧍'}};
+  function loadOperator(){
+    api("GET","/api/operator/brief").then(renderOperator)
+      .catch(function(e){ $("operatorCard").innerHTML='<div class="note">운영 판단을 불러오지 못했습니다: '+esc(e.message||'')+'</div>'; });
+  }
+  function renderOperator(b){
+    var s=b.sense||{};
+    var h='<div class="status"><span class="k">감지</span><span class="v" style="font-size:12px;color:var(--ink-faint)">'+
+      '계약 '+(s.contracts||0)+' · 서명중 '+(s.signing||0)+' · 완료 '+(s.completed||0)+' · 미수 <b class="num" style="color:var(--warn)">'+won(s.receivableTotal)+'원</b>('+(s.receivableCount||0)+')</span></div>';
+    var ds=b.decisions||[];
+    if(!ds.length){ h+='<div class="note" style="margin-top:6px">✅ 지금 처리할 다음 한 수가 없습니다. 상태가 깨끗해요.</div>'; }
+    else {
+      h+='<div class="status"><span class="k">승인 대기</span><span class="v"><b class="num" style="color:var(--warn)">'+(b.needsApprovalCount||0)+'건</b> <span style="color:var(--ink-faint);font-size:12px">/ 결정 '+ds.length+'건</span></span></div>';
+      // 등급 순서로 정렬(APPROVE·HUMAN 먼저 보이게)
+      var order={HUMAN:0,APPROVE:1,NOTIFY:2,AUTO:3};
+      ds.slice().sort(function(a,c){return (order[a.tier]||9)-(order[c.tier]||9);}).forEach(function(d){
+        var m=TIER_META[d.tier]||{ko:d.tier,cls:'off',ic:'•'};
+        h+='<div class="ct" style="padding:8px 10px">'+
+          '<div class="ct-top"><span class="pill '+m.cls+'">'+m.ic+' '+esc(m.ko)+'</span> '+
+            '<b style="font-size:12.5px">'+esc(d.contractNo||'')+'</b>'+
+            (d.customer?(' <span style="color:var(--ink-faint);font-size:12px">'+esc(d.customer)+'</span>'):'')+
+            (d.amount?('<span class="ct-amt num">'+won(d.amount)+'원</span>'):'')+'</div>'+
+          '<div class="ct-sub">'+esc(d.reason||'')+'</div>'+
+        '</div>';
+      });
+    }
+    h+='<div class="note" style="margin-top:8px">'+esc(b.note||'')+'</div>';
+    $("operatorCard").innerHTML=h;
   }
   function loadFinance(){
     api("GET","/api/finance/summary").then(renderFinance)

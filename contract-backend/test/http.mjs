@@ -106,6 +106,13 @@ ok('GET /finance/summary 입금·부가세', fin.status === 200 && fin.data.coll
 ok('finance 미수=청구+대기', fin.data.receivable === fin.data.invoiced + fin.data.pending);
 ok('finance 무인증 거부', (await call('GET', '/api/finance/summary')).status === 401);
 
+// 운영 브리핑(자율 루프 SENSE→DECIDE)
+const brief = await call('GET', '/api/operator/brief', { admin: true });
+ok('GET /operator/brief 형태', brief.status === 200 && brief.data.sense && Array.isArray(brief.data.decisions) && brief.data.byTier && typeof brief.data.needsApprovalCount === 'number');
+ok('brief 결정에 등급', brief.data.decisions.every((d) => ['AUTO', 'NOTIFY', 'APPROVE', 'HUMAN'].includes(d.tier)));
+ok('brief 전화 원문 없음', !JSON.stringify(brief.data).match(/\d{3,4}-\d{4}-\d{4}/) && !JSON.stringify(brief.data).includes('1234-5678'));
+ok('operator brief 무인증 거부', (await call('GET', '/api/operator/brief')).status === 401);
+
 // 계약 목록(운영자 대시보드)
 const clist = await call('GET', '/api/contracts', { admin: true });
 ok('GET /api/contracts 목록 + 대금 요약', clist.status === 200 && Array.isArray(clist.data.contracts) && clist.data.contracts.some((c) => c.payment && typeof c.payment.receivable === 'number'));
