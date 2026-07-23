@@ -60,19 +60,30 @@ node src/server.mjs        # Mock 서버 기동 → 콘솔에 서명 URL 출력
 
 ```
 contract-backend/
-  schema.sql              데이터 모델 (9개 테이블)
+  schema.sql              데이터 모델 (payments·app_settings 포함)
   src/
     crypto.mjs            토큰·해시·마스킹·문서지문
     db.mjs                SQLite 로드 + 템플릿 시드
     audit.mjs             감사 이벤트 taxonomy (append-only)
-    service.mjs           핵심 상태전이·증거생성 (자체 서버 책임)
-    server.mjs            node:http REST (토큰은 헤더로만)
-    providers/kakao.mjs   Provider 추상화 + Mock
-  test/
-    e2e.mjs               서비스 계층 검증
-    http.mjs              HTTP 계층 검증
-  DESIGN.md               설계 문서 (데이터모델·API·보안·증거)
+    service.mjs           상태전이·증거·대금·통지 (자체 서버 책임)
+    server.mjs            node:http REST (토큰은 헤더로만) · CORS
+    settings.mjs          운영자 연결 설정 저장·마스킹·관리자 인증
+    prod.mjs              운영 엔트리포인트(데모없음·영속DB·시크릿필수)
+    providers/            kakao(Mock) · solapi(실발송) · index(선택 게이트)
+  public/                 sign.html(서명화면) · admin.html(운영 콘솔)
+  test/                   e2e·http·solapi·admin·payments·notify·integration
+  Dockerfile · fly.toml · DEPLOY.md · SETUP-ALIMTALK.md · DESIGN.md
 ```
+
+## API 요약
+
+고객(서명, `x-sign-token` 헤더): `GET /api/sign` · `/full` · `/completed` · `POST /api/sign/{otp,verify,viewed,consent,signature}`
+운영자(관리자 토큰 `x-admin-token`):
+- 계약: `POST /api/contracts`(생성)·`/quick-send`(원클릭) · `:id/lock` · `:id/parties/:pid/{sign-link,send}` · `GET /api/contracts`(목록) · `:id/evidence`
+- 대금: `:id/payments`(seed·목록) · `:id/payments/:stage/{invoice,paid}` · `GET /api/receivables`
+- 통지: `POST /api/notify/quick-send`(작업지시·공지 문자)
+- 관리자: `GET/POST /admin/{status,settings,selftest}` · 화면 `GET /admin`
+공용: `GET /healthz` · `GET /sign`(서명화면)
 
 ## 실제 알림톡 발송 (솔라피 연동)
 
