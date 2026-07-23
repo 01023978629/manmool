@@ -218,7 +218,7 @@ function validate(site) {
 
   for (const style of styles) {
     const list = site.portfolio.filter((item) => item.style === style);
-    if (list.length !== TARGET_PER_STYLE) errors.push(`${style}: ${list.length}건 (목표 ${TARGET_PER_STYLE}건)`);
+    if (list.length < TARGET_PER_STYLE) errors.push(`${style}: ${list.length}건 (최소 ${TARGET_PER_STYLE}건)`);
     const uniquePhotos = new Set(list.map((item) => plainPhoto(item.photo)));
     if (uniquePhotos.size < TARGET_PER_STYLE) errors.push(`${style}: 중복 없는 이미지 ${uniquePhotos.size}장`);
   }
@@ -310,8 +310,7 @@ function choosePhoto(style, spaceType, binId) {
 const additions = [];
 for (const style of styles) {
   const currentCount = items.filter((item) => item.style === style).length;
-  const needed = TARGET_PER_STYLE - currentCount;
-  if (needed < 0) throw new Error(`${style} 사례가 목표보다 많습니다: ${currentCount}건`);
+  const needed = Math.max(0, TARGET_PER_STYLE - currentCount);
   if (!needed) continue;
 
   const existingTitles = new Set(items.map((item) => item.title));

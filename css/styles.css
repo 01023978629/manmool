@@ -443,12 +443,18 @@ ul, ol { list-style: none; }
 /* ===== 포트폴리오 필터 (아파트멘터리형) ===== */
 .folio-filters { display: flex; flex-direction: column; gap: 12px; max-width: 860px; margin: 0 auto 18px; }
 .folio-filter-group { display: flex; align-items: center; gap: 12px; }
-.fg-label { flex: none; width: 62px; font-size: 13px; font-weight: 800; color: var(--brand-dark); }
+.fg-label { flex: none; width: 82px; display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 800; color: var(--brand-dark); }
+.fg-step { width: 20px; height: 20px; display: inline-grid; place-items: center; border-radius: 50%; background: var(--brand-dark); color: #fff; font-size: 11px; line-height: 1; }
 .fg-chips { display: flex; flex-wrap: wrap; gap: 7px; }
 .fg-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink-soft); font-weight: 600; font-size: 13.5px; padding: 6px 10px 6px 14px; border-radius: 999px; cursor: pointer; font-family: inherit; transition: .15s; display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
 .fg-chip.active, .fg-chip:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
 .fg-chip-count { min-width: 24px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--bg-alt); color: var(--brand-dark); font-size: 11px; font-weight: 800; line-height: 20px; text-align: center; }
 .fg-chip.active .fg-chip-count, .fg-chip:hover .fg-chip-count { background: rgba(255,255,255,.22); color: #fff; }
+.folio-filter-group.is-locked .fg-label { color: var(--ink-soft); }
+.folio-filter-group.is-locked .fg-step { background: var(--line); color: var(--ink-soft); }
+.fg-chip:disabled,
+.fg-chip:disabled:hover { cursor: default; border-color: var(--line); background: var(--bg-alt); color: var(--ink-soft); opacity: .72; }
+.fg-waiting { min-width: 92px; justify-content: center; padding-inline: 14px; }
 .folio-filter-select { width: min(100%, 440px); min-height: 40px; border: 1.5px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); padding: 7px 36px 7px 12px; font-family: inherit; font-size: 13.5px; font-weight: 600; line-height: 1.4; cursor: pointer; }
 .folio-filter-select:focus { outline: 3px solid var(--brand-dark); outline-offset: 2px; border-color: var(--brand); }
 .folio-empty { text-align: center; color: var(--ink-soft); padding: 30px; }

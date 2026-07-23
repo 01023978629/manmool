@@ -3610,6 +3610,4955 @@
       "imageAlt": "슬라이딩 워크인 드레스룸 드레스룸 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
+    },
+    {
+      "id": "design-20260723-space30-living-28",
+      "title": "인더스트리얼 리딩 코너 거실",
+      "category": "AI추천",
+      "spaceType": "거실",
+      "structure": "리딩 코너 거실",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "인더스트리얼",
+      "mood": "빈티지하고 감각적인",
+      "palette": [
+        "#6f655c",
+        "#8a5a34",
+        "#7d5236",
+        "#26231f"
+      ],
+      "materials": [
+        "노출 벽돌·콘크리트",
+        "가죽 소파",
+        "블랙 메탈"
+      ],
+      "tip": "소파와 창 사이의 주동선을 비우고 TV 시청거리와 조명 눈부심을 함께 확인하세요.",
+      "trendLabel": "18평 인더스트리얼 거실 · 추천 28",
+      "trendNote": "거실의 실제 동선 기준과 인더스트리얼 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/japandi-garden-living-34.jpg?v=20260723-space30-28",
+      "photoPosition": "65% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "인더스트리얼 리딩 코너 거실 거실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-living-29",
+      "title": "빈티지 플렉스 거실",
+      "category": "AI추천",
+      "spaceType": "거실",
+      "structure": "플렉스 거실",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "빈티지",
+      "mood": "따뜻하고 개성 있는",
+      "palette": [
+        "#e9e0cf",
+        "#c99a3f",
+        "#3f5b47",
+        "#9a6a35"
+      ],
+      "materials": [
+        "머스터드 패브릭",
+        "딥그린 포인트",
+        "원목 가구"
+      ],
+      "tip": "소파와 창 사이의 주동선을 비우고 TV 시청거리와 조명 눈부심을 함께 확인하세요.",
+      "trendLabel": "42평 빈티지 거실 · 추천 29",
+      "trendNote": "거실의 실제 동선 기준과 빈티지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/french-modern-living-34.jpg?v=20260723-space30-29",
+      "photoPosition": "50% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "빈티지 플렉스 거실 거실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-living-30",
+      "title": "웜 베이지 낮은 가구 거실",
+      "category": "AI추천",
+      "spaceType": "거실",
+      "structure": "낮은 가구 거실",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "웜 베이지",
+      "mood": "포근하고 아늑한",
+      "palette": [
+        "#efe6d9",
+        "#dcc7a6",
+        "#c4a06f",
+        "#88a37f"
+      ],
+      "materials": [
+        "베이지 텍스처 월",
+        "라이트 오크",
+        "올리브 패브릭"
+      ],
+      "tip": "소파와 창 사이의 주동선을 비우고 TV 시청거리와 조명 눈부심을 함께 확인하세요.",
+      "trendLabel": "18평 웜 베이지 거실 · 추천 30",
+      "trendNote": "거실의 실제 동선 기준과 웜 베이지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/urban-warm-living-30.jpg?v=20260723-space30-30",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.025,
+      "photoMirror": true,
+      "imageAlt": "웜 베이지 낮은 가구 거실 거실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "David Kristianto",
+      "imageSource": "https://unsplash.com/photos/modern-living-room-with-stylish-decor-XYQLaBUpJRw"
+    },
+    {
+      "id": "design-20260723-space30-bedroom-19",
+      "title": "미니멀 창가 벤치 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "structure": "창가 벤치 침실",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f0ebe3",
+        "#e7e1d7",
+        "#d3b98e",
+        "#8ba888"
+      ],
+      "materials": [
+        "친환경 실크벽지",
+        "내추럴 오크 강마루",
+        "붙박이장·헤드월",
+        "무광 화이트 마감"
+      ],
+      "tip": "침대 양옆 통로와 문 여닫이 간섭을 확인한 뒤 콘센트와 조명 위치를 확정하세요.",
+      "trendLabel": "34평 미니멀 침실 · 추천 19",
+      "trendNote": "침실의 실제 동선 기준과 미니멀 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/scandi-storage-bedroom-18.jpg?v=20260723-space30-19",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "미니멀 창가 벤치 침실 침실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-bedroom-20",
+      "title": "모던 워크존 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "structure": "워크존 침실",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "모던",
+      "mood": "시크하고 세련된",
+      "palette": [
+        "#e8e7e6",
+        "#565b61",
+        "#2c2f33",
+        "#7f9a7c"
+      ],
+      "materials": [
+        "친환경 실크벽지",
+        "내추럴 오크 강마루",
+        "붙박이장·헤드월",
+        "웜그레이 무광 마감"
+      ],
+      "tip": "침대 양옆 통로와 문 여닫이 간섭을 확인한 뒤 콘센트와 조명 위치를 확정하세요.",
+      "trendLabel": "34평 모던 침실 · 추천 20",
+      "trendNote": "침실의 실제 동선 기준과 모던 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/vintage-hotel-bedroom-20.jpg?v=20260723-space30-20",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "모던 워크존 침실 침실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-bedroom-21",
+      "title": "호텔식 평상 수납 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "structure": "평상 수납 침실",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "호텔식",
+      "mood": "차분하고 고급스러운",
+      "palette": [
+        "#e9e5df",
+        "#eceae6",
+        "#c09967",
+        "#33373a"
+      ],
+      "materials": [
+        "친환경 실크벽지",
+        "내추럴 오크 강마루",
+        "붙박이장·헤드월",
+        "월넛 패널 마감"
+      ],
+      "tip": "침대 양옆 통로와 문 여닫이 간섭을 확인한 뒤 콘센트와 조명 위치를 확정하세요.",
+      "trendLabel": "42평 호텔식 침실 · 추천 21",
+      "trendNote": "침실의 실제 동선 기준과 호텔식 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/neutral-storage-bedroom-24.jpg?v=20260723-space30-21",
+      "photoPosition": "65% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "호텔식 평상 수납 침실 침실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Royaloak India",
+      "imageSource": "https://unsplash.com/photos/a-modern-bedroom-with-furniture-and-decor-KCv6dhlHyfQ"
+    },
+    {
+      "id": "design-20260723-space30-bedroom-22",
+      "title": "인더스트리얼 파우더 연계 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "structure": "파우더 연계 침실",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "인더스트리얼",
+      "mood": "빈티지하고 감각적인",
+      "palette": [
+        "#6f655c",
+        "#8a5a34",
+        "#7d5236",
+        "#26231f"
+      ],
+      "materials": [
+        "친환경 실크벽지",
+        "내추럴 오크 강마루",
+        "붙박이장·헤드월",
+        "콘크리트 질감 도장"
+      ],
+      "tip": "침대 양옆 통로와 문 여닫이 간섭을 확인한 뒤 콘센트와 조명 위치를 확정하세요.",
+      "trendLabel": "34평 인더스트리얼 침실 · 추천 22",
+      "trendNote": "침실의 실제 동선 기준과 인더스트리얼 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/warm-beige.jpg?v=20260723-space30-22",
+      "photoPosition": "50% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "인더스트리얼 파우더 연계 침실 침실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-bedroom-23",
+      "title": "내추럴 슬라이딩 수납 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "structure": "슬라이딩 수납 침실",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "내추럴",
+      "mood": "따뜻하고 편안한",
+      "palette": [
+        "#efe7db",
+        "#caa06a",
+        "#c1924f",
+        "#6f9d63"
+      ],
+      "materials": [
+        "원목 헤드보드",
+        "린넨 침구",
+        "우드 사이드테이블"
+      ],
+      "tip": "침대 양옆 통로와 문 여닫이 간섭을 확인한 뒤 콘센트와 조명 위치를 확정하세요.",
+      "trendLabel": "18평 내추럴 침실 · 추천 23",
+      "trendNote": "침실의 실제 동선 기준과 내추럴 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/french.jpg?v=20260723-space30-23",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "내추럴 슬라이딩 수납 침실 침실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-bedroom-24",
+      "title": "북유럽 간접조명 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "structure": "간접조명 침실",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "북유럽",
+      "mood": "밝고 산뜻한",
+      "palette": [
+        "#f4f2ee",
+        "#dcc39a",
+        "#9fb4c4",
+        "#7fa27a"
+      ],
+      "materials": [
+        "애시 오크",
+        "더스티 블루 도어",
+        "세이지 패브릭"
+      ],
+      "tip": "침대 양옆 통로와 문 여닫이 간섭을 확인한 뒤 콘센트와 조명 위치를 확정하세요.",
+      "trendLabel": "42평 북유럽 침실 · 추천 24",
+      "trendNote": "침실의 실제 동선 기준과 북유럽 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/natural-bed.jpg?v=20260723-space30-24",
+      "photoPosition": "58% 50%",
+      "photoScale": 1.075,
+      "photoMirror": true,
+      "imageAlt": "북유럽 간접조명 침실 침실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-bedroom-25",
+      "title": "프렌치 부티크 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "structure": "부티크 침실",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "프렌치",
+      "mood": "우아하고 부드러운",
+      "palette": [
+        "#efe8dd",
+        "#eadfce",
+        "#c9ad82",
+        "#c3a878"
+      ],
+      "materials": [
+        "몰딩 벽",
+        "크림 침구",
+        "골드 포인트"
+      ],
+      "tip": "침대 양옆 통로와 문 여닫이 간섭을 확인한 뒤 콘센트와 조명 위치를 확정하세요.",
+      "trendLabel": "24평 프렌치 침실 · 추천 25",
+      "trendNote": "침실의 실제 동선 기준과 프렌치 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/japandi-indigo-bedroom.jpg?v=20260723-space30-25",
+      "photoPosition": "50% 42%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "프렌치 부티크 침실 침실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-bedroom-26",
+      "title": "재팬디 패브릭 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "structure": "패브릭 침실",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "재팬디",
+      "mood": "고요하고 깊이 있는",
+      "palette": [
+        "#d9d3cb",
+        "#c4aa83",
+        "#283f63",
+        "#f2eee8"
+      ],
+      "materials": [
+        "오크 헤드보드 선반",
+        "무기질 질감 도장",
+        "린넨 침구",
+        "한지형 펜던트"
+      ],
+      "tip": "침대 양옆 통로와 문 여닫이 간섭을 확인한 뒤 콘센트와 조명 위치를 확정하세요.",
+      "trendLabel": "34평 재팬디 침실 · 추천 26",
+      "trendNote": "침실의 실제 동선 기준과 재팬디 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/scandi-storage-bedroom-18.jpg?v=20260723-space30-26",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "재팬디 패브릭 침실 침실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-bedroom-27",
+      "title": "스마트 수납 오픈 드레스 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "structure": "오픈 드레스 침실",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "스마트 수납",
+      "mood": "산뜻하고 효율적인",
+      "palette": [
+        "#f4f4f1",
+        "#d7d2c9",
+        "#2f5d9b",
+        "#e77b61"
+      ],
+      "materials": [
+        "친환경 실크벽지",
+        "내추럴 오크 강마루",
+        "반투명 도어 붙박이장",
+        "서랍형 수납 침대"
+      ],
+      "tip": "침대 양옆 통로와 문 여닫이 간섭을 확인한 뒤 콘센트와 조명 위치를 확정하세요.",
+      "trendLabel": "24평 스마트 수납 침실 · 추천 27",
+      "trendNote": "침실의 실제 동선 기준과 스마트 수납 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/vintage-hotel-bedroom-20.jpg?v=20260723-space30-27",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "스마트 수납 오픈 드레스 침실 침실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-bedroom-28",
+      "title": "미니멀 컴팩트 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "structure": "컴팩트 침실",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f0ebe3",
+        "#e7e1d7",
+        "#d3b98e",
+        "#8ba888"
+      ],
+      "materials": [
+        "친환경 실크벽지",
+        "내추럴 오크 강마루",
+        "붙박이장·헤드월",
+        "무광 화이트 마감"
+      ],
+      "tip": "침대 양옆 통로와 문 여닫이 간섭을 확인한 뒤 콘센트와 조명 위치를 확정하세요.",
+      "trendLabel": "34평 미니멀 침실 · 추천 28",
+      "trendNote": "침실의 실제 동선 기준과 미니멀 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/neutral-storage-bedroom-24.jpg?v=20260723-space30-28",
+      "photoPosition": "65% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "미니멀 컴팩트 침실 침실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Royaloak India",
+      "imageSource": "https://unsplash.com/photos/a-modern-bedroom-with-furniture-and-decor-KCv6dhlHyfQ"
+    },
+    {
+      "id": "design-20260723-space30-bedroom-29",
+      "title": "모던 라운지 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "structure": "라운지 침실",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "모던",
+      "mood": "시크하고 세련된",
+      "palette": [
+        "#e8e7e6",
+        "#565b61",
+        "#2c2f33",
+        "#7f9a7c"
+      ],
+      "materials": [
+        "친환경 실크벽지",
+        "내추럴 오크 강마루",
+        "붙박이장·헤드월",
+        "웜그레이 무광 마감"
+      ],
+      "tip": "침대 양옆 통로와 문 여닫이 간섭을 확인한 뒤 콘센트와 조명 위치를 확정하세요.",
+      "trendLabel": "18평 모던 침실 · 추천 29",
+      "trendNote": "침실의 실제 동선 기준과 모던 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/warm-beige.jpg?v=20260723-space30-29",
+      "photoPosition": "50% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "모던 라운지 침실 침실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-bedroom-30",
+      "title": "빈티지 테라스 침실",
+      "category": "AI추천",
+      "spaceType": "침실",
+      "structure": "테라스 침실",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "빈티지",
+      "mood": "따뜻하고 개성 있는",
+      "palette": [
+        "#e9e0cf",
+        "#c99a3f",
+        "#3f5b47",
+        "#9a6a35"
+      ],
+      "materials": [
+        "월넛 헤드월",
+        "딥틸 벤치",
+        "버건디 패브릭"
+      ],
+      "tip": "침대 양옆 통로와 문 여닫이 간섭을 확인한 뒤 콘센트와 조명 위치를 확정하세요.",
+      "trendLabel": "42평 빈티지 침실 · 추천 30",
+      "trendNote": "침실의 실제 동선 기준과 빈티지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/french.jpg?v=20260723-space30-30",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.025,
+      "photoMirror": true,
+      "imageAlt": "빈티지 테라스 침실 침실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-kitchen-20",
+      "title": "웜 베이지 팬트리 연계 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "structure": "팬트리 연계 주방",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "웜 베이지",
+      "mood": "포근하고 아늑한",
+      "palette": [
+        "#efe6d9",
+        "#dcc7a6",
+        "#c4a06f",
+        "#88a37f"
+      ],
+      "materials": [
+        "무광 PET 주방 도어",
+        "20T 엔지니어드스톤 상판",
+        "600x600mm 포세린 벽타일",
+        "샌드 베이지 텍스처"
+      ],
+      "tip": "조리대 사이 통로를 충분히 확보하고 냉장고·싱크·쿡탑의 작업 동선을 먼저 맞추세요.",
+      "trendLabel": "52평 웜 베이지 주방 · 추천 20",
+      "trendNote": "주방의 실제 동선 기준과 웜 베이지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/ambient-island-kitchen-34.jpg?v=20260723-space30-20",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "웜 베이지 팬트리 연계 주방 주방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "조리대 벽",
+          "value": "600x600mm 무광 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 내오염 줄눈"
+        }
+      ],
+      "imageCredit": "Shishu Yadava",
+      "imageSource": "https://unsplash.com/photos/modern-kitchen-design-with-sleek-cabinetry-and-appliances-yL5MidLxHSo"
+    },
+    {
+      "id": "design-20260723-space30-kitchen-21",
+      "title": "호텔식 다이닝 통합 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "structure": "다이닝 통합 주방",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "호텔식",
+      "mood": "차분하고 고급스러운",
+      "palette": [
+        "#e9e5df",
+        "#eceae6",
+        "#c09967",
+        "#33373a"
+      ],
+      "materials": [
+        "그레이지 하이글로시 도어",
+        "블랙 엔지니어드스톤 상판",
+        "600×1200mm 샌드 포세린 타일",
+        "유리 장식장·간접조명"
+      ],
+      "tip": "조리대 사이 통로를 충분히 확보하고 냉장고·싱크·쿡탑의 작업 동선을 먼저 맞추세요.",
+      "trendLabel": "52평 호텔식 주방 · 추천 21",
+      "trendNote": "주방의 실제 동선 기준과 호텔식 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/modern-kitchen.jpg?v=20260723-space30-21",
+      "photoPosition": "65% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "호텔식 다이닝 통합 주방 주방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "조리대 벽",
+          "value": "600x600mm 무광 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-kitchen-22",
+      "title": "재팬디 창가 조리대 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "structure": "창가 조리대 주방",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "재팬디",
+      "mood": "고요하고 깊이 있는",
+      "palette": [
+        "#d9d3cb",
+        "#c4aa83",
+        "#283f63",
+        "#f2eee8"
+      ],
+      "materials": [
+        "무광 PET 주방 도어",
+        "20T 엔지니어드스톤 상판",
+        "600x600mm 포세린 벽타일",
+        "오크 격자 무늬목"
+      ],
+      "tip": "조리대 사이 통로를 충분히 확보하고 냉장고·싱크·쿡탑의 작업 동선을 먼저 맞추세요.",
+      "trendLabel": "24평 재팬디 주방 · 추천 22",
+      "trendNote": "주방의 실제 동선 기준과 재팬디 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/white-kitchen.jpg?v=20260723-space30-22",
+      "photoPosition": "50% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "재팬디 창가 조리대 주방 주방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "조리대 벽",
+          "value": "600x600mm 무광 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-kitchen-23",
+      "title": "스마트 수납 카페형 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "structure": "카페형 주방",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "스마트 수납",
+      "mood": "산뜻하고 효율적인",
+      "palette": [
+        "#f4f4f1",
+        "#d7d2c9",
+        "#2f5d9b",
+        "#e77b61"
+      ],
+      "materials": [
+        "무광 PET 주방 도어",
+        "20T 엔지니어드스톤 상판",
+        "600x600mm 포세린 벽타일",
+        "모듈 시스템 수납"
+      ],
+      "tip": "조리대 사이 통로를 충분히 확보하고 냉장고·싱크·쿡탑의 작업 동선을 먼저 맞추세요.",
+      "trendLabel": "52평 스마트 수납 주방 · 추천 23",
+      "trendNote": "주방의 실제 동선 기준과 스마트 수납 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/wood-kitchen.jpg?v=20260723-space30-23",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "스마트 수납 카페형 주방 주방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "조리대 벽",
+          "value": "600x600mm 무광 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-kitchen-24",
+      "title": "내추럴 투톤 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "structure": "투톤 주방",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "내추럴",
+      "mood": "따뜻하고 편안한",
+      "palette": [
+        "#efe7db",
+        "#caa06a",
+        "#c1924f",
+        "#6f9d63"
+      ],
+      "materials": [
+        "우드 도어",
+        "100×100mm 아이보리 유약 타일",
+        "황동 수전"
+      ],
+      "tip": "조리대 사이 통로를 충분히 확보하고 냉장고·싱크·쿡탑의 작업 동선을 먼저 맞추세요.",
+      "trendLabel": "24평 내추럴 주방 · 추천 24",
+      "trendNote": "주방의 실제 동선 기준과 내추럴 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/navy-oak-kitchen.jpg?v=20260723-space30-24",
+      "photoPosition": "58% 50%",
+      "photoScale": 1.075,
+      "photoMirror": true,
+      "imageAlt": "내추럴 투톤 주방 주방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "조리대 벽",
+          "value": "600x600mm 무광 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-kitchen-25",
+      "title": "북유럽 히든 수납 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "structure": "히든 수납 주방",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "북유럽",
+      "mood": "밝고 산뜻한",
+      "palette": [
+        "#f4f2ee",
+        "#dcc39a",
+        "#9fb4c4",
+        "#7fa27a"
+      ],
+      "materials": [
+        "애시 오크",
+        "블루그레이 아일랜드",
+        "화이트 쿼츠"
+      ],
+      "tip": "조리대 사이 통로를 충분히 확보하고 냉장고·싱크·쿡탑의 작업 동선을 먼저 맞추세요.",
+      "trendLabel": "52평 북유럽 주방 · 추천 25",
+      "trendNote": "주방의 실제 동선 기준과 북유럽 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/scandi-blue-kitchen-34.jpg?v=20260723-space30-25",
+      "photoPosition": "50% 42%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "북유럽 히든 수납 주방 주방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "조리대 벽",
+          "value": "600x600mm 무광 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-kitchen-26",
+      "title": "프렌치 슬림 아일랜드 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "structure": "슬림 아일랜드 주방",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "프렌치",
+      "mood": "우아하고 부드러운",
+      "palette": [
+        "#efe8dd",
+        "#eadfce",
+        "#c9ad82",
+        "#c3a878"
+      ],
+      "materials": [
+        "세이지 셰이커 도어",
+        "화이트 쿼츠",
+        "브러시드 브라스",
+        "100×100mm 크림 유약 타일"
+      ],
+      "tip": "조리대 사이 통로를 충분히 확보하고 냉장고·싱크·쿡탑의 작업 동선을 먼저 맞추세요.",
+      "trendLabel": "18평 프렌치 주방 · 추천 26",
+      "trendNote": "주방의 실제 동선 기준과 프렌치 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/vintage-green-kitchen-32.jpg?v=20260723-space30-26",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "프렌치 슬림 아일랜드 주방 주방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "조리대 벽",
+          "value": "600x600mm 무광 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-kitchen-27",
+      "title": "미니멀 패밀리 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "structure": "패밀리 주방",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f0ebe3",
+        "#e7e1d7",
+        "#d3b98e",
+        "#8ba888"
+      ],
+      "materials": [
+        "무광 화이트 도어",
+        "세라믹 상판",
+        "히든 손잡이",
+        "600×1200mm 세라믹 백스플래시"
+      ],
+      "tip": "조리대 사이 통로를 충분히 확보하고 냉장고·싱크·쿡탑의 작업 동선을 먼저 맞추세요.",
+      "trendLabel": "42평 미니멀 주방 · 추천 27",
+      "trendNote": "주방의 실제 동선 기준과 미니멀 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/industrial-island-kitchen-32.jpg?v=20260723-space30-27",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "미니멀 패밀리 주방 주방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "조리대 벽",
+          "value": "600x600mm 무광 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-kitchen-28",
+      "title": "인더스트리얼 오픈 선반 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "structure": "오픈 선반 주방",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "인더스트리얼",
+      "mood": "빈티지하고 감각적인",
+      "palette": [
+        "#6f655c",
+        "#8a5a34",
+        "#7d5236",
+        "#26231f"
+      ],
+      "materials": [
+        "차콜 도어",
+        "월넛 상부장",
+        "콘크리트룩 상판",
+        "100×100mm 화이트 유약 타일"
+      ],
+      "tip": "조리대 사이 통로를 충분히 확보하고 냉장고·싱크·쿡탑의 작업 동선을 먼저 맞추세요.",
+      "trendLabel": "24평 인더스트리얼 주방 · 추천 28",
+      "trendNote": "주방의 실제 동선 기준과 인더스트리얼 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/french-sage-kitchen-30.jpg?v=20260723-space30-28",
+      "photoPosition": "65% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "인더스트리얼 오픈 선반 주방 주방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "조리대 벽",
+          "value": "600x600mm 무광 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-kitchen-29",
+      "title": "빈티지 세컨드 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "structure": "세컨드 주방",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "빈티지",
+      "mood": "따뜻하고 개성 있는",
+      "palette": [
+        "#e9e0cf",
+        "#c99a3f",
+        "#3f5b47",
+        "#9a6a35"
+      ],
+      "materials": [
+        "포레스트 그린 도어",
+        "월넛 아일랜드",
+        "브러시드 브라스",
+        "100×100mm 화이트 유약 타일"
+      ],
+      "tip": "조리대 사이 통로를 충분히 확보하고 냉장고·싱크·쿡탑의 작업 동선을 먼저 맞추세요.",
+      "trendLabel": "42평 빈티지 주방 · 추천 29",
+      "trendNote": "주방의 실제 동선 기준과 빈티지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/greige-galley-kitchen-24.jpg?v=20260723-space30-29",
+      "photoPosition": "50% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "빈티지 세컨드 주방 주방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "조리대 벽",
+          "value": "600x600mm 무광 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 내오염 줄눈"
+        }
+      ],
+      "imageCredit": "Shishu Yadava",
+      "imageSource": "https://unsplash.com/photos/here-is-a-modern-kitchen-interior-with-appliances-DkVfeb-7yLk"
+    },
+    {
+      "id": "design-20260723-space30-kitchen-30",
+      "title": "웜 베이지 홈바 연계 주방",
+      "category": "AI추천",
+      "spaceType": "주방",
+      "structure": "홈바 연계 주방",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "웜 베이지",
+      "mood": "포근하고 아늑한",
+      "palette": [
+        "#efe6d9",
+        "#dcc7a6",
+        "#c4a06f",
+        "#88a37f"
+      ],
+      "materials": [
+        "무광 PET 주방 도어",
+        "20T 엔지니어드스톤 상판",
+        "600x600mm 포세린 벽타일",
+        "샌드 베이지 텍스처"
+      ],
+      "tip": "조리대 사이 통로를 충분히 확보하고 냉장고·싱크·쿡탑의 작업 동선을 먼저 맞추세요.",
+      "trendLabel": "18평 웜 베이지 주방 · 추천 30",
+      "trendNote": "주방의 실제 동선 기준과 웜 베이지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/ambient-island-kitchen-34.jpg?v=20260723-space30-30",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.025,
+      "photoMirror": true,
+      "imageAlt": "웜 베이지 홈바 연계 주방 주방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "조리대 벽",
+          "value": "600x600mm 무광 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 내오염 줄눈"
+        }
+      ],
+      "imageCredit": "Shishu Yadava",
+      "imageSource": "https://unsplash.com/photos/modern-kitchen-design-with-sleek-cabinetry-and-appliances-yL5MidLxHSo"
+    },
+    {
+      "id": "design-20260723-space30-bathroom-16",
+      "title": "스마트 수납 워크인 샤워 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "워크인 샤워 욕실",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "스마트 수납",
+      "mood": "산뜻하고 효율적인",
+      "palette": [
+        "#f4f4f1",
+        "#d7d2c9",
+        "#2f5d9b",
+        "#e77b61"
+      ],
+      "materials": [
+        "300×600mm 화이트 벽타일",
+        "그레이 줄눈",
+        "슬림 수전"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "42평 스마트 수납 욕실 · 추천 16",
+      "trendNote": "욕실의 실제 동선 기준과 스마트 수납 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/white-bath.jpg?v=20260723-space30-16",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "스마트 수납 워크인 샤워 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다."
+    },
+    {
+      "id": "design-20260723-space30-bathroom-17",
+      "title": "내추럴 건식 세면 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "건식 세면 욕실",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "내추럴",
+      "mood": "따뜻하고 편안한",
+      "palette": [
+        "#efe7db",
+        "#caa06a",
+        "#c1924f",
+        "#6f9d63"
+      ],
+      "materials": [
+        "200×1200mm 우드 무늬 포세린 타일",
+        "방수 우드 선반",
+        "무광 브론즈 수전"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "42평 내추럴 욕실 · 추천 17",
+      "trendNote": "욕실의 실제 동선 기준과 내추럴 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/wood-bath.jpg?v=20260723-space30-17",
+      "photoPosition": "58% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "내추럴 건식 세면 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다."
+    },
+    {
+      "id": "design-20260723-space30-bathroom-18",
+      "title": "북유럽 파우더 연계 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "파우더 연계 욕실",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "북유럽",
+      "mood": "밝고 산뜻한",
+      "palette": [
+        "#f4f2ee",
+        "#dcc39a",
+        "#9fb4c4",
+        "#7fa27a"
+      ],
+      "materials": [
+        "600x1200mm 포세린 벽타일",
+        "300x300mm 논슬립 바닥타일",
+        "8T 강화유리 파티션",
+        "애쉬 우드 마감"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "52평 북유럽 욕실 · 추천 18",
+      "trendNote": "욕실의 실제 동선 기준과 북유럽 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/travertine-spa-bath-buildable.jpg?v=20260723-space30-18",
+      "photoPosition": "50% 42%",
+      "photoScale": 1.025,
+      "photoMirror": true,
+      "imageAlt": "북유럽 파우더 연계 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다."
+    },
+    {
+      "id": "design-20260723-space30-bathroom-19",
+      "title": "모던 조적 욕조 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "조적 욕조 욕실",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "모던",
+      "mood": "시크하고 세련된",
+      "palette": [
+        "#e8e7e6",
+        "#565b61",
+        "#2c2f33",
+        "#7f9a7c"
+      ],
+      "materials": [
+        "300×600mm 화이트 벽타일",
+        "그레이 줄눈",
+        "슬림 수전"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "42평 모던 욕실 · 추천 19",
+      "trendNote": "욕실의 실제 동선 기준과 모던 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/warm-beige-dry-bath-24.jpg?v=20260723-space30-19",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "모던 조적 욕조 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다."
+    },
+    {
+      "id": "design-20260723-space30-bathroom-20",
+      "title": "프렌치 호텔형 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "호텔형 욕실",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "프렌치",
+      "mood": "우아하고 부드러운",
+      "palette": [
+        "#efe8dd",
+        "#eadfce",
+        "#c9ad82",
+        "#c3a878"
+      ],
+      "materials": [
+        "600x1200mm 포세린 벽타일",
+        "300x300mm 논슬립 바닥타일",
+        "8T 강화유리 파티션",
+        "클래식 몰딩"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "52평 프렌치 욕실 · 추천 20",
+      "trendNote": "욕실의 실제 동선 기준과 프렌치 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/japandi-hinoki-bath-24-buildable.jpg?v=20260723-space30-20",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "프렌치 호텔형 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다."
+    },
+    {
+      "id": "design-20260723-space30-bathroom-21",
+      "title": "미니멀 컴팩트 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "컴팩트 욕실",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f0ebe3",
+        "#e7e1d7",
+        "#d3b98e",
+        "#8ba888"
+      ],
+      "materials": [
+        "600x1200mm 포세린 벽타일",
+        "300x300mm 논슬립 바닥타일",
+        "8T 강화유리 파티션",
+        "무광 화이트 마감"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "18평 미니멀 욕실 · 추천 21",
+      "trendNote": "욕실의 실제 동선 기준과 미니멀 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/glass-shower-bath-30.jpg?v=20260723-space30-21",
+      "photoPosition": "65% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "미니멀 컴팩트 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다.",
+      "imageCredit": "Puscas Adryan",
+      "imageSource": "https://unsplash.com/photos/modern-bathroom-with-glass-shower-and-vanity-sAjlPnz0QL4"
+    },
+    {
+      "id": "design-20260723-space30-bathroom-22",
+      "title": "인더스트리얼 스파 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "스파 욕실",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "인더스트리얼",
+      "mood": "빈티지하고 감각적인",
+      "palette": [
+        "#6f655c",
+        "#8a5a34",
+        "#7d5236",
+        "#26231f"
+      ],
+      "materials": [
+        "600x1200mm 포세린 벽타일",
+        "300x300mm 논슬립 바닥타일",
+        "8T 강화유리 파티션",
+        "콘크리트 질감 도장"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "42평 인더스트리얼 욕실 · 추천 22",
+      "trendNote": "욕실의 실제 동선 기준과 인더스트리얼 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/hotel-bath.jpg?v=20260723-space30-22",
+      "photoPosition": "50% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "인더스트리얼 스파 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다."
+    },
+    {
+      "id": "design-20260723-space30-bathroom-23",
+      "title": "빈티지 반건식 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "반건식 욕실",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "빈티지",
+      "mood": "따뜻하고 개성 있는",
+      "palette": [
+        "#e9e0cf",
+        "#c99a3f",
+        "#3f5b47",
+        "#9a6a35"
+      ],
+      "materials": [
+        "600x1200mm 포세린 벽타일",
+        "300x300mm 논슬립 바닥타일",
+        "8T 강화유리 파티션",
+        "월넛 우드 마감"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "34평 빈티지 욕실 · 추천 23",
+      "trendNote": "욕실의 실제 동선 기준과 빈티지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/white-bath.jpg?v=20260723-space30-23",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "빈티지 반건식 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다."
+    },
+    {
+      "id": "design-20260723-space30-bathroom-24",
+      "title": "스마트 수납 세면 분리 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "세면 분리 욕실",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "스마트 수납",
+      "mood": "산뜻하고 효율적인",
+      "palette": [
+        "#f4f4f1",
+        "#d7d2c9",
+        "#2f5d9b",
+        "#e77b61"
+      ],
+      "materials": [
+        "300×600mm 화이트 벽타일",
+        "그레이 줄눈",
+        "슬림 수전"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "18평 스마트 수납 욕실 · 추천 24",
+      "trendNote": "욕실의 실제 동선 기준과 스마트 수납 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/wood-bath.jpg?v=20260723-space30-24",
+      "photoPosition": "58% 50%",
+      "photoScale": 1.075,
+      "photoMirror": true,
+      "imageAlt": "스마트 수납 세면 분리 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다."
+    },
+    {
+      "id": "design-20260723-space30-bathroom-25",
+      "title": "재팬디 부부 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "부부 욕실",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "재팬디",
+      "mood": "고요하고 깊이 있는",
+      "palette": [
+        "#d9d3cb",
+        "#c4aa83",
+        "#283f63",
+        "#f2eee8"
+      ],
+      "materials": [
+        "건식존 히노키 루버",
+        "600×1200mm 오프화이트 포세린 타일",
+        "무광 블랙 수전"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "52평 재팬디 욕실 · 추천 25",
+      "trendNote": "욕실의 실제 동선 기준과 재팬디 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/travertine-spa-bath-buildable.jpg?v=20260723-space30-25",
+      "photoPosition": "50% 42%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "재팬디 부부 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다."
+    },
+    {
+      "id": "design-20260723-space30-bathroom-26",
+      "title": "내추럴 패밀리 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "패밀리 욕실",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "내추럴",
+      "mood": "따뜻하고 편안한",
+      "palette": [
+        "#efe7db",
+        "#caa06a",
+        "#c1924f",
+        "#6f9d63"
+      ],
+      "materials": [
+        "200×1200mm 우드 무늬 포세린 타일",
+        "방수 우드 선반",
+        "무광 브론즈 수전"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "34평 내추럴 욕실 · 추천 26",
+      "trendNote": "욕실의 실제 동선 기준과 내추럴 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/warm-beige-dry-bath-24.jpg?v=20260723-space30-26",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "내추럴 패밀리 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다."
+    },
+    {
+      "id": "design-20260723-space30-bathroom-27",
+      "title": "북유럽 젠다이 수납 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "젠다이 수납 욕실",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "북유럽",
+      "mood": "밝고 산뜻한",
+      "palette": [
+        "#f4f2ee",
+        "#dcc39a",
+        "#9fb4c4",
+        "#7fa27a"
+      ],
+      "materials": [
+        "600x1200mm 포세린 벽타일",
+        "300x300mm 논슬립 바닥타일",
+        "8T 강화유리 파티션",
+        "애쉬 우드 마감"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "24평 북유럽 욕실 · 추천 27",
+      "trendNote": "욕실의 실제 동선 기준과 북유럽 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/japandi-hinoki-bath-24-buildable.jpg?v=20260723-space30-27",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "북유럽 젠다이 수납 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다."
+    },
+    {
+      "id": "design-20260723-space30-bathroom-28",
+      "title": "모던 코너 샤워 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "코너 샤워 욕실",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "모던",
+      "mood": "시크하고 세련된",
+      "palette": [
+        "#e8e7e6",
+        "#565b61",
+        "#2c2f33",
+        "#7f9a7c"
+      ],
+      "materials": [
+        "300×600mm 화이트 벽타일",
+        "그레이 줄눈",
+        "슬림 수전"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "42평 모던 욕실 · 추천 28",
+      "trendNote": "욕실의 실제 동선 기준과 모던 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/glass-shower-bath-30.jpg?v=20260723-space30-28",
+      "photoPosition": "65% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "모던 코너 샤워 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다.",
+      "imageCredit": "Puscas Adryan",
+      "imageSource": "https://unsplash.com/photos/modern-bathroom-with-glass-shower-and-vanity-sAjlPnz0QL4"
+    },
+    {
+      "id": "design-20260723-space30-bathroom-29",
+      "title": "웜 베이지 프레임리스 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "프레임리스 욕실",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "웜 베이지",
+      "mood": "포근하고 아늑한",
+      "palette": [
+        "#efe6d9",
+        "#dcc7a6",
+        "#c4a06f",
+        "#88a37f"
+      ],
+      "materials": [
+        "600×1200mm 샌드 포세린 타일",
+        "라이트 오크 세면대",
+        "100×200mm 세이지 포인트 타일"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "52평 웜 베이지 욕실 · 추천 29",
+      "trendNote": "욕실의 실제 동선 기준과 웜 베이지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/hotel-bath.jpg?v=20260723-space30-29",
+      "photoPosition": "50% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "웜 베이지 프레임리스 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다."
+    },
+    {
+      "id": "design-20260723-space30-bathroom-30",
+      "title": "프렌치 테라조 욕실",
+      "category": "AI추천",
+      "spaceType": "욕실",
+      "structure": "테라조 욕실",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "프렌치",
+      "mood": "우아하고 부드러운",
+      "palette": [
+        "#efe8dd",
+        "#eadfce",
+        "#c9ad82",
+        "#c3a878"
+      ],
+      "materials": [
+        "600x1200mm 포세린 벽타일",
+        "300x300mm 논슬립 바닥타일",
+        "8T 강화유리 파티션",
+        "클래식 몰딩"
+      ],
+      "tip": "배수구 위치와 바닥 높이를 실측한 뒤 논슬립 타일과 물매 방향을 확정하세요.",
+      "trendLabel": "18평 프렌치 욕실 · 추천 30",
+      "trendNote": "욕실의 실제 동선 기준과 프렌치 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/white-bath.jpg?v=20260723-space30-30",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.025,
+      "photoMirror": true,
+      "imageAlt": "프렌치 테라조 욕실 욕실 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "벽",
+          "value": "600x1200mm 무광 포세린"
+        },
+        {
+          "label": "바닥",
+          "value": "300x300mm 논슬립 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        },
+        {
+          "label": "배수",
+          "value": "배수구 방향 1/100~1/50 물매"
+        }
+      ],
+      "tileNote": "벽 대형 타일은 바탕 평활도를 먼저 확인하고, 바닥은 300각 이하 논슬립 타일로 배수 물매와 재단선을 확보합니다."
+    },
+    {
+      "id": "design-20260723-space30-entry-09",
+      "title": "호텔식 갤러리 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "갤러리 현관",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "호텔식",
+      "mood": "차분하고 고급스러운",
+      "palette": [
+        "#e9e5df",
+        "#eceae6",
+        "#c09967",
+        "#33373a"
+      ],
+      "materials": [
+        "라이트 오크 신발장",
+        "웜화이트 무광 도장",
+        "테라조 바닥",
+        "전신 거울"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "52평 호텔식 현관 · 추천 9",
+      "trendNote": "현관의 실제 동선 기준과 호텔식 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-09",
+      "photoPosition": "42% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "호텔식 갤러리 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-10",
+      "title": "모던 신발장 통합 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "신발장 통합 현관",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "모던",
+      "mood": "시크하고 세련된",
+      "palette": [
+        "#e8e7e6",
+        "#565b61",
+        "#2c2f33",
+        "#7f9a7c"
+      ],
+      "materials": [
+        "라이트 오크 신발장",
+        "웜화이트 무광 도장",
+        "테라조 바닥",
+        "전신 거울"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "42평 모던 현관 · 추천 10",
+      "trendNote": "현관의 실제 동선 기준과 모던 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-10",
+      "photoPosition": "58% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "모던 신발장 통합 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-11",
+      "title": "스마트 수납 외투 수납 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "외투 수납 현관",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "스마트 수납",
+      "mood": "산뜻하고 효율적인",
+      "palette": [
+        "#f4f4f1",
+        "#d7d2c9",
+        "#2f5d9b",
+        "#e77b61"
+      ],
+      "materials": [
+        "라이트 오크 신발장",
+        "웜화이트 무광 도장",
+        "테라조 바닥",
+        "전신 거울"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "24평 스마트 수납 현관 · 추천 11",
+      "trendNote": "현관의 실제 동선 기준과 스마트 수납 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-11",
+      "photoPosition": "50% 42%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "스마트 수납 외투 수납 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-12",
+      "title": "호텔식 반개방 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "반개방 현관",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "호텔식",
+      "mood": "차분하고 고급스러운",
+      "palette": [
+        "#e9e5df",
+        "#eceae6",
+        "#c09967",
+        "#33373a"
+      ],
+      "materials": [
+        "라이트 오크 신발장",
+        "웜화이트 무광 도장",
+        "테라조 바닥",
+        "전신 거울"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "18평 호텔식 현관 · 추천 12",
+      "trendNote": "현관의 실제 동선 기준과 호텔식 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-12",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.075,
+      "photoMirror": true,
+      "imageAlt": "호텔식 반개방 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-13",
+      "title": "재팬디 라운드 중문 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "라운드 중문 현관",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "재팬디",
+      "mood": "고요하고 깊이 있는",
+      "palette": [
+        "#d9d3cb",
+        "#c4aa83",
+        "#283f63",
+        "#f2eee8"
+      ],
+      "materials": [
+        "600x600mm 논슬립 포세린 타일",
+        "슬림 현관 수납장",
+        "하부 센서 조명",
+        "오크 격자 무늬목"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "42평 재팬디 현관 · 추천 13",
+      "trendNote": "현관의 실제 동선 기준과 재팬디 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-13",
+      "photoPosition": "35% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "재팬디 라운드 중문 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-14",
+      "title": "미니멀 센서 조명 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "센서 조명 현관",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f0ebe3",
+        "#e7e1d7",
+        "#d3b98e",
+        "#8ba888"
+      ],
+      "materials": [
+        "600x600mm 논슬립 포세린 타일",
+        "슬림 현관 수납장",
+        "하부 센서 조명",
+        "무광 화이트 마감"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "34평 미니멀 현관 · 추천 14",
+      "trendNote": "현관의 실제 동선 기준과 미니멀 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-14",
+      "photoPosition": "65% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "미니멀 센서 조명 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-15",
+      "title": "내추럴 컴팩트 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "컴팩트 현관",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "내추럴",
+      "mood": "따뜻하고 편안한",
+      "palette": [
+        "#efe7db",
+        "#caa06a",
+        "#c1924f",
+        "#6f9d63"
+      ],
+      "materials": [
+        "라이트 오크 신발장",
+        "웜화이트 무광 도장",
+        "테라조 바닥",
+        "전신 거울"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "52평 내추럴 현관 · 추천 15",
+      "trendNote": "현관의 실제 동선 기준과 내추럴 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-15",
+      "photoPosition": "50% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "내추럴 컴팩트 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-16",
+      "title": "북유럽 벤치 수납 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "벤치 수납 현관",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "북유럽",
+      "mood": "밝고 산뜻한",
+      "palette": [
+        "#f4f2ee",
+        "#dcc39a",
+        "#9fb4c4",
+        "#7fa27a"
+      ],
+      "materials": [
+        "600x600mm 논슬립 포세린 타일",
+        "슬림 현관 수납장",
+        "하부 센서 조명",
+        "애쉬 우드 마감"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "42평 북유럽 현관 · 추천 16",
+      "trendNote": "현관의 실제 동선 기준과 북유럽 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-16",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "북유럽 벤치 수납 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-17",
+      "title": "인더스트리얼 아치 중문 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "아치 중문 현관",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "인더스트리얼",
+      "mood": "빈티지하고 감각적인",
+      "palette": [
+        "#6f655c",
+        "#8a5a34",
+        "#7d5236",
+        "#26231f"
+      ],
+      "materials": [
+        "600x600mm 논슬립 포세린 타일",
+        "슬림 현관 수납장",
+        "하부 센서 조명",
+        "콘크리트 질감 도장"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "24평 인더스트리얼 현관 · 추천 17",
+      "trendNote": "현관의 실제 동선 기준과 인더스트리얼 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-17",
+      "photoPosition": "58% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "인더스트리얼 아치 중문 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-18",
+      "title": "빈티지 격자 중문 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "격자 중문 현관",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "빈티지",
+      "mood": "따뜻하고 개성 있는",
+      "palette": [
+        "#e9e0cf",
+        "#c99a3f",
+        "#3f5b47",
+        "#9a6a35"
+      ],
+      "materials": [
+        "600x600mm 논슬립 포세린 타일",
+        "슬림 현관 수납장",
+        "하부 센서 조명",
+        "월넛 우드 마감"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "52평 빈티지 현관 · 추천 18",
+      "trendNote": "현관의 실제 동선 기준과 빈티지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-18",
+      "photoPosition": "50% 42%",
+      "photoScale": 1.025,
+      "photoMirror": true,
+      "imageAlt": "빈티지 격자 중문 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-19",
+      "title": "웜 베이지 전신거울 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "전신거울 현관",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "웜 베이지",
+      "mood": "포근하고 아늑한",
+      "palette": [
+        "#efe6d9",
+        "#dcc7a6",
+        "#c4a06f",
+        "#88a37f"
+      ],
+      "materials": [
+        "600x600mm 논슬립 포세린 타일",
+        "슬림 현관 수납장",
+        "하부 센서 조명",
+        "샌드 베이지 텍스처"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "34평 웜 베이지 현관 · 추천 19",
+      "trendNote": "현관의 실제 동선 기준과 웜 베이지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-19",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "웜 베이지 전신거울 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-20",
+      "title": "프렌치 오픈 선반 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "오픈 선반 현관",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "프렌치",
+      "mood": "우아하고 부드러운",
+      "palette": [
+        "#efe8dd",
+        "#eadfce",
+        "#c9ad82",
+        "#c3a878"
+      ],
+      "materials": [
+        "600x600mm 논슬립 포세린 타일",
+        "슬림 현관 수납장",
+        "하부 센서 조명",
+        "클래식 몰딩"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "18평 프렌치 현관 · 추천 20",
+      "trendNote": "현관의 실제 동선 기준과 프렌치 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-20",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "프렌치 오픈 선반 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-21",
+      "title": "모던 팬트리 연계 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "팬트리 연계 현관",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "모던",
+      "mood": "시크하고 세련된",
+      "palette": [
+        "#e8e7e6",
+        "#565b61",
+        "#2c2f33",
+        "#7f9a7c"
+      ],
+      "materials": [
+        "라이트 오크 신발장",
+        "웜화이트 무광 도장",
+        "테라조 바닥",
+        "전신 거울"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "52평 모던 현관 · 추천 21",
+      "trendNote": "현관의 실제 동선 기준과 모던 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-21",
+      "photoPosition": "65% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "모던 팬트리 연계 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-22",
+      "title": "스마트 수납 슬림 수납 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "슬림 수납 현관",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "스마트 수납",
+      "mood": "산뜻하고 효율적인",
+      "palette": [
+        "#f4f4f1",
+        "#d7d2c9",
+        "#2f5d9b",
+        "#e77b61"
+      ],
+      "materials": [
+        "라이트 오크 신발장",
+        "웜화이트 무광 도장",
+        "테라조 바닥",
+        "전신 거울"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "18평 스마트 수납 현관 · 추천 22",
+      "trendNote": "현관의 실제 동선 기준과 스마트 수납 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-22",
+      "photoPosition": "50% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "스마트 수납 슬림 수납 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-23",
+      "title": "호텔식 파티션 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "파티션 현관",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "호텔식",
+      "mood": "차분하고 고급스러운",
+      "palette": [
+        "#e9e5df",
+        "#eceae6",
+        "#c09967",
+        "#33373a"
+      ],
+      "materials": [
+        "라이트 오크 신발장",
+        "웜화이트 무광 도장",
+        "테라조 바닥",
+        "전신 거울"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "34평 호텔식 현관 · 추천 23",
+      "trendNote": "현관의 실제 동선 기준과 호텔식 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-23",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "호텔식 파티션 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-24",
+      "title": "재팬디 갤러리 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "갤러리 현관",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "재팬디",
+      "mood": "고요하고 깊이 있는",
+      "palette": [
+        "#d9d3cb",
+        "#c4aa83",
+        "#283f63",
+        "#f2eee8"
+      ],
+      "materials": [
+        "600x600mm 논슬립 포세린 타일",
+        "슬림 현관 수납장",
+        "하부 센서 조명",
+        "오크 격자 무늬목"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "42평 재팬디 현관 · 추천 24",
+      "trendNote": "현관의 실제 동선 기준과 재팬디 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-24",
+      "photoPosition": "58% 50%",
+      "photoScale": 1.075,
+      "photoMirror": true,
+      "imageAlt": "재팬디 갤러리 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-25",
+      "title": "미니멀 신발장 통합 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "신발장 통합 현관",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f0ebe3",
+        "#e7e1d7",
+        "#d3b98e",
+        "#8ba888"
+      ],
+      "materials": [
+        "600x600mm 논슬립 포세린 타일",
+        "슬림 현관 수납장",
+        "하부 센서 조명",
+        "무광 화이트 마감"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "24평 미니멀 현관 · 추천 25",
+      "trendNote": "현관의 실제 동선 기준과 미니멀 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-25",
+      "photoPosition": "50% 42%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "미니멀 신발장 통합 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-26",
+      "title": "내추럴 외투 수납 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "외투 수납 현관",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "내추럴",
+      "mood": "따뜻하고 편안한",
+      "palette": [
+        "#efe7db",
+        "#caa06a",
+        "#c1924f",
+        "#6f9d63"
+      ],
+      "materials": [
+        "라이트 오크 신발장",
+        "웜화이트 무광 도장",
+        "테라조 바닥",
+        "전신 거울"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "34평 내추럴 현관 · 추천 26",
+      "trendNote": "현관의 실제 동선 기준과 내추럴 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-26",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "내추럴 외투 수납 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-27",
+      "title": "북유럽 반개방 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "반개방 현관",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "북유럽",
+      "mood": "밝고 산뜻한",
+      "palette": [
+        "#f4f2ee",
+        "#dcc39a",
+        "#9fb4c4",
+        "#7fa27a"
+      ],
+      "materials": [
+        "600x600mm 논슬립 포세린 타일",
+        "슬림 현관 수납장",
+        "하부 센서 조명",
+        "애쉬 우드 마감"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "24평 북유럽 현관 · 추천 27",
+      "trendNote": "현관의 실제 동선 기준과 북유럽 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-27",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "북유럽 반개방 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-28",
+      "title": "인더스트리얼 라운드 중문 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "라운드 중문 현관",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "인더스트리얼",
+      "mood": "빈티지하고 감각적인",
+      "palette": [
+        "#6f655c",
+        "#8a5a34",
+        "#7d5236",
+        "#26231f"
+      ],
+      "materials": [
+        "600x600mm 논슬립 포세린 타일",
+        "슬림 현관 수납장",
+        "하부 센서 조명",
+        "콘크리트 질감 도장"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "52평 인더스트리얼 현관 · 추천 28",
+      "trendNote": "현관의 실제 동선 기준과 인더스트리얼 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-28",
+      "photoPosition": "65% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "인더스트리얼 라운드 중문 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-29",
+      "title": "빈티지 센서 조명 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "센서 조명 현관",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "빈티지",
+      "mood": "따뜻하고 개성 있는",
+      "palette": [
+        "#e9e0cf",
+        "#c99a3f",
+        "#3f5b47",
+        "#9a6a35"
+      ],
+      "materials": [
+        "600x600mm 논슬립 포세린 타일",
+        "슬림 현관 수납장",
+        "하부 센서 조명",
+        "월넛 우드 마감"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "18평 빈티지 현관 · 추천 29",
+      "trendNote": "현관의 실제 동선 기준과 빈티지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-29",
+      "photoPosition": "50% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "빈티지 센서 조명 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-entry-30",
+      "title": "웜 베이지 컴팩트 현관",
+      "category": "AI추천",
+      "spaceType": "현관",
+      "structure": "컴팩트 현관",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "웜 베이지",
+      "mood": "포근하고 아늑한",
+      "palette": [
+        "#efe6d9",
+        "#dcc7a6",
+        "#c4a06f",
+        "#88a37f"
+      ],
+      "materials": [
+        "600x600mm 논슬립 포세린 타일",
+        "슬림 현관 수납장",
+        "하부 센서 조명",
+        "샌드 베이지 텍스처"
+      ],
+      "tip": "중문 유효 폭과 신발장 문 간섭을 확인하고 자주 쓰는 수납을 손이 닿는 높이에 두세요.",
+      "trendLabel": "42평 웜 베이지 현관 · 추천 30",
+      "trendNote": "현관의 실제 동선 기준과 웜 베이지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/arch-entry-24.jpg?v=20260723-space30-30",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.025,
+      "photoMirror": true,
+      "imageAlt": "웜 베이지 컴팩트 현관 현관 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "tilePlan": [
+        {
+          "label": "바닥",
+          "value": "600x600mm 미끄럼 저항 포세린"
+        },
+        {
+          "label": "줄눈",
+          "value": "2mm 중간 톤 내오염 줄눈"
+        }
+      ]
+    },
+    {
+      "id": "design-20260723-space30-study-10",
+      "title": "호텔식 갤러리 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "갤러리 서재",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "호텔식",
+      "mood": "차분하고 고급스러운",
+      "palette": [
+        "#e9e5df",
+        "#eceae6",
+        "#c09967",
+        "#33373a"
+      ],
+      "materials": [
+        "세이지 무광 책장",
+        "오크 원목 책상",
+        "울 패브릭 체어",
+        "간접 선반 조명"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "18평 호텔식 서재 · 추천 10",
+      "trendNote": "서재의 실제 동선 기준과 호텔식 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/sage-study-34.jpg?v=20260723-space30-10",
+      "photoPosition": "58% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "호텔식 갤러리 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-study-11",
+      "title": "내추럴 미디어 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "미디어 서재",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "내추럴",
+      "mood": "따뜻하고 편안한",
+      "palette": [
+        "#efe7db",
+        "#caa06a",
+        "#c1924f",
+        "#6f9d63"
+      ],
+      "materials": [
+        "블랙 스틸 선반",
+        "월넛 데스크",
+        "콘크리트룩 월"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "24평 내추럴 서재 · 추천 11",
+      "trendNote": "서재의 실제 동선 기준과 내추럴 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/industrial-library-study-24.jpg?v=20260723-space30-11",
+      "photoPosition": "50% 42%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "내추럴 미디어 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-study-12",
+      "title": "북유럽 코너 데스크 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "코너 데스크 서재",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "북유럽",
+      "mood": "밝고 산뜻한",
+      "palette": [
+        "#f4f2ee",
+        "#dcc39a",
+        "#9fb4c4",
+        "#7fa27a"
+      ],
+      "materials": [
+        "내오염 실크벽지",
+        "내추럴 오크 강마루",
+        "월넛 데스크",
+        "블랙 스틸 선반·작업 조명"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "34평 북유럽 서재 · 추천 12",
+      "trendNote": "서재의 실제 동선 기준과 북유럽 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/window-home-study-34.jpg?v=20260723-space30-12",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.075,
+      "photoMirror": true,
+      "imageAlt": "북유럽 코너 데스크 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Elijah Pilchard",
+      "imageSource": "https://unsplash.com/photos/modern-home-office-with-computer-and-desk-IcLRF4mkXso"
+    },
+    {
+      "id": "design-20260723-space30-study-13",
+      "title": "프렌치 오픈 책장 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "오픈 책장 서재",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "프렌치",
+      "mood": "우아하고 부드러운",
+      "palette": [
+        "#efe8dd",
+        "#eadfce",
+        "#c9ad82",
+        "#c3a878"
+      ],
+      "materials": [
+        "내오염 실크벽지",
+        "내추럴 오크 강마루",
+        "맞춤 책장·데스크",
+        "클래식 몰딩"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "42평 프렌치 서재 · 추천 13",
+      "trendNote": "서재의 실제 동선 기준과 프렌치 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/sage-study-34.jpg?v=20260723-space30-13",
+      "photoPosition": "35% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "프렌치 오픈 책장 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-study-14",
+      "title": "재팬디 취미 작업실",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "취미 작업실",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "재팬디",
+      "mood": "고요하고 깊이 있는",
+      "palette": [
+        "#d9d3cb",
+        "#c4aa83",
+        "#283f63",
+        "#f2eee8"
+      ],
+      "materials": [
+        "내오염 실크벽지",
+        "내추럴 오크 강마루",
+        "맞춤 책장·데스크",
+        "오크 격자 무늬목"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "24평 재팬디 서재 · 추천 14",
+      "trendNote": "서재의 실제 동선 기준과 재팬디 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/industrial-library-study-24.jpg?v=20260723-space30-14",
+      "photoPosition": "65% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "재팬디 취미 작업실 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-study-15",
+      "title": "미니멀 컴팩트 홈오피스",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "컴팩트 홈오피스",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f0ebe3",
+        "#e7e1d7",
+        "#d3b98e",
+        "#8ba888"
+      ],
+      "materials": [
+        "내오염 실크벽지",
+        "내추럴 오크 강마루",
+        "맞춤 책장·데스크",
+        "무광 화이트 마감"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "18평 미니멀 서재 · 추천 15",
+      "trendNote": "서재의 실제 동선 기준과 미니멀 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/window-home-study-34.jpg?v=20260723-space30-15",
+      "photoPosition": "50% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "미니멀 컴팩트 홈오피스 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Elijah Pilchard",
+      "imageSource": "https://unsplash.com/photos/modern-home-office-with-computer-and-desk-IcLRF4mkXso"
+    },
+    {
+      "id": "design-20260723-space30-study-16",
+      "title": "모던 창가 데스크 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "창가 데스크 서재",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "모던",
+      "mood": "시크하고 세련된",
+      "palette": [
+        "#e8e7e6",
+        "#565b61",
+        "#2c2f33",
+        "#7f9a7c"
+      ],
+      "materials": [
+        "세이지 무광 책장",
+        "오크 원목 책상",
+        "울 패브릭 체어",
+        "간접 선반 조명"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "52평 모던 서재 · 추천 16",
+      "trendNote": "서재의 실제 동선 기준과 모던 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/sage-study-34.jpg?v=20260723-space30-16",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "모던 창가 데스크 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-study-17",
+      "title": "빈티지 벽면 책장 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "벽면 책장 서재",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "빈티지",
+      "mood": "따뜻하고 개성 있는",
+      "palette": [
+        "#e9e0cf",
+        "#c99a3f",
+        "#3f5b47",
+        "#9a6a35"
+      ],
+      "materials": [
+        "내오염 실크벽지",
+        "내추럴 오크 강마루",
+        "맞춤 책장·데스크",
+        "월넛 우드 마감"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "34평 빈티지 서재 · 추천 17",
+      "trendNote": "서재의 실제 동선 기준과 빈티지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/industrial-library-study-24.jpg?v=20260723-space30-17",
+      "photoPosition": "58% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "빈티지 벽면 책장 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-study-18",
+      "title": "웜 베이지 라이브러리 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "라이브러리 서재",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "웜 베이지",
+      "mood": "포근하고 아늑한",
+      "palette": [
+        "#efe6d9",
+        "#dcc7a6",
+        "#c4a06f",
+        "#88a37f"
+      ],
+      "materials": [
+        "내오염 실크벽지",
+        "내추럴 오크 강마루",
+        "맞춤 책장·데스크",
+        "샌드 베이지 텍스처"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "18평 웜 베이지 서재 · 추천 18",
+      "trendNote": "서재의 실제 동선 기준과 웜 베이지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/window-home-study-34.jpg?v=20260723-space30-18",
+      "photoPosition": "50% 42%",
+      "photoScale": 1.025,
+      "photoMirror": true,
+      "imageAlt": "웜 베이지 라이브러리 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Elijah Pilchard",
+      "imageSource": "https://unsplash.com/photos/modern-home-office-with-computer-and-desk-IcLRF4mkXso"
+    },
+    {
+      "id": "design-20260723-space30-study-19",
+      "title": "호텔식 폴딩 데스크 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "폴딩 데스크 서재",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "호텔식",
+      "mood": "차분하고 고급스러운",
+      "palette": [
+        "#e9e5df",
+        "#eceae6",
+        "#c09967",
+        "#33373a"
+      ],
+      "materials": [
+        "세이지 무광 책장",
+        "오크 원목 책상",
+        "울 패브릭 체어",
+        "간접 선반 조명"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "42평 호텔식 서재 · 추천 19",
+      "trendNote": "서재의 실제 동선 기준과 호텔식 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/sage-study-34.jpg?v=20260723-space30-19",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "호텔식 폴딩 데스크 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-study-20",
+      "title": "스마트 수납 티룸 겸용 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "티룸 겸용 서재",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "스마트 수납",
+      "mood": "산뜻하고 효율적인",
+      "palette": [
+        "#f4f4f1",
+        "#d7d2c9",
+        "#2f5d9b",
+        "#e77b61"
+      ],
+      "materials": [
+        "내오염 실크벽지",
+        "내추럴 오크 강마루",
+        "맞춤 책장·데스크",
+        "모듈 시스템 수납"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "24평 스마트 수납 서재 · 추천 20",
+      "trendNote": "서재의 실제 동선 기준과 스마트 수납 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/industrial-library-study-24.jpg?v=20260723-space30-20",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "스마트 수납 티룸 겸용 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-study-21",
+      "title": "내추럴 듀얼 데스크 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "듀얼 데스크 서재",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "내추럴",
+      "mood": "따뜻하고 편안한",
+      "palette": [
+        "#efe7db",
+        "#caa06a",
+        "#c1924f",
+        "#6f9d63"
+      ],
+      "materials": [
+        "블랙 스틸 선반",
+        "월넛 데스크",
+        "콘크리트룩 월"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "34평 내추럴 서재 · 추천 21",
+      "trendNote": "서재의 실제 동선 기준과 내추럴 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/window-home-study-34.jpg?v=20260723-space30-21",
+      "photoPosition": "65% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "내추럴 듀얼 데스크 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Elijah Pilchard",
+      "imageSource": "https://unsplash.com/photos/modern-home-office-with-computer-and-desk-IcLRF4mkXso"
+    },
+    {
+      "id": "design-20260723-space30-study-22",
+      "title": "북유럽 집중형 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "집중형 서재",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "북유럽",
+      "mood": "밝고 산뜻한",
+      "palette": [
+        "#f4f2ee",
+        "#dcc39a",
+        "#9fb4c4",
+        "#7fa27a"
+      ],
+      "materials": [
+        "내오염 실크벽지",
+        "내추럴 오크 강마루",
+        "월넛 데스크",
+        "블랙 스틸 선반·작업 조명"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "18평 북유럽 서재 · 추천 22",
+      "trendNote": "서재의 실제 동선 기준과 북유럽 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/sage-study-34.jpg?v=20260723-space30-22",
+      "photoPosition": "50% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "북유럽 집중형 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-study-23",
+      "title": "인더스트리얼 라운지 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "라운지 서재",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "인더스트리얼",
+      "mood": "빈티지하고 감각적인",
+      "palette": [
+        "#6f655c",
+        "#8a5a34",
+        "#7d5236",
+        "#26231f"
+      ],
+      "materials": [
+        "블랙 스틸 선반",
+        "월넛 데스크",
+        "콘크리트룩 월"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "24평 인더스트리얼 서재 · 추천 23",
+      "trendNote": "서재의 실제 동선 기준과 인더스트리얼 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/industrial-library-study-24.jpg?v=20260723-space30-23",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "인더스트리얼 라운지 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-study-24",
+      "title": "프렌치 슬라이딩 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "슬라이딩 서재",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "프렌치",
+      "mood": "우아하고 부드러운",
+      "palette": [
+        "#efe8dd",
+        "#eadfce",
+        "#c9ad82",
+        "#c3a878"
+      ],
+      "materials": [
+        "내오염 실크벽지",
+        "내추럴 오크 강마루",
+        "맞춤 책장·데스크",
+        "클래식 몰딩"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "52평 프렌치 서재 · 추천 24",
+      "trendNote": "서재의 실제 동선 기준과 프렌치 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/window-home-study-34.jpg?v=20260723-space30-24",
+      "photoPosition": "58% 50%",
+      "photoScale": 1.075,
+      "photoMirror": true,
+      "imageAlt": "프렌치 슬라이딩 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Elijah Pilchard",
+      "imageSource": "https://unsplash.com/photos/modern-home-office-with-computer-and-desk-IcLRF4mkXso"
+    },
+    {
+      "id": "design-20260723-space30-study-25",
+      "title": "재팬디 갤러리 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "갤러리 서재",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "재팬디",
+      "mood": "고요하고 깊이 있는",
+      "palette": [
+        "#d9d3cb",
+        "#c4aa83",
+        "#283f63",
+        "#f2eee8"
+      ],
+      "materials": [
+        "내오염 실크벽지",
+        "내추럴 오크 강마루",
+        "맞춤 책장·데스크",
+        "오크 격자 무늬목"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "42평 재팬디 서재 · 추천 25",
+      "trendNote": "서재의 실제 동선 기준과 재팬디 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/sage-study-34.jpg?v=20260723-space30-25",
+      "photoPosition": "50% 42%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "재팬디 갤러리 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-study-26",
+      "title": "미니멀 미디어 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "미디어 서재",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f0ebe3",
+        "#e7e1d7",
+        "#d3b98e",
+        "#8ba888"
+      ],
+      "materials": [
+        "내오염 실크벽지",
+        "내추럴 오크 강마루",
+        "맞춤 책장·데스크",
+        "무광 화이트 마감"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "24평 미니멀 서재 · 추천 26",
+      "trendNote": "서재의 실제 동선 기준과 미니멀 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/industrial-library-study-24.jpg?v=20260723-space30-26",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "미니멀 미디어 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-study-27",
+      "title": "모던 코너 데스크 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "코너 데스크 서재",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "모던",
+      "mood": "시크하고 세련된",
+      "palette": [
+        "#e8e7e6",
+        "#565b61",
+        "#2c2f33",
+        "#7f9a7c"
+      ],
+      "materials": [
+        "세이지 무광 책장",
+        "오크 원목 책상",
+        "울 패브릭 체어",
+        "간접 선반 조명"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "42평 모던 서재 · 추천 27",
+      "trendNote": "서재의 실제 동선 기준과 모던 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/window-home-study-34.jpg?v=20260723-space30-27",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "모던 코너 데스크 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Elijah Pilchard",
+      "imageSource": "https://unsplash.com/photos/modern-home-office-with-computer-and-desk-IcLRF4mkXso"
+    },
+    {
+      "id": "design-20260723-space30-study-28",
+      "title": "빈티지 오픈 책장 서재",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "오픈 책장 서재",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "빈티지",
+      "mood": "따뜻하고 개성 있는",
+      "palette": [
+        "#e9e0cf",
+        "#c99a3f",
+        "#3f5b47",
+        "#9a6a35"
+      ],
+      "materials": [
+        "내오염 실크벽지",
+        "내추럴 오크 강마루",
+        "맞춤 책장·데스크",
+        "월넛 우드 마감"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "18평 빈티지 서재 · 추천 28",
+      "trendNote": "서재의 실제 동선 기준과 빈티지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/sage-study-34.jpg?v=20260723-space30-28",
+      "photoPosition": "65% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "빈티지 오픈 책장 서재 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-study-29",
+      "title": "웜 베이지 취미 작업실",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "취미 작업실",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "웜 베이지",
+      "mood": "포근하고 아늑한",
+      "palette": [
+        "#efe6d9",
+        "#dcc7a6",
+        "#c4a06f",
+        "#88a37f"
+      ],
+      "materials": [
+        "내오염 실크벽지",
+        "내추럴 오크 강마루",
+        "맞춤 책장·데스크",
+        "샌드 베이지 텍스처"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "52평 웜 베이지 서재 · 추천 29",
+      "trendNote": "서재의 실제 동선 기준과 웜 베이지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/industrial-library-study-24.jpg?v=20260723-space30-29",
+      "photoPosition": "50% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "웜 베이지 취미 작업실 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-study-30",
+      "title": "호텔식 컴팩트 홈오피스",
+      "category": "AI추천",
+      "spaceType": "서재",
+      "structure": "컴팩트 홈오피스",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "호텔식",
+      "mood": "차분하고 고급스러운",
+      "palette": [
+        "#e9e5df",
+        "#eceae6",
+        "#c09967",
+        "#33373a"
+      ],
+      "materials": [
+        "세이지 무광 책장",
+        "오크 원목 책상",
+        "울 패브릭 체어",
+        "간접 선반 조명"
+      ],
+      "tip": "책상 눈부심과 의자 뒤 통로를 확인하고 책장 깊이는 보관할 물품에 맞춰 정하세요.",
+      "trendLabel": "34평 호텔식 서재 · 추천 30",
+      "trendNote": "서재의 실제 동선 기준과 호텔식 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/window-home-study-34.jpg?v=20260723-space30-30",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.025,
+      "photoMirror": true,
+      "imageAlt": "호텔식 컴팩트 홈오피스 서재 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Elijah Pilchard",
+      "imageSource": "https://unsplash.com/photos/modern-home-office-with-computer-and-desk-IcLRF4mkXso"
+    },
+    {
+      "id": "design-20260723-space30-kids-10",
+      "title": "인더스트리얼 라운드 수납 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "라운드 수납 아이방",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "인더스트리얼",
+      "mood": "빈티지하고 감각적인",
+      "palette": [
+        "#6f655c",
+        "#8a5a34",
+        "#7d5236",
+        "#26231f"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납장",
+        "창가 수납 벤치"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "24평 인더스트리얼 아이방 · 추천 10",
+      "trendNote": "아이방의 실제 동선 기준과 인더스트리얼 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/play-storage-kids-30.jpg?v=20260723-space30-10",
+      "photoPosition": "58% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "인더스트리얼 라운드 수납 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "ASR Design Studio",
+      "imageSource": "https://unsplash.com/photos/a-childs-room-with-a-bookcase-and-toys-3mtds3PygEw"
+    },
+    {
+      "id": "design-20260723-space30-kids-11",
+      "title": "모던 오픈 놀이 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "오픈 놀이 아이방",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "모던",
+      "mood": "시크하고 세련된",
+      "palette": [
+        "#e8e7e6",
+        "#565b61",
+        "#2c2f33",
+        "#7f9a7c"
+      ],
+      "materials": [
+        "자작나무 모듈 가구",
+        "저상 수납 침대",
+        "코르크 게시판",
+        "무광 컬러 도어"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "52평 모던 아이방 · 추천 11",
+      "trendNote": "아이방의 실제 동선 기준과 모던 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/modular-kids-30.jpg?v=20260723-space30-11",
+      "photoPosition": "50% 42%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "모던 오픈 놀이 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-kids-12",
+      "title": "호텔식 슬라이딩 수납 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "슬라이딩 수납 아이방",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "호텔식",
+      "mood": "차분하고 고급스러운",
+      "palette": [
+        "#e9e5df",
+        "#eceae6",
+        "#c09967",
+        "#33373a"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납장",
+        "창가 수납 벤치"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "18평 호텔식 아이방 · 추천 12",
+      "trendNote": "아이방의 실제 동선 기준과 호텔식 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/play-storage-kids-30.jpg?v=20260723-space30-12",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.075,
+      "photoMirror": true,
+      "imageAlt": "호텔식 슬라이딩 수납 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "ASR Design Studio",
+      "imageSource": "https://unsplash.com/photos/a-childs-room-with-a-bookcase-and-toys-3mtds3PygEw"
+    },
+    {
+      "id": "design-20260723-space30-kids-13",
+      "title": "프렌치 미술 놀이 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "미술 놀이 아이방",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "프렌치",
+      "mood": "우아하고 부드러운",
+      "palette": [
+        "#efe8dd",
+        "#eadfce",
+        "#c9ad82",
+        "#c3a878"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납",
+        "클래식 몰딩"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "24평 프렌치 아이방 · 추천 13",
+      "trendNote": "아이방의 실제 동선 기준과 프렌치 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/modular-kids-30.jpg?v=20260723-space30-13",
+      "photoPosition": "35% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "프렌치 미술 놀이 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-kids-14",
+      "title": "재팬디 컴팩트 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "컴팩트 아이방",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "재팬디",
+      "mood": "고요하고 깊이 있는",
+      "palette": [
+        "#d9d3cb",
+        "#c4aa83",
+        "#283f63",
+        "#f2eee8"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납",
+        "오크 격자 무늬목"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "52평 재팬디 아이방 · 추천 14",
+      "trendNote": "아이방의 실제 동선 기준과 재팬디 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/play-storage-kids-30.jpg?v=20260723-space30-14",
+      "photoPosition": "65% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "재팬디 컴팩트 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "ASR Design Studio",
+      "imageSource": "https://unsplash.com/photos/a-childs-room-with-a-bookcase-and-toys-3mtds3PygEw"
+    },
+    {
+      "id": "design-20260723-space30-kids-15",
+      "title": "미니멀 패밀리 학습방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "패밀리 학습방",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f0ebe3",
+        "#e7e1d7",
+        "#d3b98e",
+        "#8ba888"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납",
+        "무광 화이트 마감"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "18평 미니멀 아이방 · 추천 15",
+      "trendNote": "아이방의 실제 동선 기준과 미니멀 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/modular-kids-30.jpg?v=20260723-space30-15",
+      "photoPosition": "50% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "미니멀 패밀리 학습방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-kids-16",
+      "title": "내추럴 성장형 수납 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "성장형 수납 아이방",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "내추럴",
+      "mood": "따뜻하고 편안한",
+      "palette": [
+        "#efe7db",
+        "#caa06a",
+        "#c1924f",
+        "#6f9d63"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납",
+        "오크 무늬목 마감"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "42평 내추럴 아이방 · 추천 16",
+      "trendNote": "아이방의 실제 동선 기준과 내추럴 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/play-storage-kids-30.jpg?v=20260723-space30-16",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "내추럴 성장형 수납 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "ASR Design Studio",
+      "imageSource": "https://unsplash.com/photos/a-childs-room-with-a-bookcase-and-toys-3mtds3PygEw"
+    },
+    {
+      "id": "design-20260723-space30-kids-17",
+      "title": "북유럽 창가 책상 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "창가 책상 아이방",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "북유럽",
+      "mood": "밝고 산뜻한",
+      "palette": [
+        "#f4f2ee",
+        "#dcc39a",
+        "#9fb4c4",
+        "#7fa27a"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납",
+        "애쉬 우드 마감"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "24평 북유럽 아이방 · 추천 17",
+      "trendNote": "아이방의 실제 동선 기준과 북유럽 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/modular-kids-30.jpg?v=20260723-space30-17",
+      "photoPosition": "58% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "북유럽 창가 책상 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-kids-18",
+      "title": "인더스트리얼 놀이 학습 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "놀이 학습 아이방",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "인더스트리얼",
+      "mood": "빈티지하고 감각적인",
+      "palette": [
+        "#6f655c",
+        "#8a5a34",
+        "#7d5236",
+        "#26231f"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납장",
+        "창가 수납 벤치"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "42평 인더스트리얼 아이방 · 추천 18",
+      "trendNote": "아이방의 실제 동선 기준과 인더스트리얼 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/play-storage-kids-30.jpg?v=20260723-space30-18",
+      "photoPosition": "50% 42%",
+      "photoScale": 1.025,
+      "photoMirror": true,
+      "imageAlt": "인더스트리얼 놀이 학습 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "ASR Design Studio",
+      "imageSource": "https://unsplash.com/photos/a-childs-room-with-a-bookcase-and-toys-3mtds3PygEw"
+    },
+    {
+      "id": "design-20260723-space30-kids-19",
+      "title": "빈티지 평상 침대 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "평상 침대 아이방",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "빈티지",
+      "mood": "따뜻하고 개성 있는",
+      "palette": [
+        "#e9e0cf",
+        "#c99a3f",
+        "#3f5b47",
+        "#9a6a35"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납",
+        "월넛 우드 마감"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "18평 빈티지 아이방 · 추천 19",
+      "trendNote": "아이방의 실제 동선 기준과 빈티지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/modular-kids-30.jpg?v=20260723-space30-19",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "빈티지 평상 침대 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-kids-20",
+      "title": "웜 베이지 모듈 가구 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "모듈 가구 아이방",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "웜 베이지",
+      "mood": "포근하고 아늑한",
+      "palette": [
+        "#efe6d9",
+        "#dcc7a6",
+        "#c4a06f",
+        "#88a37f"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납",
+        "샌드 베이지 텍스처"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "24평 웜 베이지 아이방 · 추천 20",
+      "trendNote": "아이방의 실제 동선 기준과 웜 베이지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/play-storage-kids-30.jpg?v=20260723-space30-20",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "웜 베이지 모듈 가구 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "ASR Design Studio",
+      "imageSource": "https://unsplash.com/photos/a-childs-room-with-a-bookcase-and-toys-3mtds3PygEw"
+    },
+    {
+      "id": "design-20260723-space30-kids-21",
+      "title": "모던 2인 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "2인 아이방",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "모던",
+      "mood": "시크하고 세련된",
+      "palette": [
+        "#e8e7e6",
+        "#565b61",
+        "#2c2f33",
+        "#7f9a7c"
+      ],
+      "materials": [
+        "자작나무 모듈 가구",
+        "저상 수납 침대",
+        "코르크 게시판",
+        "무광 컬러 도어"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "52평 모던 아이방 · 추천 21",
+      "trendNote": "아이방의 실제 동선 기준과 모던 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/modular-kids-30.jpg?v=20260723-space30-21",
+      "photoPosition": "65% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "모던 2인 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-kids-22",
+      "title": "호텔식 벙커 침대 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "벙커 침대 아이방",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "호텔식",
+      "mood": "차분하고 고급스러운",
+      "palette": [
+        "#e9e5df",
+        "#eceae6",
+        "#c09967",
+        "#33373a"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납장",
+        "창가 수납 벤치"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "42평 호텔식 아이방 · 추천 22",
+      "trendNote": "아이방의 실제 동선 기준과 호텔식 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/play-storage-kids-30.jpg?v=20260723-space30-22",
+      "photoPosition": "50% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "호텔식 벙커 침대 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "ASR Design Studio",
+      "imageSource": "https://unsplash.com/photos/a-childs-room-with-a-bookcase-and-toys-3mtds3PygEw"
+    },
+    {
+      "id": "design-20260723-space30-kids-23",
+      "title": "스마트 수납 독서 코너 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "독서 코너 아이방",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "스마트 수납",
+      "mood": "산뜻하고 효율적인",
+      "palette": [
+        "#f4f4f1",
+        "#d7d2c9",
+        "#2f5d9b",
+        "#e77b61"
+      ],
+      "materials": [
+        "자작나무 모듈 가구",
+        "저상 수납 침대",
+        "코르크 게시판",
+        "무광 컬러 도어"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "18평 스마트 수납 아이방 · 추천 23",
+      "trendNote": "아이방의 실제 동선 기준과 스마트 수납 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/modular-kids-30.jpg?v=20260723-space30-23",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "스마트 수납 독서 코너 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-kids-24",
+      "title": "프렌치 컬러 포인트 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "컬러 포인트 아이방",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "프렌치",
+      "mood": "우아하고 부드러운",
+      "palette": [
+        "#efe8dd",
+        "#eadfce",
+        "#c9ad82",
+        "#c3a878"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납",
+        "클래식 몰딩"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "52평 프렌치 아이방 · 추천 24",
+      "trendNote": "아이방의 실제 동선 기준과 프렌치 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/play-storage-kids-30.jpg?v=20260723-space30-24",
+      "photoPosition": "58% 50%",
+      "photoScale": 1.075,
+      "photoMirror": true,
+      "imageAlt": "프렌치 컬러 포인트 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "ASR Design Studio",
+      "imageSource": "https://unsplash.com/photos/a-childs-room-with-a-bookcase-and-toys-3mtds3PygEw"
+    },
+    {
+      "id": "design-20260723-space30-kids-25",
+      "title": "재팬디 라운드 수납 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "라운드 수납 아이방",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "재팬디",
+      "mood": "고요하고 깊이 있는",
+      "palette": [
+        "#d9d3cb",
+        "#c4aa83",
+        "#283f63",
+        "#f2eee8"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납",
+        "오크 격자 무늬목"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "24평 재팬디 아이방 · 추천 25",
+      "trendNote": "아이방의 실제 동선 기준과 재팬디 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/modular-kids-30.jpg?v=20260723-space30-25",
+      "photoPosition": "50% 42%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "재팬디 라운드 수납 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-kids-26",
+      "title": "미니멀 오픈 놀이 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "오픈 놀이 아이방",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f0ebe3",
+        "#e7e1d7",
+        "#d3b98e",
+        "#8ba888"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납",
+        "무광 화이트 마감"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "24평 미니멀 아이방 · 추천 26",
+      "trendNote": "아이방의 실제 동선 기준과 미니멀 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/play-storage-kids-30.jpg?v=20260723-space30-26",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "미니멀 오픈 놀이 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "ASR Design Studio",
+      "imageSource": "https://unsplash.com/photos/a-childs-room-with-a-bookcase-and-toys-3mtds3PygEw"
+    },
+    {
+      "id": "design-20260723-space30-kids-27",
+      "title": "내추럴 슬라이딩 수납 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "슬라이딩 수납 아이방",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "내추럴",
+      "mood": "따뜻하고 편안한",
+      "palette": [
+        "#efe7db",
+        "#caa06a",
+        "#c1924f",
+        "#6f9d63"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납",
+        "오크 무늬목 마감"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "18평 내추럴 아이방 · 추천 27",
+      "trendNote": "아이방의 실제 동선 기준과 내추럴 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/modular-kids-30.jpg?v=20260723-space30-27",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "내추럴 슬라이딩 수납 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-kids-28",
+      "title": "북유럽 미술 놀이 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "미술 놀이 아이방",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "북유럽",
+      "mood": "밝고 산뜻한",
+      "palette": [
+        "#f4f2ee",
+        "#dcc39a",
+        "#9fb4c4",
+        "#7fa27a"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납",
+        "애쉬 우드 마감"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "34평 북유럽 아이방 · 추천 28",
+      "trendNote": "아이방의 실제 동선 기준과 북유럽 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/play-storage-kids-30.jpg?v=20260723-space30-28",
+      "photoPosition": "65% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "북유럽 미술 놀이 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "ASR Design Studio",
+      "imageSource": "https://unsplash.com/photos/a-childs-room-with-a-bookcase-and-toys-3mtds3PygEw"
+    },
+    {
+      "id": "design-20260723-space30-kids-29",
+      "title": "인더스트리얼 컴팩트 아이방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "컴팩트 아이방",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "인더스트리얼",
+      "mood": "빈티지하고 감각적인",
+      "palette": [
+        "#6f655c",
+        "#8a5a34",
+        "#7d5236",
+        "#26231f"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납장",
+        "창가 수납 벤치"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "52평 인더스트리얼 아이방 · 추천 29",
+      "trendNote": "아이방의 실제 동선 기준과 인더스트리얼 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/modular-kids-30.jpg?v=20260723-space30-29",
+      "photoPosition": "50% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "인더스트리얼 컴팩트 아이방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-kids-30",
+      "title": "빈티지 패밀리 학습방",
+      "category": "AI추천",
+      "spaceType": "아이방",
+      "structure": "패밀리 학습방",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "빈티지",
+      "mood": "따뜻하고 개성 있는",
+      "palette": [
+        "#e9e0cf",
+        "#c99a3f",
+        "#3f5b47",
+        "#9a6a35"
+      ],
+      "materials": [
+        "친환경 포인트 벽지",
+        "내추럴 오크 강마루",
+        "성장형 모듈 수납",
+        "월넛 우드 마감"
+      ],
+      "tip": "가구 모서리와 전도 방지를 우선하고 성장 후 재배치할 수 있는 빈 바닥을 남겨두세요.",
+      "trendLabel": "42평 빈티지 아이방 · 추천 30",
+      "trendNote": "아이방의 실제 동선 기준과 빈티지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/play-storage-kids-30.jpg?v=20260723-space30-30",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.025,
+      "photoMirror": true,
+      "imageAlt": "빈티지 패밀리 학습방 아이방 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "ASR Design Studio",
+      "imageSource": "https://unsplash.com/photos/a-childs-room-with-a-bookcase-and-toys-3mtds3PygEw"
+    },
+    {
+      "id": "design-20260723-space30-dressing-06",
+      "title": "웜 베이지 슬라이딩 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "슬라이딩 드레스룸",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "웜 베이지",
+      "mood": "포근하고 아늑한",
+      "palette": [
+        "#efe6d9",
+        "#dcc7a6",
+        "#c4a06f",
+        "#88a37f"
+      ],
+      "materials": [
+        "오픈 시스템 붙박이장",
+        "내추럴 오크 강마루",
+        "풀아웃 서랍·행거",
+        "수납장 센서 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "18평 웜 베이지 드레스룸 · 추천 6",
+      "trendNote": "드레스룸의 실제 동선 기준과 웜 베이지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/organized-walkin-dressing-42.jpg?v=20260723-space30-06",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.025,
+      "photoMirror": true,
+      "imageAlt": "웜 베이지 슬라이딩 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Franco Debartolo",
+      "imageSource": "https://unsplash.com/photos/a-modern-walk-in-closet-with-organized-clothing-and-shelves-CXDLmHqhLmk"
+    },
+    {
+      "id": "design-20260723-space30-dressing-07",
+      "title": "프렌치 세탁 연계 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "세탁 연계 드레스룸",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "프렌치",
+      "mood": "우아하고 부드러운",
+      "palette": [
+        "#efe8dd",
+        "#eadfce",
+        "#c9ad82",
+        "#c3a878"
+      ],
+      "materials": [
+        "스모크 오크 붙박이장",
+        "그레이지 무광 도어",
+        "라이트 스톤 상판",
+        "선형 수납 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "34평 프렌치 드레스룸 · 추천 7",
+      "trendNote": "드레스룸의 실제 동선 기준과 프렌치 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/wardrobe-laundry-42.jpg?v=20260723-space30-07",
+      "photoPosition": "65% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "프렌치 세탁 연계 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-08",
+      "title": "재팬디 컴팩트 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "컴팩트 드레스룸",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "재팬디",
+      "mood": "고요하고 깊이 있는",
+      "palette": [
+        "#d9d3cb",
+        "#c4aa83",
+        "#283f63",
+        "#f2eee8"
+      ],
+      "materials": [
+        "스모크 글라스 도어",
+        "월넛 붙박이장",
+        "간접 수납 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "52평 재팬디 드레스룸 · 추천 8",
+      "trendNote": "드레스룸의 실제 동선 기준과 재팬디 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/hotel-suite-dressing-42.jpg?v=20260723-space30-08",
+      "photoPosition": "50% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "재팬디 컴팩트 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-09",
+      "title": "미니멀 ㄱ자 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "ㄱ자 드레스룸",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f0ebe3",
+        "#e7e1d7",
+        "#d3b98e",
+        "#8ba888"
+      ],
+      "materials": [
+        "오픈 시스템 붙박이장",
+        "내추럴 오크 강마루",
+        "풀아웃 서랍·행거",
+        "수납장 센서 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "18평 미니멀 드레스룸 · 추천 9",
+      "trendNote": "드레스룸의 실제 동선 기준과 미니멀 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/organized-walkin-dressing-42.jpg?v=20260723-space30-09",
+      "photoPosition": "42% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "미니멀 ㄱ자 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Franco Debartolo",
+      "imageSource": "https://unsplash.com/photos/a-modern-walk-in-closet-with-organized-clothing-and-shelves-CXDLmHqhLmk"
+    },
+    {
+      "id": "design-20260723-space30-dressing-10",
+      "title": "내추럴 양면 수납 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "양면 수납 드레스룸",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "내추럴",
+      "mood": "따뜻하고 편안한",
+      "palette": [
+        "#efe7db",
+        "#caa06a",
+        "#c1924f",
+        "#6f9d63"
+      ],
+      "materials": [
+        "스모크 오크 붙박이장",
+        "그레이지 무광 도어",
+        "라이트 스톤 상판",
+        "선형 수납 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "52평 내추럴 드레스룸 · 추천 10",
+      "trendNote": "드레스룸의 실제 동선 기준과 내추럴 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/wardrobe-laundry-42.jpg?v=20260723-space30-10",
+      "photoPosition": "58% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "내추럴 양면 수납 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-11",
+      "title": "북유럽 부티크 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "부티크 드레스룸",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "북유럽",
+      "mood": "밝고 산뜻한",
+      "palette": [
+        "#f4f2ee",
+        "#dcc39a",
+        "#9fb4c4",
+        "#7fa27a"
+      ],
+      "materials": [
+        "스모크 글라스 도어",
+        "월넛 붙박이장",
+        "간접 수납 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "34평 북유럽 드레스룸 · 추천 11",
+      "trendNote": "드레스룸의 실제 동선 기준과 북유럽 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/hotel-suite-dressing-42.jpg?v=20260723-space30-11",
+      "photoPosition": "50% 42%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "북유럽 부티크 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-12",
+      "title": "빈티지 슈즈 수납 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "슈즈 수납 드레스룸",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "빈티지",
+      "mood": "따뜻하고 개성 있는",
+      "palette": [
+        "#e9e0cf",
+        "#c99a3f",
+        "#3f5b47",
+        "#9a6a35"
+      ],
+      "materials": [
+        "오픈 시스템 붙박이장",
+        "내추럴 오크 강마루",
+        "풀아웃 서랍·행거",
+        "수납장 센서 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "24평 빈티지 드레스룸 · 추천 12",
+      "trendNote": "드레스룸의 실제 동선 기준과 빈티지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/organized-walkin-dressing-42.jpg?v=20260723-space30-12",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.075,
+      "photoMirror": true,
+      "imageAlt": "빈티지 슈즈 수납 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Franco Debartolo",
+      "imageSource": "https://unsplash.com/photos/a-modern-walk-in-closet-with-organized-clothing-and-shelves-CXDLmHqhLmk"
+    },
+    {
+      "id": "design-20260723-space30-dressing-13",
+      "title": "스마트 수납 미러 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "미러 드레스룸",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "스마트 수납",
+      "mood": "산뜻하고 효율적인",
+      "palette": [
+        "#f4f4f1",
+        "#d7d2c9",
+        "#2f5d9b",
+        "#e77b61"
+      ],
+      "materials": [
+        "친환경 실크벽지",
+        "내추럴 오크 강마루",
+        "오픈 시스템장·서랍",
+        "모듈 시스템 수납"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "52평 스마트 수납 드레스룸 · 추천 13",
+      "trendNote": "드레스룸의 실제 동선 기준과 스마트 수납 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/wardrobe-laundry-42.jpg?v=20260723-space30-13",
+      "photoPosition": "35% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "스마트 수납 미러 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-14",
+      "title": "모던 모듈 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "모듈 드레스룸",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "모던",
+      "mood": "시크하고 세련된",
+      "palette": [
+        "#e8e7e6",
+        "#565b61",
+        "#2c2f33",
+        "#7f9a7c"
+      ],
+      "materials": [
+        "스모크 오크 붙박이장",
+        "그레이지 무광 도어",
+        "라이트 스톤 상판",
+        "선형 수납 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "34평 모던 드레스룸 · 추천 14",
+      "trendNote": "드레스룸의 실제 동선 기준과 모던 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/hotel-suite-dressing-42.jpg?v=20260723-space30-14",
+      "photoPosition": "65% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "모던 모듈 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-15",
+      "title": "인더스트리얼 히든 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "히든 드레스룸",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "인더스트리얼",
+      "mood": "빈티지하고 감각적인",
+      "palette": [
+        "#6f655c",
+        "#8a5a34",
+        "#7d5236",
+        "#26231f"
+      ],
+      "materials": [
+        "친환경 실크벽지",
+        "내추럴 오크 강마루",
+        "오픈 시스템장·서랍",
+        "콘크리트 질감 도장"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "18평 인더스트리얼 드레스룸 · 추천 15",
+      "trendNote": "드레스룸의 실제 동선 기준과 인더스트리얼 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/organized-walkin-dressing-42.jpg?v=20260723-space30-15",
+      "photoPosition": "50% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "인더스트리얼 히든 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Franco Debartolo",
+      "imageSource": "https://unsplash.com/photos/a-modern-walk-in-closet-with-organized-clothing-and-shelves-CXDLmHqhLmk"
+    },
+    {
+      "id": "design-20260723-space30-dressing-16",
+      "title": "웜 베이지 워크인 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "워크인 드레스룸",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "웜 베이지",
+      "mood": "포근하고 아늑한",
+      "palette": [
+        "#efe6d9",
+        "#dcc7a6",
+        "#c4a06f",
+        "#88a37f"
+      ],
+      "materials": [
+        "오픈 시스템 붙박이장",
+        "내추럴 오크 강마루",
+        "풀아웃 서랍·행거",
+        "수납장 센서 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "34평 웜 베이지 드레스룸 · 추천 16",
+      "trendNote": "드레스룸의 실제 동선 기준과 웜 베이지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/wardrobe-laundry-42.jpg?v=20260723-space30-16",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "웜 베이지 워크인 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-17",
+      "title": "프렌치 오픈 시스템 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "오픈 시스템 드레스룸",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "프렌치",
+      "mood": "우아하고 부드러운",
+      "palette": [
+        "#efe8dd",
+        "#eadfce",
+        "#c9ad82",
+        "#c3a878"
+      ],
+      "materials": [
+        "스모크 오크 붙박이장",
+        "그레이지 무광 도어",
+        "라이트 스톤 상판",
+        "선형 수납 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "18평 프렌치 드레스룸 · 추천 17",
+      "trendNote": "드레스룸의 실제 동선 기준과 프렌치 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/hotel-suite-dressing-42.jpg?v=20260723-space30-17",
+      "photoPosition": "58% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "프렌치 오픈 시스템 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-18",
+      "title": "재팬디 유리장 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "유리장 드레스룸",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "재팬디",
+      "mood": "고요하고 깊이 있는",
+      "palette": [
+        "#d9d3cb",
+        "#c4aa83",
+        "#283f63",
+        "#f2eee8"
+      ],
+      "materials": [
+        "스모크 글라스 도어",
+        "월넛 붙박이장",
+        "간접 수납 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "24평 재팬디 드레스룸 · 추천 18",
+      "trendNote": "드레스룸의 실제 동선 기준과 재팬디 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/organized-walkin-dressing-42.jpg?v=20260723-space30-18",
+      "photoPosition": "50% 42%",
+      "photoScale": 1.025,
+      "photoMirror": true,
+      "imageAlt": "재팬디 유리장 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Franco Debartolo",
+      "imageSource": "https://unsplash.com/photos/a-modern-walk-in-closet-with-organized-clothing-and-shelves-CXDLmHqhLmk"
+    },
+    {
+      "id": "design-20260723-space30-dressing-19",
+      "title": "미니멀 파우더 연계 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "파우더 연계 드레스룸",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f0ebe3",
+        "#e7e1d7",
+        "#d3b98e",
+        "#8ba888"
+      ],
+      "materials": [
+        "오픈 시스템 붙박이장",
+        "내추럴 오크 강마루",
+        "풀아웃 서랍·행거",
+        "수납장 센서 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "52평 미니멀 드레스룸 · 추천 19",
+      "trendNote": "드레스룸의 실제 동선 기준과 미니멀 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/wardrobe-laundry-42.jpg?v=20260723-space30-19",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "미니멀 파우더 연계 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-20",
+      "title": "내추럴 아일랜드 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "아일랜드 드레스룸",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "내추럴",
+      "mood": "따뜻하고 편안한",
+      "palette": [
+        "#efe7db",
+        "#caa06a",
+        "#c1924f",
+        "#6f9d63"
+      ],
+      "materials": [
+        "스모크 오크 붙박이장",
+        "그레이지 무광 도어",
+        "라이트 스톤 상판",
+        "선형 수납 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "42평 내추럴 드레스룸 · 추천 20",
+      "trendNote": "드레스룸의 실제 동선 기준과 내추럴 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/hotel-suite-dressing-42.jpg?v=20260723-space30-20",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "내추럴 아일랜드 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-21",
+      "title": "북유럽 슬라이딩 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "슬라이딩 드레스룸",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "북유럽",
+      "mood": "밝고 산뜻한",
+      "palette": [
+        "#f4f2ee",
+        "#dcc39a",
+        "#9fb4c4",
+        "#7fa27a"
+      ],
+      "materials": [
+        "스모크 글라스 도어",
+        "월넛 붙박이장",
+        "간접 수납 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "42평 북유럽 드레스룸 · 추천 21",
+      "trendNote": "드레스룸의 실제 동선 기준과 북유럽 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/organized-walkin-dressing-42.jpg?v=20260723-space30-21",
+      "photoPosition": "65% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "북유럽 슬라이딩 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Franco Debartolo",
+      "imageSource": "https://unsplash.com/photos/a-modern-walk-in-closet-with-organized-clothing-and-shelves-CXDLmHqhLmk"
+    },
+    {
+      "id": "design-20260723-space30-dressing-22",
+      "title": "빈티지 세탁 연계 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "세탁 연계 드레스룸",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "빈티지",
+      "mood": "따뜻하고 개성 있는",
+      "palette": [
+        "#e9e0cf",
+        "#c99a3f",
+        "#3f5b47",
+        "#9a6a35"
+      ],
+      "materials": [
+        "오픈 시스템 붙박이장",
+        "내추럴 오크 강마루",
+        "풀아웃 서랍·행거",
+        "수납장 센서 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "52평 빈티지 드레스룸 · 추천 22",
+      "trendNote": "드레스룸의 실제 동선 기준과 빈티지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/wardrobe-laundry-42.jpg?v=20260723-space30-22",
+      "photoPosition": "50% 50%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "빈티지 세탁 연계 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-23",
+      "title": "스마트 수납 컴팩트 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "컴팩트 드레스룸",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "스마트 수납",
+      "mood": "산뜻하고 효율적인",
+      "palette": [
+        "#f4f4f1",
+        "#d7d2c9",
+        "#2f5d9b",
+        "#e77b61"
+      ],
+      "materials": [
+        "친환경 실크벽지",
+        "내추럴 오크 강마루",
+        "오픈 시스템장·서랍",
+        "모듈 시스템 수납"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "18평 스마트 수납 드레스룸 · 추천 23",
+      "trendNote": "드레스룸의 실제 동선 기준과 스마트 수납 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/hotel-suite-dressing-42.jpg?v=20260723-space30-23",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "스마트 수납 컴팩트 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-24",
+      "title": "호텔식 ㄱ자 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "ㄱ자 드레스룸",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "호텔식",
+      "mood": "차분하고 고급스러운",
+      "palette": [
+        "#e9e5df",
+        "#eceae6",
+        "#c09967",
+        "#33373a"
+      ],
+      "materials": [
+        "스모크 글라스 도어",
+        "월넛 붙박이장",
+        "간접 수납 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "24평 호텔식 드레스룸 · 추천 24",
+      "trendNote": "드레스룸의 실제 동선 기준과 호텔식 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/organized-walkin-dressing-42.jpg?v=20260723-space30-24",
+      "photoPosition": "58% 50%",
+      "photoScale": 1.075,
+      "photoMirror": true,
+      "imageAlt": "호텔식 ㄱ자 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Franco Debartolo",
+      "imageSource": "https://unsplash.com/photos/a-modern-walk-in-closet-with-organized-clothing-and-shelves-CXDLmHqhLmk"
+    },
+    {
+      "id": "design-20260723-space30-dressing-25",
+      "title": "모던 양면 수납 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "양면 수납 드레스룸",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "모던",
+      "mood": "시크하고 세련된",
+      "palette": [
+        "#e8e7e6",
+        "#565b61",
+        "#2c2f33",
+        "#7f9a7c"
+      ],
+      "materials": [
+        "스모크 오크 붙박이장",
+        "그레이지 무광 도어",
+        "라이트 스톤 상판",
+        "선형 수납 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "34평 모던 드레스룸 · 추천 25",
+      "trendNote": "드레스룸의 실제 동선 기준과 모던 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/wardrobe-laundry-42.jpg?v=20260723-space30-25",
+      "photoPosition": "50% 42%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "모던 양면 수납 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-26",
+      "title": "인더스트리얼 부티크 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "부티크 드레스룸",
+      "area": 18,
+      "budget": "3천만원 이하",
+      "style": "인더스트리얼",
+      "mood": "빈티지하고 감각적인",
+      "palette": [
+        "#6f655c",
+        "#8a5a34",
+        "#7d5236",
+        "#26231f"
+      ],
+      "materials": [
+        "친환경 실크벽지",
+        "내추럴 오크 강마루",
+        "오픈 시스템장·서랍",
+        "콘크리트 질감 도장"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "18평 인더스트리얼 드레스룸 · 추천 26",
+      "trendNote": "드레스룸의 실제 동선 기준과 인더스트리얼 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/hotel-suite-dressing-42.jpg?v=20260723-space30-26",
+      "photoPosition": "50% 58%",
+      "photoScale": 1.025,
+      "photoMirror": false,
+      "imageAlt": "인더스트리얼 부티크 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-27",
+      "title": "웜 베이지 슈즈 수납 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "슈즈 수납 드레스룸",
+      "area": 34,
+      "budget": "5천~8천만원",
+      "style": "웜 베이지",
+      "mood": "포근하고 아늑한",
+      "palette": [
+        "#efe6d9",
+        "#dcc7a6",
+        "#c4a06f",
+        "#88a37f"
+      ],
+      "materials": [
+        "오픈 시스템 붙박이장",
+        "내추럴 오크 강마루",
+        "풀아웃 서랍·행거",
+        "수납장 센서 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "34평 웜 베이지 드레스룸 · 추천 27",
+      "trendNote": "드레스룸의 실제 동선 기준과 웜 베이지 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/organized-walkin-dressing-42.jpg?v=20260723-space30-27",
+      "photoPosition": "35% 50%",
+      "photoScale": 1.05,
+      "photoMirror": false,
+      "imageAlt": "웜 베이지 슈즈 수납 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Franco Debartolo",
+      "imageSource": "https://unsplash.com/photos/a-modern-walk-in-closet-with-organized-clothing-and-shelves-CXDLmHqhLmk"
+    },
+    {
+      "id": "design-20260723-space30-dressing-28",
+      "title": "프렌치 미러 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "미러 드레스룸",
+      "area": 52,
+      "budget": "8천만원 이상",
+      "style": "프렌치",
+      "mood": "우아하고 부드러운",
+      "palette": [
+        "#efe8dd",
+        "#eadfce",
+        "#c9ad82",
+        "#c3a878"
+      ],
+      "materials": [
+        "스모크 오크 붙박이장",
+        "그레이지 무광 도어",
+        "라이트 스톤 상판",
+        "선형 수납 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "52평 프렌치 드레스룸 · 추천 28",
+      "trendNote": "드레스룸의 실제 동선 기준과 프렌치 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/wardrobe-laundry-42.jpg?v=20260723-space30-28",
+      "photoPosition": "65% 50%",
+      "photoScale": 1.075,
+      "photoMirror": false,
+      "imageAlt": "프렌치 미러 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-29",
+      "title": "재팬디 모듈 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "모듈 드레스룸",
+      "area": 24,
+      "budget": "3천~5천만원",
+      "style": "재팬디",
+      "mood": "고요하고 깊이 있는",
+      "palette": [
+        "#d9d3cb",
+        "#c4aa83",
+        "#283f63",
+        "#f2eee8"
+      ],
+      "materials": [
+        "스모크 글라스 도어",
+        "월넛 붙박이장",
+        "간접 수납 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "24평 재팬디 드레스룸 · 추천 29",
+      "trendNote": "드레스룸의 실제 동선 기준과 재팬디 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/hotel-suite-dressing-42.jpg?v=20260723-space30-29",
+      "photoPosition": "50% 50%",
+      "photoScale": 1,
+      "photoMirror": false,
+      "imageAlt": "재팬디 모듈 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30"
+    },
+    {
+      "id": "design-20260723-space30-dressing-30",
+      "title": "미니멀 히든 드레스룸",
+      "category": "AI추천",
+      "spaceType": "드레스룸",
+      "structure": "히든 드레스룸",
+      "area": 42,
+      "budget": "8천만원 이상",
+      "style": "미니멀",
+      "mood": "밝고 정돈된",
+      "palette": [
+        "#f0ebe3",
+        "#e7e1d7",
+        "#d3b98e",
+        "#8ba888"
+      ],
+      "materials": [
+        "오픈 시스템 붙박이장",
+        "내추럴 오크 강마루",
+        "풀아웃 서랍·행거",
+        "수납장 센서 조명"
+      ],
+      "tip": "행거 깊이와 서랍 인출 공간을 확인하고 습기 배출을 위한 환기 동선을 확보하세요.",
+      "trendLabel": "42평 미니멀 드레스룸 · 추천 30",
+      "trendNote": "드레스룸의 실제 동선 기준과 미니멀 색감을 조합한 AI 추천 참고 시안입니다. 자재와 치수는 현장 실측 후 확정합니다.",
+      "photo": "assets/designs/organized-walkin-dressing-42.jpg?v=20260723-space30-30",
+      "photoPosition": "42% 50%",
+      "photoScale": 1.025,
+      "photoMirror": true,
+      "imageAlt": "미니멀 히든 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "aiDesign": true,
+      "catalogBatch": "2026-07-23-space30",
+      "imageCredit": "Franco Debartolo",
+      "imageSource": "https://unsplash.com/photos/a-modern-walk-in-closet-with-organized-clothing-and-shelves-CXDLmHqhLmk"
     }
   ],
   "reviews": [],

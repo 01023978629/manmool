@@ -153,6 +153,13 @@ function styleFeelTagsMarkup(item, className) {
   return `<div class="${className}" aria-label="${label}">${tags.map((tag) => `<span>#${tag}</span>`).join('')}</div>`;
 }
 
+function portfolioPhotoStyle(item) {
+  const position = item.photoPosition || '50% 50%';
+  const scale = Math.max(1, Math.min(1.12, Number(item.photoScale) || 1));
+  const mirror = item.photoMirror ? -1 : 1;
+  return `object-position:${position};transform:scale(${scale}) scaleX(${mirror});`;
+}
+
 function renderPortfolio(items, filterConfig) {
   const grid = document.getElementById('portfolioGrid');
   const filtersEl = document.getElementById('portfolioFilters');
@@ -171,61 +178,89 @@ function renderPortfolio(items, filterConfig) {
   const state = { region: null, area: null, budget: null, spaceType: null, process: null, style: null, scope: null, year: null, complex: '' };
 
   const groups = [
-    { key: 'style', label: '스타일', options: cfg.style || [] },
-    { key: 'spaceType', label: '공간종류', options: spaceTypes },
+    { key: 'spaceType', label: '공간종류', options: spaceTypes, step: 1, requires: [] },
+    { key: 'style', label: '스타일', options: cfg.style || [], step: 2, requires: ['spaceType'] },
+    { key: 'area', label: '평수', options: (cfg.area || []).map((a) => a.label), step: 3, requires: ['spaceType', 'style'] },
+    { key: 'budget', label: '예산', options: cfg.budget || [], step: 4, requires: ['spaceType', 'style', 'area'] },
     { key: 'process', label: '공정', options: processes },
     { key: 'scope', label: '공사범위', options: cfg.scope || [] },
     { key: 'region', label: '지역', options: regions },
-    { key: 'area', label: '평수', options: (cfg.area || []).map((a) => a.label) },
-    { key: 'budget', label: '예산', options: cfg.budget || [] },
     { key: 'year', label: '공사연도', options: years.map((y) => String(y)) }
   // 옵션이 없는 필터 그룹은 숨김 (데이터에 없는 기준은 표시하지 않음)
   ].filter((g) => (g.options || []).length > 0);
 
-  const optionCount = (key, option) => {
+  const optionMatches = (item, key, option) => {
+    if (!option) return true;
     if (key === 'area') {
       const range = (cfg.area || []).find((entry) => entry.label === option);
-      return range ? items.filter((item) => item.area >= range.min && item.area < range.max).length : 0;
+      return range ? item.area >= range.min && item.area < range.max : true;
     }
-    if (key === 'year') return items.filter((item) => String(item.year) === String(option)).length;
-    return items.filter((item) => item[key] === option).length;
+    if (key === 'year') return String(item.year) === String(option);
+    return item[key] === option;
   };
 
-  const filterChip = (group, option) => {
-    const showCount = group.key === 'area' || group.key === 'style';
-    const count = option ? optionCount(group.key, option) : items.length;
+  const groupEnabled = (group) => (group.requires || []).every((key) => !!state[key]);
+
+  const candidatesForGroup = (group) => {
+    const requirements = group.requires || ['spaceType', 'style', 'area', 'budget'];
+    return items.filter((item) => requirements.every((key) => !state[key] || optionMatches(item, key, state[key])));
+  };
+
+  const optionCount = (group, option) => {
+    const candidates = candidatesForGroup(group);
+    return option ? candidates.filter((item) => optionMatches(item, group.key, option)).length : candidates.length;
+  };
+
+  const filterChip = (group, option, enabled) => {
+    const showCount = ['spaceType', 'style', 'area', 'budget'].includes(group.key);
+    const count = optionCount(group, option);
     const label = option || '전체';
     const countHtml = showCount ? `<span class="fg-chip-count" aria-hidden="true">${count}</span>` : '';
-    return `<button class="fg-chip${option ? '' : ' active'}" data-val="${option || ''}"${showCount ? ` aria-label="${label} ${count}개 사례"` : ''}>${label}${countHtml}</button>`;
+    const active = option ? state[group.key] === option : !state[group.key];
+    return `<button class="fg-chip${active ? ' active' : ''}" data-val="${option || ''}"${showCount ? ` aria-label="${label} ${count}개 디자인"` : ''}${enabled ? '' : ' disabled'}>${label}${countHtml}</button>`;
   };
 
   const filterGroup = (group) => {
-    if (group.options.length > 12) {
+    const enabled = groupEnabled(group);
+    const options = enabled ? group.options.filter((option) => optionCount(group, option) > 0) : [];
+    const label = `${group.step ? `<span class="fg-step">${group.step}</span>` : ''}${group.label}`;
+    if (!enabled) {
+      return `
+      <div class="folio-filter-group is-locked" data-group="${group.key}" aria-disabled="true">
+        <span class="fg-label">${label}</span>
+        <div class="fg-chips"><button class="fg-chip fg-waiting" type="button" disabled>선택 대기</button></div>
+      </div>`;
+    }
+    if (options.length > 12) {
       return `
       <div class="folio-filter-group" data-group="${group.key}">
-        <label class="fg-label" for="folioFilter-${group.key}">${group.label}</label>
+        <label class="fg-label" for="folioFilter-${group.key}">${label}</label>
         <select class="folio-filter-select" id="folioFilter-${group.key}">
-          <option value="">전체 ${group.label} (${items.length})</option>
-          ${group.options.map((option) => `<option value="${option}">${option} (${optionCount(group.key, option)})</option>`).join('')}
+          <option value="">전체 ${group.label} (${optionCount(group, '')})</option>
+          ${options.map((option) => `<option value="${option}"${state[group.key] === option ? ' selected' : ''}>${option} (${optionCount(group, option)})</option>`).join('')}
         </select>
       </div>`;
     }
     return `
     <div class="folio-filter-group" data-group="${group.key}">
-      <span class="fg-label">${group.label}</span>
+      <span class="fg-label">${label}</span>
       <div class="fg-chips">
-        ${filterChip(group, '')}
-        ${group.options.map((option) => filterChip(group, option)).join('')}
+        ${filterChip(group, '', enabled)}
+        ${options.map((option) => filterChip(group, option, enabled)).join('')}
       </div>
     </div>`;
   };
 
-  filtersEl.innerHTML = `
-    <div class="folio-search">
-      <input type="search" id="folioComplex" placeholder="디자인·스타일 검색 (예: 모던)" aria-label="디자인 검색" />
-      <span class="folio-ai-note">📷 우리 집 사진을 보내주시면 어울리는 디자인을 추천해 드려요 · 예산은 전체공사 참고 범위</span>
-    </div>
-    ${groups.map(filterGroup).join('')}`;
+  const renderFilters = () => {
+    filtersEl.innerHTML = `
+      <div class="folio-search">
+        <input type="search" id="folioComplex" placeholder="공간·스타일 검색 (예: 거실 모던)" aria-label="디자인 검색" />
+        <span class="folio-ai-note">📷 공간종류부터 선택하면 스타일·평수·예산이 순서대로 맞춰집니다</span>
+      </div>
+      ${groups.map(filterGroup).join('')}`;
+    const searchInput = filtersEl.querySelector('#folioComplex');
+    if (searchInput) searchInput.value = state.complex;
+  };
 
   const matchArea = (item) => {
     if (!state.area) return true;
@@ -249,11 +284,10 @@ function renderPortfolio(items, filterConfig) {
         .some((v) => v && String(v).toLowerCase().includes(q.toLowerCase()))));
 
     const hasActive = !!(state.complex && state.complex.trim()) || groups.some((g) => state[g.key]);
-    const configuredStyles = cfg.style || [];
-    const hasTenPerStyle = configuredStyles.length > 0 &&
-      configuredStyles.every((style) => optionCount('style', style) === 10);
-    const countSummary = !hasActive && hasTenPerStyle
-      ? `${configuredStyles.length}개 스타일 · 스타일별 10개 · 총 ${list.length}개 디자인`
+    const hasThirtyPerSpace = spaceTypes.length > 0 &&
+      spaceTypes.every((space) => items.filter((item) => item.spaceType === space).length === 30);
+    const countSummary = !hasActive && hasThirtyPerSpace
+      ? `${spaceTypes.length}개 공간 · 공간별 30개 · 총 ${list.length}개 디자인`
       : `총 ${list.length}개 디자인`;
     countEl.innerHTML = countSummary +
       (hasActive ? ' · <button type="button" class="folio-reset" data-folio-reset>필터 초기화</button>' : '');
@@ -276,7 +310,7 @@ function renderPortfolio(items, filterConfig) {
       return `
       <article class="folio reveal" data-id="${i.id}" tabindex="0" role="button" aria-label="${i.title} 상세보기">
         <div class="folio-photo">
-          ${i.photo ? `<img class="scene" src="${i.photo}" alt="${i.imageAlt || i.title}" loading="lazy" decoding="async" />` : roomScene(i, idx, i.afterColor)}
+          ${i.photo ? `<img class="scene" src="${i.photo}" alt="${i.imageAlt || i.title}" style="${portfolioPhotoStyle(i)}" loading="lazy" decoding="async" />` : roomScene(i, idx, i.afterColor)}
           ${badge}
           ${styleTag}
         </div>
@@ -292,29 +326,41 @@ function renderPortfolio(items, filterConfig) {
       </article>`;
     };
 
-    // 각 스타일의 10개 시안을 연속해서 비교할 수 있도록 스타일별로 묶는다.
-    const STYLE_ORDER = cfg.style || [];
-    const byStyle = {};
-    list.forEach((it) => { const k = it.style || '기타'; (byStyle[k] = byStyle[k] || []).push(it); });
+    const groupBySpace = !state.spaceType;
+    const order = groupBySpace ? spaceTypes : (cfg.style || []);
+    const grouped = {};
+    list.forEach((it) => {
+      const key = groupBySpace ? (it.spaceType || '기타') : (it.style || '기타');
+      (grouped[key] = grouped[key] || []).push(it);
+    });
     const keys = [
-      ...STYLE_ORDER.filter((k) => byStyle[k]),
-      ...Object.keys(byStyle).filter((k) => !STYLE_ORDER.includes(k))
+      ...order.filter((key) => grouped[key]),
+      ...Object.keys(grouped).filter((key) => !order.includes(key))
     ];
     let gi = 0;
-    grid.innerHTML = keys.map((style) =>
-      `<h3 class="folio-group-head">${style} 스타일 <em>${byStyle[style].length}</em></h3>` +
-      byStyle[style].map((i) => cardHTML(i, gi++)).join('')
+    grid.innerHTML = keys.map((key) =>
+      `<h3 class="folio-group-head">${key} ${groupBySpace ? '디자인' : '스타일'} <em>${grouped[key].length}</em></h3>` +
+      grouped[key].map((i) => cardHTML(i, gi++)).join('')
     ).join('');
     observeReveal();
   };
 
+  const clearDownstream = (key) => {
+    const downstream = {
+      spaceType: ['style', 'area', 'budget'],
+      style: ['area', 'budget'],
+      area: ['budget']
+    };
+    (downstream[key] || []).forEach((nextKey) => { state[nextKey] = null; });
+  };
+
   filtersEl.addEventListener('click', (e) => {
     const chip = e.target.closest('.fg-chip');
-    if (!chip) return;
+    if (!chip || chip.disabled) return;
     const group = chip.closest('.folio-filter-group').dataset.group;
-    chip.parentElement.querySelectorAll('.fg-chip').forEach((c) => c.classList.remove('active'));
-    chip.classList.add('active');
     state[group] = chip.dataset.val || null;
+    clearDownstream(group);
+    renderFilters();
     draw();
   });
 
@@ -323,23 +369,22 @@ function renderPortfolio(items, filterConfig) {
     if (!select) return;
     const group = select.closest('.folio-filter-group').dataset.group;
     state[group] = select.value || null;
+    clearDownstream(group);
+    renderFilters();
     draw();
   });
 
-  const complexInput = document.getElementById('folioComplex');
-  if (complexInput) complexInput.addEventListener('input', (e) => { state.complex = e.target.value; draw(); });
+  filtersEl.addEventListener('input', (e) => {
+    if (e.target.id !== 'folioComplex') return;
+    state.complex = e.target.value;
+    draw();
+  });
 
   // 필터 초기화 (0건 탈출 + 활성 필터 리셋)
   function resetFilters() {
     state.complex = '';
     groups.forEach((g) => { state[g.key] = null; });
-    if (complexInput) complexInput.value = '';
-    filtersEl.querySelectorAll('.folio-filter-group').forEach((grp) => {
-      grp.querySelectorAll('.fg-chip').forEach((c) => c.classList.remove('active'));
-      const all = grp.querySelector('.fg-chip[data-val=""]');
-      if (all) all.classList.add('active');
-    });
-    filtersEl.querySelectorAll('.folio-filter-select').forEach((select) => { select.value = ''; });
+    renderFilters();
     draw();
   }
   document.addEventListener('click', (e) => {
@@ -359,6 +404,7 @@ function renderPortfolio(items, filterConfig) {
     }
   });
 
+  renderFilters();
   draw();
 }
 
@@ -462,13 +508,13 @@ function openFolioModal(item, all) {
     .map((o) => o.x);
 
   const simThumb = (s) => s.photo
-    ? `<span class="fm-sim-thumb" style="background-image:url('${s.photo}');background-size:cover;background-position:center"></span>`
+    ? `<span class="fm-sim-thumb" style="background-image:url('${s.photo}');background-size:cover;background-position:${s.photoPosition || 'center'}"></span>`
     : `<span class="fm-sim-thumb" style="background:linear-gradient(150deg, ${s.afterColor || '#cdb8a0'}, ${shade(s.afterColor || '#cdb8a0', -14)})"></span>`;
   const simSub = (s) => [s.spaceType, s.process || s.style].filter(Boolean).join(' · ') || '시공 사례';
 
   const mediaCap = item.aiDesign ? 'AI 추천 디자인 시안' : '시공 현장';
   const media = item.photo
-    ? `<figure class="fm-single"><div class="fm-img"><img class="scene" src="${item.photo}" alt="${item.imageAlt || item.title}" /></div><figcaption>${mediaCap}</figcaption></figure>`
+    ? `<figure class="fm-single"><div class="fm-img"><img class="scene" src="${item.photo}" alt="${item.imageAlt || item.title}" style="${portfolioPhotoStyle(item)}" /></div><figcaption>${mediaCap}</figcaption></figure>`
     : `<figure><div class="fm-img">${roomScene(item, 'b', item.beforeColor)}</div><figcaption>BEFORE</figcaption></figure>
        <figure><div class="fm-img">${roomScene(item, 'a', item.afterColor)}</div><figcaption class="after">AFTER</figcaption></figure>`;
 
