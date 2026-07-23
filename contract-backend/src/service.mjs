@@ -485,6 +485,31 @@ export class ContractService {
     return { count: rows.length, total, items: rows };
   }
 
+  // 19) 계약 목록(운영자 대시보드) — 상태 + 대금 요약. 전화번호는 마스킹만.
+  listContracts() {
+    const cs = this.db.prepare(
+      `SELECT id, contract_no, title, amount, status, completed_at, created_at FROM contracts ORDER BY created_at DESC`
+    ).all();
+    return cs.map((c) => {
+      const pays = this.db.prepare('SELECT amount,status FROM payments WHERE contract_id=?').all(c.id);
+      const sum = (f) => pays.filter(f).reduce((s, p) => s + (p.amount || 0), 0);
+      const customer = this.db.prepare("SELECT name, phone_masked FROM contract_parties WHERE contract_id=? AND role='customer'").get(c.id);
+      return {
+        contractId: c.id, contractNo: c.contract_no, title: c.title, amount: c.amount,
+        status: c.status, completedAt: c.completed_at, createdAt: c.created_at,
+        customerName: customer ? customer.name : '', customerPhone: customer ? customer.phone_masked : '',
+        payment: {
+          total: sum(() => true),
+          paid: sum((p) => p.status === 'PAID'),
+          invoiced: sum((p) => p.status === 'INVOICED'),
+          pending: sum((p) => p.status === 'PENDING'),
+          receivable: sum((p) => p.status !== 'PAID'),
+          stages: pays.length,
+        },
+      };
+    });
+  }
+
   // ---- 내부 헬퍼 ----
   _contract(id) {
     const c = this.db.prepare('SELECT * FROM contracts WHERE id=?').get(id);
