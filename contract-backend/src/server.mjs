@@ -97,6 +97,19 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
     return quickSend(svc, currentProvider(resolveProvider), b);
   });
 
+  // ── 대금(청구·입금·미수) — 관리자 토큰 필요 ──
+  on('POST', /^\/api\/contracts\/([^/]+)\/payments\/seed$/, async (req, [id]) => {
+    requireAdmin(req); const b = await body(req);
+    return svc.seedPaymentSchedule(id, b.installments || null);
+  });
+  on('GET', /^\/api\/contracts\/([^/]+)\/payments$/, async (req, [id]) => { requireAdmin(req); return { payments: svc.listPayments(id) }; });
+  on('POST', /^\/api\/contracts\/([^/]+)\/payments\/([^/]+)\/invoice$/, async (req, [id, stage]) => {
+    requireAdmin(req); const b = await body(req);
+    return svc.invoicePayment(id, stage, currentProvider(resolveProvider), { rawPhone: b.rawPhone || null, payInfo: b.payInfo });
+  });
+  on('POST', /^\/api\/contracts\/([^/]+)\/payments\/([^/]+)\/paid$/, async (req, [id, stage]) => { requireAdmin(req); return svc.markPaid(id, stage); });
+  on('GET', /^\/api\/receivables$/, async (req) => { requireAdmin(req); return svc.listReceivables(); });
+
   // ── 고객(서명자) 측: 토큰은 헤더 x-sign-token 로만 ──
   const tok = (req) => req.headers['x-sign-token'] || '';
   const ctx = (req) => ({ ip: req.socket.remoteAddress, ua: req.headers['user-agent'], requestId: req.headers['x-request-id'] });
@@ -209,6 +222,7 @@ async function quickSend(svc, provider, b) {
     operator: b.operator, customer: b.customer,
   });
   svc.lockDocument(contractId);
+  svc.seedPaymentSchedule(contractId); // body.payment 있으면 대금 스케줄 자동 생성(없으면 0)
   const { token } = svc.issueSignLink(contractId, parties.customer, 'sign');
   const base = (b.baseUrl || '').replace(/\/$/, '');
   const signUrl = base ? `${base}/sign#t=${token}` : `/sign#t=${token}`;
@@ -252,6 +266,7 @@ function seedDemoContract(svc, provider) {
     customer: { name: '김대전', phone: '010-2397-8629' },
   });
   svc.lockDocument(contractId);
+  svc.seedPaymentSchedule(contractId); // 데모 계약도 대금 스케줄(계약금·중도금·잔금) 생성
   const { token } = svc.issueSignLink(contractId, parties.customer, 'sign');
   return { contractId, partyId: parties.customer, token, signPath: `/sign#t=${token}` };
 }
