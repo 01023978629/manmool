@@ -91,6 +91,9 @@
     <p class="eyebrow">계약·대금 현황</p>
     <div class="card" id="contractsCard"><div class="note">불러오는 중…</div></div>
 
+    <p class="eyebrow">재무 요약 <span style="color:var(--ink-faint);font-weight:400;font-size:12px">· 부가세 추정</span></p>
+    <div class="card" id="financeCard"><div class="note">불러오는 중…</div></div>
+
     <div class="banner info">아래는 연결 설정입니다. 저장한 값은 서버(로컬 DB)에 보관되며 <b>즉시 발송에 반영</b>됩니다. 시크릿은 원문을 다시 보여주지 않습니다(끝 4자리만).</div>
 
     <p class="eyebrow">연결 상태</p>
@@ -127,6 +130,7 @@
   "use strict";
   var $=function(id){return document.getElementById(id);};
   var TOKEN=sessionStorage.getItem("mm_admin_tok")||"";
+  var __recv={items:[]};
   function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 
   function api(method,path,bodyObj){
@@ -154,10 +158,27 @@
     Promise.all([api("GET","/api/contracts"),api("GET","/api/receivables").catch(function(){return{count:0,total:0};})])
       .then(function(r){ renderContracts(r[0].contracts||[], r[1]); })
       .catch(function(e){ $("contractsCard").innerHTML='<div class="note">계약을 불러오지 못했습니다: '+esc(e.message||'')+'</div>'; });
+    loadFinance();
+  }
+  function loadFinance(){
+    api("GET","/api/finance/summary").then(renderFinance)
+      .catch(function(e){ $("financeCard").innerHTML='<div class="note">재무 요약을 불러오지 못했습니다: '+esc(e.message||'')+'</div>'; });
+  }
+  function fRow(k,v,cls){ return '<div class="status"><span class="k">'+esc(k)+'</span><span class="v"><b class="num"'+(cls?(' style="color:'+cls+'"'):'')+'>'+won(v)+'원</b></span></div>'; }
+  function renderFinance(f){
+    var h=fRow('입금 합계(누적)', f.collected, 'var(--ok,#16a34a)');
+    h+='<div class="status" style="padding-left:14px"><span class="k" style="color:var(--ink-faint)">└ 공급가액(추정)</span><span class="v"><span class="num">'+won(f.supply)+'원</span></span></div>';
+    h+='<div class="status" style="padding-left:14px"><span class="k" style="color:var(--ink-faint)">└ 부가세 10%(추정)</span><span class="v"><span class="num">'+won(f.vat)+'원</span></span></div>';
+    h+=fRow('이번 분기 입금', f.collectedThisQuarter);
+    h+=fRow('미수(청구+대기)', f.receivable, 'var(--warn)');
+    h+='<div class="note" style="margin-top:8px">'+esc(f.note||'')+'</div>';
+    $("financeCard").innerHTML=h;
   }
   function renderContracts(list, recv){
     if(!list.length){ $("contractsCard").innerHTML='<div class="note">아직 계약이 없습니다. 현장 앱에서 계약서를 보내면 여기에 표시됩니다.</div>'; return; }
-    var h='<div class="status"><span class="k">미수 총액</span><span class="v"><b class="num" style="color:var(--warn);font-size:16px">'+won(recv&&recv.total)+'원</b> <span style="color:var(--ink-faint);font-size:12px">'+(recv&&recv.count||0)+'건</span></span></div>';
+    __recv=recv||{items:[]};
+    var h='<div class="status"><span class="k">미수 총액</span><span class="v"><b class="num" style="color:var(--warn);font-size:16px">'+won(recv&&recv.total)+'원</b> <span style="color:var(--ink-faint);font-size:12px">'+(recv&&recv.count||0)+'건</span>'+
+      ((recv&&recv.count)?' <button class="linkmini" id="recvCsv" style="margin-left:8px">📄 CSV</button>':'')+'</span></div>';
     list.forEach(function(c){
       var pay=c.payment||{}; var st=STATUS_KO[c.status]||c.status;
       var stCls=c.status==='COMPLETED'?'on':(c.status==='VOID'?'off':'env');
@@ -185,8 +206,27 @@
       }).join('');
     }).catch(function(){});
   }
-  // 입금확인(위임)
+  // 입금확인·미수 CSV(위임)
+  var STAGE_KO={down:'계약금',mid:'중도금',bal:'잔금'};
+  var RSTATUS_KO={PENDING:'대기',INVOICED:'청구됨',PAID:'입금완료'};
+  function csvCell(v){ v=String(v==null?"":v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+  function downloadReceivablesCsv(){
+    var items=(__recv&&__recv.items)||[]; if(!items.length){ alert('미수 내역이 없습니다.'); return; }
+    var head=['계약번호','제목','고객명','연락처(마스킹)','단계','항목','금액','상태','청구일'];
+    var rows=items.map(function(p){ return [
+      p.contract_no, p.title, p.customer_name, p.customer_phone,
+      STAGE_KO[p.stage]||p.stage, p.label, p.amount, RSTATUS_KO[p.status]||p.status,
+      p.invoiced_at?String(p.invoiced_at).slice(0,10):''
+    ].map(csvCell).join(','); });
+    var csv='﻿'+head.map(csvCell).join(',')+'\n'+rows.join('\n')+'\n';
+    var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    var url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download='만물인테리어_미수내역.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); },1000);
+  }
   $("contractsCard").addEventListener("click",function(e){
+    if(e.target.closest('#recvCsv')){ downloadReceivablesCsv(); return; }
     var b=e.target.closest('[data-paid]'); if(!b)return;
     var parts=b.getAttribute('data-paid').split('|'); b.disabled=true; b.textContent='...';
     api("POST","/api/contracts/"+parts[0]+"/payments/"+parts[1]+"/paid").then(function(){ loadContracts(); })
