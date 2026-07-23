@@ -25,6 +25,7 @@ export const ACTION_TIERS = {
   // APPROVE — 돈·계약·고객에게 '행동 요구'가 걸려 대표 승인 필요
   //  (서명 리마인드·독촉·청구는 고객에게 무언가를 하라고 요구 → 정보성 알림보다 상위 게이트)
   sign_reminder: 'APPROVE',
+  sign_link_send: 'APPROVE',
   payment_invoice: 'APPROVE',
   payment_remind: 'APPROVE',
   estimate_send: 'APPROVE',

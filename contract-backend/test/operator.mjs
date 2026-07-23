@@ -48,14 +48,17 @@ svc.seedPaymentSchedule(cc.contractId, [
   { stage: 'bal', label: '잔금', amount: 27000000 },
 ]);
 await svc.invoicePayment(cc.contractId, 'down', provider, { rawPhone: '010-5555-6666', payInfo: '농협 123-45' });
+// 4) LOCKED(잠금됐으나 미발송) → 서명 링크 발송 검토
+const lk = mkContract('MM-2026-L', '정잠금', '010-8888-9999', 8000000); setStatus(lk.contractId, 'LOCKED');
 
 // 미래 시점(5일 후)으로 브리핑 → 미서명 나이 반영
 const future = new Date(t + 5 * 86400000).toISOString();
 const brief = svc.operatorBrief({ now: future });
 
-ok('sense 계약/서명중/완료 집계', brief.sense.contracts === 3 && brief.sense.signing === 1 && brief.sense.completed === 1);
+ok('sense 계약/서명중/완료 집계', brief.sense.contracts === 4 && brief.sense.signing === 1 && brief.sense.completed === 1);
 ok('sense 미수 집계(down+bal)', brief.sense.receivableCount >= 2 && brief.sense.receivableTotal >= 27000000 + 3000000);
 ok('SENT 오래됨 → sign_reminder(APPROVE·고객행동요구)', brief.decisions.some((d) => d.action === 'sign_reminder' && d.tier === 'APPROVE' && d.contractNo === 'MM-2026-A'));
+ok('LOCKED 미발송 → sign_link_send(APPROVE)', brief.decisions.some((d) => d.action === 'sign_link_send' && d.tier === 'APPROVE' && d.contractNo === 'MM-2026-L'));
 ok('COMPLETED 대금없음 → payment_invoice(APPROVE)', brief.decisions.some((d) => d.action === 'payment_invoice' && d.contractNo === 'MM-2026-B' && d.tier === 'APPROVE'));
 ok('INVOICED 미수 → payment_remind(APPROVE)', brief.decisions.some((d) => d.action === 'payment_remind' && d.tier === 'APPROVE' && d.stage === 'down'));
 ok('PENDING 미수 → payment_invoice(APPROVE)', brief.decisions.some((d) => d.action === 'payment_invoice' && d.stage === 'bal'));
