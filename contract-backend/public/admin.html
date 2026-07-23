@@ -174,7 +174,9 @@
       .catch(function(e){ $("weeklyCard").innerHTML='<div class="note">주간 요약을 불러오지 못했습니다: '+esc(e.message||'')+'</div>'; });
   }
   function wkRow(k,v,suffix){ return '<div class="status"><span class="k">'+esc(k)+'</span><span class="v"><b class="num">'+won(v)+'</b>'+(suffix||'원')+'</span></div>'; }
+  var __weeklyText='';
   function renderWeekly(w){
+    __weeklyText=w.text||'';
     var tw=w.thisWeek||{}, nc=tw.newContracts||{}, cp=tw.completed||{}, os=w.outstanding||{}, dc=w.decisions||{};
     var h='<div class="status"><span class="k">신규 계약</span><span class="v"><b class="num">'+(nc.count||0)+'</b>건 · <span class="num">'+won(nc.value)+'</span>원</span></div>';
     h+='<div class="status"><span class="k">완료 현장</span><span class="v"><b class="num">'+(cp.count||0)+'</b>건 · <span class="num">'+won(cp.value)+'</span>원</span></div>';
@@ -183,9 +185,16 @@
     h+='<div class="status"><span class="k">미수 잔액</span><span class="v"><b class="num" style="color:var(--warn)">'+won(os.receivable)+'</b>원 <span style="color:var(--ink-faint);font-size:12px">('+(os.receivableCount||0)+'건)</span></span></div>';
     h+='<div class="status"><span class="k">서명 대기</span><span class="v"><b class="num">'+((w.pipeline&&w.pipeline.signing)||0)+'</b>건</span></div>';
     h+='<div class="status"><span class="k">승인 대기 결정</span><span class="v"><b class="num" style="color:var(--warn)">'+(dc.needsApproval||0)+'</b>건 <span style="color:var(--ink-faint);font-size:12px">/ 총 '+(dc.total||0)+'</span></span></div>';
+    h+='<div style="margin-top:8px"><button class="linkmini" id="weeklyCopy">📋 리포트 복사</button> <span id="weeklyCopyMsg" style="font-size:12px;color:var(--ink-faint)"></span></div>';
     h+='<div class="note" style="margin-top:8px">'+esc(w.note||'')+'</div>';
     $("weeklyCard").innerHTML=h;
   }
+  $("weeklyCard").addEventListener("click",function(e){
+    if(!e.target.closest('#weeklyCopy'))return;
+    var done=function(ok){ var m=$("weeklyCopyMsg"); if(m) m.textContent=ok?'복사됨 ✓':'복사 실패 — 길게 눌러 복사'; };
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(__weeklyText).then(function(){done(true);},function(){done(false);}); }
+    else { done(false); }
+  });
   // 🧠 오늘의 운영 판단(자율 루프 SENSE→DECIDE)
   var TIER_META={AUTO:{ko:'자동',cls:'on',ic:'🤖'},NOTIFY:{ko:'통보',cls:'env',ic:'📣'},APPROVE:{ko:'승인',cls:'env',ic:'✋'},HUMAN:{ko:'사람',cls:'off',ic:'🧍'}};
   function loadOperator(){

@@ -115,7 +115,7 @@ ok('operator brief 무인증 거부', (await call('GET', '/api/operator/brief'))
 
 // 주간 CEO 리포트
 const weekly = await call('GET', '/api/operator/weekly', { admin: true });
-ok('GET /operator/weekly 형태', weekly.status === 200 && weekly.data.period && weekly.data.thisWeek && weekly.data.outstanding && weekly.data.decisions);
+ok('GET /operator/weekly 형태', weekly.status === 200 && weekly.data.period && weekly.data.thisWeek && weekly.data.outstanding && weekly.data.decisions && typeof weekly.data.text === 'string' && weekly.data.text.includes('주간 리포트'));
 ok('weekly 전화 원문 없음', !JSON.stringify(weekly.data).match(/\d{3,4}-\d{4}-\d{4}/) && !JSON.stringify(weekly.data).includes('1234-5678'));
 ok('operator weekly 무인증 거부', (await call('GET', '/api/operator/weekly')).status === 401);
 

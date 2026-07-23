@@ -138,6 +138,7 @@ ok('주간: 잘못된 now 폴백', (() => { const r = wsvc.weeklyReport({ now: '
 // 끝 경계 정규화: +09:00 오프셋 now가 동일 순간의 Z 형식과 같은 집계를 내야 함(문자열 비교 오집계 방지)
 const wrTz = wsvc.weeklyReport({ now: '2026-08-01T21:00:00+09:00' }); // == 2026-08-01T12:00:00Z (=wref)
 ok('주간: 타임존 오프셋 now 정규화(Z와 동일)', wrTz.thisWeek.newContracts.count === wr.thisWeek.newContracts.count && wrTz.thisWeek.completed.count === wr.thisWeek.completed.count && wrTz.thisWeek.collected === wr.thisWeek.collected && wrTz.period.end === wr.period.end);
+ok('주간: 사람이 읽을 텍스트 리포트(핵심수치·PII없음)', typeof wr.text === 'string' && wr.text.includes('주간 리포트') && wr.text.includes('신규 계약') && wr.text.includes('미수 잔액') && !/\d{4}-\d{4}/.test(wr.text));
 const ewr = new ContractService(openDb(':memory:'), { clock: () => new Date('2026-08-01T00:00:00Z').toISOString() }).weeklyReport({});
 ok('주간: 빈 상태 형태 유지', ewr.thisWeek.newContracts.count === 0 && ewr.thisWeek.collected === 0 && Array.isArray(ewr.topDecisions));
 
