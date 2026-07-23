@@ -155,6 +155,30 @@ export class ContractService {
     return { deliveryId, providerMsgId: res.providerMsgId, status: 'SENT' };
   }
 
+  // 4-b) 범용 통지(자유문구 문자) — 작업지시·공지 등 템플릿 없는 발송.
+  //   toPhoneRaw 는 발송 시점 메모리로만, 로그/DB엔 남기지 않는다. contractId 없으면 null.
+  async sendNotification(provider, { toPhoneRaw, text, kind = 'notify', contractId = null }) {
+    if (!(text || '').trim()) throw new AppError('EMPTY_TEXT', '보낼 내용이 없습니다.');
+    const digits = String(toPhoneRaw || '').replace(/\D/g, '');
+    if (!/^0\d{8,10}$/.test(digits)) throw new AppError('BAD_PHONE', '수신번호 형식이 올바르지 않습니다.');
+    const deliveryId = newId('dl');
+    const now = this.clock();
+    this.db.prepare(
+      `INSERT INTO message_deliveries(id,contract_id,party_id,template_key,provider,status,requested_at)
+       VALUES(?,?,?,?,?, 'QUEUED', ?)`
+    ).run(deliveryId, contractId, null, `notify:${kind}`, provider.name, now);
+    const res = await provider.sendText({ toPhoneRaw: digits, toPhoneHash: hmac(digits), text });
+    const t2 = this.clock();
+    if (res.status === 'FAILED') {
+      this.db.prepare(`UPDATE message_deliveries SET status='FAILED', failed_reason=? WHERE id=?`).run(res.failedReason || 'UNKNOWN', deliveryId);
+      audit(this.db, { contractId, event: EVENTS.NOTIFY_FAILED, at: t2, meta: { kind, reason: res.failedReason } });
+      return { deliveryId, status: 'FAILED', reason: res.failedReason };
+    }
+    this.db.prepare(`UPDATE message_deliveries SET status='SENT', provider_msg_id=?, sent_at=? WHERE id=?`).run(res.providerMsgId, t2, deliveryId);
+    audit(this.db, { contractId, event: EVENTS.NOTIFY_SENT, at: t2, meta: { kind, providerMsgId: res.providerMsgId } });
+    return { deliveryId, providerMsgId: res.providerMsgId, status: 'SENT' };
+  }
+
   // 5) 전달상태 갱신. "전달완료"는 열람/본인확인과 분리된 별개 사건으로 기록.
   async refreshDelivery(deliveryId, provider) {
     const d = this.db.prepare('SELECT * FROM message_deliveries WHERE id=?').get(deliveryId);

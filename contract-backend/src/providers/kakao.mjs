@@ -26,6 +26,9 @@ export class KakaoMessageProvider {
   get name() { return 'abstract'; }
   /** @param {SendRequest} _req @returns {Promise<SendResult>} */
   async send(_req) { throw new Error('not implemented'); }
+  /** 자유문구 문자(SMS/LMS) 발송. 템플릿 없는 통지(작업지시·공지)용.
+   * @param {{toPhoneRaw:string,toPhoneHash?:string,text:string}} _req @returns {Promise<SendResult>} */
+  async sendText(_req) { throw new Error('not implemented'); }
   /** 전달상태 폴링(웹훅 대체). @returns {Promise<{status:string, deliveredAt?:string}>} */
   async queryStatus(_providerMsgId) { throw new Error('not implemented'); }
 }
@@ -56,6 +59,16 @@ export class MockKakaoMessageProvider extends KakaoMessageProvider {
       deliveredAt: this._deliverAfterMs === 0 ? this._clock() : null,
       _deliverAt: Date.now() + this._deliverAfterMs,
     });
+    return { providerMsgId: id, status: 'SENT' };
+  }
+
+  async sendText(req) {
+    if (this._failSet.has(req.toPhoneHash)) {
+      return { providerMsgId: null, status: 'FAILED', failedReason: 'MOCK_RECIPIENT_BLOCKED' };
+    }
+    if (!(req.text || '').trim()) return { providerMsgId: null, status: 'FAILED', failedReason: 'EMPTY_TEXT' };
+    const id = `mock-sms-${++this._seq}`;
+    this._store.set(id, { status: 'DELIVERED', deliveredAt: this._clock(), _deliverAt: Date.now() });
     return { providerMsgId: id, status: 'SENT' };
   }
 
