@@ -133,6 +133,26 @@ function renderAutomation(auto) {
 
 /* ---------- 포트폴리오 (아파트멘터리형 사례 탐색) ---------- */
 const AREA_FILTERS_DEFAULT = [];
+const STYLE_FEEL_TAGS = {
+  '미니멀': ['깔끔한', '넓어보이는', '정돈된'],
+  '내추럴': ['따뜻한우드', '편안한', '자연스러운'],
+  '북유럽': ['밝은', '포근한', '실용적인'],
+  '모던': ['세련된', '도시적인', '선명한'],
+  '인더스트리얼': ['시크한', '거친질감', '개성있는'],
+  '빈티지': ['레트로', '따뜻한', '감성적인'],
+  '웜 베이지': ['포근한', '차분한', '부드러운'],
+  '프렌치': ['우아한', '로맨틱한', '클래식'],
+  '호텔식': ['고급스러운', '차분한', '정돈된'],
+  '재팬디': ['고요한', '절제된', '자연스러운'],
+  '스마트 수납': ['실용적인', '공간활용', '정돈된']
+};
+
+function styleFeelTagsMarkup(item, className) {
+  const tags = STYLE_FEEL_TAGS[item.style] || ['편안한', '조화로운', '실용적인'];
+  const label = `${item.style || '디자인'} 느낌`;
+  return `<div class="${className}" aria-label="${label}">${tags.map((tag) => `<span>#${tag}</span>`).join('')}</div>`;
+}
+
 function renderPortfolio(items, filterConfig) {
   const grid = document.getElementById('portfolioGrid');
   const filtersEl = document.getElementById('portfolioFilters');
@@ -144,16 +164,14 @@ function renderPortfolio(items, filterConfig) {
   const uniq = (key) => [...new Set(items.map((x) => x[key]).filter((v) => v != null))];
   const regions = uniq('region');
   const spaceTypes = uniq('spaceType');
-  const structures = uniq('structure');
   const processes = uniq('process');
   const years = uniq('year').sort((a, b) => b - a);
 
   // 선택 상태 (그룹별 단일 선택, null = 전체) + 단지·현장명 텍스트 검색
-  const state = { region: null, area: null, budget: null, spaceType: null, structure: null, process: null, style: null, scope: null, year: null, complex: '' };
+  const state = { region: null, area: null, budget: null, spaceType: null, process: null, style: null, scope: null, year: null, complex: '' };
 
   const groups = [
     { key: 'spaceType', label: '공간종류', options: spaceTypes },
-    { key: 'structure', label: '공간형태', options: structures },
     { key: 'process', label: '공정', options: processes },
     { key: 'scope', label: '공사범위', options: cfg.scope || [] },
     { key: 'region', label: '지역', options: regions },
@@ -223,12 +241,11 @@ function renderPortfolio(items, filterConfig) {
       matchArea(it) &&
       (!state.budget || it.budget === state.budget) &&
       (!state.spaceType || it.spaceType === state.spaceType) &&
-      (!state.structure || it.structure === state.structure) &&
       (!state.process || it.process === state.process) &&
       (!state.style || it.style === state.style) &&
       (!state.scope || it.scope === state.scope) &&
       (!state.year || String(it.year) === state.year) &&
-      (!q || [it.title, it.style, it.mood, it.spaceType, it.structure, (it.materials || []).join(' ')]
+      (!q || [it.title, it.style, it.mood, it.spaceType, (it.materials || []).join(' ')]
         .some((v) => v && String(v).toLowerCase().includes(q.toLowerCase()))));
 
     const hasActive = !!(state.complex && state.complex.trim()) || groups.some((g) => state[g.key]);
@@ -243,17 +260,10 @@ function renderPortfolio(items, filterConfig) {
       // 값이 있는 항목만 노출 (모르는 수치는 지어내지 않음)
       const specs = [
         ['공간', i.spaceType],
-        ['공간 형태', i.structure],
         ['평수', i.area ? i.area + '평' : null],
         ['스타일', i.style],
-        ['예산', i.cost || i.budget || null],
-        ['분위기', i.mood],
-        ['주요 공정', i.process],
-        ['공사 범위', i.scope],
-        ['공사 기간', i.period],
-        ['지역', i.region],
-        ['시공', i.year ? i.year + '년' : null]
-      ].filter(([, v]) => v).slice(0, 6);
+        ['예산', i.cost || i.budget || null]
+      ].filter(([, v]) => v);
       const badge = i.aiDesign ? `<span class="ai-badge">${i.trendLabel || '✨ AI 추천 디자인'}</span>`
         : (i.photo ? '' : '<span class="ai-badge">AI 스타일 참고 이미지</span>');
       const styleTag = i.style ? `<span class="folio-style-tag">${i.style}</span>` : '';
@@ -266,6 +276,7 @@ function renderPortfolio(items, filterConfig) {
         </div>
         <div class="folio-info">
           <h3 class="folio-title">${i.title}</h3>
+          ${styleFeelTagsMarkup(i, 'folio-feel-tags')}
           <dl class="folio-specs">
             ${specs.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}
           </dl>
@@ -459,11 +470,9 @@ function openFolioModal(item, all) {
   const headSub = [item.region, item.complex].filter(Boolean).join(' · ');
   const gridRows = [
     ['공간', item.spaceType],
-    ['공간 형태', item.structure],
     ['평수', item.area ? item.area + '평' : null],
     ['스타일', item.style],
     ['예산', item.cost || item.budget],
-    ['분위기', item.mood],
     ['주요 공정', item.process],
     ['공사범위', item.scope],
     ['공사기간', item.period],
@@ -487,6 +496,7 @@ function openFolioModal(item, all) {
       <div class="fm-head">
         <span class="fm-style">${headTag}</span>
         <h3 id="folioModalTitle">${item.title}</h3>
+        ${styleFeelTagsMarkup(item, 'fm-feel-tags')}
         ${headSub ? `<p>${headSub}</p>` : ''}
         ${item.imageCredit && item.imageSource ? `<a class="fm-image-credit" href="${item.imageSource}" target="_blank" rel="noopener">이미지: ${item.imageCredit} · Unsplash</a>` : ''}
       </div>
