@@ -45,7 +45,15 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
     _cached = selectProvider(src); _cachedKey = key;
     return _cached;
   };
-  provider = resolveProvider().provider;
+  // 발송 설정이 불완전해도(예: ALIMTALK_LIVE=1 인데 SOLAPI_* 미비) 서버 자체는 기동한다.
+  // 실제 발송 경로는 여전히 currentProvider()→selectProvider() 에서 PROVIDER_CONFIG 로 막히므로
+  // 오발송 위험은 없다. (부팅 시 fail-fast 로 서버 전체가 죽어 /admin 접근조차 못 하는 교착 방지)
+  try {
+    provider = resolveProvider().provider;
+  } catch (e) {
+    console.error('[contract] ⚠ 발송 설정 불완전 → Mock 으로 기동합니다(발송은 설정 완료 전까지 막힘):', e.message);
+    provider = new MockKakaoMessageProvider({});
+  }
   const providerLive = () => { try { return resolveProvider().live; } catch { return false; } };
 
   const routes = [];
