@@ -29,7 +29,7 @@ ok('운영자 라우트 무인증 거부(401)', noAuth.status === 401);
 const c = await call('POST', '/api/contracts', { admin: true, json: {
   contractNo: 'MM-2026-0199', title: '실내건축 공사 계약', amount: 33000000,
   body: { site: '대전 탄방동 26평', scope: ['도배', '장판'], amount: 33000000 },
-  operator: { name: '전병덕', phone: '010-5439-8629' },
+  operator: { name: '만물대표', phone: '010-0000-1111' },
   customer: { name: '박고객', phone: '010-1234-5678' },
 } });
 ok('POST /contracts', c.status === 200 && !!c.data.contractId);
@@ -67,8 +67,25 @@ await call('POST', '/api/sign/consent', { token, json: { consents: [
 // 빈 서명 거부
 const empty = await call('POST', '/api/sign/signature', { token, json: { imageBase64: '' } });
 ok('빈 서명 거부(400)', empty.status === 400 && empty.data.error === 'EMPTY_SIGNATURE');
-const sign = await call('POST', '/api/sign/signature', { token, json: { imageBase64: Buffer.from('PNG_SIGNATURE').toString('base64') } });
+const sign = await call('POST', '/api/sign/signature', { token, json: { imageBase64: Buffer.from('PNG_SIGNATURE').toString('base64'), clientDocHash: lock.data.docHash } });
 ok('서명 제출 → 완료', sign.status === 200 && sign.data.completed === true);
+// 문서해시 미제출 서명 거부(우회 차단) — 새 계약으로 검증
+const c2 = await call('POST', '/api/contracts', { admin: true, json: {
+  contractNo: 'MM-2026-0200', title: '해시검증 계약', amount: 1000000,
+  body: { site: '대전', scope: ['도배'], amount: 1000000 },
+  operator: { name: '만물대표', phone: '010-0000-1111' }, customer: { name: '박고객', phone: '010-1234-5678' },
+} });
+await call('POST', `/api/contracts/${c2.data.contractId}/lock`, { admin: true });
+const l2 = await call('POST', `/api/contracts/${c2.data.contractId}/parties/${c2.data.parties.customer}/sign-link`, { admin: true });
+const t2 = l2.data.token;
+await call('POST', '/api/sign/otp', { token: t2 });
+await call('POST', '/api/sign/verify', { token: t2, json: { code: '246810' } });
+await call('POST', '/api/sign/viewed', { token: t2 });
+await call('POST', '/api/sign/consent', { token: t2, json: { consents: [
+  { key: 'terms', text: 't' }, { key: 'payment', text: 'p' }, { key: 'privacy', text: 'pr' }, { key: 'esign', text: 'e' },
+] } });
+const noHash = await call('POST', '/api/sign/signature', { token: t2, json: { imageBase64: Buffer.from('PNG_SIGNATURE').toString('base64') } });
+ok('문서해시 미제출 서명 거부(400)', noHash.status === 400 && noHash.data.error === 'DOC_HASH_REQUIRED');
 
 const reuse = await call('POST', '/api/sign/signature', { token, json: { imageBase64: 'AA==' } });
 ok('토큰 재사용 거부(400)', reuse.status === 400 && reuse.data.error === 'USED');
@@ -80,8 +97,8 @@ ok('GET /evidence 봉인 해시', ev.status === 200 && /^[0-9a-f]{64}$/.test(ev.
 const qs = await call('POST', '/api/contracts/quick-send', { admin: true, json: {
   title: '공사 도급계약서', amount: 41310000,
   body: { site: '대전 갈마동 34평', scope: ['철거', '욕실'], amount: 41310000 },
-  operator: { name: '전병덕', phone: '010-5439-8629' },
-  customer: { name: '김대전', phone: '010-2397-8629' },
+  operator: { name: '만물대표', phone: '010-0000-1111' },
+  customer: { name: '홍길동', phone: '010-0000-2222' },
   baseUrl: 'https://contract.example',
 } });
 ok('POST /quick-send → 발송+서명링크', qs.status === 200 && qs.data.delivery.status === 'SENT' && /^\/sign#t=/.test(qs.data.signPath));
