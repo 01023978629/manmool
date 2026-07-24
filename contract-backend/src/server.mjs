@@ -21,6 +21,11 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   if (process.env.NODE_ENV === 'production' && (enableDemo || demoOtp)) {
     throw new Error('보안: 운영 환경에서는 데모 모드(enableDemo/demoOtp)를 사용할 수 없습니다.');
   }
+  // 운영에서 ADMIN_TOKEN 이 설정돼 있으면 최소 길이(24자)를 강제한다(약한 토큰 fail-fast).
+  // openssl rand -hex 16 = 32자이므로 정상 발급값은 통과, 손으로 넣은 짧은 값만 거부.
+  if (process.env.NODE_ENV === 'production' && process.env.ADMIN_TOKEN && process.env.ADMIN_TOKEN.length < 24) {
+    throw new Error('보안: 운영 환경의 ADMIN_TOKEN 은 24자 이상이어야 합니다(openssl rand -hex 16 권장).');
+  }
   const db = openDb(dbPath);
   const svc = new ContractService(db, { demoOtp });
   // Provider 는 매 발송 시점에 (env + DB설정) 을 병합해 해석 → 관리자 저장이 즉시 반영된다.
@@ -53,10 +58,41 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   const adminHtml = readFileSync(join(__dir, '..', 'public', 'admin.html'), 'utf8');
   on('GET', /^\/admin\/?$/, async (_r, _m, res) => { html(res, adminHtml); return SENT; });
 
+  // 관리자 인증 실패(무차별 대입) 완화: IP별 오추측 카운터 + 지수 백오프.
+  // 토큰을 "틀리게 제시한" 경우만 센다 → 토큰 미제시(무인증)는 정상 401 로 통과.
+  const _adminFails = new Map(); // ip → { n, until }  (until: 잠금 해제 epoch ms)
+  const clientIp = (req) => {
+    const xf = req.headers['x-forwarded-for'];
+    if (xf) return String(xf).split(',')[0].trim();
+    return (req.socket && req.socket.remoteAddress) || 'unknown';
+  };
+  const ADMIN_LOCK_FREE = 5;      // 이 횟수까지는 즉시 401(잠금 없음)
+  const ADMIN_LOCK_MAX_MS = 5 * 60 * 1000; // 백오프 상한 5분
+
   // 관리자 인증: x-admin-token 헤더. ADMIN_TOKEN 미설정이면 관리자 기능 비활성.
   const requireAdmin = (req) => {
-    const r = checkAdmin(process.env, req.headers['x-admin-token']);
-    if (!r.ok) { const e = new AppError(r.code, r.code === 'ADMIN_DISABLED' ? '관리자 기능이 비활성화되어 있습니다(ADMIN_TOKEN 미설정).' : '관리자 인증에 실패했습니다.'); e.httpStatus = r.code === 'ADMIN_DISABLED' ? 403 : 401; throw e; }
+    const ip = clientIp(req);
+    const rec = _adminFails.get(ip);
+    const now = Date.now();
+    if (rec && rec.until > now) {
+      const e = new AppError('ADMIN_RATE_LIMIT', '인증 시도가 많아 잠시 차단되었습니다. 잠시 후 다시 시도해 주세요.');
+      e.httpStatus = 429; e.retryAfter = Math.ceil((rec.until - now) / 1000); throw e;
+    }
+    const token = req.headers['x-admin-token'];
+    const r = checkAdmin(process.env, token);
+    if (r.ok) { if (rec) _adminFails.delete(ip); return; }
+    // 실패: 토큰을 "제시했는데 틀린" 경우만 오추측으로 집계(무인증/비활성은 제외).
+    if (r.code === 'ADMIN_UNAUTHORIZED' && token) {
+      const n = (rec ? rec.n : 0) + 1;
+      let until = 0;
+      if (n > ADMIN_LOCK_FREE) {
+        const backoff = Math.min(ADMIN_LOCK_MAX_MS, 1000 * 2 ** (n - ADMIN_LOCK_FREE - 1));
+        until = now + backoff;
+      }
+      _adminFails.set(ip, { n, until });
+    }
+    const e = new AppError(r.code, r.code === 'ADMIN_DISABLED' ? '관리자 기능이 비활성화되어 있습니다(ADMIN_TOKEN 미설정).' : '관리자 인증에 실패했습니다.');
+    e.httpStatus = r.code === 'ADMIN_DISABLED' ? 403 : 401; throw e;
   };
   on('GET', /^\/admin\/status$/, async (req) => { requireAdmin(req); return settingsStatus(process.env, db); });
   on('POST', /^\/admin\/settings$/, async (req) => {
@@ -114,9 +150,22 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   on('GET', /^\/api\/operator\/weekly$/, async (req) => { requireAdmin(req); return svc.weeklyReport({}); });
   on('GET', /^\/api\/contracts$/, async (req) => { requireAdmin(req); return { contracts: svc.listContracts() }; });
 
+  // 자유문구 발송 폭주 완화: 1분 롤링 윈도우 상한(오작동·오남용 방지). 1인 사업자 기준 넉넉히.
+  const NOTIFY_WINDOW_MS = 60 * 1000, NOTIFY_MAX = 30;
+  let _notifyHits = [];
+  const throttleNotify = () => {
+    const now = Date.now();
+    _notifyHits = _notifyHits.filter((t) => now - t < NOTIFY_WINDOW_MS);
+    if (_notifyHits.length >= NOTIFY_MAX) {
+      const e = new AppError('NOTIFY_RATE_LIMIT', '문자 발송이 너무 잦습니다. 잠시 후 다시 시도해 주세요.');
+      e.httpStatus = 429; e.retryAfter = Math.ceil((NOTIFY_WINDOW_MS - (now - _notifyHits[0])) / 1000); throw e;
+    }
+    _notifyHits.push(now);
+  };
+
   // 범용 통지(작업지시·공지) — 자유문구 문자 발송. 현장 앱 작업지시 알림톡 버튼용.
   on('POST', /^\/api\/notify\/quick-send$/, async (req) => {
-    requireAdmin(req); const b = await body(req);
+    requireAdmin(req); throttleNotify(); const b = await body(req);
     // 앱은 {to, text, kind} 로 보낸다. to 는 발송 시점만 사용, 로그 금지.
     return svc.sendNotification(currentProvider(resolveProvider), { toPhoneRaw: b.to, text: b.text, kind: b.kind || 'notify', contractId: b.contractId || null });
   });
@@ -154,8 +203,19 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
     return null;
   };
 
+  // 보안 응답 헤더(모든 응답 공통). API 는 JSON, /admin·/sign 은 자기 출처 스크립트만.
+  const setSecurityHeaders = (res) => {
+    res.setHeader('x-content-type-options', 'nosniff');
+    res.setHeader('x-frame-options', 'DENY');
+    res.setHeader('referrer-policy', 'no-referrer');
+    res.setHeader('cross-origin-opener-policy', 'same-origin');
+    res.setHeader('content-security-policy', "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'");
+    if (process.env.NODE_ENV === 'production') res.setHeader('strict-transport-security', 'max-age=31536000; includeSubDomains');
+  };
+
   const server = createServer(async (req, res) => {
     try {
+      setSecurityHeaders(res);
       const cors = corsFor(req);
       if (cors) for (const [k, v] of Object.entries(cors)) res.setHeader(k, v);
       if (req.method === 'OPTIONS') { res.writeHead(cors ? 204 : 405); res.end(); return; }
@@ -171,7 +231,7 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
       }
       json(res, 404, { error: 'NOT_FOUND' });
     } catch (e) {
-      if (e instanceof AppError) { json(res, e.httpStatus, { error: e.code, message: e.message }); return; }
+      if (e instanceof AppError) { if (e.retryAfter) res.setHeader('retry-after', String(e.retryAfter)); json(res, e.httpStatus, { error: e.code, message: e.message }); return; }
       // 비-AppError(예상치 못한 500)는 내부 메시지/스택을 노출하지 않는다.
       console.error('[contract] 내부 오류:', e && e.stack ? e.stack : e);
       json(res, 500, { error: 'INTERNAL', message: '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.' });
@@ -208,7 +268,7 @@ async function runSelfTest(svc, resolveProvider, phone, baseUrl) {
     contractNo: `TEST-${new Date().toISOString().slice(0, 10)}`,
     title: '전자계약 발송 테스트', amount: 0,
     body: { note: '본인번호 테스트(법적 효력 없음)', clauses: [] },
-    operator: { name: '전병덕', phone: '010-5439-8629' },
+    operator: { name: '만물대표', phone: '010-0000-1111' },
     customer: { name: '테스트', phone: digits },
   });
   svc.lockDocument(contractId);
@@ -250,12 +310,12 @@ function seedDemoContract(svc, provider) {
   _seedSeq += 1;
   const body = {
     contractNo,
-    site: '대전 서구 갈마동 (갈마아이파크 3동 1204호)',
+    site: '대전 서구 갈마동 (예시아파트 101동 101호)',
     scope: '주거 전체 리모델링', area: '34평', amount: 41310000,
     payment: { down: 4131000, mid: 16524000, bal: 20655000 },
     period: '2026-08-04 ~ 2026-09-05 (약 4주)', warranty: '방수 2년 · 기타 마감 1년',
-    operator: { co: '만물인테리어', rep: '전병덕', bizNo: '895-48-01132' },
-    customerName: '김대전',
+    operator: { co: '만물인테리어', rep: '만물대표', bizNo: '000-00-00000' },
+    customerName: '홍길동',
     clauses: [
       { no: 1, title: '공사의 내용', text: '도급인(이하 "갑")과 수급인 만물인테리어(이하 "을")은 표기 현장의 주거 전체 리모델링 공사에 관하여 다음과 같이 계약을 체결한다.' },
       { no: 2, title: '계약금액', text: '총 계약금액은 금 41,310,000원(부가세 포함)으로 한다. 계약금 4,131,000원(10%), 중도금 16,524,000원(40%), 잔금 20,655,000원(50%)으로 분할 지급한다.' },
@@ -273,19 +333,25 @@ function seedDemoContract(svc, provider) {
   };
   const { contractId, parties } = svc.createContract({
     contractNo, title: '공사 도급계약서', amount: 41310000, body,
-    operator: { name: '전병덕', phone: '010-5439-8629' },
-    customer: { name: '김대전', phone: '010-2397-8629' },
+    operator: { name: '만물대표', phone: '010-0000-1111' },
+    customer: { name: '홍길동', phone: '010-0000-2222' },
   });
   svc.lockDocument(contractId);
   svc.seedPaymentSchedule(contractId); // 데모 계약도 대금 스케줄(계약금·중도금·잔금) 생성
   const { token } = svc.issueSignLink(contractId, parties.customer, 'sign');
   return { contractId, partyId: parties.customer, token, signPath: `/sign#t=${token}` };
 }
+const BODY_LIMIT = 5e6; // 5MB — 서명 이미지(base64) 여유 포함
 function body(req) {
   return new Promise((resolve, reject) => {
-    let d = ''; req.on('data', (c) => { d += c; if (d.length > 5e6) req.destroy(); });
-    req.on('end', () => { try { resolve(d ? JSON.parse(d) : {}); } catch (e) { reject(new AppError('BAD_JSON', 'JSON 파싱 실패')); } });
-    req.on('error', reject);
+    let d = '', tooBig = false;
+    req.on('data', (c) => {
+      if (tooBig) return;
+      d += c;
+      if (d.length > BODY_LIMIT) { tooBig = true; d = ''; const e = new AppError('PAYLOAD_TOO_LARGE', '요청 본문이 너무 큽니다.'); e.httpStatus = 413; reject(e); req.destroy(); }
+    });
+    req.on('end', () => { if (tooBig) return; try { resolve(d ? JSON.parse(d) : {}); } catch (e) { reject(new AppError('BAD_JSON', 'JSON 파싱 실패')); } });
+    req.on('error', (err) => { if (!tooBig) reject(err); });
   });
 }
 

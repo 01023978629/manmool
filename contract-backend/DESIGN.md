@@ -78,7 +78,7 @@ esign) → 서명. 하나라도 빠지면 400.
 
 ```ts
 interface SendRequest {
-  toPhoneMasked: string;   // 표시/로그용 (010-****-8629)
+  toPhoneMasked: string;   // 표시/로그용 (010-****-5678)
   toPhoneHash: string;     // 대조용 HMAC
   templateKey: string;
   variables: Record<string, string>;

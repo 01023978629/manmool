@@ -29,8 +29,8 @@ const body = {
 };
 const { contractId, parties } = svc.createContract({
   contractNo: 'MM-2026-0142', title: '실내건축 공사 계약', amount: 41310000, body,
-  operator: { name: '전병덕', phone: '010-5439-8629' },
-  customer: { name: '김대전', phone: '010-2397-8629' },
+  operator: { name: '만물대표', phone: '010-0000-1111' },
+  customer: { name: '홍길동', phone: '010-0000-2222' },
 });
 ok('계약 생성', !!contractId && !!parties.customer);
 

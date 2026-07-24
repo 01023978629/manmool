@@ -33,7 +33,7 @@ const { contractId, parties } = svc.createContract({
   contractNo: `TEST-${new Date().toISOString().slice(0, 10)}`,
   title: '전자계약 발송 테스트', amount: 0,
   body: { note: '본인번호 발송 테스트용 계약(법적 효력 없음)', clauses: [] },
-  operator: { name: '전병덕', phone: '010-5439-8629' },
+  operator: { name: '만물대표', phone: '010-0000-1111' },
   customer: { name: '테스트', phone: phone },
 });
 svc.lockDocument(contractId);

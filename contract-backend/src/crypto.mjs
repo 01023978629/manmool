@@ -2,7 +2,7 @@
 //  * 일회용 토큰: 128bit 이상 CSPRNG, DB엔 해시만 저장.
 //  * 전화번호: 원문 저장/로그 금지 → 마스킹 + HMAC 해시.
 //  * 문서 지문: 정규화(canonical) 후 SHA-256.
-import { randomBytes, createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { randomBytes, randomInt, createHash, createHmac, timingSafeEqual } from 'node:crypto';
 
 // 운영에서는 반드시 환경변수/시크릿 매니저로 주입. 데모는 고정 페퍼로 재현성 확보.
 // 운영(NODE_ENV=production)에서 PEPPER 미설정이면 기동을 거부한다(fail-fast).
@@ -30,14 +30,15 @@ export function hmac(input) {
 }
 
 // 상수시간 비교(타이밍 공격 방지). 해시 문자열 대조에 사용.
+// 길이 차이로 인한 타이밍/조기반환 누설을 막기 위해, 두 입력을 먼저 SHA-256(고정 32B)으로
+// 접은 뒤 비교한다 → 입력 길이와 무관하게 항상 같은 길이를 상수시간 대조한다.
 export function safeEqualHex(aHex, bHex) {
-  const a = Buffer.from(String(aHex), 'utf8');
-  const b = Buffer.from(String(bHex), 'utf8');
-  if (a.length !== b.length) return false;
+  const a = createHash('sha256').update(String(aHex), 'utf8').digest();
+  const b = createHash('sha256').update(String(bHex), 'utf8').digest();
   return timingSafeEqual(a, b);
 }
 
-// 전화번호 마스킹: 010-****-8629 (가운데만 가림, 뒤 4자리는 식별 편의상 노출).
+// 전화번호 마스킹: 010-****-5678 (가운데만 가림, 뒤 4자리는 식별 편의상 노출).
 export function maskPhone(phone) {
   const d = String(phone).replace(/\D/g, '');
   if (d.length < 8) return '***';
@@ -63,7 +64,8 @@ export function docHash(body) {
 }
 
 // 6자리 OTP (본인확인용). 데모에서는 고정값을 쓰지만 API 는 동일.
+// randomInt(0, 1e6) 은 균등분포(모듈로 편향 없음)를 보장한다.
 export function issueOtp(demoCode) {
-  const code = demoCode || String(randomBytes(4).readUInt32BE(0) % 1000000).padStart(6, '0');
+  const code = demoCode || String(randomInt(0, 1000000)).padStart(6, '0');
   return { code, hash: sha256(code + PEPPER) };
 }

@@ -30,7 +30,7 @@ function mkContract(no, name, phone, amount) {
   const { contractId, parties } = svc.createContract({
     contractNo: no, title: '공사 도급계약', amount,
     body: { site: '대전 둔산동', scope: ['도배', '장판'], amount },
-    operator: { name: '전병덕', phone: '010-5439-8629' },
+    operator: { name: '만물대표', phone: '010-0000-1111' },
     customer: { name, phone },
   });
   return { contractId, pid: parties.customer };
@@ -121,7 +121,7 @@ const wref = '2026-08-01T12:00:00.000Z';           // 리포트 기준(윈도우
 const inWin = '2026-07-28T00:00:00.000Z';          // 윈도우 안
 const outWin = '2026-07-20T00:00:00.000Z';         // 윈도우 밖(12일 전)
 function wmk(no, amount, createdAt) {
-  const { contractId } = wsvc.createContract({ contractNo: no, title: '계약', amount, body: { site: '대전', scope: ['도배'], amount }, operator: { name: '전병덕', phone: '010-5439-8629' }, customer: { name: '고객', phone: '010-2222-3333' } });
+  const { contractId } = wsvc.createContract({ contractNo: no, title: '계약', amount, body: { site: '대전', scope: ['도배'], amount }, operator: { name: '만물대표', phone: '010-0000-1111' }, customer: { name: '고객', phone: '010-2222-3333' } });
   wdb.prepare('UPDATE contracts SET created_at=? WHERE id=?').run(createdAt, contractId);
   return contractId;
 }

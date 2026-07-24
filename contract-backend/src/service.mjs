@@ -321,7 +321,9 @@ export class ContractService {
     if (!this._hasViewed(tk.party_id)) throw new AppError('NOT_VIEWED', '전체 계약서 열람 후 서명할 수 있습니다.');
 
     // 문서 위·변조 대조: 고객이 본 해시가 서버 정본과 일치해야 서명 유효.
-    if (clientDocHash && !safeEqualHex(clientDocHash, c.doc_hash)) {
+    // 해시 미제출도 거부한다(누락 시 대조를 건너뛰는 우회를 차단).
+    if (!clientDocHash) throw new AppError('DOC_HASH_REQUIRED', '문서 확인 값이 없어 서명할 수 없습니다. 처음부터 다시 진행해 주세요.');
+    if (!safeEqualHex(clientDocHash, c.doc_hash)) {
       audit(this.db, { contractId: tk.contract_id, partyId: tk.party_id, event: EVENTS.SIGNATURE_SUBMITTED, at: this.clock(), meta: { rejected: 'DOC_HASH_MISMATCH', clientDocHash } });
       throw new AppError('DOC_HASH_MISMATCH', '계약서 내용이 변경되었습니다. 처음부터 다시 진행해 주세요.');
     }

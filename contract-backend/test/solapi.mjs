@@ -32,7 +32,7 @@ throws('설정 누락 시 생성 거부', () => new SolapiProvider({ apiKey: 'x'
 {
   const cap = {};
   const p = new SolapiProvider(CFG, { fetchImpl: makeFetch({ json: { statusCode: '2000', messageId: 'M1' } }, cap), clock, saltImpl: salt });
-  await p.send({ toPhoneRaw: '010-2397-8629', templateKey: 'contract_sign', variables: { name: '김대전', contractNo: 'MM-2026-0142', signUrl: 'https://s/x' } });
+  await p.send({ toPhoneRaw: '010-0000-2222', templateKey: 'contract_sign', variables: { name: '홍길동', contractNo: 'MM-2026-0142', signUrl: 'https://s/x' } });
   const auth = cap.opts.headers.Authorization;
   const expectSig = createHmac('sha256', CFG.apiSecret).update(clock() + salt()).digest('hex');
   ok('HMAC 인증 헤더 형식', /^HMAC-SHA256 apiKey=KEYTEST, date=.*, salt=fixedsalt123456, signature=/.test(auth));
@@ -40,11 +40,11 @@ throws('설정 누락 시 생성 거부', () => new SolapiProvider({ apiKey: 'x'
 
   // ── 페이로드 형태 ──
   const m = cap.body.message;
-  ok('to: 숫자만 정규화', m.to === '01023978629');
+  ok('to: 숫자만 정규화', m.to === '01000002222');
   ok('from: 등록 발신번호', m.from === '029302266');
   ok('kakaoOptions.pfId', m.kakaoOptions.pfId === 'PF123');
   ok('templateKey→승인 templateId 매핑', m.kakaoOptions.templateId === 'TPL_SIGN');
-  ok('변수 #{} 키로 정규화', m.kakaoOptions.variables['#{name}'] === '김대전' && m.kakaoOptions.variables['#{contractNo}'] === 'MM-2026-0142');
+  ok('변수 #{} 키로 정규화', m.kakaoOptions.variables['#{name}'] === '홍길동' && m.kakaoOptions.variables['#{contractNo}'] === 'MM-2026-0142');
   ok('기본 SMS 대체발송 허용(disableSms=false)', m.kakaoOptions.disableSms === false);
 }
 
@@ -99,7 +99,7 @@ throws('LIVE 인데 설정 없으면 기동 거부', () => selectProvider({ ALIM
   const prov = new SolapiProvider(CFG, { fetchImpl: makeFetch({ json: { statusCode: '2000', messageId: 'MID-S' } }, cap), clock, saltImpl: salt });
   const { contractId, parties } = svc.createContract({
     contractNo: 'MM-2026-0500', title: '계약', amount: 1000,
-    body: { a: 1 }, operator: { name: '전병덕', phone: '010-5439-8629' }, customer: { name: '김대전', phone: '010-2397-8629' },
+    body: { a: 1 }, operator: { name: '만물대표', phone: '010-0000-1111' }, customer: { name: '홍길동', phone: '010-0000-2222' },
   });
   svc.lockDocument(contractId);
   // 원문 번호가 당사자와 다르면 오발송 차단
@@ -107,8 +107,8 @@ throws('LIVE 인데 설정 없으면 기동 거부', () => selectProvider({ ALIM
   try { await svc.sendMessage(contractId, parties.customer, 'contract_sign', prov, { signUrl: 'https://s/x' }, '010-0000-0000'); } catch (e) { mismatch = e.code === 'PHONE_MISMATCH'; }
   ok('수신번호 불일치 발송 차단', mismatch);
   // 정상 원문 번호 → 실 Provider 로 전달, DB엔 마스킹만
-  const res = await svc.sendMessage(contractId, parties.customer, 'contract_sign', prov, { signUrl: 'https://s/x' }, '010-2397-8629');
-  ok('rawPhone → Provider 전달·발송 SENT', res.status === 'SENT' && cap.body.message.to === '01023978629');
+  const res = await svc.sendMessage(contractId, parties.customer, 'contract_sign', prov, { signUrl: 'https://s/x' }, '010-0000-2222');
+  ok('rawPhone → Provider 전달·발송 SENT', res.status === 'SENT' && cap.body.message.to === '01000002222');
   const leak = db.prepare("SELECT COUNT(*) c FROM message_deliveries WHERE contract_id=?").get(contractId).c;
   const phoneLeak = db.prepare("SELECT COUNT(*) c FROM audit_logs WHERE meta_json LIKE '%2397%' OR meta_json LIKE '%02302%'").get().c;
   ok('발송 이력 기록 + 원문번호 로그 없음', leak >= 1 && phoneLeak === 0);

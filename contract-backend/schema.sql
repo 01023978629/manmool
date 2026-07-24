@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS contract_parties (
   contract_id  TEXT NOT NULL REFERENCES contracts(id) ON DELETE CASCADE,
   role         TEXT NOT NULL,                  -- operator | customer
   name         TEXT NOT NULL,
-  phone_masked TEXT,                           -- 010-****-8629 형태만
+  phone_masked TEXT,                           -- 010-****-5678 형태만
   phone_hash   TEXT,                           -- HMAC-SHA256(phone, PEPPER). 대조용, 역산 불가.
   verified_at  TEXT,                           -- 본인확인(OTP) 성공 시각
   created_at   TEXT NOT NULL
