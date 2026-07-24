@@ -248,6 +248,9 @@
   /* ----- 제출 ----- */
   async function submit() {
     const status = $('inquiryStatus');
+    // 봇 방어(허니팟): 사람 눈에 안 보이는 필드가 채워졌으면 실제 전송·저장 없이 조용히 성공 화면만.
+    const hp = $('iCompanyUrl');
+    if (hp && hp.value) { showSuccess(collect(), { delivered: true }); return; }
     if (!$('iConsent').checked) {
       status.textContent = '개인정보 수집·이용에 동의해 주세요.';
       status.className = 'form-status err';
@@ -269,7 +272,9 @@
     const hasBackend = backendConfigured();
     try {
       const delivered = await deliver(payload);
-      saveLocal(payload);
+      // 백엔드 전달 성공 시엔 로컬 사본을 남기지 않는다 — 고객(제출자) 브라우저에 PII 잔존 방지.
+      // (공용 PC 등에서 다음 사용자가 이전 방문자 이름·전화·메모를 열람하는 위험 차단)
+      if (!delivered) saveLocal(payload);
       showSuccess(payload, { delivered, hasBackend });
     } catch (err) {
       // 백엔드 실패 시에도 리드를 잃지 않도록: 로컬 저장 + 재시도/직접 전송 안내
@@ -284,12 +289,20 @@
     return !!((n8n.enabled && n8n.inquiryWebhookUrl) || (forms.enabled && forms.endpoint));
   }
 
+  // 네트워크 무응답으로 제출이 멈추지 않도록 타임아웃(기본 12초). 초과 시 abort → 실패 경로(로컬저장+직접 안내).
+  async function fetchWithTimeout(url, opts, ms) {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), ms || 12000);
+    try { return await fetch(url, Object.assign({}, opts, { signal: ctl.signal })); }
+    finally { clearTimeout(t); }
+  }
+
   // 실제 전송(백엔드 있으면 전송, 없으면 false). 실패 시 throw.
   async function deliver(payload) {
     const n8n = CONFIG.n8n || {};
     const forms = CONFIG.forms || {};
     if (n8n.enabled && n8n.inquiryWebhookUrl) {
-      const res = await fetch(n8n.inquiryWebhookUrl, {
+      const res = await fetchWithTimeout(n8n.inquiryWebhookUrl, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error('n8n 응답 오류 ' + res.status);
@@ -302,7 +315,7 @@
         from_name: '만물인테리어 홈페이지',
         message: buildLeadText(payload)
       }, forms.accessKey ? { access_key: forms.accessKey } : {});
-      const res = await fetch(forms.endpoint, {
+      const res = await fetchWithTimeout(forms.endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body)
       });
       if (!res.ok) throw new Error('폼 전송 오류 ' + res.status);
@@ -346,9 +359,13 @@
   function saveLocal(payload) {
     let list = [];
     try { list = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { list = []; }
-    payload.id = 'INQ-' + Date.now();
+    // 개인정보 최소 보관: 90일 지난 항목 자동 삭제(관리자 화면을 안 여는 고객 브라우저에서도 정리) + 상한.
+    const cutoff = Date.now() - 90 * 86400000;
+    list = list.filter((x) => { const t = Date.parse(x && x.submittedAt || '') || 0; return !t || t >= cutoff; });
+    payload.id = payload.id || ('INQ-' + Date.now());
     list.unshift(payload);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    if (list.length > 50) list = list.slice(0, 50);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
   }
 
   function showSuccess(payload, opts) {

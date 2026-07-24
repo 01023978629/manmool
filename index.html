@@ -334,6 +334,8 @@
         <form class="inquiry-form" id="inquiryForm" novalidate>
           <div class="stepper" id="stepper" aria-hidden="true"></div>
           <div class="sel-design" id="selectedDesignChip" hidden></div>
+          <!-- 봇 방어(허니팟): 사람에겐 안 보이고 스크린리더도 건너뜀. 채워지면 제출을 조용히 무시한다. -->
+          <input type="text" id="iCompanyUrl" name="company_url" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute!important;left:-9999px!important;top:auto;width:1px;height:1px;opacity:0;pointer-events:none" />
 
           <!-- Step 1 -->
           <fieldset class="step" data-step="1">
