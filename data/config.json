@@ -24,10 +24,10 @@
     }
   },
   "forms": {
-    "enabled": false,
-    "provider": "",
-    "endpoint": "",
-    "accessKey": "",
+    "enabled": true,
+    "provider": "web3forms",
+    "endpoint": "https://api.web3forms.com/submit",
+    "accessKey": "ab68147a-a9e0-4f54-b791-2d3f06e83f70",
     "_help": "n8n 없이도 상담 신청을 대표 이메일로 바로 받는 무료 경로. Web3Forms(https://web3forms.com, 가입 없이 access_key 발급) 또는 Formspree를 추천. endpoint에 서비스 URL, accessKey에 발급키를 넣고 enabled:true. n8n(inquiryWebhookUrl)이 켜져 있으면 그쪽이 우선합니다. 둘 다 없으면 고객이 접수 후 전화·문자·카카오로 직접 보낼 수 있게 안내됩니다(리드 유실 0)."
   },
   "hyeonjang": {
