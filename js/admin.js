@@ -303,16 +303,31 @@
     try { const r = await fetch('data/config.json', { cache: 'no-cache' }); if (r.ok) return await r.json(); } catch (e) {}
     return {};
   }
-  function renderPipeline() {
+  // 접수 경로 판정은 실제 전송 로직(js/inquiry.js 의 deliver)과 반드시 같아야 한다.
+  // deliver 는 n8n 웹훅 '또는' 무료 폼 서비스(forms) 둘 중 하나면 전송하므로,
+  // 여기서 n8n 만 보면 forms 로 붙여둔 사장님께 "데모 모드"라는 거짓 표시가 나간다.
+  function leadRoute() {
     const n8n = CONFIG.n8n || {};
+    const forms = CONFIG.forms || {};
+    if (n8n.enabled && n8n.inquiryWebhookUrl) return { on: true, via: 'n8n', detail: n8n.inquiryWebhookUrl };
+    if (forms.enabled && forms.endpoint) return { on: true, via: 'forms', detail: forms.endpoint };
+    return { on: false, via: '', detail: '' };
+  }
+
+  function renderPipeline() {
     const kakao = CONFIG.kakao || {};
     const pill = $('pipelineStatus');
-    const on = n8n.enabled && n8n.inquiryWebhookUrl;
-    pill.textContent = on ? 'n8n 연결됨 · 실서비스' : '데모 모드 · 로컬 저장';
-    pill.classList.add(on ? 'pill-on' : 'pill-demo');
-    $('pipeNote').innerHTML = on
-      ? `n8n 웹훅: <code>${n8n.inquiryWebhookUrl}</code> · 카카오 채널: <code>${kakao.channelPublicId || '-'}</code>`
-      : 'n8n 미설정 상태입니다. <code>data/config.json</code>의 <code>n8n.inquiryWebhookUrl</code>과 <code>enabled:true</code>를 설정하면 실서비스로 전환됩니다. 지금은 문의가 브라우저에 저장됩니다.';
+    const r = leadRoute();
+    pill.textContent = r.on
+      ? (r.via === 'n8n' ? 'n8n 연결됨 · 실서비스' : '폼 서비스 연결됨 · 실서비스')
+      : '⚠️ 접수 경로 없음 · 문의가 전달되지 않습니다';
+    pill.classList.add(r.on ? 'pill-on' : 'pill-demo');
+    $('pipeNote').innerHTML = r.on
+      ? `접수 경로: <b>${r.via === 'n8n' ? 'n8n 웹훅' : '폼 서비스'}</b> <code>${escapeHtml(r.detail)}</code>` +
+        (kakao.channelPublicId ? ` · 카카오 채널: <code>${escapeHtml(kakao.channelPublicId)}</code>` : '')
+      : '<b>지금은 상담 신청이 대표님께 자동으로 오지 않습니다.</b> 손님이 폼을 쓴 뒤 <b>전화·문자를 한 번 더</b> 눌러야만 전달되며, 안 누르면 그 문의는 사라집니다.<br>' +
+        '가장 빠른 해결: <a href="https://web3forms.com" target="_blank" rel="noopener">Web3Forms</a>에서 이메일만 넣고 받은 Access Key를 ' +
+        '<code>data/config.json</code>의 <code>forms.endpoint</code>·<code>forms.accessKey</code>에 넣고 <code>forms.enabled:true</code>로 바꾸면 됩니다(무료).';
   }
 
   /* ----- 연동 상태 (실서비스 전환) ----- */
@@ -320,7 +335,9 @@
     const n8n = CONFIG.n8n || {};
     const kakao = CONFIG.kakao || {};
     const hj = CONFIG.hyeonjang || {};
-    const live = !!(n8n.enabled && n8n.inquiryWebhookUrl) && !CONFIG.demoMode;
+    const forms = CONFIG.forms || {};
+    const route = leadRoute();
+    const live = route.on && !CONFIG.demoMode;
     const badge = $('connBadge');
     if (badge) {
       badge.textContent = live ? '🟢 실서비스 연결됨' : '🟡 데모 모드';
@@ -330,8 +347,14 @@
     const atTemplates = at.templates ? Object.keys(at.templates).length : 0;
     const atOn = !!(at.enabled && at.provider && atTemplates);
     const rows = [
+      // 맨 위: 문의가 실제로 대표님께 도달하는지 — 나머지 항목보다 이게 먼저다
+      ['★ 상담 접수 경로', route.on
+        ? (route.via === 'n8n' ? 'n8n 웹훅으로 전달됨' : '폼 서비스로 전달됨')
+        : '없음 — 문의가 자동으로 오지 않습니다', route.on],
       ['n8n 웹훅', n8n.inquiryWebhookUrl || '(미설정)', !!n8n.inquiryWebhookUrl],
       ['n8n enabled', String(!!n8n.enabled), !!n8n.enabled],
+      ['폼 서비스(무료 대안)', forms.enabled && forms.endpoint ? forms.endpoint : '(미설정)',
+        !!(forms.enabled && forms.endpoint)],
       ['카카오 채널', kakao.ready
         ? (kakao.chatUrl || kakao.channelAddUrl || '(URL 미설정)')
         : '(미개설 · ready:false — 개설 후 ready:true로)', !!(kakao.ready && (kakao.chatUrl || kakao.channelAddUrl))],
