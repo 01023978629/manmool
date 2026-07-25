@@ -1131,7 +1131,7 @@ function setupPortfolioFabVisibility() {
 
 /* ---------- 폴백 (데이터 로드 실패 시 index.html의 기본 문구 유지) ---------- */
 // site.json 로드 실패 시에도 고객이 연락할 수 있도록 핵심 연락처는 하드코딩 폴백
-const FALLBACK_CONTACT = { phone: '010-2397-8629', email: '1dncjf@naver.com', hours: '평일 09:00 - 17:30' };
+const FALLBACK_CONTACT = { phone: '010-2397-8629', email: '1dncjf@naver.com', hours: '평일 09:00 - 17:30', address: '대전광역시 중구 돌다리로19번길 9, 1층(석교동)' };
 
 function renderFallbackNotice() {
   const grid = document.getElementById('servicesGrid');

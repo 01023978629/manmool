@@ -250,7 +250,10 @@
     const status = $('inquiryStatus');
     // 봇 방어(허니팟): 사람 눈에 안 보이는 필드가 채워졌으면 실제 전송·저장 없이 조용히 성공 화면만.
     const hp = $('iCompanyUrl');
-    if (hp && hp.value) { showSuccess(collect(), { delivered: true }); return; }
+    // 오탐이 나면 손님은 '전달됐다'고 믿고 떠나는데 실제로는 전송·저장이 0이다.
+    // 스팸은 그대로 막되(전송 안 함), 화면은 '아직 전송 안 됨'으로 두어
+    // 전화·문자 버튼이 남게 한다 → 진짜 사람이면 다른 길로 연락할 수 있다.
+    if (hp && hp.value) { showSuccess(collect(), { delivered: false, hasBackend: backendConfigured() }); return; }
     if (!$('iConsent').checked) {
       status.textContent = '개인정보 수집·이용에 동의해 주세요.';
       status.className = 'form-status err';
