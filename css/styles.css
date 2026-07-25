@@ -773,7 +773,12 @@ ul, ol { list-style: none; }
   .space-cost-item { min-height: 78px; }
   .fab-group { left: 12px; right: 12px; bottom: max(10px, env(safe-area-inset-bottom)); flex-direction: row; gap: 8px; align-items: stretch; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: rgba(255,255,255,.96); box-shadow: 0 10px 28px rgba(35,30,25,.18); }
   .fab-group .fab { flex: 1 1 0; min-width: 0; min-height: 44px; justify-content: center; padding: 10px 12px; border-radius: var(--radius-sm); box-shadow: none; }
-  .portfolio-in-view .fab-group { opacity: 0; pointer-events: none; transform: translateY(calc(100% + 24px)); }
+  /* 디자인 카탈로그(240장)를 폰으로 스크롤하는 동안 전폭 FAB 바가 카드를 덮어 숨겼었다.
+     그런데 그 구간이 방문자가 가장 오래 머무는 곳이라, 통째로 숨기면 연락 접점이 0이 된다
+     (같은 블록 :757 이 헤더 CTA도 감춘다). 전화 하나만 오른쪽 작은 알약으로 남긴다. */
+  .portfolio-in-view .fab-group { left: auto; right: 12px; padding: 0; background: transparent; border: 0; box-shadow: none; }
+  .portfolio-in-view .fab-group .fab:not(.fab-call) { display: none; }
+  .portfolio-in-view .fab-call { flex: 0 0 auto; min-height: 44px; padding: 10px 16px; box-shadow: 0 10px 28px rgba(184,137,90,.5); }
   .stepper-item em { display: none; }
   .automation-stats { grid-template-columns: 1fr; }
   .fm-ba { grid-template-columns: 1fr; }
@@ -812,4 +817,12 @@ ul, ol { list-style: none; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   .reveal { opacity: 1; transform: none; }
+}
+
+/* iOS Safari 는 입력 글씨가 16px 미만이면 포커스 시 화면을 확대하고 되돌리지 않는다.
+   하필 상담 폼의 필수 입력(이름·연락처)이 걸려, 3단계까지 온 손님이 이름 칸을 누르는 순간
+   화면이 확 커진다. 폰에서만 16px 로 올린다(데스크톱 레이아웃은 그대로). */
+@media (max-width: 640px) {
+  .inquiry-form input, .inquiry-form select, .inquiry-form textarea,
+  .field input, .field select, .field textarea { font-size: 16px; }
 }
