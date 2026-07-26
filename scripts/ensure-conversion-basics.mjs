@@ -91,7 +91,17 @@ check(/portfolioSpriteMarkup\(item, 'scene', true\)/.test(main),
   '모달 시안이 지연 로딩으로 바뀌었다 — 누르면 빈 칸이 보인다(모달은 즉시 로딩이어야 함)',
   '모달 시안은 즉시 로딩');
 
-/* ⑧ 블로그 목록이 JS 없이도 보인다 ------------------------------------ */
+/* ⑧ 못 보낸 문의를 자동으로 다시 보낸다 -------------------------------- */
+// 전파가 끊긴 곳에서 전송이 실패하면 손님이 [다시 시도]를 직접 눌러야 했다.
+// 그대로 이탈하면 문의가 사라진다. 성공 시 로컬 사본을 지우므로 개인정보도 함께 준다.
+check(/function retryPending/.test(inquiry) && /window\.addEventListener\('online'/.test(inquiry),
+  '못 보낸 문의 자동 재전송이 사라졌다 — 전파 끊긴 곳에서 넣은 문의가 그대로 묻힌다',
+  '못 보낸 문의 자동 재전송(다음 방문·온라인 복귀)');
+check(/RETRY_MAX/.test(inquiry),
+  '재전송 횟수 상한이 없다 — 실패가 반복되면 무한 재시도로 발송 한도를 태운다',
+  '재전송 횟수 상한 있음');
+
+/* ⑨ 블로그 목록이 JS 없이도 보인다 ------------------------------------ */
 // blog.html 은 sitemap 에 홈 다음 순위로 올라 있는데, 정적 HTML 에 h1 도 글 링크도 없으면
 // 크롤러에겐 빈 페이지고 8편으로 넘어갈 경로 자체가 없다.
 // 목록은 scripts/prerender-posts.py 가 만든다 — site.json insights 를 고치면 다시 돌릴 것.
@@ -104,7 +114,7 @@ try {
   check(!/불러오는 중/.test(blogBody), 'blog.html 이 아직 "불러오는 중…" 상태다(프리렌더 미적용)', 'blog.html 로딩 자리표시자 없음');
 } catch (e) { fail.push('blog.html 을 읽지 못했다: ' + e.message); }
 
-/* ⑨ 상담 접수 경로가 살아 있다 ---------------------------------------- */
+/* ⑩ 상담 접수 경로가 살아 있다 ---------------------------------------- */
 try {
   const cfg = JSON.parse(read('data/config.json'));
   const n8n = cfg.n8n || {}, forms = cfg.forms || {};
