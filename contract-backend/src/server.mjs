@@ -51,7 +51,19 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   on('GET', /^\/healthz$/, async () => ({ ok: true, live: providerLive() }));
 
   // 서명 화면(동일 출처로 서빙 → CORS 불필요, 토큰은 프래그먼트로만 전달)
-  const signHtml = readFileSync(join(__dir, '..', 'public', 'sign.html'), 'utf8');
+  // 데모 배너는 데모일 때만 남긴다. 운영에서는 통째로 지운다 —
+  // 고객이 실제 계약서를 열었을 때 "법적 효력은 없습니다"를 먼저 읽는 일이 없어야 한다.
+  const signHtml = (() => {
+    const raw = readFileSync(join(__dir, '..', 'public', 'sign.html'), 'utf8');
+    // 데모 표식이 하나라도 켜져 있으면 배너를 남긴다. 운영(prod.mjs)은 둘 다 꺼져 있고,
+    // production 에서는 애초에 켤 수 없다(위 21-23행).
+    if (enableDemo || demoOtp) return raw;
+    const stripped = raw.replace(/<!--DEMO_BANNER-->[\s\S]*?<!--\/DEMO_BANNER-->/g, '');
+    if (stripped === raw && /DEMO_BANNER/.test(raw)) {
+      throw new Error('sign.html 의 데모 배너 표식이 깨졌습니다 — 운영에서 배너가 노출될 수 있어 기동을 중단합니다.');
+    }
+    return stripped;
+  })();
   on('GET', /^\/sign\/?$/, async (_r, _m, res) => { html(res, signHtml); return SENT; });
 
   // 관리자 설정 화면(로그인은 페이지 안에서 관리자 토큰 입력 → 이후 API는 헤더로 인증)

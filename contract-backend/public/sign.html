@@ -184,7 +184,9 @@
 <body>
 
 <div class="frame">
-  <div class="demo">⚠️ <b>시제품(DEMO)</b> · 로컬 Mock 서버에 저장됩니다. 실제 카카오 발송·법적 효력은 없습니다.</div>
+  <!--DEMO_BANNER--><!-- 이 표식 사이는 데모에서만 남는다. 운영 서빙 때 서버가 통째로 지운다(src/server.mjs).
+       설명도 표식 안에 둔다 — 밖에 두면 주석까지 그대로 고객에게 전송된다. -->
+  <div class="demo">⚠️ <b>시제품(DEMO)</b> · 로컬 Mock 서버에 저장됩니다. 실제 카카오 발송·법적 효력은 없습니다.</div><!--/DEMO_BANNER-->
   <header>
     <div class="mark">萬</div>
     <div class="co"><strong>만물인테리어</strong><span>전자계약 · 대전</span></div>
@@ -304,7 +306,11 @@
   function contractHtml(){
     var b=C.body||{}; var cl=b.clauses||[]; var h="";
     for(var i=0;i<cl.length;i++){ h+='<h3>제'+esc(cl[i].no)+'조 ('+esc(cl[i].title)+')</h3><p>'+esc(cl[i].text)+'</p>'; }
-    h+='<p style="margin-top:14px;color:var(--ink-faint)">— 이하 여백. 본 계약서는 시제품용 예시이며 법적 효력이 없습니다. —</p>';
+    // 예전에는 여기에 데모용 면책 문장을 무조건 붙였다. 운영 계약서 전문 마지막 줄에 그대로 찍혀,
+    // 분쟁 시 고객이 내밀 스크린샷을 서버가 만들어 주고 있었다.
+    // 조항이 하나도 없으면 그건 효력 문제가 아니라 '아직 계약 내용이 안 실렸다'는 뜻이므로 그렇게 알린다.
+    if(cl.length===0) h+='<p style="margin-top:14px;color:var(--ink-faint)">— 계약 조항이 아직 등록되지 않았습니다. 서명 전 담당자에게 확인해 주세요. —</p>';
+    else h+='<p style="margin-top:14px;color:var(--ink-faint)">— 이하 여백 —</p>';
     return h;
   }
 
@@ -453,7 +459,9 @@
         '<div class="otp-row"><input type="tel" id="otpInput" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code"></div>'+
         '<div id="otpHint" class="note"></div><div id="otpMsg" class="note" role="status" aria-live="polite"></div>'+
         '<button type="button" id="otpResend" class="linkbtn" onclick="__sendOtp()">인증번호 다시 받기</button>';
-      if(st._demoCode){ $("otpHint").innerHTML='📩 (시제품) 인증번호는 <b>'+esc(st._demoCode)+'</b> 입니다. 실제로는 문자(SMS)로 발송됩니다.'; }
+      // 데모 전용 분기(운영은 demoOtp=null 이라 _demoCode 가 내려오지 않는다).
+      // 문구는 '데모'로 쓴다 — 운영 응답에 시험판을 가리키는 낱말이 한 번도 안 나가야 테스트로 지킬 수 있다.
+      if(st._demoCode){ $("otpHint").innerHTML='📩 (데모) 인증번호는 <b>'+esc(st._demoCode)+'</b> 입니다. 실제로는 문자(SMS)로 발송됩니다.'; }
       else { $("otpHint").textContent='📩 문자로 인증번호를 발송했습니다.'; }
       var inp=$("otpInput");
       inp.addEventListener("input",function(){

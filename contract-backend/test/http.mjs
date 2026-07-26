@@ -149,6 +149,25 @@ ok('CORS 프리플라이트(허용 출처) 204', pre.status === 204 && pre.heade
 const pre2 = await fetch(base + '/api/contracts/quick-send', { method: 'OPTIONS', headers: { origin: 'https://evil.example', 'access-control-request-method': 'POST' } });
 ok('CORS 미허용 출처 차단', !pre2.headers.get('access-control-allow-origin'));
 
+// 서명 화면 — 운영 서빙에는 데모 문구가 한 글자도 없어야 한다.
+// 예전에는 sign.html 에 "시제품(DEMO) … 법적 효력은 없습니다" 가 조건 없이 박혀 있어,
+// 고객이 실제 계약서를 열면 그 문장을 먼저 읽었다. 분쟁 시 상대가 내밀 스크린샷이 된다.
+{
+  const prodApp = createApp({});                       // enableDemo 기본값 false = 운영과 동일
+  await new Promise((r) => prodApp.server.listen(0, r));
+  const pPort = prodApp.server.address().port;
+  const prodSign = await (await fetch(`http://localhost:${pPort}/sign`)).text();
+  ok('운영 /sign 에 "법적 효력" 문구 없음', !/법적 효력/.test(prodSign));
+  ok('운영 /sign 에 "시제품" 문구 없음', !/시제품/.test(prodSign));
+  ok('운영 /sign 에 데모 배너 없음', !/class="demo"/.test(prodSign));
+  ok('운영 /sign 은 정상 렌더(서명 화면 골격 유지)', /전자계약/.test(prodSign) && prodSign.length > 5000);
+  prodApp.server.close();
+
+  // 데모 서버에서는 배너가 남아 있어야 한다(제거 로직이 데모까지 지워버리면 안 된다)
+  const demoSign = await (await fetch(base + '/sign')).text();
+  ok('데모 /sign 에는 배너가 남는다', /class="demo"/.test(demoSign) && /시제품/.test(demoSign));
+}
+
 console.log('\n===== HTTP 스모크 =====');
 R.forEach(([m, n, x]) => console.log(m, n, x ? `(${x})` : ''));
 const fails = R.filter(([m]) => m === '✗').length;
