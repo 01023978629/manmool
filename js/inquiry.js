@@ -359,12 +359,23 @@
     document.body.removeChild(ta);
   }
 
+  // 개인정보 보유기간 — 상담 폼 동의 문구("보유기간 1년")와 반드시 같아야 한다.
+  // 화면은 1년이라고 안내하는데 코드가 90일이면, 안내와 다른 시점에 자료가 사라진다.
+  const RETENTION_DAYS = 365;
+
+  // 보유기간 지난 항목을 실제로 지운다. 걸러내기만 하면 브라우저에는 그대로 남으므로,
+  // 지운 게 있으면 저장까지 해야 '삭제'가 된다.
+  function pruneExpired(list) {
+    const cutoff = Date.now() - RETENTION_DAYS * 86400000;
+    // 시각을 알 수 없는 항목은 함부로 지우지 않는다(언제 들어왔는지 모르는 걸 지우면 복구 불가)
+    const kept = list.filter((x) => { const t = Date.parse(x && x.submittedAt || '') || 0; return !t || t >= cutoff; });
+    return { kept, removed: list.length - kept.length };
+  }
+
   function saveLocal(payload) {
     let list = [];
     try { list = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { list = []; }
-    // 개인정보 최소 보관: 90일 지난 항목 자동 삭제(관리자 화면을 안 여는 고객 브라우저에서도 정리) + 상한.
-    const cutoff = Date.now() - 90 * 86400000;
-    list = list.filter((x) => { const t = Date.parse(x && x.submittedAt || '') || 0; return !t || t >= cutoff; });
+    list = pruneExpired(list).kept;
     payload.id = payload.id || ('INQ-' + Date.now());
     list.unshift(payload);
     if (list.length > 50) list = list.slice(0, 50);
@@ -440,7 +451,14 @@
   let retrying = false;
 
   function loadLocal() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { return []; }
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { return []; }
+    // 여기서도 정리한다. 예전에는 saveLocal 에서만 걸러서, saveLocal 은 '전송 실패'일 때만 불리므로
+    // 전송이 잘 되는 동안에는 만료 항목이 영원히 남았다(실측: 201일 지난 항목이 그대로 있었다).
+    // 페이지를 열어 이 함수가 한 번이라도 불리면 정리된다.
+    const { kept, removed } = pruneExpired(list);
+    if (removed > 0) writeLocal(kept);
+    return kept;
   }
   function writeLocal(list) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch (e) {}

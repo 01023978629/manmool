@@ -114,7 +114,30 @@ try {
   check(!/불러오는 중/.test(blogBody), 'blog.html 이 아직 "불러오는 중…" 상태다(프리렌더 미적용)', 'blog.html 로딩 자리표시자 없음');
 } catch (e) { fail.push('blog.html 을 읽지 못했다: ' + e.message); }
 
-/* ⑩ 상담 접수 경로가 살아 있다 ---------------------------------------- */
+/* ⑩ 개인정보 보유기간이 손님에게 약속한 것과 같다 ---------------------- */
+// 화면은 "보유기간 1년"이라 동의를 받아 놓고 코드가 90일이면, 약속과 다른 시점에 자료가 사라진다.
+// 반대로 코드가 더 길면 약속보다 오래 갖고 있는 것이 된다. 둘 다 문제라 한 숫자로 묶는다.
+{
+  const admin = read('js/admin.js');
+  const promise = index.match(/보유기간\s*(\d+)\s*년/);
+  const days = (src, f) => { const m = src.match(/RETENTION_DAYS\s*=\s*(\d+)/); return m ? +m[1] : null; };
+  const dInq = days(inquiry), dAdm = days(admin);
+  const wantDays = promise ? +promise[1] * 365 : null;
+  check(promise, '상담 폼 동의 문구에서 보유기간을 찾지 못했다 — 손님이 무엇에 동의하는지 알 수 없다',
+    `동의 문구에 보유기간 ${promise ? promise[1] + '년' : '?'} 명시`);
+  check(dInq != null && dAdm != null, 'RETENTION_DAYS 가 js/inquiry.js 또는 js/admin.js 에 없다 — 보관기간이 코드에 없다',
+    '보유기간이 코드에 상수로 있다');
+  check(dInq === dAdm, `보유기간이 파일마다 다르다 — inquiry ${dInq}일 vs admin ${dAdm}일`,
+    '문의 저장·관리 화면의 보유기간이 같다');
+  check(wantDays == null || dInq === wantDays,
+    `코드 보유기간(${dInq}일)이 손님에게 약속한 기간(${wantDays}일)과 다르다 — 안내와 다른 시점에 지워진다`,
+    `보유기간이 약속(${wantDays}일)과 일치`);
+  check(/function pruneExpired/.test(inquiry) && /pruneExpired\(list\)/.test(inquiry.split('function loadLocal')[1] || ''),
+    '만료 문의 정리가 읽는 경로에서 안 돈다 — 전송이 잘 되는 동안 만료 항목이 영원히 남는다',
+    '만료 문의가 읽을 때마다 실제로 삭제됨');
+}
+
+/* ⑪ 상담 접수 경로가 살아 있다 ---------------------------------------- */
 try {
   const cfg = JSON.parse(read('data/config.json'));
   const n8n = cfg.n8n || {}, forms = cfg.forms || {};
