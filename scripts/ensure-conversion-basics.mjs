@@ -66,7 +66,17 @@ check(!/hp\.value\)\s*\{\s*showSuccess\(collect\(\),\s*\{\s*delivered:\s*true/.t
   '허니팟에 걸리면 "전달됨"으로 표시된다 — 오탐 시 문의가 통째로 사라지고 아무도 모른다',
   '허니팟 오탐 시에도 전화·문자 대체 경로 노출');
 
-/* ⑦ 상담 접수 경로가 살아 있다 ---------------------------------------- */
+/* ⑦ 첫 로딩이 무겁지 않다 --------------------------------------------- */
+// 폰에서 느리면 문의를 넣기 전에 나간다. 시안 스프라이트(약 2.5MB)는 CSS 배경이라
+// loading="lazy" 가 안 먹어, 지연 로딩을 빼면 곧바로 첫 로딩이 3MB대로 돌아간다.
+check(/data-sheet=/.test(main) && /IntersectionObserver/.test(main.split('function observeSprites')[1] || ''),
+  '시안 스프라이트 지연 로딩이 사라졌다 — 첫 로딩이 0.77MB → 3.1MB 로 돌아간다',
+  '시안 지연 로딩 유지(첫 로딩 약 0.77MB)');
+check(/portfolioSpriteMarkup\(item, 'scene', true\)/.test(main),
+  '모달 시안이 지연 로딩으로 바뀌었다 — 누르면 빈 칸이 보인다(모달은 즉시 로딩이어야 함)',
+  '모달 시안은 즉시 로딩');
+
+/* ⑧ 상담 접수 경로가 살아 있다 ---------------------------------------- */
 try {
   const cfg = JSON.parse(read('data/config.json'));
   const n8n = cfg.n8n || {}, forms = cfg.forms || {};
