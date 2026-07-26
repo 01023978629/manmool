@@ -135,6 +135,15 @@ try {
   check(/function pruneExpired/.test(inquiry) && /pruneExpired\(list\)/.test(inquiry.split('function loadLocal')[1] || ''),
     '만료 문의 정리가 읽는 경로에서 안 돈다 — 전송이 잘 되는 동안 만료 항목이 영원히 남는다',
     '만료 문의가 읽을 때마다 실제로 삭제됨');
+  // 동의 체크박스 옆에서 처리방침을 읽을 수 있어야 '무엇에 동의하는지'가 성립한다.
+  // 문의 데이터가 국외(Web3Forms·미국)로 나가는데 방침 문서가 없으면 안내 자체가 거짓이 된다.
+  check(/privacy\.html/.test(index.match(/id="iConsent"[\s\S]{0,300}/)?.[0] || ''),
+    '동의 문구에서 개인정보처리방침 링크가 사라졌다 — 무엇에 동의하는지 읽을 수 없다',
+    '동의 문구에 처리방침 링크 있음');
+  const privacy = read('privacy.html');
+  check(/1년/.test(privacy) && /Web3Forms/.test(privacy) && /010-2397-8629/.test(privacy),
+    'privacy.html 의 핵심 내용(보유 1년·국외 이전·연락처)이 빠졌다 — 안내와 실제가 어긋난다',
+    '처리방침에 보유기간·국외 이전·연락처 명시');
 }
 
 /* ⑪ 상담 접수 경로가 살아 있다 ---------------------------------------- */
