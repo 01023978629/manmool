@@ -5,6 +5,7 @@ import {
   maskPhone, docHash, issueOtp,
 } from './crypto.mjs';
 import { audit, EVENTS, trail } from './audit.mjs';
+import { validateBody } from './standard-contract.mjs';
 import { classify, groupByTier, TIER_ORDER } from './autonomy.mjs';
 
 const OTP_TTL_MS = 5 * 60 * 1000;       // 본인확인 OTP 5분
@@ -75,6 +76,10 @@ export class ContractService {
     const c = this._contract(contractId);
     if (c.status !== 'DRAFT') throw new AppError('ALREADY_LOCKED', '이미 잠긴 계약입니다.');
     const body = JSON.parse(c.body_snapshot);
+    // 마지막 방어선: 조항 0줄·지급조건 0원짜리 문서를 고객에게 서명받는 일을 여기서 막는다.
+    // (예전에는 본문 검증이 전혀 없어, 계약금·중도금·잔금이 모두 0원으로 찍힌 채 서명까지 갔다)
+    const bad = validateBody(body, c.amount);
+    if (bad.length) throw new AppError('INCOMPLETE_BODY', '계약 본문이 완성되지 않았습니다 — ' + bad.join(', ') + '.');
     const hash = docHash(body);
     const now = this.clock();
     this.db.prepare(

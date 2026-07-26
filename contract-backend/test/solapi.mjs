@@ -1,6 +1,7 @@
 // 실제 발송 Provider(Solapi) 오프라인 검증 — fetch 를 주입해 실네트워크 없이 확인.
 // HMAC 인증 헤더·요청 페이로드·응답 파싱·실패 처리·서비스 연동을 검증한다.
 import { createHmac } from 'node:crypto';
+import { buildStandardBody } from '../src/standard-contract.mjs';
 import { SolapiProvider } from '../src/providers/solapi.mjs';
 import { selectProvider } from '../src/providers/index.mjs';
 import { openDb } from '../src/db.mjs';
@@ -99,7 +100,7 @@ throws('LIVE 인데 설정 없으면 기동 거부', () => selectProvider({ ALIM
   const prov = new SolapiProvider(CFG, { fetchImpl: makeFetch({ json: { statusCode: '2000', messageId: 'MID-S' } }, cap), clock, saltImpl: salt });
   const { contractId, parties } = svc.createContract({
     contractNo: 'MM-2026-0500', title: '계약', amount: 1000,
-    body: { a: 1 }, operator: { name: '만물대표', phone: '010-0000-1111' }, customer: { name: '홍길동', phone: '010-0000-2222' },
+    body: buildStandardBody({ site: '대전', scope: ['도배'], amount: 1000, customerName: '홍길동' }), operator: { name: '만물대표', phone: '010-0000-1111' }, customer: { name: '홍길동', phone: '010-0000-2222' },
   });
   svc.lockDocument(contractId);
   // 원문 번호가 당사자와 다르면 오발송 차단

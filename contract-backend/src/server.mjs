@@ -11,6 +11,7 @@ import { openDb } from './db.mjs';
 import { ContractService, AppError } from './service.mjs';
 import { MockKakaoMessageProvider } from './providers/kakao.mjs';
 import { selectProvider } from './providers/index.mjs';
+import { buildStandardBody } from './standard-contract.mjs';
 import { settingsStatus, writeSettings, mergedSource, checkAdmin } from './settings.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -298,8 +299,19 @@ async function quickSend(svc, provider, b) {
   if (!b.operator || !b.operator.phone) throw new AppError('BAD_INPUT', '사업자 정보가 필요합니다.');
   _qsSeq += 1;
   const contractNo = b.contractNo || `MM-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(_qsSeq).padStart(3, '0')}`;
-  const amount = b.amount | 0;
-  const body = b.body || {};
+  const amount = Math.round(Number(b.amount) || 0);
+  // 현장 앱은 현장·범위·금액·고객만 보낸다. 계약 본문(조항·지급조건)은 서버가 표준안으로 채운다.
+  // 앱에 조항 문구를 복사해 두면 두 곳이 갈라지고, 예전에는 그 결과로 조항 0줄·지급조건 0원짜리
+  // 계약서에 고객이 서명하게 돼 있었다. 본문을 직접 보낸 경우(조항 포함)에만 그대로 쓴다.
+  const given = b.body || {};
+  const body = (Array.isArray(given.clauses) && given.clauses.length)
+    ? given
+    : buildStandardBody({
+        site: given.site || '', scope: given.scope || '', amount,
+        vatIncluded: given.vatIncluded, period: given.period || '',
+        customerName: (b.customer && b.customer.name) || given.customerName || '',
+        operator: { co: (b.operator && b.operator.co) || undefined, rep: (b.operator && b.operator.name) || undefined },
+      });
   const { contractId, parties } = svc.createContract({
     contractNo, title: b.title || '공사 도급계약서', amount, body,
     operator: b.operator, customer: b.customer,

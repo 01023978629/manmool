@@ -305,7 +305,15 @@
   // 계약 전문: 서버에서 받은 body.clauses 로 렌더(하드코딩 아님).
   function contractHtml(){
     var b=C.body||{}; var cl=b.clauses||[]; var h="";
-    for(var i=0;i<cl.length;i++){ h+='<h3>제'+esc(cl[i].no)+'조 ('+esc(cl[i].title)+')</h3><p>'+esc(cl[i].text)+'</p>'; }
+    for(var i=0;i<cl.length;i++){
+      var c=cl[i];
+      // 조항은 {no,title,text} 가 표준이지만 문자열 한 줄로 오는 본문도 있다.
+      // 예전에는 문자열이면 '제undefined조 (undefined)' 에 본문이 빈 채로 찍혔다.
+      if(typeof c==='string'){ h+='<p>'+esc(c).replace(/\n/g,'<br>')+'</p>'; continue; }
+      var head=(c&&c.no!=null?'제'+esc(c.no)+'조':'')+(c&&c.title?' ('+esc(c.title)+')':'');
+      if(head.trim()) h+='<h3>'+head.trim()+'</h3>';
+      h+='<p>'+esc((c&&c.text)||'').replace(/\n/g,'<br>')+'</p>';
+    }
     // 예전에는 여기에 데모용 면책 문장을 무조건 붙였다. 운영 계약서 전문 마지막 줄에 그대로 찍혀,
     // 분쟁 시 고객이 내밀 스크린샷을 서버가 만들어 주고 있었다.
     // 조항이 하나도 없으면 그건 효력 문제가 아니라 '아직 계약 내용이 안 실렸다'는 뜻이므로 그렇게 알린다.
@@ -329,16 +337,27 @@
       '<p class="lead">계약 당사자 확인을 위해 휴대폰 문자 인증을 진행합니다. <b>링크를 받은 사실만으로는 본인확인이 완료되지 않습니다.</b></p>'+
       '<div id="otpArea"></div>'; },
 
-    summary:function(){ var b=C.body||{}; var pay=b.payment||{}; return ''+
+    summary:function(){ var b=C.body||{}; var pay=b.payment||{};
+      // 비율은 하드코딩하지 않는다 — 예전에는 (10%)/(40%)/(50%) 로 박혀 있어
+      // 실제 지급조건(50/40/10)과 반대로 표시됐다. 금액에서 되계산해 항상 문서와 맞춘다.
+      var rt=b.paymentRatio||{};
+      var lab=function(name,key){
+        var r=rt[key];
+        if(r==null&&C.amount>0&&pay[key]!=null) r=Number(pay[key])/Number(C.amount);
+        return r==null?name:name+" ("+Math.round(r*100)+"%)";
+      };
+      // 부가세 포함 여부도 본문을 따른다(별도 견적으로 계약하는 경우가 있다)
+      var vatLabel=(b.vatIncluded===false)?'부가세 별도':'부가세 포함';
+      return ''+
       '<p class="eyebrow">2 · 계약 주요 조건</p><h1>계약 핵심조건 요약</h1>'+
-      '<div class="card tint" style="text-align:center;padding:18px"><div style="font-size:12px;color:var(--ink-soft);margin-bottom:4px">총 계약금액 (부가세 포함)</div><div class="amt num">'+won(C.amount)+'원</div></div>'+
+      '<div class="card tint" style="text-align:center;padding:18px"><div style="font-size:12px;color:var(--ink-soft);margin-bottom:4px">총 계약금액 ('+vatLabel+')</div><div class="amt num">'+won(C.amount)+'원</div></div>'+
       '<div class="card">'+
         row("계약 당사자", esc((b.operator&&b.operator.co)||"만물인테리어")+" · "+esc(b.customerName||""))+
         row("현장 주소", esc(b.site||""))+
         row("공사 범위", esc(b.scope||""))+
-        row("계약금 (10%)", won(pay.down)+"원", true)+
-        row("중도금 (40%)", won(pay.mid)+"원", true)+
-        row("잔금 (50%)", won(pay.bal)+"원", true)+
+        row(lab("계약금","down"), won(pay.down)+"원", true)+
+        row(lab("중도금","mid"), won(pay.mid)+"원", true)+
+        row(lab("잔금","bal"), won(pay.bal)+"원", true)+
         row("공사 예정일", esc(b.period||""))+
         row("하자보증기간", esc(b.warranty||""))+
       '</div>'+

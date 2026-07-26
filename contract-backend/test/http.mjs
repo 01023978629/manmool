@@ -1,5 +1,6 @@
 // HTTP 계층 스모크 테스트 — 서버를 실제 기동해 전 플로우를 호출한다.
 import { createApp } from '../src/server.mjs';
+import { buildStandardBody } from '../src/standard-contract.mjs';
 
 process.env.ADMIN_TOKEN = 'http-admin'; // 운영자 라우트는 관리자 토큰 필요
 process.env.CORS_ORIGINS = 'https://app.example';
@@ -28,7 +29,8 @@ ok('운영자 라우트 무인증 거부(401)', noAuth.status === 401);
 // 계약 생성 → 잠금 → 링크 → 발송 (관리자 토큰)
 const c = await call('POST', '/api/contracts', { admin: true, json: {
   contractNo: 'MM-2026-0199', title: '실내건축 공사 계약', amount: 33000000,
-  body: { site: '대전 탄방동 26평', scope: ['도배', '장판'], amount: 33000000 },
+  // 조항·지급조건·고객명이 갖춰져야 잠글 수 있다(빈 계약서 서명 차단)
+  body: buildStandardBody({ site: '대전 탄방동 26평', scope: ['도배', '장판'], amount: 33000000, customerName: '박고객' }),
   operator: { name: '만물대표', phone: '010-0000-1111' },
   customer: { name: '박고객', phone: '010-1234-5678' },
 } });
@@ -72,7 +74,7 @@ ok('서명 제출 → 완료', sign.status === 200 && sign.data.completed === tr
 // 문서해시 미제출 서명 거부(우회 차단) — 새 계약으로 검증
 const c2 = await call('POST', '/api/contracts', { admin: true, json: {
   contractNo: 'MM-2026-0200', title: '해시검증 계약', amount: 1000000,
-  body: { site: '대전', scope: ['도배'], amount: 1000000 },
+  body: buildStandardBody({ site: '대전', scope: ['도배'], amount: 1000000, customerName: '박고객' }),
   operator: { name: '만물대표', phone: '010-0000-1111' }, customer: { name: '박고객', phone: '010-1234-5678' },
 } });
 await call('POST', `/api/contracts/${c2.data.contractId}/lock`, { admin: true });
