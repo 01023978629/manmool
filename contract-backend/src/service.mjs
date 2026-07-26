@@ -231,6 +231,10 @@ export class ContractService {
     };
   }
 
+  // 6-b) 토큰만 먼저 검사 — 본문(서명 이미지 등 대용량)을 받기 전에 라우트가 부른다.
+  // 아무것도 소비하지 않는다(1회성 소진은 제출 시점에 일어난다).
+  assertSignToken(rawToken) { this._validToken(rawToken, 'sign'); return true; }
+
   // 7) 본인확인 OTP 발급 + 문자 발송.
   //
   //    ※ 예전에는 이 함수가 코드를 만들어 해시만 저장하고 { sent:true } 로 끝났다 — 발송 호출이

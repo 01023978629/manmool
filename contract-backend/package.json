@@ -9,7 +9,7 @@
     "start": "node src/server.mjs",
     "prod": "node src/prod.mjs",
     "preflight": "node bin/preflight.mjs",
-    "test": "node test/e2e.mjs && node test/standard-contract.mjs && node test/otp.mjs && node test/contract-no.mjs && node test/archive.mjs && node test/http.mjs && node test/operator.mjs && node test/preflight.mjs && node test/solapi.mjs && node test/admin.mjs && node test/payments.mjs && node test/notify.mjs",
+    "test": "node test/e2e.mjs && node test/standard-contract.mjs && node test/otp.mjs && node test/contract-no.mjs && node test/archive.mjs && node test/limits.mjs && node test/http.mjs && node test/operator.mjs && node test/preflight.mjs && node test/solapi.mjs && node test/admin.mjs && node test/payments.mjs && node test/notify.mjs",
     "test:integration": "node test/integration.mjs",
     "selftest:alimtalk": "node bin/selftest-send.mjs"
   }

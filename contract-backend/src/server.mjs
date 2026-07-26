@@ -78,8 +78,13 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   // 토큰을 "틀리게 제시한" 경우만 센다 → 토큰 미제시(무인증)는 정상 401 로 통과.
   const _adminFails = new Map(); // ip → { n, until }  (until: 잠금 해제 epoch ms)
   const clientIp = (req) => {
+    // Fly 는 실제 접속 IP 를 fly-client-ip 로 준다 — 위조 불가한 이 값을 최우선.
+    // X-Forwarded-For 는 '맨 앞'이 아니라 '마지막' 항목을 쓴다. 맨 앞은 클라이언트가
+    // 마음대로 적을 수 있어, 헤더만 바꾸면 관리자 잠금(백오프)을 매번 초기화할 수 있었다.
+    const fly = req.headers['fly-client-ip'];
+    if (fly) return String(fly).trim();
     const xf = req.headers['x-forwarded-for'];
-    if (xf) return String(xf).split(',')[0].trim();
+    if (xf) { const parts = String(xf).split(','); return parts[parts.length - 1].trim(); }
     return (req.socket && req.socket.remoteAddress) || 'unknown';
   };
   const ADMIN_LOCK_FREE = 5;      // 이 횟수까지는 즉시 401(잠금 없음)
@@ -241,7 +246,10 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   on('POST', /^\/api\/sign\/viewed$/, async (req) => svc.markViewed(tok(req)));
   on('POST', /^\/api\/sign\/consent$/, async (req) => { const b = await body(req); return svc.recordConsents(tok(req), b.consents || [], ctx(req)); });
   on('POST', /^\/api\/sign\/signature$/, async (req) => {
-    const b = await body(req);
+    // 토큰 검증을 본문 수신보다 먼저 한다 — 예전에는 본문을 통째로 버퍼링한 뒤에야 BAD_TOKEN 을
+    // 돌려줘서, 무인증 4.4MB × 10건 동시 요청에 서버 메모리가 +119MB 튀었다(실측).
+    svc.assertSignToken(tok(req));
+    const b = await body(req, BODY_LIMIT_SIGNATURE);
     const bytes = b.imageBase64 ? Buffer.from(b.imageBase64, 'base64') : Buffer.from('');
     return svc.submitSignature(tok(req), { imageBytes: bytes, clientDocHash: b.clientDocHash }, ctx(req));
   });
@@ -443,17 +451,42 @@ function seedDemoContract(svc, provider) {
   const { token } = svc.issueSignLink(contractId, parties.customer, 'sign');
   return { contractId, partyId: parties.customer, token, signPath: `/sign#t=${token}` };
 }
-const BODY_LIMIT = 5e6; // 5MB — 서명 이미지(base64) 여유 포함
-function body(req) {
+// 본문 상한 — 바이트 기준. 라우트 대부분은 작은 JSON 이라 256KB 면 넉넉하고,
+// 서명 제출(이미지 base64)만 5MB 를 쓴다(라우트에서 명시).
+// ※ 예전에는 문자열로 이어 붙이며 '글자 수'를 셌다. 한글은 UTF-8 3바이트 = 1글자라
+//   5MB 상한을 한글 14.7MB 가 통과했다(실측 — 서버 RSS +72MB). 버퍼로 모아 바이트를 센다.
+//   버퍼 누적은 청크 경계에서 멀티바이트 글자가 갈라져도 안전하다(마지막에 한 번에 디코드).
+const BODY_LIMIT_DEFAULT = 256e3;
+const BODY_LIMIT_SIGNATURE = 5e6;
+function body(req, limit = BODY_LIMIT_DEFAULT) {
   return new Promise((resolve, reject) => {
-    let d = '', tooBig = false;
+    // 초과 시: 즉시 끊지 않는다 — 413 응답이 나가기 전에 소켓을 죽이면 클라이언트는
+    // ECONNRESET 만 보고 왜 실패했는지 모른다(실측). 응답이 나갈 시간을 주고 끊는다.
+    let dead = false;
+    const bail = () => {
+      dead = true;
+      const e = new AppError('PAYLOAD_TOO_LARGE', '요청 본문이 너무 큽니다.'); e.httpStatus = 413;
+      reject(e);
+      req.resume();                            // 남은 데이터는 버린다(버퍼링 안 함)
+      setTimeout(() => { try { req.destroy(); } catch { /* 이미 닫힘 */ } }, 1000).unref();
+    };
+    // content-length 를 먼저 본다 — 초과 선언이면 본문을 한 바이트도 모으지 않는다
+    const declared = Number(req.headers['content-length'] || 0);
+    if (declared > limit) { bail(); return; }
+    const chunks = [];
+    let size = 0;
     req.on('data', (c) => {
-      if (tooBig) return;
-      d += c;
-      if (d.length > BODY_LIMIT) { tooBig = true; d = ''; const e = new AppError('PAYLOAD_TOO_LARGE', '요청 본문이 너무 큽니다.'); e.httpStatus = 413; reject(e); req.destroy(); }
+      if (dead) return;
+      size += c.length;                       // Buffer.length = 바이트
+      if (size > limit) { chunks.length = 0; bail(); return; }
+      chunks.push(c);
     });
-    req.on('end', () => { if (tooBig) return; try { resolve(d ? JSON.parse(d) : {}); } catch (e) { reject(new AppError('BAD_JSON', 'JSON 파싱 실패')); } });
-    req.on('error', (err) => { if (!tooBig) reject(err); });
+    req.on('end', () => {
+      if (dead) return;
+      try { const d = Buffer.concat(chunks).toString('utf8'); resolve(d ? JSON.parse(d) : {}); }
+      catch (e) { reject(new AppError('BAD_JSON', 'JSON 파싱 실패')); }
+    });
+    req.on('error', (err) => { if (!dead) reject(err); });
   });
 }
 
