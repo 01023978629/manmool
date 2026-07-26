@@ -18,7 +18,7 @@ const __dir = dirname(fileURLToPath(import.meta.url));
 
 // 안전한 기본값: 데모 기능은 명시적으로 켜야만 동작한다(enableDemo=false, demoOtp=null 기본).
 // 운영(NODE_ENV=production)에서 데모가 켜져 있으면 기동을 거부한다(fail-fast).
-export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = false, provider = null } = {}) {
+export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = false, provider = null, injectedLive = false } = {}) {
   if (process.env.NODE_ENV === 'production' && (enableDemo || demoOtp)) {
     throw new Error('보안: 운영 환경에서는 데모 모드(enableDemo/demoOtp)를 사용할 수 없습니다.');
   }
@@ -34,7 +34,9 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   const injected = provider;
   let _cached = null, _cachedKey = null;
   const resolveProvider = () => {
-    if (injected) return { provider: injected, live: false };
+    // injectedLive 는 테스트 전용: 본인번호 테스트 발송처럼 live 게이트 뒤의 경로를
+    // 실제 네트워크 없이 끝까지 태워보기 위한 스위치다. 운영 진입점(prod.mjs)은 주입을 안 쓴다.
+    if (injected) return { provider: injected, live: injectedLive };
     const src = mergedSource(process.env, db);
     // 설정이 바뀔 때만 재해석(그 외엔 동일 인스턴스 재사용 → Mock 상태·연결 유지).
     const key = JSON.stringify(['ALIMTALK_LIVE', 'SOLAPI_API_KEY', 'SOLAPI_API_SECRET', 'SOLAPI_PF_ID', 'SOLAPI_SENDER', 'SOLAPI_TEMPLATE_SIGN', 'SOLAPI_TEMPLATE_DONE', 'SOLAPI_DISABLE_SMS'].map((k) => src[k] || ''));
@@ -283,10 +285,19 @@ async function runSelfTest(svc, resolveProvider, phone, baseUrl) {
   if (!/^01[016789]\d{7,8}$/.test(digits)) throw new AppError('BAD_PHONE', '휴대폰 번호 형식이 올바르지 않습니다.');
   let sel; try { sel = resolveProvider(); } catch (e) { throw new AppError('PROVIDER_CONFIG', e.message); }
   if (!sel.live || sel.provider.name === 'mock') throw new AppError('NOT_LIVE', '실제 발송이 꺼져 있어 테스트할 수 없습니다. 설정을 저장하고 실제 발송을 켜주세요.');
+  // 번호는 DB 채번(TEST-YYYYMMDD-NNN). 예전에는 TEST-<날짜> 고정이라 같은 날 두 번째
+  // 테스트가 UNIQUE 충돌로 100% 실패했다 — 사장님의 알림톡 설정 작업을 정확히 막았다.
+  // 본문은 표준안(명목 1,000원)으로 채운다. 예전의 빈 본문(clauses:[])은 잠금 검증
+  // (INCOMPLETE_BODY — 빈 계약서 서명 차단)에 걸려 테스트 자체가 돌지 않는다.
+  // 덕분에 사장님이 받는 테스트 링크가 실제 고객이 보게 될 화면과 똑같아진다.
   const { contractId, parties } = svc.createContract({
-    contractNo: `TEST-${new Date().toISOString().slice(0, 10)}`,
-    title: '전자계약 발송 테스트', amount: 0,
-    body: { note: '본인번호 테스트(법적 효력 없음)', clauses: [] },
+    contractNo: nextContractNo(svc, 'TEST'),
+    title: '전자계약 발송 테스트',
+    amount: 1000,
+    body: buildStandardBody({
+      site: '테스트 현장(발송 확인용)', scope: ['발송 테스트'], amount: 1000,
+      customerName: '테스트', period: '발송 확인용',
+    }),
     operator: { name: '만물대표', phone: '010-0000-1111' },
     customer: { name: '테스트', phone: digits },
   });
@@ -294,17 +305,27 @@ async function runSelfTest(svc, resolveProvider, phone, baseUrl) {
   const { token } = svc.issueSignLink(contractId, parties.customer, 'sign');
   const signUrl = baseUrl ? `${String(baseUrl).replace(/\/$/, '')}/sign#t=${token}` : `/sign#t=${token}`;
   const res = await svc.sendMessage(contractId, parties.customer, 'contract_sign', sel.provider,
-    { site: '테스트 현장', amount: '0', signUrl }, digits);
+    { site: '테스트 현장', amount: '1000', signUrl }, digits);
   return { status: res.status, reason: res.reason || null, provider: sel.provider.name };
 }
 
+// 계약번호 채번 — 메모리 카운터가 아니라 DB 에서 '오늘 접두사의 최댓값 + 1'.
+// ※ 예전에는 let _qsSeq = 0 이었다. 프로세스 메모리라 배포·재시작하면 0으로 돌아가,
+//   그날 이미 보낸 건수만큼 UNIQUE 충돌 → 원인 불명 500 이 났다(계약번호는 UNIQUE).
+//   실측: 같은 파일 DB 에 두 번째 프로세스를 띄우면 첫 발송부터 실패했다.
+function nextContractNo(svc, kind = 'MM') {
+  const prefix = `${kind}-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-`;
+  // substr 은 1-기준 → 접두사 바로 뒤의 일련번호만 숫자로 읽어 최댓값을 구한다
+  const row = svc.db.prepare(
+    'SELECT MAX(CAST(substr(contract_no, ?) AS INTEGER)) m FROM contracts WHERE contract_no LIKE ?'
+  ).get(prefix.length + 1, prefix + '%');
+  return prefix + String(((row && row.m) || 0) + 1).padStart(3, '0');
+}
+
 // 원클릭 발송: 생성→잠금→서명링크→발송. 현장 앱이 계약 데이터를 넘기면 한 번에 처리.
-let _qsSeq = 0;
 async function quickSend(svc, provider, b) {
   if (!b || !b.customer || !b.customer.phone) throw new AppError('BAD_INPUT', '고객 정보(이름·전화)가 필요합니다.');
   if (!b.operator || !b.operator.phone) throw new AppError('BAD_INPUT', '사업자 정보가 필요합니다.');
-  _qsSeq += 1;
-  const contractNo = b.contractNo || `MM-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(_qsSeq).padStart(3, '0')}`;
   const amount = Math.round(Number(b.amount) || 0);
   // 현장 앱은 현장·범위·금액·고객만 보낸다. 계약 본문(조항·지급조건)은 서버가 표준안으로 채운다.
   // 앱에 조항 문구를 복사해 두면 두 곳이 갈라지고, 예전에는 그 결과로 조항 0줄·지급조건 0원짜리
@@ -318,10 +339,23 @@ async function quickSend(svc, provider, b) {
         customerName: (b.customer && b.customer.name) || given.customerName || '',
         operator: { co: (b.operator && b.operator.co) || undefined, rep: (b.operator && b.operator.name) || undefined },
       });
-  const { contractId, parties } = svc.createContract({
-    contractNo, title: b.title || '공사 도급계약서', amount, body,
-    operator: b.operator, customer: b.customer,
-  });
+  // 채번→INSERT 사이에 await 가 없어 프로세스 안에서는 경합이 없다.
+  // 다만 배포 겹침 등으로 두 프로세스가 같은 파일 DB 를 쓸 때는 같은 번호를 집을 수 있어,
+  // 그때만 다시 채번해 재시도한다(번호를 직접 지정한 경우는 재시도 없이 그대로 알린다).
+  let contractId, parties, contractNo;
+  for (let attempt = 0; ; attempt++) {
+    contractNo = b.contractNo || nextContractNo(svc);
+    try {
+      ({ contractId, parties } = svc.createContract({
+        contractNo, title: b.title || '공사 도급계약서', amount, body,
+        operator: b.operator, customer: b.customer,
+      }));
+      break;
+    } catch (e) {
+      if (e && e.code === 'DUP_CONTRACT_NO' && !b.contractNo && attempt < 3) continue;
+      throw e;
+    }
+  }
   svc.lockDocument(contractId);
   svc.seedPaymentSchedule(contractId); // body.payment 있으면 대금 스케줄 자동 생성(없으면 0)
   const { token } = svc.issueSignLink(contractId, parties.customer, 'sign');

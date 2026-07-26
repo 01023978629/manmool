@@ -56,10 +56,19 @@ export class ContractService {
   createContract({ contractNo, title, amount, body, operator, customer }) {
     const now = this.clock();
     const id = newId('ct');
-    this.db.prepare(
-      `INSERT INTO contracts(id,contract_no,title,status,amount,body_snapshot,created_at,updated_at)
-       VALUES(?,?,?, 'DRAFT', ?, ?, ?, ?)`
-    ).run(id, contractNo, title, amount | 0, JSON.stringify(body), now, now);
+    try {
+      this.db.prepare(
+        `INSERT INTO contracts(id,contract_no,title,status,amount,body_snapshot,created_at,updated_at)
+         VALUES(?,?,?, 'DRAFT', ?, ?, ?, ?)`
+      ).run(id, contractNo, title, amount | 0, JSON.stringify(body), now, now);
+    } catch (e) {
+      // contract_no 는 UNIQUE 다. 원문 그대로 두면 원인 불명 500 이 되고,
+      // 앱은 "전송 실패 (서버 오류 500)"만 보여줘 사장님이 뭘 고쳐야 할지 알 수 없다.
+      if (/UNIQUE constraint failed: contracts\.contract_no/.test(String(e && e.message))) {
+        throw new AppError('DUP_CONTRACT_NO', `계약번호 ${contractNo} 는 이미 사용 중입니다. 다른 번호로 보내 주세요.`);
+      }
+      throw e;
+    }
 
     const parties = {};
     for (const [role, p] of [['operator', operator], ['customer', customer]]) {
