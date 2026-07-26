@@ -289,15 +289,43 @@ function assignPortfolioDesignSheets(items) {
   });
 }
 
-function portfolioSpriteStyle(item) {
+// 시안 스프라이트는 CSS 배경이라 loading="lazy" 가 안 먹는다. 게다가 .reveal 이
+// display:none 이 아니라 opacity:0 이라 화면 밖 카드도 렌더트리에 남아, 그냥 두면
+// 시트 16장(약 2.5MB — 첫 로딩의 79%)이 첫 진입에 전부 내려온다.
+// → 격자(240장)는 화면에 다가올 때 채우고(observeSprites), 모달은 즉시 채운다.
+function portfolioSpriteStyle(item, eager) {
   const cell = Math.max(0, Math.min(15, Number(item.__designCell) || 0));
   const column = cell % 4;
   const row = Math.floor(cell / 4);
-  return `background-image:url('${item.__designSheet}');background-size:400% 400%;background-position:${column * 100 / 3}% ${row * 100 / 3}%;`;
+  const pos = `background-size:400% 400%;background-position:${column * 100 / 3}% ${row * 100 / 3}%;`;
+  return eager ? `background-image:url('${item.__designSheet}');${pos}` : pos;
 }
 
-function portfolioSpriteMarkup(item, className) {
-  return `<span class="${className} portfolio-sprite" role="img" aria-label="${item.imageAlt || item.title}" style="${portfolioSpriteStyle(item)}"></span>`;
+// eager=true 는 누르는 즉시 보여야 하는 곳(모달·유사 디자인 썸네일)에서만 쓴다.
+function portfolioSpriteMarkup(item, className, eager) {
+  const lazyAttr = eager ? '' : ` data-sheet="${item.__designSheet}"`;
+  return `<span class="${className} portfolio-sprite" role="img" aria-label="${item.imageAlt || item.title}"${lazyAttr} style="${portfolioSpriteStyle(item, eager)}"></span>`;
+}
+
+/* 화면에 다가온 시안만 배경을 채운다. IntersectionObserver 가 없으면 즉시 전부 채운다(폴백). */
+let spriteObserver;
+function fillSprite(el) {
+  const url = el.getAttribute('data-sheet');
+  if (!url) return;
+  el.style.backgroundImage = `url('${url}')`;
+  el.removeAttribute('data-sheet');
+}
+function observeSprites() {
+  const targets = document.querySelectorAll('.portfolio-sprite[data-sheet]');
+  if (!('IntersectionObserver' in window)) { targets.forEach(fillSprite); return; }
+  if (!spriteObserver) {
+    spriteObserver = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) { fillSprite(e.target); spriteObserver.unobserve(e.target); }
+      });
+    }, { rootMargin: '400px' });   // 스크롤 도착 전에 미리 받아 빈 칸이 보이지 않게
+  }
+  targets.forEach((el) => spriteObserver.observe(el));
 }
 
 function portfolioPhotoStyle(item) {
@@ -572,6 +600,7 @@ function renderPortfolio(items, filterConfig) {
       grouped[key].map((i) => cardHTML(i, gi++)).join('')
     ).join('');
     observeReveal();
+    observeSprites();
   };
 
   const clearDownstream = (key) => {
@@ -748,7 +777,7 @@ function openFolioModal(item, all) {
     .map((o) => o.x);
 
   const simThumb = (s) => s.__designSheet
-    ? portfolioSpriteMarkup(s, 'fm-sim-thumb')
+    ? portfolioSpriteMarkup(s, 'fm-sim-thumb', true)   // 모달: 즉시
     : s.photo
       ? `<span class="fm-sim-thumb" style="background-image:url('${s.photo}');background-size:cover;background-position:${s.photoPosition || 'center'}"></span>`
       : `<span class="fm-sim-thumb" style="background:linear-gradient(150deg, ${s.afterColor || '#cdb8a0'}, ${shade(s.afterColor || '#cdb8a0', -14)})"></span>`;
@@ -757,7 +786,7 @@ function openFolioModal(item, all) {
   const mediaCap = item.aiDesign ? 'AI 추천 디자인 시안' : '시공 현장';
   const hasSingleMedia = !!(item.__designSheet || item.photo);
   const singleMedia = item.__designSheet
-    ? portfolioSpriteMarkup(item, 'scene')
+    ? portfolioSpriteMarkup(item, 'scene', true)       // 모달: 즉시
     : `<img class="scene" src="${item.photo}" alt="${item.imageAlt || item.title}" style="${portfolioPhotoStyle(item)}" />`;
   const media = hasSingleMedia
     ? `<figure class="fm-single"><div class="fm-img">${singleMedia}</div><figcaption>${mediaCap}</figcaption></figure>`
