@@ -143,6 +143,72 @@ def article_html(a, insights):
 '''
 
 
+def list_markup(insights):
+    """js/blog.js 의 renderList 와 **같은 구조**의 목록 마크업.
+
+    왜 정적으로 만드나: blog.html 은 서버 HTML 에 <h1>도 글 링크도 없고
+    '불러오는 중…' 한 줄뿐이라, JS 를 안 돌리는 크롤러에게는 빈 페이지다.
+    sitemap 에 홈 다음 순위(priority 0.8)로 올려두고도 8편으로 가는 내부 링크가
+    JS 실행 후에만 생겨, 개별 글로 넘어갈 경로 자체가 없었다.
+
+    blog.js 는 그대로 두면 로드 후 같은 내용으로 덮어쓰므로 화면 차이가 없다.
+    → 두 마크업이 어긋나면 깜빡이므로 반드시 함께 고칠 것.
+    """
+    cards = []
+    for a in insights:
+        img = ''
+        if a.get('image'):
+            img = ('<img class="ic-image" src="%s" alt="%s" fetchpriority="high" decoding="async">'
+                   % (esc(a['image']), esc(a.get('imageAlt') or a.get('title'))))
+        cards.append(
+            '          <a class="insight-card" href="posts/%s.html">\n'
+            '            <span class="ic-cover" style="background:%s">%s<span class="ic-cat">%s</span></span>\n'
+            '            <span class="ic-body">\n'
+            '              <b>%s</b>\n'
+            '              <span class="ic-excerpt">%s</span>\n'
+            '              <span class="ic-meta">%s · %s분 읽기</span>\n'
+            '            </span>\n'
+            '          </a>' % (
+                esc(a.get('slug')), shade_cover(a.get('cover') or '#d8c3a5'), img,
+                esc(a.get('category')), esc(a.get('title')), esc(a.get('excerpt')),
+                esc(a.get('date')), esc(a.get('readMin'))))
+    return (
+        '      <div class="container" id="blogRoot">\n'
+        '        <div class="section-head" style="text-align:center">\n'
+        '          <span class="eyebrow">INSIGHTS</span>\n'
+        '          <h1>인테리어, 알고 시작하면 다릅니다</h1>\n'
+        '          <p class="section-sub" style="margin:12px auto 0">견적·계약·보증까지 — 후회 없는 선택을 돕는 만물인테리어의 콘텐츠.</p>\n'
+        '        </div>\n'
+        '        <div class="insights-grid" style="margin-top:40px">\n'
+        + '\n'.join(cards) + '\n'
+        '        </div>\n'
+        '      </div>')
+
+
+def write_blog_list(insights):
+    """blog.html 의 #blogRoot 블록을 정적 목록으로 교체한다."""
+    path = os.path.join(ROOT, 'blog.html')
+    with open(path, encoding='utf-8') as f:
+        html_src = f.read()
+    start = html_src.find('      <div class="container" id="blogRoot">')
+    if start < 0:
+        print('건너뜀: blog.html 에서 #blogRoot 블록을 찾지 못했습니다')
+        return False
+    end = html_src.find('      </div>', start)
+    if end < 0:
+        print('건너뜀: #blogRoot 닫는 태그를 찾지 못했습니다')
+        return False
+    end += len('      </div>')
+    new = html_src[:start] + list_markup(insights) + html_src[end:]
+    if new == html_src:
+        print('blog.html 변경 없음')
+        return False
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(new)
+    print('생성: blog.html 목록(%d건 정적)' % len(insights))
+    return True
+
+
 def main():
     with open(os.path.join(ROOT, 'data', 'site.json'), encoding='utf-8') as f:
         insights = json.load(f).get('insights', [])
@@ -161,6 +227,7 @@ def main():
         if fn.endswith('.html') and fn not in known:
             os.remove(os.path.join(outdir, fn))
             print('삭제(글 없음):', 'posts/' + fn)
+    write_blog_list(insights)
     print(f'완료 · {len(insights)}건')
 
 

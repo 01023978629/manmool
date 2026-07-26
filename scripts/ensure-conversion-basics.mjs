@@ -76,7 +76,20 @@ check(/portfolioSpriteMarkup\(item, 'scene', true\)/.test(main),
   '모달 시안이 지연 로딩으로 바뀌었다 — 누르면 빈 칸이 보인다(모달은 즉시 로딩이어야 함)',
   '모달 시안은 즉시 로딩');
 
-/* ⑧ 상담 접수 경로가 살아 있다 ---------------------------------------- */
+/* ⑧ 블로그 목록이 JS 없이도 보인다 ------------------------------------ */
+// blog.html 은 sitemap 에 홈 다음 순위로 올라 있는데, 정적 HTML 에 h1 도 글 링크도 없으면
+// 크롤러에겐 빈 페이지고 8편으로 넘어갈 경로 자체가 없다.
+// 목록은 scripts/prerender-posts.py 가 만든다 — site.json insights 를 고치면 다시 돌릴 것.
+try {
+  const blogBody = (read('blog.html').split('<main')[1] || '');
+  const links = (blogBody.match(/href="posts\/[^"]+\.html"/g) || []).length;
+  check(/<h1>/.test(blogBody), 'blog.html 정적 HTML 에 h1 이 없다 — 크롤러에 빈 페이지로 보인다', 'blog.html 에 h1 정적 존재');
+  check(links >= 5, `blog.html 정적 글 링크가 ${links}개뿐이다 — prerender-posts.py 를 다시 돌려야 한다`,
+    `blog.html 에 글 링크 ${links}개 정적 노출`);
+  check(!/불러오는 중/.test(blogBody), 'blog.html 이 아직 "불러오는 중…" 상태다(프리렌더 미적용)', 'blog.html 로딩 자리표시자 없음');
+} catch (e) { fail.push('blog.html 을 읽지 못했다: ' + e.message); }
+
+/* ⑨ 상담 접수 경로가 살아 있다 ---------------------------------------- */
 try {
   const cfg = JSON.parse(read('data/config.json'));
   const n8n = cfg.n8n || {}, forms = cfg.forms || {};
