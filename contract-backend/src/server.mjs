@@ -190,7 +190,13 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   on('GET', /^\/api\/sign\/full$/, async (req) => svc.getFullContract(tok(req)));
   // 완료본 재열람(단기 view 토큰). 토큰은 헤더로만.
   on('GET', /^\/api\/sign\/completed$/, async (req) => svc.getCompletedDoc(tok(req), ctx(req)));
-  on('POST', /^\/api\/sign\/otp$/, async (req) => svc.requestOtp(tok(req)));
+  // 본인확인 문자 발송 — provider 와 수신번호를 넘겨야 실제로 나간다.
+  // 번호는 고객이 직접 입력하고, 서버가 계약 당사자의 번호가 맞는지 해시로 대조한다
+  // (서버는 번호 원문을 보관하지 않는다). 다른 번호로는 발송 자체가 안 된다.
+  on('POST', /^\/api\/sign\/otp$/, async (req) => {
+    const b = await body(req);
+    return svc.requestOtp(tok(req), currentProvider(resolveProvider), b.phone || null);
+  });
   on('POST', /^\/api\/sign\/verify$/, async (req) => { const b = await body(req); return svc.verifyOtp(tok(req), b.code, ctx(req)); });
   on('POST', /^\/api\/sign\/viewed$/, async (req) => svc.markViewed(tok(req)));
   on('POST', /^\/api\/sign\/consent$/, async (req) => { const b = await body(req); return svc.recordConsents(tok(req), b.consents || [], ctx(req)); });

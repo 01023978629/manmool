@@ -73,7 +73,7 @@ ok('링크 열람 시 본인확인 요구', opened.needIdentityVerification === 
 await throws('본인확인 없이 서명 거부', () => svc.submitSignature(token, { imageBytes: 'PNGDATA' }), 'NOT_VERIFIED');
 
 // ── 7) 본인확인 OTP ──────────────────────────────────────
-const otp = svc.requestOtp(token);
+const otp = await svc.requestOtp(token);
 ok('OTP 발급', otp.demoCode === '246810');
 await throws('OTP 오입력 거부', () => svc.verifyOtp(token, '000000'), 'OTP_MISMATCH');
 const ver = svc.verifyOtp(token, '246810', { ip: '1.2.3.4', ua: 'iPhone' });

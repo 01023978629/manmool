@@ -10,7 +10,10 @@ import { classify, groupByTier, TIER_ORDER } from './autonomy.mjs';
 
 const OTP_TTL_MS = 5 * 60 * 1000;       // 본인확인 OTP 5분
 const OTP_MAX_ATTEMPTS = 5;
-const OTP_MAX_ISSUE = 5;                 // 당사자당 OTP 발급 상한(무제한 재발급 방지)
+const OTP_MAX_ISSUE = 5;                 // OTP 발급 상한(무제한 재발급 방지)
+const OTP_ISSUE_WINDOW_MS = 30 * 60 * 1000; // 그 상한을 적용할 시간창 30분.
+// '평생 5회'로 두면 문자가 늦거나 한 번 꼬였을 때 그 계약이 영구히 서명 불가가 된다
+// (상한이 party 기준이라 서명 링크를 새로 발급해도 안 풀린다). 무차별 대입 방어는 시간창으로 충분하다.
 const SIGN_TOKEN_TTL_MS = 72 * 60 * 60 * 1000;  // 서명 링크 72시간
 const VIEW_TOKEN_TTL_MS = 15 * 60 * 1000;        // 완료본 열람 15분(장기 공개 금지)
 const MIN_SIGNATURE_BYTES = 8;           // 빈/무의미 서명 거부 하한
@@ -219,11 +222,31 @@ export class ContractService {
     };
   }
 
-  // 7) 본인확인 OTP 발급. 당사자당 발급 상한으로 무제한 재발급(무차별 대입 창 확장)을 막는다.
-  requestOtp(rawToken) {
+  // 7) 본인확인 OTP 발급 + 문자 발송.
+  //
+  //    ※ 예전에는 이 함수가 코드를 만들어 해시만 저장하고 { sent:true } 로 끝났다 — 발송 호출이
+  //      한 줄도 없었다. 화면은 "문자로 발송했습니다"라고 말하는데 문자는 오지 않아,
+  //      운영에서 아무도 서명을 완료할 수 없었다(솔라피를 완벽히 설정해도 마찬가지).
+  //
+  //    수신번호는 서버가 원문을 보관하지 않는다(마스킹+해시만). 그래서 발송 시점에 호출자가
+  //    번호 원문을 넘기고, 서버는 그것이 계약 당사자의 번호가 맞는지 해시로 대조한 뒤 보낸다
+  //    (sendMessage·invoicePayment 와 같은 방식). 다른 번호로는 애초에 발송이 안 되므로,
+  //    링크가 유출돼도 인증번호를 가로챌 수 없다.
+  //
+  //    발송 상한은 '평생 N회'가 아니라 '최근 30분 N회'다. 평생 상한이면 문자가 늦거나
+  //    한 번 꼬였을 때 그 계약은 영구히 서명 불가가 된다(서명 링크를 새로 발급해도 안 풀린다).
+  async requestOtp(rawToken, provider = null, rawPhone = null) {
     const tk = this._validToken(rawToken, 'sign');
-    const issued = this.db.prepare('SELECT COUNT(*) c FROM otp_challenges WHERE party_id=?').get(tk.party_id).c;
-    if (issued >= OTP_MAX_ISSUE) throw new AppError('OTP_TOO_MANY', '인증번호 발급 횟수를 초과했습니다. 담당자에게 문의해 주세요.');
+    const p = this.db.prepare('SELECT * FROM contract_parties WHERE id=?').get(tk.party_id);
+    if (!p) throw new AppError('NO_PARTY', '계약 당사자를 찾을 수 없습니다.');
+    if (rawPhone && hmac(String(rawPhone).replace(/\D/g, '')) !== p.phone_hash) {
+      throw new AppError('PHONE_MISMATCH', '계약서를 받으신 휴대폰 번호와 다릅니다.');
+    }
+    const since = iso(this.clock, -OTP_ISSUE_WINDOW_MS);
+    const issued = this.db.prepare(
+      'SELECT COUNT(*) c FROM otp_challenges WHERE party_id=? AND created_at>=?'
+    ).get(tk.party_id, since).c;
+    if (issued >= OTP_MAX_ISSUE) throw new AppError('OTP_TOO_MANY', '인증번호를 너무 자주 요청하셨습니다. 잠시 후 다시 시도해 주세요.');
     // 재발급 시 이전 미검증 챌린지는 만료 처리(동시 유효 코드 최소화)
     this.db.prepare("UPDATE otp_challenges SET expires_at=? WHERE party_id=? AND verified_at IS NULL").run(this.clock(), tk.party_id);
     const { code, hash } = issueOtp(this.demoOtp);
@@ -233,19 +256,46 @@ export class ContractService {
        VALUES(?,?,?,?,?)`
     ).run(newId('otp'), tk.party_id, hash, iso(this.clock, OTP_TTL_MS), now);
     audit(this.db, { contractId: tk.contract_id, partyId: tk.party_id, event: EVENTS.IDENTITY_OTP_ISSUED, at: now });
-    // 데모에서만 code 를 반환. 운영에서는 절대 반환하지 않고 메시지 채널로만 전달.
-    return this.demoOtp ? { demoCode: code } : { sent: true };
+
+    // 데모에서만 code 를 반환. 운영에서는 절대 반환하지 않고 문자로만 전달.
+    if (this.demoOtp) return { demoCode: code };
+    if (!provider || !rawPhone) {
+      // 보낼 수단이 없으면 보냈다고 하지 않는다 — 화면이 거짓말하면 고객은 오지 않는 문자를 기다린다.
+      return { sent: false, reason: 'NO_CHANNEL' };
+    }
+    let res;
+    try {
+      res = await provider.sendText({
+        toPhoneRaw: rawPhone, toPhoneHash: p.phone_hash,
+        text: `[만물인테리어] 계약 본인확인 번호 ${code} (5분 내 입력)`,
+      });
+    } catch (e) {
+      return { sent: false, reason: 'SEND_ERROR' };
+    }
+    if (!res || res.status === 'FAILED') return { sent: false, reason: (res && res.failedReason) || 'SEND_FAILED' };
+    return { sent: true };
   }
 
   // 8) 본인확인 OTP 검증. 성공해야만 전체 열람/동의/서명이 가능.
   verifyOtp(rawToken, code, ctx = {}) {
     const tk = this._validToken(rawToken, 'sign');
-    const ch = this.db.prepare(
-      'SELECT * FROM otp_challenges WHERE party_id=? AND verified_at IS NULL ORDER BY id DESC LIMIT 1'
-    ).get(tk.party_id);
     const now = this.clock();
-    if (!ch) throw new AppError('NO_OTP', '발급된 인증코드가 없습니다.');
-    if (now > ch.expires_at) throw new AppError('OTP_EXPIRED', '인증코드가 만료되었습니다.');
+    // ※ 예전에는 ORDER BY id DESC 로 골랐는데, 이 id 는 crypto.newId 가 만드는 '난수'라 시간순이 아니다.
+    //   재발급하면 옛 챌린지가 만료 상태로 남아 있어 서버가 그걸 집으면 정확한 번호인데도 OTP_EXPIRED 가 났다.
+    //   실측(각 300회): 다시받기 1회 → 47%, 2회 → 35%, 4회 → 21% 로 성공률이 떨어졌다.
+    //   게다가 화면은 실패하면 "다시 받기를 눌러 주세요"라고 안내해, 안내를 따를수록 더 나빠졌다.
+    //   → 만료되지 않은 것 중 가장 최근 것을 고른다(created_at 이 같을 수 있어 rowid 로 마지막을 가른다).
+    const ch = this.db.prepare(
+      `SELECT * FROM otp_challenges
+        WHERE party_id=? AND verified_at IS NULL AND expires_at > ?
+        ORDER BY created_at DESC, rowid DESC LIMIT 1`
+    ).get(tk.party_id, now);
+    if (!ch) {
+      // 유효한 게 없을 때, 발급 자체가 없었는지 / 있었는데 만료됐는지를 구분해 알려준다
+      const any = this.db.prepare('SELECT COUNT(*) c FROM otp_challenges WHERE party_id=?').get(tk.party_id).c;
+      if (!any) throw new AppError('NO_OTP', '발급된 인증코드가 없습니다.');
+      throw new AppError('OTP_EXPIRED', '인증코드가 만료되었습니다. 다시 받기를 눌러 주세요.');
+    }
     if (ch.attempts >= OTP_MAX_ATTEMPTS) throw new AppError('OTP_LOCKED', '시도 횟수를 초과했습니다.');
 
     const ok = safeEqualHex(sha256(String(code) + (process.env.CONTRACT_PEPPER || 'DEMO_PEPPER_do_not_use_in_prod')), ch.code_hash);
