@@ -6,11 +6,11 @@
     "enabled": false
   },
   "kakao": {
-    "ready": false,
+    "ready": true,
     "_ready_help": "카카오 채널을 실제로 개설하고 아래 URL을 실제 값으로 채운 뒤 true로 바꾸세요. false이면 사이트의 카카오톡 버튼이 노출되지 않고 전화 상담이 기본으로 안내됩니다(미개설 채널로 유도하지 않음).",
-    "channelPublicId": "_manmul",
-    "channelAddUrl": "https://pf.kakao.com/_manmul",
-    "chatUrl": "https://pf.kakao.com/_manmul/chat",
+    "channelPublicId": "_xfnYGX",
+    "channelAddUrl": "https://pf.kakao.com/_xfnYGX",
+    "chatUrl": "https://pf.kakao.com/_xfnYGX/chat",
     "_help": "카카오톡 채널 관리자센터에서 발급받은 채널 홈 URL(채널 추가)과 1:1 채팅 URL을 넣으세요. 챗봇 자동응대는 카카오 i 오픈빌더 스킬서버(n8n 웹훅)로 처리됩니다.",
     "alimtalk": {
       "enabled": false,
