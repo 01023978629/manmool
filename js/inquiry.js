@@ -430,6 +430,51 @@
     });
   }
 
+  /* ----- 못 보낸 문의 자동 재전송 -----
+     전파가 끊긴 지하 현장 등에서 전송이 실패하면 지금까지는 손님이 [다시 시도]를
+     직접 눌러야만 했다. 그대로 이탈하면 문의가 사라진다.
+     → 실패분은 이미 saveLocal 로 남으므로, 다음 방문이나 온라인 복귀 때 조용히 다시 보낸다.
+     성공하면 로컬 사본을 지운다 — 리드를 살리면서 손님 브라우저의 개인정보도 함께 줄어든다. */
+  const RETRY_MAX = 3;        // 이 횟수를 넘기면 포기(무한 재시도로 서비스 한도를 태우지 않는다)
+  const RETRY_BATCH = 5;      // 한 번에 시도할 최대 건수
+  let retrying = false;
+
+  function loadLocal() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { return []; }
+  }
+  function writeLocal(list) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
+  }
+
+  async function retryPending() {
+    if (retrying) return;                       // 재진입 방지(online 이벤트가 연달아 올 수 있다)
+    if (!backendConfigured()) return;           // 보낼 곳이 없으면 시도 자체가 무의미
+    if (navigator.onLine === false) return;
+    const list = loadLocal();
+    if (!list.length) return;
+
+    retrying = true;
+    try {
+      const targets = list.filter((x) => x && !x._gaveUp).slice(0, RETRY_BATCH);
+      let changed = false;
+      for (const item of targets) {
+        let sent = false;
+        try { sent = await deliver(item); } catch (e) { sent = false; }
+        if (sent) {
+          // 성공 → 로컬 사본 제거(개인정보 최소 보관 원칙과 같은 방향)
+          const i = list.findIndex((x) => x && x.id === item.id);
+          if (i >= 0) list.splice(i, 1);
+          changed = true;
+        } else {
+          item._tries = (item._tries || 0) + 1;
+          if (item._tries >= RETRY_MAX) item._gaveUp = true;   // 더는 건드리지 않는다
+          changed = true;
+        }
+      }
+      if (changed) writeLocal(list);
+    } finally { retrying = false; }
+  }
+
   /* ----- 초기화 ----- */
   function init(ctx) {
     CONFIG = (ctx && ctx.config) || {};
@@ -445,6 +490,10 @@
     renderSelectedDesign();
     // 예상견적 답변을 폼에 자동 채움 (같은 질문 반복 방지)
     document.addEventListener('manmul:estimate', (e) => prefillFromEstimate(e.detail || {}));
+
+    // 못 보낸 문의 재전송: 화면 그리기를 막지 않도록 뒤로 미루고, 온라인 복귀 때도 한 번.
+    setTimeout(() => { retryPending(); }, 3000);
+    window.addEventListener('online', () => { retryPending(); });
 
     document.addEventListener('manmul:design', (e) => {
       SELECTED_DESIGN = e.detail || null;
