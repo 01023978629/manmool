@@ -50,9 +50,24 @@ check(/address:/.test(main.match(/const FALLBACK_CONTACT = \{[^}]*\}/)?.[0] || '
 /* ④ 아이폰에서 폼 입력 시 화면이 확대되지 않는다 ----------------------- */
 // iOS Safari 는 16px 미만 입력에 포커스하면 확대하고 되돌리지 않는다.
 // 하필 필수 입력(이름·연락처)이 걸려, 3단계까지 온 손님이 거기서 멈춘다.
-check(/@media \(max-width: 640px\)[\s\S]{0,400}?\.inquiry-form input[^{]*\{[^}]*font-size:\s*16px/.test(css),
-  '폰에서 상담 폼 입력 글씨가 16px 미만이다 — iOS 가 자동 확대해 손님이 이탈한다',
-  '폰 폼 입력 16px (iOS 자동확대 없음)');
+// ※ 선택자 형태까지 확인한다. 원본이 input[type="text"] 처럼 속성 선택자를 쓰므로
+//    `.inquiry-form input` 같은 약한 선택자로 덮으면 우선순위에서 져 15px 가 그대로 남는다
+//    (실제로 그렇게 새어나가 브라우저 실측에서 잡혔다).
+check(/@media \(max-width: 640px\)[\s\S]{0,700}?\.inquiry-form input\[type="text"\][\s\S]{0,400}?font-size:\s*16px/.test(css),
+  '폰에서 상담 폼 입력이 16px 가 아니다(또는 선택자가 약해 원본에 밀린다) — iOS 가 자동 확대해 손님이 이탈한다',
+  '폰 폼 입력 16px (선택자 우선순위까지 확인)');
+check(/@media \(max-width: 640px\)[\s\S]*?\.fg-chip[^{]*\{[^}]*min-height:\s*44px/.test(css),
+  '폰에서 필터 칩 터치 영역이 44px 미만이다 — 40~60대 고객이 정확히 누르기 어렵다',
+  '폰 터치 영역 44px');
+check(/--link-strong/.test(css) && /\.contact-list-row a \{ color: var\(--link-strong\)/.test(css),
+  '연락처 링크가 대비 미달 색(--brand-dark 4.44:1)으로 돌아갔다 — 제일 중요한 번호가 제일 흐리다',
+  '연락처 링크 대비 6.56:1');
+check(!/:focus-visible \{ outline: 3px solid var\(--brand\); outline-offset: 2px; border-radius: 4px; \}/.test(css),
+  '포커스 표시가 border-radius:4px 를 강제한다 — 알약 버튼이 포커스 순간 사각형으로 변한다',
+  '포커스 표시가 버튼 모양을 망가뜨리지 않음');
+check(/\.inquiry-form input:focus-visible/.test(css),
+  '폼 입력에 키보드 포커스 표시가 없다 — outline:none 이 지워 어디 있는지 알 수 없다',
+  '폼 입력 키보드 포커스 보임');
 
 /* ⑤ 카탈로그 구간에서도 전화 접점이 남는다 ---------------------------- */
 // 240장을 스크롤하는 가장 긴 구간에서 연락 수단이 0개가 되면 안 된다.
