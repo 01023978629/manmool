@@ -207,15 +207,17 @@
   function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
   function won(n){ return Number(n||0).toLocaleString('en-US'); }
 
-  // ── 토큰: URL 프래그먼트(#t=...)에서만 읽는다(경로/쿼리에 안 실림) ──
-  function readToken(){
+  // ── 토큰: URL 프래그먼트에서만 읽는다(경로/쿼리에 안 실림) ──
+  //    #t= 서명 토큰 / #v= 완료본 열람 토큰(재발급 링크 — 관리자 화면에서 만들어 준다)
+  function readFrag(key){
     var h = location.hash || "";
-    var m = h.match(/[#&]t=([^&]+)/);
+    var m = h.match(new RegExp("[#&]"+key+"=([^&]+)"));
     return m ? decodeURIComponent(m[1]) : "";
   }
-  var TOKEN = readToken();
+  var TOKEN = readFrag("t");
+  var VIEWTOKEN = readFrag("v");
   // 읽은 뒤 표시 URL에서 토큰 제거(뒤로가기·공유·화면캡처로 토큰이 남지 않도록)
-  if(TOKEN){ try{ history.replaceState(null,"",location.pathname); }catch(e){} }
+  if(TOKEN||VIEWTOKEN){ try{ history.replaceState(null,"",location.pathname); }catch(e){} }
 
   // ── API 헬퍼: 매 요청 x-sign-token 헤더로 토큰 전달 ──
   function api(method, path, bodyObj){
@@ -258,6 +260,9 @@
       bootError("링크를 열 수 없습니다.", e.code==="EXPIRED"?"서명 기한이 지났습니다. 담당자에게 재발송을 요청해 주세요.":
         e.code==="USED"?"이미 서명이 완료된 링크입니다. 방금 서명하셨다면 이 화면을 새로고침해 완료본을 다시 볼 수 있습니다.":(e.message||"잠시 후 다시 시도해 주세요."));
     });
+  } else if(VIEWTOKEN){
+    // 재발급 열람 링크(#v=) — 관리자 화면에서 만들어 고객에게 보낸 15분짜리 링크
+    TOKEN=VIEWTOKEN; enterViewMode();
   } else {
     // 서명 토큰이 없고, 방금 완료해서 저장해 둔 재열람 토큰이 있으면 완료본을 다시 보여준다.
     var vt=null; try{ vt=sessionStorage.getItem(VIEWKEY); }catch(e){}

@@ -449,16 +449,40 @@ export class ContractService {
     };
   }
 
+  // 13-c) 완료본 전체 — 운영자용(토큰 불필요, 관리자 인증은 라우트가 한다).
+  // 고객용 열람 링크는 15분 만료라, 반년 뒤 "계약서 사본 주세요" 요청에는 이 경로가 답이다.
+  // 예전에는 이 경로가 없어서 사본을 꺼내려면 서버에 SSH 로 들어가 sqlite 를 직접 열어야 했다.
+  getCompletedDocAdmin(contractId) {
+    const c = this._contract(contractId);
+    if (c.status !== 'COMPLETED') throw new AppError('NOT_COMPLETED', '완료된 계약이 아닙니다.');
+    const sig = this.db.prepare('SELECT image_sha256, image_data, signed_at FROM signatures WHERE contract_id=? ORDER BY signed_at DESC LIMIT 1').get(contractId);
+    const customer = this.db.prepare("SELECT name FROM contract_parties WHERE contract_id=? AND role='customer'").get(contractId);
+    audit(this.db, { contractId, event: EVENTS.COMPLETED_DOC_ACCESSED, at: this.clock(), meta: { operator: true } });
+    return {
+      contractNo: c.contract_no, title: c.title, amount: c.amount,
+      body: JSON.parse(c.body_snapshot), docHash: c.doc_hash,
+      completedAt: c.completed_at, signerName: customer ? customer.name : '',
+      imageSha256: sig ? sig.image_sha256 : null,
+      signatureImage: sig && sig.image_data ? `data:image/png;base64,${sig.image_data}` : null,
+    };
+  }
+
   // 14) 증거 패키지 — 계약·당사자·해시·동의·서명·전체 감사추적을 한 번에 봉인.
   evidencePackage(contractId) {
     const c = this._contract(contractId);
     const parties = this.db.prepare('SELECT role,name,phone_masked,verified_at FROM contract_parties WHERE contract_id=?').all(contractId);
     const consents = this.db.prepare('SELECT party_id,consent_key,consent_text_hash,agreed_at FROM consents WHERE contract_id=?').all(contractId);
-    const signatures = this.db.prepare('SELECT party_id,image_sha256,doc_hash_seen,signed_at FROM signatures WHERE contract_id=?').all(contractId);
+    // 서명 이미지(base64)까지 담는다 — 패키지 하나로 분쟁 대응이 끝나야 한다.
+    // 예전에는 해시만 있고 정작 '무엇에 서명했는지'(본문)와 서명 이미지가 빠져 있었다.
+    const signatures = this.db.prepare('SELECT party_id,image_sha256,image_data,doc_hash_seen,signed_at FROM signatures WHERE contract_id=?').all(contractId)
+      .map((s) => ({ party_id: s.party_id, image_sha256: s.image_sha256, doc_hash_seen: s.doc_hash_seen, signed_at: s.signed_at,
+                     signatureImage: s.image_data ? `data:image/png;base64,${s.image_data}` : null }));
     const deliveries = this.db.prepare('SELECT template_key,provider,status,sent_at,delivered_at FROM message_deliveries WHERE contract_id=?').all(contractId);
     const auditTrail = trail(this.db, contractId);
     const pkg = {
       contract: { contractNo: c.contract_no, title: c.title, amount: c.amount, docHash: c.doc_hash, status: c.status, lockedAt: c.locked_at, completedAt: c.completed_at },
+      // 계약 본문 원문 — docHash 가 가리키는 실제 문서. 이게 없으면 "해시는 있는데 원문이 없다"가 된다.
+      body: JSON.parse(c.body_snapshot),
       parties, consents, signatures, deliveries, auditTrail,
       generatedAt: this.clock(),
     };

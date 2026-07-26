@@ -4,7 +4,8 @@
 // 로그 정책: 서명 토큰은 URL/경로에 넣지 않는다(요청 로그에 남기지 않기 위해).
 //   → 서명 플로우 토큰은 헤더 x-sign-token 으로 받는다.
 import { createServer } from 'node:http';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync, createReadStream, unlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { openDb } from './db.mjs';
@@ -142,6 +143,43 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   });
   on('POST', /^\/api\/deliveries\/([^/]+)\/refresh$/, async (req, [id]) => { requireAdmin(req); return svc.refreshDelivery(id, currentProvider(resolveProvider)); });
   on('GET', /^\/api\/contracts\/([^/]+)\/evidence$/, async (req, [id]) => { requireAdmin(req); return svc.evidencePackage(id); });
+  // 완료 계약서 — 운영자용 사본(본문·서명 이미지·해시). 고객 열람 링크는 15분 만료라
+  // 반년 뒤 "사본 주세요" 요청은 이 경로로 처리한다.
+  on('GET', /^\/api\/contracts\/([^/]+)\/completed$/, async (req, [id]) => { requireAdmin(req); return svc.getCompletedDocAdmin(id); });
+  // 완료 계약서 — 고객 열람 링크 재발급(15분). 링크는 /sign#v=<토큰> 형태로 고객에게 전달한다.
+  // 계약 목록 화면은 party id 를 모르므로, 고객 당사자는 서버가 찾는다.
+  on('POST', /^\/api\/contracts\/([^/]+)\/view-link$/, async (req, [id]) => {
+    requireAdmin(req);
+    const customer = db.prepare("SELECT id FROM contract_parties WHERE contract_id=? AND role='customer'").get(id);
+    if (!customer) throw new AppError('NO_PARTY', '고객 당사자를 찾을 수 없습니다.');
+    const { token } = svc.issueViewLink(id, customer.id);
+    return { viewPath: `/sign#v=${token}`, expiresInMinutes: 15 };
+  });
+  // 계약 데이터 백업 — DB 파일 사본을 내려받는다(VACUUM INTO = 일관된 스냅숏).
+  // 계약·서명·감사기록의 사본이 Fly 볼륨 하나뿐이면, 볼륨이 죽는 날 전부 사라진다.
+  // 사장님이 한 달에 한 번 눌러 구글드라이브에 넣어 두는 것이 이 버튼의 용도다.
+  on('GET', /^\/admin\/backup$/, async (req, _m, res) => {
+    requireAdmin(req);
+    const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const tmp = join(tmpdir(), `mm-backup-${stamp}-${Date.now()}.db`);
+    db.exec(`VACUUM INTO '${tmp.replace(/'/g, "''")}'`);
+    try {
+      const size = statSync(tmp).size;
+      res.writeHead(200, {
+        'content-type': 'application/octet-stream',
+        'content-length': size,
+        'content-disposition': `attachment; filename="manmool-contracts-${stamp}.db"`,
+      });
+      await new Promise((resolve, reject) => {
+        const s = createReadStream(tmp);
+        s.on('error', reject); res.on('error', reject);
+        s.on('end', resolve); s.pipe(res);
+      });
+    } finally {
+      try { unlinkSync(tmp); } catch { /* 임시 파일 정리 실패는 치명적이지 않다 */ }
+    }
+    return SENT;
+  });
   // 원클릭: 생성→잠금→서명링크→발송 을 한 번에(현장 앱 "알림톡 보내기"용).
   on('POST', /^\/api\/contracts\/quick-send$/, async (req) => {
     requireAdmin(req); const b = await body(req);
