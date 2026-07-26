@@ -92,7 +92,10 @@ export class ContractService {
     // (예전에는 본문 검증이 전혀 없어, 계약금·중도금·잔금이 모두 0원으로 찍힌 채 서명까지 갔다)
     const bad = validateBody(body, c.amount);
     if (bad.length) throw new AppError('INCOMPLETE_BODY', '계약 본문이 완성되지 않았습니다 — ' + bad.join(', ') + '.');
-    const hash = docHash(body);
+    // 해시 입력에 계약금액(amount 컬럼)을 함께 넣는다. 본문만 해시하면 금액 컬럼은
+    // 해시 밖이라, 잠금 뒤 DB 에서 amount 만 고쳐도 문서해시가 그대로 맞았다 —
+    // 고객이 대조한 해시가 "금액이 안 바뀌었다"를 증명하지 못하는 구멍이었다.
+    const hash = docHash({ amount: c.amount | 0, body });
     const now = this.clock();
     this.db.prepare(
       `UPDATE contracts SET status='LOCKED', doc_hash=?, locked_at=?, updated_at=? WHERE id=?`
@@ -328,6 +331,8 @@ export class ContractService {
     const tk = this._validToken(rawToken, 'sign');
     this._requireVerified(tk.party_id);
     const c = this._contract(tk.contract_id);
+    // 고객이 읽는 시점에 저장값 무결성을 확인한다 — 잠금 뒤 금액/본문이 손상됐으면 서명 진행 자체를 막는다.
+    if (c.doc_hash && !this._docHashIntact(c)) throw new AppError('DOC_TAMPERED', '계약 데이터 검증에 실패했습니다. 계약서가 잠금 후 수정되었을 수 있습니다 — 010-2397-8629 로 문의해 주세요.');
     return { contractNo: c.contract_no, title: c.title, amount: c.amount, docHash: c.doc_hash, body: JSON.parse(c.body_snapshot) };
   }
 
@@ -388,6 +393,13 @@ export class ContractService {
     // 전체 열람 확인
     if (!this._hasViewed(tk.party_id)) throw new AppError('NOT_VIEWED', '전체 계약서 열람 후 서명할 수 있습니다.');
 
+    // 저장값 자체 무결성: 잠금 이후 amount 컬럼/본문이 바뀌었으면 저장된 doc_hash 와
+    // 재계산이 어긋난다. clientDocHash 대조는 '고객이 본 것 = 저장값'만 증명하므로,
+    // 저장값이 통째로 손상된 경우는 이 재계산 대조가 잡는다.
+    if (!this._docHashIntact(c)) {
+      audit(this.db, { contractId: tk.contract_id, partyId: tk.party_id, event: EVENTS.SIGNATURE_SUBMITTED, at: this.clock(), meta: { rejected: 'DOC_TAMPERED' } });
+      throw new AppError('DOC_TAMPERED', '계약 데이터 검증에 실패했습니다. 계약서가 잠금 후 수정되었을 수 있습니다 — 010-2397-8629 로 문의해 주세요.');
+    }
     // 문서 위·변조 대조: 고객이 본 해시가 서버 정본과 일치해야 서명 유효.
     // 해시 미제출도 거부한다(누락 시 대조를 건너뛰는 우회를 차단).
     if (!clientDocHash) throw new AppError('DOC_HASH_REQUIRED', '문서 확인 값이 없어 서명할 수 없습니다. 처음부터 다시 진행해 주세요.');
@@ -413,7 +425,59 @@ export class ContractService {
     audit(this.db, { contractId: tk.contract_id, event: EVENTS.CONTRACT_COMPLETED, at: now });
     // 완료 직후 재열람용 단기(15분) view 토큰 발급 → 새로고침해도 완료본을 다시 볼 수 있게.
     const view = this.issueSignLink(tk.contract_id, tk.party_id, 'view');
-    return { completed: true, imageSha256: imgHash, docHash: c.doc_hash, viewToken: view.token };
+    // contractId 는 라우트의 완료 통지(notifyCompleted)용 — 클라이언트에 노출돼도 무해(불투명 id, 모든 조회는 토큰/관리자 인증 필요).
+    return { completed: true, imageSha256: imgHash, docHash: c.doc_hash, viewToken: view.token, contractId: tk.contract_id };
+  }
+
+  // 11-b) 계약 완료 통지 — 서명이 '성립한 뒤'에 부르는 부가 경로. 실패해도 계약 완료에는
+  //     영향이 없다(발송을 개별로 삼키고 상태만 보고). 예전에는 완료 시 아무 통지가 없어,
+  //     고객이 토요일에 서명해도 사장님이 /admin 을 열기 전엔 아무도 몰랐다.
+  //     contract_done 템플릿도 시드만 되고 호출부가 0건이었다.
+  //   - customerPhoneRaw: 서명 화면이 본인확인 때 쓴 번호(서버는 원문 미보관 → 호출 시점 전달).
+  //     sendMessage 가 당사자 해시와 대조하므로 다른 번호로는 애초에 발송되지 않는다.
+  //   - ownerPhoneRaw: 설정 OWNER_NOTIFY_PHONE(대표 수신번호). 미설정이면 건너뛴다.
+  async notifyCompleted(contractId, provider, { customerPhoneRaw = null, viewToken = null, baseUrl = '', ownerPhoneRaw = null } = {}) {
+    const c = this._contract(contractId);
+    if (c.status !== 'COMPLETED') throw new AppError('NOT_COMPLETED', '완료된 계약이 아닙니다.');
+    const customer = this.db.prepare("SELECT * FROM contract_parties WHERE contract_id=? AND role='customer'").get(contractId);
+    const base = String(baseUrl || '').replace(/\/$/, '');
+    const out = { customer: null, owner: null };
+    if (provider && customer && customerPhoneRaw && viewToken) {
+      try {
+        const d = await this.sendMessage(contractId, customer.id, 'contract_done', provider,
+          { viewUrl: `${base}/sign#v=${viewToken}` }, customerPhoneRaw);
+        out.customer = { sent: d.status === 'SENT', reason: d.reason || null };
+      } catch (e) { out.customer = { sent: false, reason: (e && e.code) || 'SEND_ERROR' }; }
+    }
+    if (provider && ownerPhoneRaw) {
+      try {
+        const d = await this.sendNotification(provider, {
+          toPhoneRaw: ownerPhoneRaw, contractId, kind: 'contract_done_owner',
+          text: `[만물인테리어] 전자계약 체결 완료\n${c.contract_no} · ${customer ? customer.name : ''}님 · ${Number(c.amount || 0).toLocaleString('en-US')}원\n관리자 화면(/admin)에서 확인하세요.`,
+        });
+        out.owner = { sent: d.status === 'SENT', reason: d.reason || null };
+      } catch (e) { out.owner = { sent: false, reason: (e && e.code) || 'SEND_ERROR' }; }
+    }
+    return out;
+  }
+
+  // 11-c) 계약 취소(VOID) — 잘못 보낸 계약서/링크를 무효화하는 유일한 공식 경로.
+  //     예전에는 VOID 를 읽는 코드(집계 제외 등)만 있고 쓰는 코드가 없어서, 금액을 잘못 넣어
+  //     보낸 계약서도 고객 폰에서 72시간 내내 서명 가능했다. 취소하면:
+  //       * 상태 VOID → 서명 제출·새 링크 발급이 막힌다(SIGNABLE_STATUSES 밖)
+  //       * 미사용 토큰 전부 revoke → 이미 보낸 링크가 그 자리에서 죽는다(REVOKED)
+  //     완료(COMPLETED)된 계약은 봉인 — 여기서는 취소할 수 없다(합의해제는 별도 서면으로).
+  voidContract(contractId, reason = '') {
+    const c = this._contract(contractId);
+    if (c.status === 'COMPLETED') throw new AppError('ALREADY_COMPLETED', '체결 완료된 계약은 취소할 수 없습니다. 해제는 별도 합의서로 진행하세요.');
+    if (c.status === 'VOID') return { status: 'VOID', already: true, revokedTokens: 0 };
+    const now = this.clock();
+    // 경합 방지: 이 사이 COMPLETED 로 넘어갔으면 아무것도 바꾸지 않는다.
+    const upd = this.db.prepare(`UPDATE contracts SET status='VOID', updated_at=? WHERE id=? AND status NOT IN('COMPLETED','VOID')`).run(now, contractId);
+    if (upd.changes === 0) throw new AppError('ALREADY_COMPLETED', '체결 완료된 계약은 취소할 수 없습니다. 해제는 별도 합의서로 진행하세요.');
+    const rev = this.db.prepare(`UPDATE sign_tokens SET revoked_at=? WHERE contract_id=? AND used_at IS NULL AND revoked_at IS NULL`).run(now, contractId);
+    audit(this.db, { contractId, event: EVENTS.CONTRACT_VOIDED, at: now, meta: { reason: String(reason || '').slice(0, 200) || null, revokedTokens: rev.changes } });
+    return { status: 'VOID', revokedTokens: rev.changes };
   }
 
   _hasViewed(partyId) {
@@ -485,6 +549,8 @@ export class ContractService {
     const auditTrail = trail(this.db, contractId);
     const pkg = {
       contract: { contractNo: c.contract_no, title: c.title, amount: c.amount, docHash: c.doc_hash, status: c.status, lockedAt: c.locked_at, completedAt: c.completed_at },
+      // 저장값 재계산 대조 결과 — false 면 잠금 이후 금액/본문이 손상된 것(분쟁 시 먼저 볼 값)
+      docHashVerified: c.doc_hash ? this._docHashIntact(c) : null,
       // 계약 본문 원문 — docHash 가 가리키는 실제 문서. 이게 없으면 "해시는 있는데 원문이 없다"가 된다.
       body: JSON.parse(c.body_snapshot),
       parties, consents, signatures, deliveries, auditTrail,
@@ -796,6 +862,17 @@ export class ContractService {
   _requireVerified(partyId) {
     const p = this._party(partyId);
     if (!p.verified_at) throw new AppError('NOT_VERIFIED', '본인확인 후 진행할 수 있습니다.');
+  }
+  // 저장값(doc_hash) 재계산 대조 — 잠금 이후 body_snapshot·amount 가 손상되지 않았는가.
+  // 현행 스킴은 {amount, body} 를 함께 해시한다. 그 이전에 잠근 계약(본문만 해시)은
+  // 구스킴 재계산으로도 인정한다 — 단, 구스킴 계약의 amount 변조는 소급 검출할 수 없다
+  // (해시가 애초에 금액을 덮지 않았으므로). 신규 잠금부터는 금액 변조도 잡힌다.
+  _docHashIntact(c) {
+    if (!c.doc_hash || !c.body_snapshot) return false;
+    let body;
+    try { body = JSON.parse(c.body_snapshot); } catch { return false; }
+    if (safeEqualHex(docHash({ amount: c.amount | 0, body }), c.doc_hash)) return true;
+    return safeEqualHex(docHash(body), c.doc_hash);
   }
   // 토큰 검증: 해시 대조 + 만료 + 소진/폐기 확인. 평문은 비교 즉시 버린다.
   _validToken(rawToken, purpose) {

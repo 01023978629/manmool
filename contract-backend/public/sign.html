@@ -598,7 +598,9 @@
     st.busy=true; var b=$("nextY"); if(b){b.disabled=true;b.innerHTML='<span class="spin"></span>체결 중…';}
     var base64=String(st.sigData).split(",")[1]||"";
     // 서버가 계산·보관한 문서해시(C.docHash)를 함께 보내 위·변조 대조를 서버가 수행.
-    api("POST","/api/sign/signature",{imageBase64:base64, clientDocHash:C.docHash}).then(function(d){
+    // phone: 본인확인 때 쓴 번호 — 서버가 완료 알림톡(15분 열람 버튼)을 이 번호로 보낸다
+    // (당사자 해시 대조를 통과해야만 발송. 서버는 번호 원문을 보관하지 않는다).
+    api("POST","/api/sign/signature",{imageBase64:base64, clientDocHash:C.docHash, phone:st.phone||null}).then(function(d){
       st.busy=false; C.imageSha256=d.imageSha256||""; if(d.docHash) C.docHash=d.docHash;
       // 완료본 재열람 토큰 저장 → 이 탭에서 새로고침해도 완료 계약서를 다시 볼 수 있음(15분).
       if(d.viewToken){ try{ sessionStorage.setItem("mm_view_token", d.viewToken); }catch(e){} }

@@ -138,6 +138,11 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
     return svc.createContract(b);
   });
   on('POST', /^\/api\/contracts\/([^/]+)\/lock$/, async (req, [id]) => { requireAdmin(req); return svc.lockDocument(id); });
+  // 계약 취소 — 잘못 보낸 계약서를 무효화한다(상태 VOID + 이미 보낸 링크 즉시 REVOKED).
+  on('POST', /^\/api\/contracts\/([^/]+)\/void$/, async (req, [id]) => {
+    requireAdmin(req); const b = await body(req);
+    return svc.voidContract(id, b.reason || '');
+  });
   on('POST', /^\/api\/contracts\/([^/]+)\/parties\/([^/]+)\/sign-link$/, async (req, [id, pid]) => {
     requireAdmin(req); return svc.issueSignLink(id, pid, 'sign');
   });
@@ -251,7 +256,24 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
     svc.assertSignToken(tok(req));
     const b = await body(req, BODY_LIMIT_SIGNATURE);
     const bytes = b.imageBase64 ? Buffer.from(b.imageBase64, 'base64') : Buffer.from('');
-    return svc.submitSignature(tok(req), { imageBytes: bytes, clientDocHash: b.clientDocHash }, ctx(req));
+    const result = svc.submitSignature(tok(req), { imageBytes: bytes, clientDocHash: b.clientDocHash }, ctx(req));
+    // 완료 통지 — 서명은 위에서 이미 성립했다. 통지는 어떤 실패도 서명 응답을 깨지 않는다.
+    //   고객: contract_done 알림톡(15분 열람 버튼). 번호는 서명 화면이 본인확인 때 쓴 값(b.phone),
+    //         서버가 당사자 해시와 대조하므로 다른 번호로는 발송 자체가 안 된다.
+    //   대표: 설정 OWNER_NOTIFY_PHONE 으로 완료 문자 — /admin 을 열지 않아도 체결을 안다.
+    try {
+      const src = mergedSource(process.env, db);
+      const host = String(req.headers.host || '');
+      const proto = String(req.headers['x-forwarded-proto'] || (/^(localhost|127\.)/.test(host) ? 'http' : 'https')).split(',')[0].trim();
+      result.notify = await svc.notifyCompleted(result.contractId, currentProvider(resolveProvider), {
+        customerPhoneRaw: b.phone || null, viewToken: result.viewToken,
+        baseUrl: host ? `${proto}://${host}` : '',
+        ownerPhoneRaw: src.OWNER_NOTIFY_PHONE || null,
+      });
+    } catch (e) {
+      result.notify = { customer: null, owner: null, error: (e && e.code) || 'NOTIFY_ERROR' };
+    }
+    return result;
   });
 
   // CORS: 교차출처(현장 앱 등) 운영자 호출 허용. 명시적으로 지정한 출처만.

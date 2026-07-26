@@ -258,8 +258,10 @@
       // 완료 계약: 고객이 "계약서 다시 보내주세요" 할 때 15분짜리 열람 링크를 재발급하는 버튼.
       // 예전에는 이 경로가 없어 서명 직후 15분이 지나면 사본을 꺼낼 방법이 서버 접속뿐이었다.
       var viewBtn=c.status==='COMPLETED'?' <button class="linkmini" data-viewlink="'+esc(c.contractId)+'">🔗 열람링크</button>':'';
+      // 취소: 잘못 보낸 계약서를 무효화(이미 보낸 서명 링크도 즉시 죽는다). 완료 계약은 봉인.
+      var voidBtn=(c.status!=='COMPLETED'&&c.status!=='VOID')?' <button class="linkmini" data-void="'+esc(c.contractId)+'" data-voidno="'+esc(c.contractNo)+'">✖ 취소</button>':'';
       h+='<div class="ct">'+
-        '<div class="ct-top"><b>'+esc(c.contractNo)+'</b> <span class="pill '+stCls+'">'+esc(st)+'</span>'+viewBtn+
+        '<div class="ct-top"><b>'+esc(c.contractNo)+'</b> <span class="pill '+stCls+'">'+esc(st)+'</span>'+viewBtn+voidBtn+
           '<span class="ct-amt num">'+won(c.amount)+'원</span></div>'+
         '<div class="ct-sub">'+esc(c.customerName||'')+(c.customerPhone?(' · <span class="num">'+esc(c.customerPhone)+'</span>'):'')+'</div>'+
         (pay.stages? ('<div class="ct-pay"><span class="pbar"><i style="width:'+(pay.total?Math.round(pay.paid/pay.total*100):0)+'%"></i></span>'+
@@ -311,6 +313,15 @@
         // 15분짜리라 바로 복사해 고객에게 보내야 한다. prompt 는 어느 폰·PC에서든 복사가 된다.
         prompt("고객에게 보낼 완료본 열람 링크입니다 (15분 유효) — 길게 눌러 복사하세요", url);
       }).catch(function(err){ vb.disabled=false; vb.textContent='🔗 열람링크'; alert(err.message||'발급 실패'); });
+      return;
+    }
+    var vd=e.target.closest('[data-void]');
+    if(vd){
+      var no=vd.getAttribute('data-voidno')||'';
+      if(!confirm('계약 '+no+' 을(를) 취소할까요?\n이미 보낸 서명 링크도 즉시 무효화됩니다. 되돌릴 수 없습니다.')) return;
+      vd.disabled=true; vd.textContent='취소 중…';
+      api("POST","/api/contracts/"+vd.getAttribute('data-void')+"/void",{reason:'관리자 화면에서 취소'}).then(function(){ loadContracts(); })
+        .catch(function(err){ vd.disabled=false; vd.textContent='✖ 취소'; alert(err.message||'취소 실패'); });
       return;
     }
     var b=e.target.closest('[data-paid]'); if(!b)return;
