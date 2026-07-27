@@ -856,6 +856,58 @@ ul, ol { list-style: none; }
 .sim-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
 .sim-flash { text-align: center; font-size: 13px; color: var(--accent); margin-top: 10px; }
 
+/* ===== 우리집 한 채로 보기 (lb-) ===== */
+.lb-switch { display: flex; gap: 6px; margin-bottom: 16px; }
+.lb-switch-btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); border-radius: 20px; padding: 8px 16px; font-size: 14px; font-family: inherit; cursor: pointer; }
+.lb-switch-btn.on { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 700; }
+.lb-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 22px; }
+.lb-notice { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; margin: 10px 0; }
+.lb-notice-top { background: var(--brand-soft); color: var(--link-strong); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; margin-top: 0; }
+.lb-head { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
+.lb-steps { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; }
+.lb-step { font-size: 12px; color: var(--ink-soft); padding: 4px 10px; border-radius: 20px; background: var(--bg-alt); }
+.lb-step.on { background: var(--brand); color: #fff; font-weight: 700; }
+.lb-step.done { background: var(--brand-soft); color: var(--link-strong); }
+.lb-back { border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: inherit; }
+.lb-h { font-size: 18px; margin-bottom: 4px; }
+.lb-sub { font-size: 13.5px; color: var(--ink-soft); margin-bottom: 14px; }
+.lb-hint { font-size: 12.5px; color: var(--ink-soft); margin: 10px 0; }
+.lb-spaces, .lb-styles { display: flex; gap: 8px; flex-wrap: wrap; }
+.lb-space, .lb-chip { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 20px; padding: 9px 16px; font-size: 14px; cursor: pointer; font-family: inherit; }
+.lb-space.on, .lb-chip.on { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 700; }
+.lb-next { width: 100%; margin-top: 14px; }
+.lb-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
+.lb-tile { border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); display: flex; flex-direction: column; }
+.lb-shot { display: block; width: 100%; aspect-ratio: 4 / 3; background-color: var(--bg-alt); background-repeat: no-repeat; }
+.lb-tile-b { padding: 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.lb-tile-head { display: flex; align-items: center; gap: 6px; }
+.lb-space-name { font-size: 12px; font-weight: 800; color: var(--link-strong); }
+.lb-badge { font-size: 11px; background: var(--bg-alt); color: var(--ink-soft); border-radius: 20px; padding: 2px 9px; }
+.lb-tile-title { font-size: 14px; line-height: 1.4; }
+.lb-cost { font-size: 12.5px; color: var(--ink-soft); }
+.lb-pal { display: flex; gap: 4px; }
+.lb-sw { width: 18px; height: 18px; border-radius: 5px; border: 1px solid var(--line); }
+.lb-tile-act { display: flex; gap: 6px; margin-top: auto; padding-top: 6px; }
+.lb-swap, .lb-detail { flex: 1; border: 1px solid var(--line); background: var(--surface); color: var(--link-strong); border-radius: var(--radius-sm); padding: 7px 8px; font-size: 12.5px; cursor: pointer; font-family: inherit; }
+.lb-swap { border-color: var(--brand-soft); background: var(--brand-soft); }
+.lb-drawer { border: 1px solid var(--brand-soft); background: var(--bg-alt); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 14px; }
+.lb-drawer-h { display: flex; align-items: center; margin-bottom: 8px; font-size: 13px; }
+.lb-drawer-x { margin-left: auto; border: 0; background: none; font-size: 16px; cursor: pointer; color: var(--ink-soft); }
+.lb-cands { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+.lb-cand { flex: 0 0 132px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); padding: 0 0 8px; cursor: pointer; font-family: inherit; text-align: left; overflow: hidden; }
+.lb-cand.on { border-color: var(--brand); box-shadow: 0 0 0 2px var(--brand-soft); }
+.lb-cand-shot { display: block; width: 100%; aspect-ratio: 4 / 3; background-color: var(--bg-alt); background-repeat: no-repeat; }
+.lb-cand b { display: block; font-size: 12px; padding: 6px 8px 0; line-height: 1.35; }
+.lb-cand small { display: block; font-size: 11px; color: var(--ink-soft); padding: 2px 8px 0; }
+.lb-facts { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
+.lb-fact { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px 14px; }
+.lb-fact-h { font-size: 13px; margin-bottom: 6px; }
+.lb-fact-p { font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
+.lb-fact-list { list-style: none; font-size: 13px; color: var(--ink-soft); line-height: 1.8; }
+.lb-fact-list b { color: var(--ink); margin-right: 6px; }
+.lb-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.lb-flash { text-align: center; font-size: 13px; color: var(--accent); margin-top: 10px; }
+
 /* ===== Responsive ===== */
 @media (max-width: 960px) {
   .hero-inner { grid-template-columns: 1fr; }
@@ -938,6 +990,7 @@ ul, ol { list-style: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .lb-tile, .lb-shot, .lb-cand { transition: none; }
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   .reveal { opacity: 1; transform: none; }
 }
@@ -981,4 +1034,13 @@ ul, ol { list-style: none; }
   .sim-result-amt { font-size: 26px; }
   .sim-room-lines li { flex-direction: column; gap: 2px; }
   .sim-room-lines em { margin-left: 0; text-align: left; }
+}
+
+/* 우리집 한 채로 보기 — 폰 전용(기존 640px 블록은 검증기가 정규식으로 읽으므로 새 블록을 연다) */
+@media (max-width: 640px) {
+  .lb-wrap { padding: 16px; border-radius: var(--radius-sm); }
+  .lb-tiles { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .lb-space, .lb-chip, .lb-back, .lb-swap, .lb-detail { min-height: 44px; font-size: 15px; }
+  .lb-switch-btn { min-height: 44px; font-size: 14px; flex: 1; }
+  .lb-cand { flex-basis: 120px; }
 }

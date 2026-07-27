@@ -18,6 +18,7 @@
   let COMPANY = {};
   let SELECTED_DESIGN = null;
   let SIM_SPEC = '';   // 시뮬레이터에서 만든 '우리집 사양서' 요약(재현 링크 포함) — 문의 본문에 함께 보낸다
+  let LOOK_SPEC = '';  // '우리집 한 채로 보기'에서 정한 공간·시안 목록 — SIM_SPEC 과 슬롯을 나눈다(재사용하면 사양서 요약이 덮여 사라진다)
 
   const $ = (id) => document.getElementById(id);
 
@@ -166,6 +167,7 @@
       consent: fd.get('consent') === 'on',
       estimateHint: window.MANMUL && window.MANMUL.getEstimate ? window.MANMUL.getEstimate() : '',
       simSpec: SIM_SPEC || '',
+      lookSpec: LOOK_SPEC || '',
       selectedDesign: SELECTED_DESIGN
         ? (SELECTED_DESIGN.title +
           (SELECTED_DESIGN.style ? ' (' + SELECTED_DESIGN.style + ')' : '') +
@@ -342,6 +344,7 @@
     if (bm) L.push('예산/시기: ' + bm);
     if (d.selectedDesign) L.push('관심 디자인: ' + d.selectedDesign);
     if (d.simSpec) L.push(d.simSpec);
+    if (d.lookSpec) L.push(d.lookSpec);
     if (d.estimateHint) L.push('참고 견적: ' + d.estimateHint);
     if (d.memo) L.push('메모: ' + d.memo);
     return L.join('\n');
@@ -513,6 +516,8 @@
     document.addEventListener('manmul:estimate', (e) => prefillFromEstimate(e.detail || {}));
     // 시뮬레이터('우리집 사양서') 결과를 폼에 자동 채움 — 사장님이 방문 전에 범위를 알 수 있게
     // 사양서 요약 텍스트는 SIM_SPEC 으로 들고 있다가 문의 본문에 실어 보낸다(전화번호 요구 없음).
+    // '우리집 한 채로 보기' 구성 — 대표가 방문 전에 어느 공간을 어떤 시안으로 볼지 알 수 있게 본문에 싣는다
+    document.addEventListener('manmul:lookbook', (e) => { LOOK_SPEC = (e.detail && e.detail.text) || ''; });
     document.addEventListener('manmul:sim', (e) => {
       const d = e.detail || {};
       SIM_SPEC = d.text || '';

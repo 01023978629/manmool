@@ -303,7 +303,9 @@
       return true;
     } catch (e) { return false; }
   }
+  // 해시는 MANMUL_HASH 로만 만든다 — location.hash 를 통째로 덮으면 #look= 이 지워진다.
   function shareUrl() {
+    if (root.MANMUL_HASH && root.MANMUL_HASH.build) return root.MANMUL_HASH.build('sim', encodeState());
     return location.origin + location.pathname + '#sim=' + encodeURIComponent(encodeState());
   }
 
@@ -561,7 +563,13 @@
 
   function copyLink() {
     var url = shareUrl();
-    try { location.hash = 'sim=' + encodeURIComponent(encodeState()); } catch (e) { /* 해시 갱신 실패는 치명적이지 않다 */ }
+    // 주소창 해시도 헬퍼로 갱신한다 — 통째로 대입하면 같이 있던 #look= 이 사라진다.
+    try {
+      var next = (root.MANMUL_HASH && root.MANMUL_HASH.build)
+        ? root.MANMUL_HASH.build('sim', encodeState()).split('#')[1]
+        : 'sim=' + encodeURIComponent(encodeState());
+      history.replaceState(null, '', '#' + next);
+    } catch (e) { /* 해시 갱신 실패는 치명적이지 않다 */ }
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(function () { flash('링크가 복사되었습니다'); }, function () { prompt('링크를 복사하세요', url); });
     } else { prompt('링크를 복사하세요', url); }
@@ -639,12 +647,27 @@
 
   function init(ctx) {
     CTX = ctx || root.MANMUL || null;
-    var m = String(location.hash || '').match(/sim=([^&]+)/);
-    if (m) { if (decodeState(decodeURIComponent(m[1]))) state.step = TOTAL_STEPS; }
+    var raw = (root.MANMUL_HASH && root.MANMUL_HASH.read) ? root.MANMUL_HASH.read('sim') : '';
+    if (!raw) { var m = String(location.hash || '').match(/sim=([^&]+)/); raw = m ? decodeURIComponent(m[1]) : ''; }
+    if (raw && decodeState(raw)) state.step = TOTAL_STEPS;
     bind();
     render();
   }
 
-  root.MANMUL_SIM = { init: init, encodeState: encodeState, decodeState: decodeState, calc: calc, imageLines: imageLines, NOTICE: SIM_NOTICE, SPACES: SPACES, TIERS: TIERS, state: state };
+  /* 다른 화면('우리집 한 채로 보기')이 정한 공사 범위를 그대로 받아 3단계로 연다.
+     등급·평형은 넘겨받지 않는다 — 그건 고객이 여기서 정하는 값이다. */
+  function applyPreset(preset) {
+    var spaces = (preset && preset.spaces) || [];
+    var known = SPACES.map(function (s) { return s.key; });
+    var next = spaces.filter(function (s) { return known.indexOf(s) >= 0; });
+    if (!next.length) return false;
+    state.picked = next;
+    state.works = {};              // 작업 선택은 초기화(기본 작업 전부 켜짐)
+    state.step = 3;
+    render();
+    return true;
+  }
+
+  root.MANMUL_SIM = { init: init, encodeState: encodeState, decodeState: decodeState, calc: calc, imageLines: imageLines, applyPreset: applyPreset, NOTICE: SIM_NOTICE, SPACES: SPACES, TIERS: TIERS, state: state };
   root.initSimulator = init;
 }(window));

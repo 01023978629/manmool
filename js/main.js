@@ -1229,6 +1229,21 @@ async function init() {
   renderContact(data.company);
   observeReveal();
 
+  /* 해시 파라미터 공용 헬퍼 — #sim= 과 #look= 이 한 페이지에 공존할 수 있어야 한다.
+     각자 location.hash 를 통째로 덮어쓰면, 사양서를 만든 뒤 조합 링크를 복사하는 순간
+     사양서 상태가 URL 에서 조용히 사라진다. */
+  window.MANMUL_HASH = {
+    read(key) {
+      const m = String(location.hash || '').replace(/^#/, '').match(new RegExp('(?:^|&)' + key + '=([^&]*)'));
+      return m ? decodeURIComponent(m[1]) : '';
+    },
+    build(key, value) {
+      const parts = String(location.hash || '').replace(/^#/, '').split('&').filter((p) => p && p.indexOf(key + '=') !== 0);
+      parts.push(key + '=' + encodeURIComponent(value));
+      return location.origin + location.pathname + '#' + parts.join('&');
+    }
+  };
+
   // 대화식 예상견적 결과를 상담 폼으로 넘기기 위해 노출
   window.MANMUL.lastEstimate = '';
   window.MANMUL.getEstimate = () => window.MANMUL.lastEstimate || '';
@@ -1245,6 +1260,8 @@ async function init() {
   if (typeof window.initEstimator === 'function') window.initEstimator(window.MANMUL);
   // simulator.js(우리집 사양서) 초기화 — 자재 카탈로그·DesignBom 이 준비된 뒤여야 계산이 된다
   if (typeof window.initSimulator === 'function') window.initSimulator(window.MANMUL);
+  // lookbook.js(우리집 한 채로 보기) 초기화 — portfolio 스프라이트가 배정된 뒤여야 사진이 나온다
+  if (typeof window.initLookbook === 'function') window.initLookbook(window.MANMUL);
   // inquiry.js 초기화 (body 끝에서 먼저 로드됨)
   if (typeof window.initInquiry === 'function') window.initInquiry(window.MANMUL);
 }
