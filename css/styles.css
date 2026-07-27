@@ -745,6 +745,65 @@ ul, ol { list-style: none; }
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
 .reveal.in { opacity: 1; transform: none; }
 
+/* ===== Simulator (우리집 사양서) ===== */
+.sim-ai-disclaimer { font-size: 13px; color: var(--ink-soft); margin-top: 8px; }
+.sim-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 22px; max-width: 780px; margin: 0 auto; }
+.sim-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.sim-steps { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; }
+.sim-step { font-size: 12px; color: var(--ink-soft); padding: 4px 10px; border-radius: 20px; background: var(--bg-alt); }
+.sim-step.on { background: var(--brand); color: #fff; font-weight: 700; }
+.sim-step.done { background: var(--brand-soft); color: var(--link-strong); }
+.sim-back { border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: inherit; }
+.sim-lead { font-size: 15px; color: var(--ink); margin-bottom: 16px; }
+.sim-field { margin-bottom: 18px; }
+.sim-field label, .sim-label { display: block; font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+.sim-field input[type="range"] { width: 100%; accent-color: var(--brand); }
+.sim-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.sim-chip { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 20px; padding: 8px 14px; font-size: 14px; cursor: pointer; font-family: inherit; }
+.sim-chip.on { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 700; }
+.sim-note { font-size: 12.5px; color: var(--ink-soft); margin-top: 8px; }
+.sim-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.sim-space { border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); padding: 14px 8px; text-align: center; cursor: pointer; font-family: inherit; color: var(--ink); display: flex; flex-direction: column; gap: 3px; }
+.sim-space.on { border-color: var(--brand); background: var(--brand-soft); }
+.sim-space-ic { font-size: 22px; line-height: 1; }
+.sim-space b { font-size: 14px; }
+.sim-space em { font-size: 11px; color: var(--ink-soft); font-style: normal; }
+.sim-row { border-top: 1px solid var(--line); padding: 14px 0; }
+.sim-row-h { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.sim-row-h b { font-size: 15px; }
+.sim-row-amt { margin-left: auto; font-size: 14px; color: var(--link-strong); font-weight: 700; }
+.sim-cap { display: flex; align-items: center; gap: 8px; }
+.sim-cap input { flex: 1; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); font-family: inherit; font-size: 15px; }
+.sim-total { display: flex; align-items: baseline; justify-content: space-between; background: var(--bg-alt); border-radius: var(--radius-sm); padding: 14px 16px; margin: 16px 0; }
+.sim-total b { font-size: 22px; color: var(--link-strong); }
+.sim-next { width: 100%; margin-top: 8px; }
+.sim-notice { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; margin: 12px 0; }
+.sim-notice-top { background: var(--brand-soft); color: var(--link-strong); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; }
+.sim-result-head { text-align: center; padding: 18px 0 6px; }
+.sim-eyebrow { display: block; font-size: 12px; letter-spacing: .18em; color: var(--ink-soft); text-transform: uppercase; }
+.sim-result-amt { display: block; font-size: 30px; font-weight: 800; color: var(--link-strong); margin: 6px 0; }
+.sim-result-sub { font-size: 13px; color: var(--ink-soft); }
+.sim-over { background: #fdf4ec; border: 1px solid var(--brand-soft); border-radius: var(--radius-sm); padding: 14px; margin: 14px 0; }
+.sim-over b { font-size: 14px; color: var(--link-strong); }
+.sim-over p { font-size: 13px; color: var(--ink-soft); margin: 6px 0 10px; }
+.sim-trims { display: flex; flex-direction: column; gap: 8px; }
+.sim-trim { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 14px; cursor: pointer; font-family: inherit; color: var(--ink); }
+.sim-trim em { float: right; font-style: normal; color: var(--accent); font-weight: 700; }
+.sim-rooms { display: flex; flex-direction: column; gap: 12px; margin: 14px 0; }
+.sim-room { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px 14px; }
+.sim-room-h { display: flex; align-items: baseline; gap: 8px; }
+.sim-room-h b { font-size: 15px; }
+.sim-room-tier { font-size: 11.5px; background: var(--bg-alt); color: var(--ink-soft); border-radius: 20px; padding: 2px 9px; }
+.sim-room-amt { margin-left: auto; font-size: 13.5px; font-weight: 700; color: var(--link-strong); }
+.sim-room-lines { list-style: none; margin-top: 8px; }
+.sim-room-lines li { display: flex; gap: 8px; font-size: 13px; color: var(--ink-soft); padding: 3px 0; }
+.sim-room-lines em { font-style: normal; margin-left: auto; text-align: right; }
+.sim-live { background: var(--bg-alt); border-radius: var(--radius-sm); padding: 14px; margin: 14px 0; }
+.sim-live b { font-size: 14px; }
+.sim-live p { font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
+.sim-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+.sim-flash { text-align: center; font-size: 13px; color: var(--accent); margin-top: 10px; }
+
 /* ===== Responsive ===== */
 @media (max-width: 960px) {
   .hero-inner { grid-template-columns: 1fr; }
@@ -855,4 +914,16 @@ ul, ol { list-style: none; }
   .btn-sm { font-size: 15px; min-height: 44px; padding-top: 10px; padding-bottom: 10px; }
   /* 모달 닫기·초기화처럼 작은 조작 버튼도 손가락 크기로 */
   .fm-close, .folio-reset, .ce-restart { min-width: 44px; min-height: 44px; }
+}
+
+/* 시뮬레이터 — 폰 전용(기존 640px 블록은 검증기가 정규식으로 읽으므로 새 블록을 연다) */
+@media (max-width: 640px) {
+  .sim-wrap { padding: 16px; border-radius: var(--radius-sm); }
+  .sim-grid { grid-template-columns: repeat(2, 1fr); }
+  .sim-space { min-height: 44px; padding: 12px 6px; }
+  .sim-chip, .sim-trim, .sim-back { min-height: 44px; font-size: 15px; }
+  .sim-cap input, .sim-field input[type="number"] { font-size: 16px; }
+  .sim-result-amt { font-size: 26px; }
+  .sim-room-lines li { flex-direction: column; gap: 2px; }
+  .sim-room-lines em { margin-left: 0; text-align: left; }
 }

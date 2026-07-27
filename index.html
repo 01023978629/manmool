@@ -117,6 +117,7 @@
         <a href="#about">회사 소개</a>
         <a href="#portfolio">추천 디자인</a>
         <a href="#estimator">AI 예상견적</a>
+        <a href="#simulator">시뮬레이터</a>
         <a href="#trust">보증·A/S</a>
         <a href="#insights">인사이트</a>
         <a href="#faq">자주 묻는 질문</a>
@@ -255,6 +256,26 @@
             <div class="ce-body" id="ceBody" aria-live="polite"></div>
             <div class="ce-input" id="ceInput"></div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== AI 인테리어 시뮬레이터 (우리집 사양서) ===== -->
+    <section class="section section-alt" id="simulator">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">AI SIMULATOR</span>
+          <h2>AI 인테리어 시뮬레이터</h2>
+          <p>추천 디자인이 <b>남의 집을 고르는 것</b>이라면, 시뮬레이터는 <b>우리집에서 무엇까지 되는지</b> 직접 맞춰 보는 도구입니다. 공간을 고르고 등급을 올리내리면 예상 금액이 바로 바뀌고, 예산을 넘으면 무엇을 빼면 되는지 알려드립니다.</p>
+          <p class="sim-ai-disclaimer">이 도구는 사진을 합성하지 않습니다. 입력하신 평형·공간·등급으로 자재 수량과 금액을 계산해 보여줍니다.</p>
+        </div>
+        <div class="sim-wrap">
+          <div class="sim-head">
+            <div class="sim-steps" id="simProgress" aria-label="진행 단계"></div>
+            <button type="button" class="sim-back" id="simBack" hidden>← 이전</button>
+          </div>
+          <div class="sim-body" id="simBody" aria-live="polite"></div>
+          <p class="sim-flash" id="simFlash" hidden role="status"></p>
         </div>
       </div>
     </section>
@@ -507,6 +528,7 @@
   <script src="js/design-bom.js?v=20260724-spacecost1"></script>
   <script src="js/main.js?v=20260724-spacecost1"></script>
   <script src="js/estimate.js?v=20260719-fixes"></script>
+  <script src="js/simulator.js?v=20260727-sim1"></script>
   <script src="js/inquiry.js?v=20260724-spacecost1"></script>
   <script src="js/hj-link.js?v=20260719-fixes"></script>
 </body>

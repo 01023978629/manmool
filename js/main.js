@@ -1243,6 +1243,8 @@ async function init() {
 
   // estimate.js(대화식 견적) 초기화
   if (typeof window.initEstimator === 'function') window.initEstimator(window.MANMUL);
+  // simulator.js(우리집 사양서) 초기화 — 자재 카탈로그·DesignBom 이 준비된 뒤여야 계산이 된다
+  if (typeof window.initSimulator === 'function') window.initSimulator(window.MANMUL);
   // inquiry.js 초기화 (body 끝에서 먼저 로드됨)
   if (typeof window.initInquiry === 'function') window.initInquiry(window.MANMUL);
 }
