@@ -772,6 +772,29 @@ ul, ol { list-style: none; }
 .sim-row-h { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
 .sim-row-h b { font-size: 15px; }
 .sim-row-amt { margin-left: auto; font-size: 14px; color: var(--link-strong); font-weight: 700; }
+/* 공간 사진 + 세부 작업 핫스팟 */
+.sim-photo { position: relative; border-radius: var(--radius-sm); overflow: hidden; margin: 4px 0 6px; background: var(--bg-alt); }
+.sim-photo img { display: block; width: 100%; height: auto; }
+.sim-photo-cap { font-size: 12px; color: var(--ink-soft); margin-bottom: 10px; }
+.sim-hot { position: absolute; transform: translate(-50%, -50%); background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.sim-hot-dot { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: var(--ink); background: rgba(255, 255, 255, .94); border: 2px solid var(--surface); box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
+.sim-hot.on .sim-hot-dot { background: var(--brand); color: #fff; border-color: #fff; }
+.sim-hot.opt .sim-hot-dot { border-style: dashed; border-color: var(--brand); color: var(--link-strong); }
+.sim-work-no { width: 20px; height: 20px; border-radius: 50%; background: var(--bg-alt); color: var(--ink-soft); font-size: 11.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sim-work.on .sim-work-no { background: var(--brand); color: #fff; }
+.sim-hot-tip { font-size: 11px; font-weight: 700; color: #fff; background: rgba(32, 27, 22, .82); border-radius: 20px; padding: 3px 8px; white-space: nowrap; }
+.sim-hot-tip em { font-style: normal; margin-left: 5px; color: #ffd9a8; }
+.sim-hot.on .sim-hot-tip { background: var(--link-strong); }
+/* 세부 작업 목록(사진을 못 보는 경우에도 같은 선택을 할 수 있어야 한다) */
+.sim-works { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.sim-work { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); padding: 10px 12px; cursor: pointer; font-family: inherit; color: var(--ink-soft); }
+.sim-work.on { border-color: var(--brand); background: var(--brand-soft); color: var(--ink); }
+.sim-work-ck { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #fff; flex-shrink: 0; }
+.sim-work.on .sim-work-ck { background: var(--brand); border-color: var(--brand); }
+.sim-work-n { flex: 1; font-size: 14px; }
+.sim-work-n em { font-style: normal; font-size: 11px; color: var(--link-strong); background: var(--surface); border: 1px solid var(--brand-soft); border-radius: 20px; padding: 1px 7px; margin-left: 4px; }
+.sim-work-a { font-size: 13.5px; font-weight: 700; }
+.sim-tier-chips { margin-bottom: 4px; }
 .sim-cap { display: flex; align-items: center; gap: 8px; }
 .sim-cap input { flex: 1; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); font-family: inherit; font-size: 15px; }
 .sim-total { display: flex; align-items: baseline; justify-content: space-between; background: var(--bg-alt); border-radius: var(--radius-sm); padding: 14px 16px; margin: 16px 0; }
@@ -921,7 +944,10 @@ ul, ol { list-style: none; }
   .sim-wrap { padding: 16px; border-radius: var(--radius-sm); }
   .sim-grid { grid-template-columns: repeat(2, 1fr); }
   .sim-space { min-height: 44px; padding: 12px 6px; }
-  .sim-chip, .sim-trim, .sim-back { min-height: 44px; font-size: 15px; }
+  .sim-chip, .sim-trim, .sim-back, .sim-work { min-height: 44px; font-size: 15px; }
+  /* 폰에서는 핫스팟 라벨이 겹치기 쉬워 점만 크게 두고, 이름·금액은 아래 목록에서 읽게 한다 */
+  .sim-hot-tip { display: none; }
+  .sim-hot-dot { width: 34px; height: 34px; font-size: 16px; }
   .sim-cap input, .sim-field input[type="number"] { font-size: 16px; }
   .sim-result-amt { font-size: 26px; }
   .sim-room-lines li { flex-direction: column; gap: 2px; }

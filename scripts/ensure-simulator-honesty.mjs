@@ -20,6 +20,7 @@ const sim = read('js/simulator.js');
 const inquiry = read('js/inquiry.js');
 const main = read('js/main.js');
 const css = read('css/styles.css');
+const bom = read('js/design-bom.js');
 
 /* ① 섹션이 실제로 붙어 있고 메뉴에서 갈 수 있다 ----------------------- */
 check(/id="simulator"/.test(index),
@@ -101,7 +102,44 @@ check(/sim-/.test(css),
   'styles.css 에 sim- 접두사 스타일이 없다',
   'sim- 접두사 스타일 존재');
 
-/* ⑩ 기존 사례 카탈로그를 지우지 않았다 --------------------------------- */
+/* ⑩ 공간 사진과 세부 작업 핫스팟 ---------------------------------------- */
+check(/SPACE_VIEW/.test(sim) && /sim-photo/.test(sim),
+  '공간 사진(SPACE_VIEW)이 없다 — 고객이 무엇을 고르는지 볼 수 없다',
+  '공간 사진 표시');
+check(/data-simwork=/.test(sim),
+  '사진 위 세부 작업 버튼(data-simwork)이 없다 — 작업을 골라 예산에 더할 수 없다',
+  '세부 작업 선택 가능');
+check(/시공 예시/.test(sim),
+  '사진 캡션의 "시공 예시" 고지가 없다 — 고객이 자기 집 사진으로 오해한다',
+  '사진이 시공 예시임을 명시');
+check(/aria-pressed/.test(sim) && /aria-label/.test(sim),
+  '핫스팟에 aria-pressed/aria-label 이 없다 — 스크린리더로는 무슨 작업인지 알 수 없다',
+  '핫스팟 접근성 속성 존재');
+// 사진 경로가 실제 파일을 가리키는가 — 오타 하나면 고객 화면이 빈 칸이 된다
+{
+  const photos = [...sim.matchAll(/photo:\s*'([^']+)'/g)].map((m) => m[1]);
+  const missing = photos.filter((p) => !fs.existsSync(path.join(ROOT, p)));
+  check(photos.length >= 3 && missing.length === 0,
+    `시뮬레이터 사진 파일이 없다: ${missing.join(', ') || '(경로 자체가 없음)'}`,
+    `공간 사진 ${photos.length}장 모두 실제 파일 존재`);
+}
+
+/* ⑪ 옵션 작업은 기본 견적을 건드리지 않는다 ---------------------------- */
+// OPTION_DEFS 가 build() 안으로 새어 들어가면 240개 시안의 예상비용이 통째로 올라간다.
+check(/OPTION_DEFS/.test(bom) && /function options\(/.test(bom),
+  'design-bom.js 에 옵션 작업(OPTION_DEFS/options)이 없다 — TV장 같은 추가 작업을 고를 수 없다',
+  '옵션 작업 정의 존재');
+{
+  const buildBody = (bom.split('function build(item, catalog)')[1] || '').split('function ')[0];
+  check(!/OPTION_DEFS|options\(/.test(buildBody),
+    'build() 가 옵션 작업을 포함한다 — 240개 시안 예상비용이 함께 올라간다',
+    '옵션 작업이 기본 견적에 섞이지 않음');
+}
+check(/function totalsFrom\(/.test(bom) && /totalsFrom/.test(sim),
+  '부분 합계 계산(totalsFrom)이 한 곳에 있지 않다 — 화면마다 금액이 갈라진다',
+  '부분 합계 계산이 엔진에 일원화됨');
+
+/* ⑫ 기존 사례 카탈로그를 지우지 않았다 --------------------------------- */
 // 사장님 지시: "AI 인테리어 사례는 두고" — 시뮬레이터가 그것을 대체하면 안 된다.
 check(/id="portfolio"/.test(index) && /AI 추천 인테리어 디자인/.test(index),
   '기존 "AI 추천 인테리어 디자인"(240 사례) 섹션이 사라졌다 — 시뮬레이터는 그것을 대체하지 않는다',

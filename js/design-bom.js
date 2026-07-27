@@ -437,19 +437,36 @@
     }
   }
 
-  function build(item, catalog) {
-    const tier = tierFor(item || {});
-    const metrics = roomMetrics(item || {});
-    const lines = buildLines(item || {}, catalog, tier, metrics);
-    const materialTotal = lines.reduce((sum, line) => sum + line.materialAmount, 0);
-    const laborTotal = lines.reduce((sum, line) => sum + line.laborAmount, 0);
+  /* 선택한 라인만으로 합계를 낸다 — 시뮬레이터가 작업을 빼고 넣을 때 쓴다.
+     계산식이 두 곳에 흩어지면 같은 조건인데 화면마다 금액이 갈라진다. build() 도 이 함수를 쓴다. */
+  function totalsFrom(lines) {
+    const list = lines || [];
+    const materialTotal = list.reduce((sum, line) => sum + (line.materialAmount || 0), 0);
+    const laborTotal = list.reduce((sum, line) => sum + (line.laborAmount || 0), 0);
     const directTotal = materialTotal + laborTotal;
     const allowance = roundAmount(directTotal * 0.08);
     const beforeVat = directTotal + allowance;
     const vat = roundAmount(beforeVat * 0.1);
     const total = beforeVat + vat;
-    const rangeLow = roundAmount(total * 0.9);
-    const rangeHigh = roundAmount(total * 1.2);
+    return {
+      materialTotal, laborTotal, allowance, vat, total,
+      rangeLow: roundAmount(total * 0.9),
+      rangeHigh: roundAmount(total * 1.2)
+    };
+  }
+
+  function build(item, catalog) {
+    const tier = tierFor(item || {});
+    const metrics = roomMetrics(item || {});
+    const lines = buildLines(item || {}, catalog, tier, metrics);
+    const t = totalsFrom(lines);
+    const materialTotal = t.materialTotal;
+    const laborTotal = t.laborTotal;
+    const allowance = t.allowance;
+    const vat = t.vat;
+    const total = t.total;
+    const rangeLow = t.rangeLow;
+    const rangeHigh = t.rangeHigh;
     const perRoomPyeong = roundAmount(total / metrics.roomPyeong);
     return {
       priceBasis: PRICE_BASIS,
@@ -515,5 +532,66 @@
       </section>`;
   }
 
-  root.DesignBom = { build, render, formatWon, formatCompactRange };
+  /* ── 선택 추가(옵션) 작업 ─────────────────────────────────────────────
+     기본 BOM(build)에는 넣지 않는다 — 넣으면 240개 시안의 예상비용이 통째로 올라간다.
+     시뮬레이터에서 고객이 "TV장도 할까?" 하고 켤 때만 더해지는 항목이다.
+     단가 기준은 이 파일의 PRICE_BASIS 와 같고, 실측 전 참고값이라 화면에서 '옵션'으로 표시한다. */
+  const OPTION_DEFS = {
+    '거실': [
+      { category: 'TV장·아트월', name: '거실 TV장·아트월 조성', spec: '하부 수납장 + 벽면 마감(자재 등급에 따라 변동)',
+        unit: 'm', per: 'perimeterM', ratio: 0.32, materialUnit: 260000, laborUnit: 150000 },
+      { category: '붙박이 수납', name: '거실 붙박이 수납장', spec: '천장까지 맞춤 수납(도어 포함)',
+        unit: 'm', per: 'perimeterM', ratio: 0.22, materialUnit: 320000, laborUnit: 140000 }
+    ],
+    '주방': [
+      { category: '아일랜드·바', name: '아일랜드·바 카운터', spec: '상판 + 하부 수납, 전기 배선 별도',
+        unit: '식', per: 'one', ratio: 1, materialUnit: 1250000, laborUnit: 520000 },
+      { category: '냉장고장', name: '키큰장·냉장고장', spec: '냉장고 매립형 키큰장',
+        unit: '식', per: 'one', ratio: 1, materialUnit: 980000, laborUnit: 340000 }
+    ],
+    '욕실': [
+      { category: '욕조', name: '욕조 설치', spec: '아크릴 욕조 + 급배수 연결',
+        unit: '식', per: 'one', ratio: 1, materialUnit: 620000, laborUnit: 380000 },
+      { category: '젠다이·선반', name: '젠다이·수납 선반', spec: '타일 마감 젠다이 또는 매립 선반',
+        unit: '식', per: 'one', ratio: 1, materialUnit: 280000, laborUnit: 260000 }
+    ],
+    '침실': [
+      { category: '붙박이장', name: '침실 붙박이장', spec: '천장까지 맞춤 옷장(도어 포함)',
+        unit: 'm', per: 'perimeterM', ratio: 0.25, materialUnit: 330000, laborUnit: 150000 }
+    ],
+    '현관': [
+      { category: '중문 업그레이드', name: '3연동 중문', spec: '슬림 프레임 3연동(기본 중문 대비 상향)',
+        unit: '식', per: 'one', ratio: 1, materialUnit: 780000, laborUnit: 260000 }
+    ],
+    '서재': [
+      { category: '책장·붙박이', name: '벽면 책장', spec: '벽면 맞춤 책장(선반 조절형)',
+        unit: 'm', per: 'perimeterM', ratio: 0.28, materialUnit: 240000, laborUnit: 130000 }
+    ],
+    '아이방': [
+      { category: '붙박이 수납', name: '아이방 붙박이 수납', spec: '옷장 + 책상 일체형',
+        unit: 'm', per: 'perimeterM', ratio: 0.24, materialUnit: 300000, laborUnit: 140000 }
+    ],
+    '드레스룸': [
+      { category: '아일랜드 서랍', name: '드레스룸 아일랜드', spec: '중앙 서랍장 + 상판',
+        unit: '식', per: 'one', ratio: 1, materialUnit: 890000, laborUnit: 320000 }
+    ]
+  };
+
+  function options(item, catalog) {
+    const tier = tierFor(item || {});
+    const metrics = roomMetrics(item || {});
+    const defs = OPTION_DEFS[(item || {}).spaceType] || [];
+    const lines = [];
+    defs.forEach((d) => {
+      const base = d.per === 'one' ? 1 : (metrics[d.per] || 1);
+      addLine(lines, tier, {
+        category: d.category, name: d.name, spec: d.spec, unit: d.unit,
+        quantity: base * d.ratio, materialUnit: d.materialUnit, laborUnit: d.laborUnit
+      });
+      lines[lines.length - 1].optional = true;
+    });
+    return lines;
+  }
+
+  root.DesignBom = { build, render, formatWon, formatCompactRange, totalsFrom, options, PRICE_BASIS };
 }(window));
