@@ -497,14 +497,22 @@
   }
 
   /* ── 이미지 저장(캔버스) — 밖으로 나가는 유일한 물체라 워터마크로 고지를 굽는다 ── */
+  // 캔버스에 그린 글자는 나중에 읽어볼 수가 없다. 그래서 '무엇을 그릴지'는 이 함수가 만들고,
+  // 테스트는 이 함수만 확인한다. (예전에 여기서 옛 필드명을 읽어 금액이 전부 '-'로 나간 적이 있다)
+  function imageLines() {
+    var r = calc();
+    return state.picked.map(function (s) {
+      var row = null;
+      for (var i = 0; i < r.rows.length; i++) if (r.rows[i].space === s) row = r.rows[i];
+      var amt = (row && row.totals) ? (man(row.totals.rangeLow) + '~' + man(row.totals.rangeHigh) + '원') : '-';
+      return s + '  ·  ' + tierDef(tierOf(s)).label + '  ·  ' + amt;
+    });
+  }
+
   function saveImage() {
     var r = calc();
     var W = 1000, pad = 48;
-    var lines = state.picked.map(function (s) {
-      var bom = null;
-      for (var i = 0; i < r.rows.length; i++) if (r.rows[i].space === s) bom = r.rows[i].bom;
-      return s + '  ·  ' + tierDef(tierOf(s)).label + '  ·  ' + (bom ? man(bom.rangeLow) + '~' + man(bom.rangeHigh) + '원' : '-');
-    });
+    var lines = imageLines();
     var H = 420 + lines.length * 46;
     var cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
@@ -637,6 +645,6 @@
     render();
   }
 
-  root.MANMUL_SIM = { init: init, encodeState: encodeState, decodeState: decodeState, calc: calc, NOTICE: SIM_NOTICE, SPACES: SPACES, TIERS: TIERS, state: state };
+  root.MANMUL_SIM = { init: init, encodeState: encodeState, decodeState: decodeState, calc: calc, imageLines: imageLines, NOTICE: SIM_NOTICE, SPACES: SPACES, TIERS: TIERS, state: state };
   root.initSimulator = init;
 }(window));
