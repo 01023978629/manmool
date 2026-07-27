@@ -30,14 +30,25 @@ check(/js\/lookbook\.js\?v=/.test(index) && /initLookbook/.test(main),
   'lookbook.js 로드 또는 main.js 초기화 연결이 끊겼다',
   'lookbook.js 로드·초기화 연결');
 
-/* ② 기존 240 카탈로그를 대체하지 않는다 -------------------------------- */
+/* ② 기존 사례 카탈로그를 대체하지 않는다 -------------------------------- */
 // 사장님 지시: "AI 인테리어 사례는 두고" — 새 보기는 그것을 덮지 않는다.
 check(/id="portfolio"/.test(index) && /AI 추천 인테리어 디자인/.test(index),
-  '기존 "AI 추천 인테리어 디자인"(240 사례) 섹션이 사라졌다',
+  '기존 "AI 추천 인테리어 디자인" 섹션이 사라졌다',
   '기존 사례 카탈로그 유지됨');
-check(Array.isArray(site.portfolio) && site.portfolio.length === 240,
-  `site.json portfolio 가 240개가 아니다(${site.portfolio && site.portfolio.length}) — 카탈로그가 파손됐다`,
-  'portfolio 240개 유지');
+// 개수를 숫자로 박아두면 카탈로그를 늘릴 때마다 검증기가 거짓으로 빨간불이 된다(실제로 300 확장 때 그랬다).
+// 지켜야 할 것은 '몇 개냐'가 아니라 ⑴ 줄지 않았고 ⑵ 화면에 적은 숫자가 사실이냐 두 가지다.
+{
+  const n = Array.isArray(site.portfolio) ? site.portfolio.length : 0;
+  const FLOOR = 240; // 지금까지 공개된 최소치 — 이 아래로 내려가면 카탈로그가 잘려나간 것이다
+  check(n >= FLOOR,
+    `site.json portfolio 가 ${n}개로 줄었다(최소 ${FLOOR}) — 카탈로그가 파손됐다`,
+    `portfolio ${n}개 (축소 없음)`);
+  const claim = index.match(/총\s*([\d,]+)\s*가지/);
+  const claimed = claim ? Number(claim[1].replace(/,/g, '')) : null;
+  check(claimed === n,
+    `화면에는 "총 ${claimed}가지"라고 적혀 있는데 실제 시안은 ${n}개다 — 고객에게 숫자를 부풀려 말하게 된다`,
+    `화면 표기(총 ${claimed}가지)와 실제 시안 수 일치`);
+}
 
 /* ③ 메뉴를 늘리지 않는다 ------------------------------------------------ */
 // 메뉴가 늘면 "우리집 사양서"와 "우리집 한 채"를 고객이 구분하지 못한다.
