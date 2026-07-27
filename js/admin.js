@@ -11,8 +11,10 @@
 
   const save = (list) => localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 
-  // 개인정보 최소 보관: 90일 지난 문의는 로컬 보드에서 자동 삭제 (시각을 알 수 없는 항목은 유지)
-  const RETENTION_DAYS = 90;
+  // 개인정보 보유기간: 상담 폼 동의 문구("보유기간 1년")와 같은 값이어야 한다.
+  // 지난 문의는 로컬 보드에서 자동 삭제 (시각을 알 수 없는 항목은 유지)
+  // ※ js/inquiry.js 의 RETENTION_DAYS 와 반드시 같은 값 — scripts/ensure-conversion-basics.mjs 가 대조한다.
+  const RETENTION_DAYS = 365;
   const load = () => {
     let list;
     try { list = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { return []; }
@@ -27,17 +29,22 @@
 
   /* ----- 간이 AI 요약(클라이언트) : 실제로는 n8n의 AI 노드가 생성 ----- */
   function aiSummary(d) {
+    d = d || {};
+    // 항목이 빠진 문의(옛 양식·부분 저장)에서도 죽지 않아야 한다.
+    // works 가 없으면 .includes 에서 TypeError 가 나고, 그 순간 관리자 보드 전체가 렌더되지 않아
+    // 문의가 한 건도 안 보인다 — 문의가 없는 것처럼 보이는 게 제일 위험하다.
+    const works = Array.isArray(d.works) ? d.works : [];
     const parts = [];
     if (d.region) parts.push(d.region);
     if (d.area) parts.push(d.area + '평');
-    parts.push(d.type + (d.scope ? ' ' + d.scope + '공사' : ''));
+    if (d.type || d.scope) parts.push((d.type || '') + (d.scope ? ' ' + d.scope + '공사' : ''));
     if (d.budget) parts.push(d.budget);
     if (d.movein) parts.push(d.movein + ' 희망');
     const summary = parts.join(', ');
 
     const questions = [];
-    if (d.type !== '상업' && !d.works.includes('샷시')) questions.push('샷시 교체 여부');
-    if (!d.works.includes('확장')) questions.push('확장 계획');
+    if (d.type !== '상업' && !works.includes('샷시')) questions.push('샷시 교체 여부');
+    if (!works.includes('확장')) questions.push('확장 계획');
     if (d.type === '주거') questions.push('욕실 개수');
     if (d.live === '거주중') questions.push('거주공사 가능 여부');
 

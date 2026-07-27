@@ -14,6 +14,9 @@ export const SETTING_KEYS = [
   { key: 'SOLAPI_TEMPLATE_SIGN', label: '서명요청 템플릿 ID', secret: false },
   { key: 'SOLAPI_TEMPLATE_DONE', label: '완료 템플릿 ID', secret: false },
   { key: 'SOLAPI_DISABLE_SMS', label: '문자 대체발송 끄기(1/0)', secret: false },
+  // 대표 완료통지 수신번호 — 고객이 서명을 마치면 이 번호로 체결 완료 문자를 보낸다.
+  // 계약 당사자 번호(원문 미보관)와 달리 운영 설정값이다(발신번호 SOLAPI_SENDER 와 같은 성격).
+  { key: 'OWNER_NOTIFY_PHONE', label: '대표 완료통지 수신번호(숫자만)', secret: false },
 ];
 const KEYSET = new Set(SETTING_KEYS.map((k) => k.key));
 

@@ -100,6 +100,13 @@
     <p class="eyebrow">재무 요약 <span style="color:var(--ink-faint);font-weight:400;font-size:12px">· 부가세 추정</span></p>
     <div class="card" id="financeCard"><div class="note">불러오는 중…</div></div>
 
+    <p class="eyebrow">계약 데이터 백업</p>
+    <div class="card">
+      <div class="note" style="margin:0 0 10px">계약·서명·감사기록의 사본은 서버 저장소 하나뿐입니다. <b>한 달에 한 번</b> 내려받아 구글드라이브에 보관해 두세요. 서버에 문제가 생겨도 이 파일 하나로 전부 복원됩니다.</div>
+      <div class="row"><button class="btn ghost" id="backupBtn">💾 계약 데이터 내려받기</button></div>
+      <div class="msg" id="backupMsg" role="status"></div>
+    </div>
+
     <div class="banner info">아래는 연결 설정입니다. 저장한 값은 서버(로컬 DB)에 보관되며 <b>즉시 발송에 반영</b>됩니다. 시크릿은 원문을 다시 보여주지 않습니다(끝 4자리만).</div>
 
     <p class="eyebrow">연결 상태</p>
@@ -248,8 +255,13 @@
       var pay=c.payment||{}; var st=STATUS_KO[c.status]||c.status;
       var stCls=c.status==='COMPLETED'?'on':(c.status==='VOID'?'off':'env');
       var recvTxt=pay.stages? (pay.receivable>0? ('미수 '+won(pay.receivable)+'원') : '완납') : '분할없음';
+      // 완료 계약: 고객이 "계약서 다시 보내주세요" 할 때 15분짜리 열람 링크를 재발급하는 버튼.
+      // 예전에는 이 경로가 없어 서명 직후 15분이 지나면 사본을 꺼낼 방법이 서버 접속뿐이었다.
+      var viewBtn=c.status==='COMPLETED'?' <button class="linkmini" data-viewlink="'+esc(c.contractId)+'">🔗 열람링크</button>':'';
+      // 취소: 잘못 보낸 계약서를 무효화(이미 보낸 서명 링크도 즉시 죽는다). 완료 계약은 봉인.
+      var voidBtn=(c.status!=='COMPLETED'&&c.status!=='VOID')?' <button class="linkmini" data-void="'+esc(c.contractId)+'" data-voidno="'+esc(c.contractNo)+'">✖ 취소</button>':'';
       h+='<div class="ct">'+
-        '<div class="ct-top"><b>'+esc(c.contractNo)+'</b> <span class="pill '+stCls+'">'+esc(st)+'</span>'+
+        '<div class="ct-top"><b>'+esc(c.contractNo)+'</b> <span class="pill '+stCls+'">'+esc(st)+'</span>'+viewBtn+voidBtn+
           '<span class="ct-amt num">'+won(c.amount)+'원</span></div>'+
         '<div class="ct-sub">'+esc(c.customerName||'')+(c.customerPhone?(' · <span class="num">'+esc(c.customerPhone)+'</span>'):'')+'</div>'+
         (pay.stages? ('<div class="ct-pay"><span class="pbar"><i style="width:'+(pay.total?Math.round(pay.paid/pay.total*100):0)+'%"></i></span>'+
@@ -292,11 +304,49 @@
   }
   $("contractsCard").addEventListener("click",function(e){
     if(e.target.closest('#recvCsv')){ downloadReceivablesCsv(); return; }
+    var vb=e.target.closest('[data-viewlink]');
+    if(vb){
+      vb.disabled=true; vb.textContent='발급 중…';
+      api("POST","/api/contracts/"+vb.getAttribute('data-viewlink')+"/view-link").then(function(r){
+        vb.disabled=false; vb.textContent='🔗 열람링크';
+        var url=location.origin+r.viewPath;
+        // 15분짜리라 바로 복사해 고객에게 보내야 한다. prompt 는 어느 폰·PC에서든 복사가 된다.
+        prompt("고객에게 보낼 완료본 열람 링크입니다 (15분 유효) — 길게 눌러 복사하세요", url);
+      }).catch(function(err){ vb.disabled=false; vb.textContent='🔗 열람링크'; alert(err.message||'발급 실패'); });
+      return;
+    }
+    var vd=e.target.closest('[data-void]');
+    if(vd){
+      var no=vd.getAttribute('data-voidno')||'';
+      if(!confirm('계약 '+no+' 을(를) 취소할까요?\n이미 보낸 서명 링크도 즉시 무효화됩니다. 되돌릴 수 없습니다.')) return;
+      vd.disabled=true; vd.textContent='취소 중…';
+      api("POST","/api/contracts/"+vd.getAttribute('data-void')+"/void",{reason:'관리자 화면에서 취소'}).then(function(){ loadContracts(); })
+        .catch(function(err){ vd.disabled=false; vd.textContent='✖ 취소'; alert(err.message||'취소 실패'); });
+      return;
+    }
     var b=e.target.closest('[data-paid]'); if(!b)return;
     var parts=b.getAttribute('data-paid').split('|'); b.disabled=true; b.textContent='...';
     api("POST","/api/contracts/"+parts[0]+"/payments/"+parts[1]+"/paid").then(function(){ loadContracts(); })
       .catch(function(err){ b.disabled=false; b.textContent='입금확인'; alert(err.message||'실패'); });
   });
+
+  $("backupBtn").onclick=function(){
+    var btn=$("backupBtn"); btn.disabled=true; btn.innerHTML='<span class="spin"></span>만드는 중…'; $("backupMsg").textContent="";
+    fetch("/admin/backup",{headers:{"x-admin-token":TOKEN}}).then(function(r){
+      if(!r.ok) return r.json().then(function(j){ throw new Error(j.message||j.error||("HTTP "+r.status)); });
+      var name=(r.headers.get("content-disposition")||"").match(/filename="([^"]+)"/);
+      return r.blob().then(function(b){ return { blob:b, name:(name&&name[1])||"manmool-contracts.db" }; });
+    }).then(function(d){
+      var a=document.createElement("a"); a.href=URL.createObjectURL(d.blob); a.download=d.name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+      btn.disabled=false; btn.textContent="💾 계약 데이터 내려받기";
+      $("backupMsg").className="msg ok"; $("backupMsg").textContent="내려받았습니다. 구글드라이브에 올려 두세요.";
+    }).catch(function(e){
+      btn.disabled=false; btn.textContent="💾 계약 데이터 내려받기";
+      $("backupMsg").className="msg err"; $("backupMsg").textContent=e.message||"백업 실패";
+    });
+  };
 
   function renderStatus(st){
     var live=st.live && st.liveReady;

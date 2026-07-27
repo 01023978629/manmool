@@ -1,6 +1,7 @@
 // 대금(청구·입금·미수) 검증 — 서비스 계층. 실제 발송 없음(Mock).
 import { openDb } from '../src/db.mjs';
 import { ContractService } from '../src/service.mjs';
+import { buildStandardBody } from '../src/standard-contract.mjs';
 import { MockKakaoMessageProvider } from '../src/providers/kakao.mjs';
 
 const R = [];
@@ -16,7 +17,8 @@ const provider = new MockKakaoMessageProvider({ clock });
 // 계약 생성(결제 분할 포함) → 잠금 → 스케줄 시드
 const { contractId, parties } = svc.createContract({
   contractNo: 'MM-2026-0777', title: '공사 도급계약서', amount: 41310000,
-  body: { site: '대전 갈마동 34평', payment: { down: 4131000, mid: 16524000, bal: 20655000 } },
+  body: Object.assign(buildStandardBody({ site: '대전 갈마동 34평', amount: 41310000, customerName: '홍길동' }),
+    { payment: { down: 4131000, mid: 16524000, bal: 20655000 } }),
   operator: { name: '만물대표', phone: '010-0000-1111' },
   customer: { name: '홍길동', phone: '010-0000-2222' },
 });

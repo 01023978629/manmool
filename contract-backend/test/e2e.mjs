@@ -3,6 +3,7 @@
 import { openDb } from '../src/db.mjs';
 import { ContractService, AppError } from '../src/service.mjs';
 import { MockKakaoMessageProvider } from '../src/providers/kakao.mjs';
+import { buildStandardBody } from '../src/standard-contract.mjs';
 
 const R = [];
 const ok = (n, cond, x) => R.push([cond ? '✓' : '✗', n, x || '']);
@@ -20,13 +21,18 @@ const svc = new ContractService(db, { clock, demoOtp: '246810' });
 const provider = new MockKakaoMessageProvider({ clock, deliverAfterMs: 0 });
 
 // ── 1) 계약 생성 ──────────────────────────────────────────
-const body = {
-  contractNo: 'MM-2026-0142',
-  site: '대전 서구 갈마동 34평',
-  scope: ['철거', '욕실', '주방', '도배'],
-  amount: 41310000,
-  clauses: ['제1조 목적 …', '제2조 공사대금 …', '제12조 분쟁해결 …'],
-};
+// 본문은 표준 계약안으로 만든다 — 조항·지급조건·고객명이 갖춰진 '진짜 계약서' 형태여야
+// lockDocument 를 통과한다(빈 계약서에 서명받는 것을 서버가 막는다).
+const body = Object.assign(
+  { contractNo: 'MM-2026-0142' },
+  buildStandardBody({
+    site: '대전 서구 갈마동 34평',
+    scope: ['철거', '욕실', '주방', '도배'],
+    amount: 41310000,
+    customerName: '홍길동',
+    period: '2026-08-04 ~ 2026-09-05',
+  })
+);
 const { contractId, parties } = svc.createContract({
   contractNo: 'MM-2026-0142', title: '실내건축 공사 계약', amount: 41310000, body,
   operator: { name: '만물대표', phone: '010-0000-1111' },
@@ -67,7 +73,7 @@ ok('링크 열람 시 본인확인 요구', opened.needIdentityVerification === 
 await throws('본인확인 없이 서명 거부', () => svc.submitSignature(token, { imageBytes: 'PNGDATA' }), 'NOT_VERIFIED');
 
 // ── 7) 본인확인 OTP ──────────────────────────────────────
-const otp = svc.requestOtp(token);
+const otp = await svc.requestOtp(token);
 ok('OTP 발급', otp.demoCode === '246810');
 await throws('OTP 오입력 거부', () => svc.verifyOtp(token, '000000'), 'OTP_MISMATCH');
 const ver = svc.verifyOtp(token, '246810', { ip: '1.2.3.4', ua: 'iPhone' });

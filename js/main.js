@@ -1179,6 +1179,14 @@ function setupPortfolioFabVisibility() {
 const FALLBACK_CONTACT = { phone: '010-2397-8629', email: '1dncjf@naver.com', hours: '평일 09:00 - 17:30', address: '대전광역시 중구 돌다리로19번길 9, 1층(석교동)' };
 
 function renderFallbackNotice() {
+  /* 데이터를 못 불러오면 시뮬레이터·우리집 한 채는 초기화 자체가 안 된다(init 이 조기 반환).
+     그러면 제목만 있고 속이 빈 상자가 남아 고객은 "고장났나" 하고 나간다. 전화 안내로 대체한다. */
+  const emptyMsg = '<p style="text-align:center;color:var(--ink-soft);padding:18px 0">지금은 이 기능을 불러오지 못했습니다. 새로고침하시거나 <a href="tel:' +
+    FALLBACK_CONTACT.phone.replace(/[^0-9]/g, '') + '"><b>' + FALLBACK_CONTACT.phone + '</b></a> 로 편하게 문의해 주세요.</p>';
+  ['simBody', 'lbBody'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el && !el.children.length) el.innerHTML = emptyMsg;
+  });
   const grid = document.getElementById('servicesGrid');
   if (grid && !grid.children.length) {
     grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--ink-soft)">콘텐츠를 일시적으로 불러오지 못했습니다. 새로고침하시거나, 아래 연락처로 문의해 주세요.<br/>📞 <a href="tel:' + FALLBACK_CONTACT.phone.replace(/[^0-9]/g, '') + '"><b>' + FALLBACK_CONTACT.phone + '</b></a> (' + FALLBACK_CONTACT.hours + ')</p>';
@@ -1245,6 +1253,21 @@ async function init() {
   renderContact(data.company);
   observeReveal();
 
+  /* 해시 파라미터 공용 헬퍼 — #sim= 과 #look= 이 한 페이지에 공존할 수 있어야 한다.
+     각자 location.hash 를 통째로 덮어쓰면, 사양서를 만든 뒤 조합 링크를 복사하는 순간
+     사양서 상태가 URL 에서 조용히 사라진다. */
+  window.MANMUL_HASH = {
+    read(key) {
+      const m = String(location.hash || '').replace(/^#/, '').match(new RegExp('(?:^|&)' + key + '=([^&]*)'));
+      return m ? decodeURIComponent(m[1]) : '';
+    },
+    build(key, value) {
+      const parts = String(location.hash || '').replace(/^#/, '').split('&').filter((p) => p && p.indexOf(key + '=') !== 0);
+      parts.push(key + '=' + encodeURIComponent(value));
+      return location.origin + location.pathname + '#' + parts.join('&');
+    }
+  };
+
   // 대화식 예상견적 결과를 상담 폼으로 넘기기 위해 노출
   window.MANMUL.lastEstimate = '';
   window.MANMUL.getEstimate = () => window.MANMUL.lastEstimate || '';
@@ -1259,6 +1282,10 @@ async function init() {
 
   // estimate.js(대화식 견적) 초기화
   if (typeof window.initEstimator === 'function') window.initEstimator(window.MANMUL);
+  // simulator.js(우리집 사양서) 초기화 — 자재 카탈로그·DesignBom 이 준비된 뒤여야 계산이 된다
+  if (typeof window.initSimulator === 'function') window.initSimulator(window.MANMUL);
+  // lookbook.js(우리집 한 채로 보기) 초기화 — portfolio 스프라이트가 배정된 뒤여야 사진이 나온다
+  if (typeof window.initLookbook === 'function') window.initLookbook(window.MANMUL);
   // inquiry.js 초기화 (body 끝에서 먼저 로드됨)
   if (typeof window.initInquiry === 'function') window.initInquiry(window.MANMUL);
 }

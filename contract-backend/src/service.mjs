@@ -5,11 +5,15 @@ import {
   maskPhone, docHash, issueOtp,
 } from './crypto.mjs';
 import { audit, EVENTS, trail } from './audit.mjs';
+import { validateBody } from './standard-contract.mjs';
 import { classify, groupByTier, TIER_ORDER } from './autonomy.mjs';
 
 const OTP_TTL_MS = 5 * 60 * 1000;       // 본인확인 OTP 5분
 const OTP_MAX_ATTEMPTS = 5;
-const OTP_MAX_ISSUE = 5;                 // 당사자당 OTP 발급 상한(무제한 재발급 방지)
+const OTP_MAX_ISSUE = 5;                 // OTP 발급 상한(무제한 재발급 방지)
+const OTP_ISSUE_WINDOW_MS = 30 * 60 * 1000; // 그 상한을 적용할 시간창 30분.
+// '평생 5회'로 두면 문자가 늦거나 한 번 꼬였을 때 그 계약이 영구히 서명 불가가 된다
+// (상한이 party 기준이라 서명 링크를 새로 발급해도 안 풀린다). 무차별 대입 방어는 시간창으로 충분하다.
 const SIGN_TOKEN_TTL_MS = 72 * 60 * 60 * 1000;  // 서명 링크 72시간
 const VIEW_TOKEN_TTL_MS = 15 * 60 * 1000;        // 완료본 열람 15분(장기 공개 금지)
 const MIN_SIGNATURE_BYTES = 8;           // 빈/무의미 서명 거부 하한
@@ -52,10 +56,19 @@ export class ContractService {
   createContract({ contractNo, title, amount, body, operator, customer }) {
     const now = this.clock();
     const id = newId('ct');
-    this.db.prepare(
-      `INSERT INTO contracts(id,contract_no,title,status,amount,body_snapshot,created_at,updated_at)
-       VALUES(?,?,?, 'DRAFT', ?, ?, ?, ?)`
-    ).run(id, contractNo, title, amount | 0, JSON.stringify(body), now, now);
+    try {
+      this.db.prepare(
+        `INSERT INTO contracts(id,contract_no,title,status,amount,body_snapshot,created_at,updated_at)
+         VALUES(?,?,?, 'DRAFT', ?, ?, ?, ?)`
+      ).run(id, contractNo, title, amount | 0, JSON.stringify(body), now, now);
+    } catch (e) {
+      // contract_no 는 UNIQUE 다. 원문 그대로 두면 원인 불명 500 이 되고,
+      // 앱은 "전송 실패 (서버 오류 500)"만 보여줘 사장님이 뭘 고쳐야 할지 알 수 없다.
+      if (/UNIQUE constraint failed: contracts\.contract_no/.test(String(e && e.message))) {
+        throw new AppError('DUP_CONTRACT_NO', `계약번호 ${contractNo} 는 이미 사용 중입니다. 다른 번호로 보내 주세요.`);
+      }
+      throw e;
+    }
 
     const parties = {};
     for (const [role, p] of [['operator', operator], ['customer', customer]]) {
@@ -75,7 +88,14 @@ export class ContractService {
     const c = this._contract(contractId);
     if (c.status !== 'DRAFT') throw new AppError('ALREADY_LOCKED', '이미 잠긴 계약입니다.');
     const body = JSON.parse(c.body_snapshot);
-    const hash = docHash(body);
+    // 마지막 방어선: 조항 0줄·지급조건 0원짜리 문서를 고객에게 서명받는 일을 여기서 막는다.
+    // (예전에는 본문 검증이 전혀 없어, 계약금·중도금·잔금이 모두 0원으로 찍힌 채 서명까지 갔다)
+    const bad = validateBody(body, c.amount);
+    if (bad.length) throw new AppError('INCOMPLETE_BODY', '계약 본문이 완성되지 않았습니다 — ' + bad.join(', ') + '.');
+    // 해시 입력에 계약금액(amount 컬럼)을 함께 넣는다. 본문만 해시하면 금액 컬럼은
+    // 해시 밖이라, 잠금 뒤 DB 에서 amount 만 고쳐도 문서해시가 그대로 맞았다 —
+    // 고객이 대조한 해시가 "금액이 안 바뀌었다"를 증명하지 못하는 구멍이었다.
+    const hash = docHash({ amount: c.amount | 0, body });
     const now = this.clock();
     this.db.prepare(
       `UPDATE contracts SET status='LOCKED', doc_hash=?, locked_at=?, updated_at=? WHERE id=?`
@@ -214,11 +234,35 @@ export class ContractService {
     };
   }
 
-  // 7) 본인확인 OTP 발급. 당사자당 발급 상한으로 무제한 재발급(무차별 대입 창 확장)을 막는다.
-  requestOtp(rawToken) {
+  // 6-b) 토큰만 먼저 검사 — 본문(서명 이미지 등 대용량)을 받기 전에 라우트가 부른다.
+  // 아무것도 소비하지 않는다(1회성 소진은 제출 시점에 일어난다).
+  assertSignToken(rawToken) { this._validToken(rawToken, 'sign'); return true; }
+
+  // 7) 본인확인 OTP 발급 + 문자 발송.
+  //
+  //    ※ 예전에는 이 함수가 코드를 만들어 해시만 저장하고 { sent:true } 로 끝났다 — 발송 호출이
+  //      한 줄도 없었다. 화면은 "문자로 발송했습니다"라고 말하는데 문자는 오지 않아,
+  //      운영에서 아무도 서명을 완료할 수 없었다(솔라피를 완벽히 설정해도 마찬가지).
+  //
+  //    수신번호는 서버가 원문을 보관하지 않는다(마스킹+해시만). 그래서 발송 시점에 호출자가
+  //    번호 원문을 넘기고, 서버는 그것이 계약 당사자의 번호가 맞는지 해시로 대조한 뒤 보낸다
+  //    (sendMessage·invoicePayment 와 같은 방식). 다른 번호로는 애초에 발송이 안 되므로,
+  //    링크가 유출돼도 인증번호를 가로챌 수 없다.
+  //
+  //    발송 상한은 '평생 N회'가 아니라 '최근 30분 N회'다. 평생 상한이면 문자가 늦거나
+  //    한 번 꼬였을 때 그 계약은 영구히 서명 불가가 된다(서명 링크를 새로 발급해도 안 풀린다).
+  async requestOtp(rawToken, provider = null, rawPhone = null) {
     const tk = this._validToken(rawToken, 'sign');
-    const issued = this.db.prepare('SELECT COUNT(*) c FROM otp_challenges WHERE party_id=?').get(tk.party_id).c;
-    if (issued >= OTP_MAX_ISSUE) throw new AppError('OTP_TOO_MANY', '인증번호 발급 횟수를 초과했습니다. 담당자에게 문의해 주세요.');
+    const p = this.db.prepare('SELECT * FROM contract_parties WHERE id=?').get(tk.party_id);
+    if (!p) throw new AppError('NO_PARTY', '계약 당사자를 찾을 수 없습니다.');
+    if (rawPhone && hmac(String(rawPhone).replace(/\D/g, '')) !== p.phone_hash) {
+      throw new AppError('PHONE_MISMATCH', '계약서를 받으신 휴대폰 번호와 다릅니다.');
+    }
+    const since = iso(this.clock, -OTP_ISSUE_WINDOW_MS);
+    const issued = this.db.prepare(
+      'SELECT COUNT(*) c FROM otp_challenges WHERE party_id=? AND created_at>=?'
+    ).get(tk.party_id, since).c;
+    if (issued >= OTP_MAX_ISSUE) throw new AppError('OTP_TOO_MANY', '인증번호를 너무 자주 요청하셨습니다. 잠시 후 다시 시도해 주세요.');
     // 재발급 시 이전 미검증 챌린지는 만료 처리(동시 유효 코드 최소화)
     this.db.prepare("UPDATE otp_challenges SET expires_at=? WHERE party_id=? AND verified_at IS NULL").run(this.clock(), tk.party_id);
     const { code, hash } = issueOtp(this.demoOtp);
@@ -228,19 +272,46 @@ export class ContractService {
        VALUES(?,?,?,?,?)`
     ).run(newId('otp'), tk.party_id, hash, iso(this.clock, OTP_TTL_MS), now);
     audit(this.db, { contractId: tk.contract_id, partyId: tk.party_id, event: EVENTS.IDENTITY_OTP_ISSUED, at: now });
-    // 데모에서만 code 를 반환. 운영에서는 절대 반환하지 않고 메시지 채널로만 전달.
-    return this.demoOtp ? { demoCode: code } : { sent: true };
+
+    // 데모에서만 code 를 반환. 운영에서는 절대 반환하지 않고 문자로만 전달.
+    if (this.demoOtp) return { demoCode: code };
+    if (!provider || !rawPhone) {
+      // 보낼 수단이 없으면 보냈다고 하지 않는다 — 화면이 거짓말하면 고객은 오지 않는 문자를 기다린다.
+      return { sent: false, reason: 'NO_CHANNEL' };
+    }
+    let res;
+    try {
+      res = await provider.sendText({
+        toPhoneRaw: rawPhone, toPhoneHash: p.phone_hash,
+        text: `[만물인테리어] 계약 본인확인 번호 ${code} (5분 내 입력)`,
+      });
+    } catch (e) {
+      return { sent: false, reason: 'SEND_ERROR' };
+    }
+    if (!res || res.status === 'FAILED') return { sent: false, reason: (res && res.failedReason) || 'SEND_FAILED' };
+    return { sent: true };
   }
 
   // 8) 본인확인 OTP 검증. 성공해야만 전체 열람/동의/서명이 가능.
   verifyOtp(rawToken, code, ctx = {}) {
     const tk = this._validToken(rawToken, 'sign');
-    const ch = this.db.prepare(
-      'SELECT * FROM otp_challenges WHERE party_id=? AND verified_at IS NULL ORDER BY id DESC LIMIT 1'
-    ).get(tk.party_id);
     const now = this.clock();
-    if (!ch) throw new AppError('NO_OTP', '발급된 인증코드가 없습니다.');
-    if (now > ch.expires_at) throw new AppError('OTP_EXPIRED', '인증코드가 만료되었습니다.');
+    // ※ 예전에는 ORDER BY id DESC 로 골랐는데, 이 id 는 crypto.newId 가 만드는 '난수'라 시간순이 아니다.
+    //   재발급하면 옛 챌린지가 만료 상태로 남아 있어 서버가 그걸 집으면 정확한 번호인데도 OTP_EXPIRED 가 났다.
+    //   실측(각 300회): 다시받기 1회 → 47%, 2회 → 35%, 4회 → 21% 로 성공률이 떨어졌다.
+    //   게다가 화면은 실패하면 "다시 받기를 눌러 주세요"라고 안내해, 안내를 따를수록 더 나빠졌다.
+    //   → 만료되지 않은 것 중 가장 최근 것을 고른다(created_at 이 같을 수 있어 rowid 로 마지막을 가른다).
+    const ch = this.db.prepare(
+      `SELECT * FROM otp_challenges
+        WHERE party_id=? AND verified_at IS NULL AND expires_at > ?
+        ORDER BY created_at DESC, rowid DESC LIMIT 1`
+    ).get(tk.party_id, now);
+    if (!ch) {
+      // 유효한 게 없을 때, 발급 자체가 없었는지 / 있었는데 만료됐는지를 구분해 알려준다
+      const any = this.db.prepare('SELECT COUNT(*) c FROM otp_challenges WHERE party_id=?').get(tk.party_id).c;
+      if (!any) throw new AppError('NO_OTP', '발급된 인증코드가 없습니다.');
+      throw new AppError('OTP_EXPIRED', '인증코드가 만료되었습니다. 다시 받기를 눌러 주세요.');
+    }
     if (ch.attempts >= OTP_MAX_ATTEMPTS) throw new AppError('OTP_LOCKED', '시도 횟수를 초과했습니다.');
 
     const ok = safeEqualHex(sha256(String(code) + (process.env.CONTRACT_PEPPER || 'DEMO_PEPPER_do_not_use_in_prod')), ch.code_hash);
@@ -260,6 +331,8 @@ export class ContractService {
     const tk = this._validToken(rawToken, 'sign');
     this._requireVerified(tk.party_id);
     const c = this._contract(tk.contract_id);
+    // 고객이 읽는 시점에 저장값 무결성을 확인한다 — 잠금 뒤 금액/본문이 손상됐으면 서명 진행 자체를 막는다.
+    if (c.doc_hash && !this._docHashIntact(c)) throw new AppError('DOC_TAMPERED', '계약 데이터 검증에 실패했습니다. 계약서가 잠금 후 수정되었을 수 있습니다 — 010-2397-8629 로 문의해 주세요.');
     return { contractNo: c.contract_no, title: c.title, amount: c.amount, docHash: c.doc_hash, body: JSON.parse(c.body_snapshot) };
   }
 
@@ -320,6 +393,13 @@ export class ContractService {
     // 전체 열람 확인
     if (!this._hasViewed(tk.party_id)) throw new AppError('NOT_VIEWED', '전체 계약서 열람 후 서명할 수 있습니다.');
 
+    // 저장값 자체 무결성: 잠금 이후 amount 컬럼/본문이 바뀌었으면 저장된 doc_hash 와
+    // 재계산이 어긋난다. clientDocHash 대조는 '고객이 본 것 = 저장값'만 증명하므로,
+    // 저장값이 통째로 손상된 경우는 이 재계산 대조가 잡는다.
+    if (!this._docHashIntact(c)) {
+      audit(this.db, { contractId: tk.contract_id, partyId: tk.party_id, event: EVENTS.SIGNATURE_SUBMITTED, at: this.clock(), meta: { rejected: 'DOC_TAMPERED' } });
+      throw new AppError('DOC_TAMPERED', '계약 데이터 검증에 실패했습니다. 계약서가 잠금 후 수정되었을 수 있습니다 — 010-2397-8629 로 문의해 주세요.');
+    }
     // 문서 위·변조 대조: 고객이 본 해시가 서버 정본과 일치해야 서명 유효.
     // 해시 미제출도 거부한다(누락 시 대조를 건너뛰는 우회를 차단).
     if (!clientDocHash) throw new AppError('DOC_HASH_REQUIRED', '문서 확인 값이 없어 서명할 수 없습니다. 처음부터 다시 진행해 주세요.');
@@ -345,7 +425,59 @@ export class ContractService {
     audit(this.db, { contractId: tk.contract_id, event: EVENTS.CONTRACT_COMPLETED, at: now });
     // 완료 직후 재열람용 단기(15분) view 토큰 발급 → 새로고침해도 완료본을 다시 볼 수 있게.
     const view = this.issueSignLink(tk.contract_id, tk.party_id, 'view');
-    return { completed: true, imageSha256: imgHash, docHash: c.doc_hash, viewToken: view.token };
+    // contractId 는 라우트의 완료 통지(notifyCompleted)용 — 클라이언트에 노출돼도 무해(불투명 id, 모든 조회는 토큰/관리자 인증 필요).
+    return { completed: true, imageSha256: imgHash, docHash: c.doc_hash, viewToken: view.token, contractId: tk.contract_id };
+  }
+
+  // 11-b) 계약 완료 통지 — 서명이 '성립한 뒤'에 부르는 부가 경로. 실패해도 계약 완료에는
+  //     영향이 없다(발송을 개별로 삼키고 상태만 보고). 예전에는 완료 시 아무 통지가 없어,
+  //     고객이 토요일에 서명해도 사장님이 /admin 을 열기 전엔 아무도 몰랐다.
+  //     contract_done 템플릿도 시드만 되고 호출부가 0건이었다.
+  //   - customerPhoneRaw: 서명 화면이 본인확인 때 쓴 번호(서버는 원문 미보관 → 호출 시점 전달).
+  //     sendMessage 가 당사자 해시와 대조하므로 다른 번호로는 애초에 발송되지 않는다.
+  //   - ownerPhoneRaw: 설정 OWNER_NOTIFY_PHONE(대표 수신번호). 미설정이면 건너뛴다.
+  async notifyCompleted(contractId, provider, { customerPhoneRaw = null, viewToken = null, baseUrl = '', ownerPhoneRaw = null } = {}) {
+    const c = this._contract(contractId);
+    if (c.status !== 'COMPLETED') throw new AppError('NOT_COMPLETED', '완료된 계약이 아닙니다.');
+    const customer = this.db.prepare("SELECT * FROM contract_parties WHERE contract_id=? AND role='customer'").get(contractId);
+    const base = String(baseUrl || '').replace(/\/$/, '');
+    const out = { customer: null, owner: null };
+    if (provider && customer && customerPhoneRaw && viewToken) {
+      try {
+        const d = await this.sendMessage(contractId, customer.id, 'contract_done', provider,
+          { viewUrl: `${base}/sign#v=${viewToken}` }, customerPhoneRaw);
+        out.customer = { sent: d.status === 'SENT', reason: d.reason || null };
+      } catch (e) { out.customer = { sent: false, reason: (e && e.code) || 'SEND_ERROR' }; }
+    }
+    if (provider && ownerPhoneRaw) {
+      try {
+        const d = await this.sendNotification(provider, {
+          toPhoneRaw: ownerPhoneRaw, contractId, kind: 'contract_done_owner',
+          text: `[만물인테리어] 전자계약 체결 완료\n${c.contract_no} · ${customer ? customer.name : ''}님 · ${Number(c.amount || 0).toLocaleString('en-US')}원\n관리자 화면(/admin)에서 확인하세요.`,
+        });
+        out.owner = { sent: d.status === 'SENT', reason: d.reason || null };
+      } catch (e) { out.owner = { sent: false, reason: (e && e.code) || 'SEND_ERROR' }; }
+    }
+    return out;
+  }
+
+  // 11-c) 계약 취소(VOID) — 잘못 보낸 계약서/링크를 무효화하는 유일한 공식 경로.
+  //     예전에는 VOID 를 읽는 코드(집계 제외 등)만 있고 쓰는 코드가 없어서, 금액을 잘못 넣어
+  //     보낸 계약서도 고객 폰에서 72시간 내내 서명 가능했다. 취소하면:
+  //       * 상태 VOID → 서명 제출·새 링크 발급이 막힌다(SIGNABLE_STATUSES 밖)
+  //       * 미사용 토큰 전부 revoke → 이미 보낸 링크가 그 자리에서 죽는다(REVOKED)
+  //     완료(COMPLETED)된 계약은 봉인 — 여기서는 취소할 수 없다(합의해제는 별도 서면으로).
+  voidContract(contractId, reason = '') {
+    const c = this._contract(contractId);
+    if (c.status === 'COMPLETED') throw new AppError('ALREADY_COMPLETED', '체결 완료된 계약은 취소할 수 없습니다. 해제는 별도 합의서로 진행하세요.');
+    if (c.status === 'VOID') return { status: 'VOID', already: true, revokedTokens: 0 };
+    const now = this.clock();
+    // 경합 방지: 이 사이 COMPLETED 로 넘어갔으면 아무것도 바꾸지 않는다.
+    const upd = this.db.prepare(`UPDATE contracts SET status='VOID', updated_at=? WHERE id=? AND status NOT IN('COMPLETED','VOID')`).run(now, contractId);
+    if (upd.changes === 0) throw new AppError('ALREADY_COMPLETED', '체결 완료된 계약은 취소할 수 없습니다. 해제는 별도 합의서로 진행하세요.');
+    const rev = this.db.prepare(`UPDATE sign_tokens SET revoked_at=? WHERE contract_id=? AND used_at IS NULL AND revoked_at IS NULL`).run(now, contractId);
+    audit(this.db, { contractId, event: EVENTS.CONTRACT_VOIDED, at: now, meta: { reason: String(reason || '').slice(0, 200) || null, revokedTokens: rev.changes } });
+    return { status: 'VOID', revokedTokens: rev.changes };
   }
 
   _hasViewed(partyId) {
@@ -385,16 +517,42 @@ export class ContractService {
     };
   }
 
+  // 13-c) 완료본 전체 — 운영자용(토큰 불필요, 관리자 인증은 라우트가 한다).
+  // 고객용 열람 링크는 15분 만료라, 반년 뒤 "계약서 사본 주세요" 요청에는 이 경로가 답이다.
+  // 예전에는 이 경로가 없어서 사본을 꺼내려면 서버에 SSH 로 들어가 sqlite 를 직접 열어야 했다.
+  getCompletedDocAdmin(contractId) {
+    const c = this._contract(contractId);
+    if (c.status !== 'COMPLETED') throw new AppError('NOT_COMPLETED', '완료된 계약이 아닙니다.');
+    const sig = this.db.prepare('SELECT image_sha256, image_data, signed_at FROM signatures WHERE contract_id=? ORDER BY signed_at DESC LIMIT 1').get(contractId);
+    const customer = this.db.prepare("SELECT name FROM contract_parties WHERE contract_id=? AND role='customer'").get(contractId);
+    audit(this.db, { contractId, event: EVENTS.COMPLETED_DOC_ACCESSED, at: this.clock(), meta: { operator: true } });
+    return {
+      contractNo: c.contract_no, title: c.title, amount: c.amount,
+      body: JSON.parse(c.body_snapshot), docHash: c.doc_hash,
+      completedAt: c.completed_at, signerName: customer ? customer.name : '',
+      imageSha256: sig ? sig.image_sha256 : null,
+      signatureImage: sig && sig.image_data ? `data:image/png;base64,${sig.image_data}` : null,
+    };
+  }
+
   // 14) 증거 패키지 — 계약·당사자·해시·동의·서명·전체 감사추적을 한 번에 봉인.
   evidencePackage(contractId) {
     const c = this._contract(contractId);
     const parties = this.db.prepare('SELECT role,name,phone_masked,verified_at FROM contract_parties WHERE contract_id=?').all(contractId);
     const consents = this.db.prepare('SELECT party_id,consent_key,consent_text_hash,agreed_at FROM consents WHERE contract_id=?').all(contractId);
-    const signatures = this.db.prepare('SELECT party_id,image_sha256,doc_hash_seen,signed_at FROM signatures WHERE contract_id=?').all(contractId);
+    // 서명 이미지(base64)까지 담는다 — 패키지 하나로 분쟁 대응이 끝나야 한다.
+    // 예전에는 해시만 있고 정작 '무엇에 서명했는지'(본문)와 서명 이미지가 빠져 있었다.
+    const signatures = this.db.prepare('SELECT party_id,image_sha256,image_data,doc_hash_seen,signed_at FROM signatures WHERE contract_id=?').all(contractId)
+      .map((s) => ({ party_id: s.party_id, image_sha256: s.image_sha256, doc_hash_seen: s.doc_hash_seen, signed_at: s.signed_at,
+                     signatureImage: s.image_data ? `data:image/png;base64,${s.image_data}` : null }));
     const deliveries = this.db.prepare('SELECT template_key,provider,status,sent_at,delivered_at FROM message_deliveries WHERE contract_id=?').all(contractId);
     const auditTrail = trail(this.db, contractId);
     const pkg = {
       contract: { contractNo: c.contract_no, title: c.title, amount: c.amount, docHash: c.doc_hash, status: c.status, lockedAt: c.locked_at, completedAt: c.completed_at },
+      // 저장값 재계산 대조 결과 — false 면 잠금 이후 금액/본문이 손상된 것(분쟁 시 먼저 볼 값)
+      docHashVerified: c.doc_hash ? this._docHashIntact(c) : null,
+      // 계약 본문 원문 — docHash 가 가리키는 실제 문서. 이게 없으면 "해시는 있는데 원문이 없다"가 된다.
+      body: JSON.parse(c.body_snapshot),
       parties, consents, signatures, deliveries, auditTrail,
       generatedAt: this.clock(),
     };
@@ -704,6 +862,17 @@ export class ContractService {
   _requireVerified(partyId) {
     const p = this._party(partyId);
     if (!p.verified_at) throw new AppError('NOT_VERIFIED', '본인확인 후 진행할 수 있습니다.');
+  }
+  // 저장값(doc_hash) 재계산 대조 — 잠금 이후 body_snapshot·amount 가 손상되지 않았는가.
+  // 현행 스킴은 {amount, body} 를 함께 해시한다. 그 이전에 잠근 계약(본문만 해시)은
+  // 구스킴 재계산으로도 인정한다 — 단, 구스킴 계약의 amount 변조는 소급 검출할 수 없다
+  // (해시가 애초에 금액을 덮지 않았으므로). 신규 잠금부터는 금액 변조도 잡힌다.
+  _docHashIntact(c) {
+    if (!c.doc_hash || !c.body_snapshot) return false;
+    let body;
+    try { body = JSON.parse(c.body_snapshot); } catch { return false; }
+    if (safeEqualHex(docHash({ amount: c.amount | 0, body }), c.doc_hash)) return true;
+    return safeEqualHex(docHash(body), c.doc_hash);
   }
   // 토큰 검증: 해시 대조 + 만료 + 소진/폐기 확인. 평문은 비교 즉시 버린다.
   _validToken(rawToken, purpose) {

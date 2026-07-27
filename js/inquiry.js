@@ -17,6 +17,8 @@
   let CONFIG = {};
   let COMPANY = {};
   let SELECTED_DESIGN = null;
+  let SIM_SPEC = '';   // 시뮬레이터에서 만든 '우리집 사양서' 요약(재현 링크 포함) — 문의 본문에 함께 보낸다
+  let LOOK_SPEC = '';  // '우리집 한 채로 보기'에서 정한 공간·시안 목록 — SIM_SPEC 과 슬롯을 나눈다(재사용하면 사양서 요약이 덮여 사라진다)
 
   const $ = (id) => document.getElementById(id);
 
@@ -164,6 +166,8 @@
       memo: (fd.get('memo') || '').trim(),
       consent: fd.get('consent') === 'on',
       estimateHint: window.MANMUL && window.MANMUL.getEstimate ? window.MANMUL.getEstimate() : '',
+      simSpec: SIM_SPEC || '',
+      lookSpec: LOOK_SPEC || '',
       selectedDesign: SELECTED_DESIGN
         ? (SELECTED_DESIGN.title +
           (SELECTED_DESIGN.style ? ' (' + SELECTED_DESIGN.style + ')' : '') +
@@ -339,6 +343,8 @@
     const bm = [d.budget, d.movein].filter(Boolean).join(' · ');
     if (bm) L.push('예산/시기: ' + bm);
     if (d.selectedDesign) L.push('관심 디자인: ' + d.selectedDesign);
+    if (d.simSpec) L.push(d.simSpec);
+    if (d.lookSpec) L.push(d.lookSpec);
     if (d.estimateHint) L.push('참고 견적: ' + d.estimateHint);
     if (d.memo) L.push('메모: ' + d.memo);
     return L.join('\n');
@@ -359,12 +365,23 @@
     document.body.removeChild(ta);
   }
 
+  // 개인정보 보유기간 — 상담 폼 동의 문구("보유기간 1년")와 반드시 같아야 한다.
+  // 화면은 1년이라고 안내하는데 코드가 90일이면, 안내와 다른 시점에 자료가 사라진다.
+  const RETENTION_DAYS = 365;
+
+  // 보유기간 지난 항목을 실제로 지운다. 걸러내기만 하면 브라우저에는 그대로 남으므로,
+  // 지운 게 있으면 저장까지 해야 '삭제'가 된다.
+  function pruneExpired(list) {
+    const cutoff = Date.now() - RETENTION_DAYS * 86400000;
+    // 시각을 알 수 없는 항목은 함부로 지우지 않는다(언제 들어왔는지 모르는 걸 지우면 복구 불가)
+    const kept = list.filter((x) => { const t = Date.parse(x && x.submittedAt || '') || 0; return !t || t >= cutoff; });
+    return { kept, removed: list.length - kept.length };
+  }
+
   function saveLocal(payload) {
     let list = [];
     try { list = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { list = []; }
-    // 개인정보 최소 보관: 90일 지난 항목 자동 삭제(관리자 화면을 안 여는 고객 브라우저에서도 정리) + 상한.
-    const cutoff = Date.now() - 90 * 86400000;
-    list = list.filter((x) => { const t = Date.parse(x && x.submittedAt || '') || 0; return !t || t >= cutoff; });
+    list = pruneExpired(list).kept;
     payload.id = payload.id || ('INQ-' + Date.now());
     list.unshift(payload);
     if (list.length > 50) list = list.slice(0, 50);
@@ -440,7 +457,14 @@
   let retrying = false;
 
   function loadLocal() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { return []; }
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { return []; }
+    // 여기서도 정리한다. 예전에는 saveLocal 에서만 걸러서, saveLocal 은 '전송 실패'일 때만 불리므로
+    // 전송이 잘 되는 동안에는 만료 항목이 영원히 남았다(실측: 201일 지난 항목이 그대로 있었다).
+    // 페이지를 열어 이 함수가 한 번이라도 불리면 정리된다.
+    const { kept, removed } = pruneExpired(list);
+    if (removed > 0) writeLocal(kept);
+    return kept;
   }
   function writeLocal(list) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
@@ -490,6 +514,15 @@
     renderSelectedDesign();
     // 예상견적 답변을 폼에 자동 채움 (같은 질문 반복 방지)
     document.addEventListener('manmul:estimate', (e) => prefillFromEstimate(e.detail || {}));
+    // 시뮬레이터('우리집 사양서') 결과를 폼에 자동 채움 — 사장님이 방문 전에 범위를 알 수 있게
+    // 사양서 요약 텍스트는 SIM_SPEC 으로 들고 있다가 문의 본문에 실어 보낸다(전화번호 요구 없음).
+    // '우리집 한 채로 보기' 구성 — 대표가 방문 전에 어느 공간을 어떤 시안으로 볼지 알 수 있게 본문에 싣는다
+    document.addEventListener('manmul:lookbook', (e) => { LOOK_SPEC = (e.detail && e.detail.text) || ''; });
+    document.addEventListener('manmul:sim', (e) => {
+      const d = e.detail || {};
+      SIM_SPEC = d.text || '';
+      prefillFromEstimate({ area: d.area, budget: d.budget });
+    });
 
     // 못 보낸 문의 재전송: 화면 그리기를 막지 않도록 뒤로 미루고, 온라인 복귀 때도 한 번.
     setTimeout(() => { retryPending(); }, 3000);

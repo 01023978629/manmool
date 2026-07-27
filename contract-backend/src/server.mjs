@@ -4,20 +4,22 @@
 // 로그 정책: 서명 토큰은 URL/경로에 넣지 않는다(요청 로그에 남기지 않기 위해).
 //   → 서명 플로우 토큰은 헤더 x-sign-token 으로 받는다.
 import { createServer } from 'node:http';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync, createReadStream, unlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { openDb } from './db.mjs';
 import { ContractService, AppError } from './service.mjs';
 import { MockKakaoMessageProvider } from './providers/kakao.mjs';
 import { selectProvider } from './providers/index.mjs';
+import { buildStandardBody } from './standard-contract.mjs';
 import { settingsStatus, writeSettings, mergedSource, checkAdmin } from './settings.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
 // 안전한 기본값: 데모 기능은 명시적으로 켜야만 동작한다(enableDemo=false, demoOtp=null 기본).
 // 운영(NODE_ENV=production)에서 데모가 켜져 있으면 기동을 거부한다(fail-fast).
-export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = false, provider = null } = {}) {
+export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = false, provider = null, injectedLive = false } = {}) {
   if (process.env.NODE_ENV === 'production' && (enableDemo || demoOtp)) {
     throw new Error('보안: 운영 환경에서는 데모 모드(enableDemo/demoOtp)를 사용할 수 없습니다.');
   }
@@ -33,7 +35,9 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   const injected = provider;
   let _cached = null, _cachedKey = null;
   const resolveProvider = () => {
-    if (injected) return { provider: injected, live: false };
+    // injectedLive 는 테스트 전용: 본인번호 테스트 발송처럼 live 게이트 뒤의 경로를
+    // 실제 네트워크 없이 끝까지 태워보기 위한 스위치다. 운영 진입점(prod.mjs)은 주입을 안 쓴다.
+    if (injected) return { provider: injected, live: injectedLive };
     const src = mergedSource(process.env, db);
     // 설정이 바뀔 때만 재해석(그 외엔 동일 인스턴스 재사용 → Mock 상태·연결 유지).
     const key = JSON.stringify(['ALIMTALK_LIVE', 'SOLAPI_API_KEY', 'SOLAPI_API_SECRET', 'SOLAPI_PF_ID', 'SOLAPI_SENDER', 'SOLAPI_TEMPLATE_SIGN', 'SOLAPI_TEMPLATE_DONE', 'SOLAPI_DISABLE_SMS'].map((k) => src[k] || ''));
@@ -51,7 +55,19 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   on('GET', /^\/healthz$/, async () => ({ ok: true, live: providerLive() }));
 
   // 서명 화면(동일 출처로 서빙 → CORS 불필요, 토큰은 프래그먼트로만 전달)
-  const signHtml = readFileSync(join(__dir, '..', 'public', 'sign.html'), 'utf8');
+  // 데모 배너는 데모일 때만 남긴다. 운영에서는 통째로 지운다 —
+  // 고객이 실제 계약서를 열었을 때 "법적 효력은 없습니다"를 먼저 읽는 일이 없어야 한다.
+  const signHtml = (() => {
+    const raw = readFileSync(join(__dir, '..', 'public', 'sign.html'), 'utf8');
+    // 데모 표식이 하나라도 켜져 있으면 배너를 남긴다. 운영(prod.mjs)은 둘 다 꺼져 있고,
+    // production 에서는 애초에 켤 수 없다(위 21-23행).
+    if (enableDemo || demoOtp) return raw;
+    const stripped = raw.replace(/<!--DEMO_BANNER-->[\s\S]*?<!--\/DEMO_BANNER-->/g, '');
+    if (stripped === raw && /DEMO_BANNER/.test(raw)) {
+      throw new Error('sign.html 의 데모 배너 표식이 깨졌습니다 — 운영에서 배너가 노출될 수 있어 기동을 중단합니다.');
+    }
+    return stripped;
+  })();
   on('GET', /^\/sign\/?$/, async (_r, _m, res) => { html(res, signHtml); return SENT; });
 
   // 관리자 설정 화면(로그인은 페이지 안에서 관리자 토큰 입력 → 이후 API는 헤더로 인증)
@@ -62,8 +78,13 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   // 토큰을 "틀리게 제시한" 경우만 센다 → 토큰 미제시(무인증)는 정상 401 로 통과.
   const _adminFails = new Map(); // ip → { n, until }  (until: 잠금 해제 epoch ms)
   const clientIp = (req) => {
+    // Fly 는 실제 접속 IP 를 fly-client-ip 로 준다 — 위조 불가한 이 값을 최우선.
+    // X-Forwarded-For 는 '맨 앞'이 아니라 '마지막' 항목을 쓴다. 맨 앞은 클라이언트가
+    // 마음대로 적을 수 있어, 헤더만 바꾸면 관리자 잠금(백오프)을 매번 초기화할 수 있었다.
+    const fly = req.headers['fly-client-ip'];
+    if (fly) return String(fly).trim();
     const xf = req.headers['x-forwarded-for'];
-    if (xf) return String(xf).split(',')[0].trim();
+    if (xf) { const parts = String(xf).split(','); return parts[parts.length - 1].trim(); }
     return (req.socket && req.socket.remoteAddress) || 'unknown';
   };
   const ADMIN_LOCK_FREE = 5;      // 이 횟수까지는 즉시 401(잠금 없음)
@@ -117,6 +138,11 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
     return svc.createContract(b);
   });
   on('POST', /^\/api\/contracts\/([^/]+)\/lock$/, async (req, [id]) => { requireAdmin(req); return svc.lockDocument(id); });
+  // 계약 취소 — 잘못 보낸 계약서를 무효화한다(상태 VOID + 이미 보낸 링크 즉시 REVOKED).
+  on('POST', /^\/api\/contracts\/([^/]+)\/void$/, async (req, [id]) => {
+    requireAdmin(req); const b = await body(req);
+    return svc.voidContract(id, b.reason || '');
+  });
   on('POST', /^\/api\/contracts\/([^/]+)\/parties\/([^/]+)\/sign-link$/, async (req, [id, pid]) => {
     requireAdmin(req); return svc.issueSignLink(id, pid, 'sign');
   });
@@ -127,6 +153,43 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   });
   on('POST', /^\/api\/deliveries\/([^/]+)\/refresh$/, async (req, [id]) => { requireAdmin(req); return svc.refreshDelivery(id, currentProvider(resolveProvider)); });
   on('GET', /^\/api\/contracts\/([^/]+)\/evidence$/, async (req, [id]) => { requireAdmin(req); return svc.evidencePackage(id); });
+  // 완료 계약서 — 운영자용 사본(본문·서명 이미지·해시). 고객 열람 링크는 15분 만료라
+  // 반년 뒤 "사본 주세요" 요청은 이 경로로 처리한다.
+  on('GET', /^\/api\/contracts\/([^/]+)\/completed$/, async (req, [id]) => { requireAdmin(req); return svc.getCompletedDocAdmin(id); });
+  // 완료 계약서 — 고객 열람 링크 재발급(15분). 링크는 /sign#v=<토큰> 형태로 고객에게 전달한다.
+  // 계약 목록 화면은 party id 를 모르므로, 고객 당사자는 서버가 찾는다.
+  on('POST', /^\/api\/contracts\/([^/]+)\/view-link$/, async (req, [id]) => {
+    requireAdmin(req);
+    const customer = db.prepare("SELECT id FROM contract_parties WHERE contract_id=? AND role='customer'").get(id);
+    if (!customer) throw new AppError('NO_PARTY', '고객 당사자를 찾을 수 없습니다.');
+    const { token } = svc.issueViewLink(id, customer.id);
+    return { viewPath: `/sign#v=${token}`, expiresInMinutes: 15 };
+  });
+  // 계약 데이터 백업 — DB 파일 사본을 내려받는다(VACUUM INTO = 일관된 스냅숏).
+  // 계약·서명·감사기록의 사본이 Fly 볼륨 하나뿐이면, 볼륨이 죽는 날 전부 사라진다.
+  // 사장님이 한 달에 한 번 눌러 구글드라이브에 넣어 두는 것이 이 버튼의 용도다.
+  on('GET', /^\/admin\/backup$/, async (req, _m, res) => {
+    requireAdmin(req);
+    const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const tmp = join(tmpdir(), `mm-backup-${stamp}-${Date.now()}.db`);
+    db.exec(`VACUUM INTO '${tmp.replace(/'/g, "''")}'`);
+    try {
+      const size = statSync(tmp).size;
+      res.writeHead(200, {
+        'content-type': 'application/octet-stream',
+        'content-length': size,
+        'content-disposition': `attachment; filename="manmool-contracts-${stamp}.db"`,
+      });
+      await new Promise((resolve, reject) => {
+        const s = createReadStream(tmp);
+        s.on('error', reject); res.on('error', reject);
+        s.on('end', resolve); s.pipe(res);
+      });
+    } finally {
+      try { unlinkSync(tmp); } catch { /* 임시 파일 정리 실패는 치명적이지 않다 */ }
+    }
+    return SENT;
+  });
   // 원클릭: 생성→잠금→서명링크→발송 을 한 번에(현장 앱 "알림톡 보내기"용).
   on('POST', /^\/api\/contracts\/quick-send$/, async (req) => {
     requireAdmin(req); const b = await body(req);
@@ -177,14 +240,40 @@ export function createApp({ dbPath = ':memory:', demoOtp = null, enableDemo = fa
   on('GET', /^\/api\/sign\/full$/, async (req) => svc.getFullContract(tok(req)));
   // 완료본 재열람(단기 view 토큰). 토큰은 헤더로만.
   on('GET', /^\/api\/sign\/completed$/, async (req) => svc.getCompletedDoc(tok(req), ctx(req)));
-  on('POST', /^\/api\/sign\/otp$/, async (req) => svc.requestOtp(tok(req)));
+  // 본인확인 문자 발송 — provider 와 수신번호를 넘겨야 실제로 나간다.
+  // 번호는 고객이 직접 입력하고, 서버가 계약 당사자의 번호가 맞는지 해시로 대조한다
+  // (서버는 번호 원문을 보관하지 않는다). 다른 번호로는 발송 자체가 안 된다.
+  on('POST', /^\/api\/sign\/otp$/, async (req) => {
+    const b = await body(req);
+    return svc.requestOtp(tok(req), currentProvider(resolveProvider), b.phone || null);
+  });
   on('POST', /^\/api\/sign\/verify$/, async (req) => { const b = await body(req); return svc.verifyOtp(tok(req), b.code, ctx(req)); });
   on('POST', /^\/api\/sign\/viewed$/, async (req) => svc.markViewed(tok(req)));
   on('POST', /^\/api\/sign\/consent$/, async (req) => { const b = await body(req); return svc.recordConsents(tok(req), b.consents || [], ctx(req)); });
   on('POST', /^\/api\/sign\/signature$/, async (req) => {
-    const b = await body(req);
+    // 토큰 검증을 본문 수신보다 먼저 한다 — 예전에는 본문을 통째로 버퍼링한 뒤에야 BAD_TOKEN 을
+    // 돌려줘서, 무인증 4.4MB × 10건 동시 요청에 서버 메모리가 +119MB 튀었다(실측).
+    svc.assertSignToken(tok(req));
+    const b = await body(req, BODY_LIMIT_SIGNATURE);
     const bytes = b.imageBase64 ? Buffer.from(b.imageBase64, 'base64') : Buffer.from('');
-    return svc.submitSignature(tok(req), { imageBytes: bytes, clientDocHash: b.clientDocHash }, ctx(req));
+    const result = svc.submitSignature(tok(req), { imageBytes: bytes, clientDocHash: b.clientDocHash }, ctx(req));
+    // 완료 통지 — 서명은 위에서 이미 성립했다. 통지는 어떤 실패도 서명 응답을 깨지 않는다.
+    //   고객: contract_done 알림톡(15분 열람 버튼). 번호는 서명 화면이 본인확인 때 쓴 값(b.phone),
+    //         서버가 당사자 해시와 대조하므로 다른 번호로는 발송 자체가 안 된다.
+    //   대표: 설정 OWNER_NOTIFY_PHONE 으로 완료 문자 — /admin 을 열지 않아도 체결을 안다.
+    try {
+      const src = mergedSource(process.env, db);
+      const host = String(req.headers.host || '');
+      const proto = String(req.headers['x-forwarded-proto'] || (/^(localhost|127\.)/.test(host) ? 'http' : 'https')).split(',')[0].trim();
+      result.notify = await svc.notifyCompleted(result.contractId, currentProvider(resolveProvider), {
+        customerPhoneRaw: b.phone || null, viewToken: result.viewToken,
+        baseUrl: host ? `${proto}://${host}` : '',
+        ownerPhoneRaw: src.OWNER_NOTIFY_PHONE || null,
+      });
+    } catch (e) {
+      result.notify = { customer: null, owner: null, error: (e && e.code) || 'NOTIFY_ERROR' };
+    }
+    return result;
   });
 
   // CORS: 교차출처(현장 앱 등) 운영자 호출 허용. 명시적으로 지정한 출처만.
@@ -264,10 +353,19 @@ async function runSelfTest(svc, resolveProvider, phone, baseUrl) {
   if (!/^01[016789]\d{7,8}$/.test(digits)) throw new AppError('BAD_PHONE', '휴대폰 번호 형식이 올바르지 않습니다.');
   let sel; try { sel = resolveProvider(); } catch (e) { throw new AppError('PROVIDER_CONFIG', e.message); }
   if (!sel.live || sel.provider.name === 'mock') throw new AppError('NOT_LIVE', '실제 발송이 꺼져 있어 테스트할 수 없습니다. 설정을 저장하고 실제 발송을 켜주세요.');
+  // 번호는 DB 채번(TEST-YYYYMMDD-NNN). 예전에는 TEST-<날짜> 고정이라 같은 날 두 번째
+  // 테스트가 UNIQUE 충돌로 100% 실패했다 — 사장님의 알림톡 설정 작업을 정확히 막았다.
+  // 본문은 표준안(명목 1,000원)으로 채운다. 예전의 빈 본문(clauses:[])은 잠금 검증
+  // (INCOMPLETE_BODY — 빈 계약서 서명 차단)에 걸려 테스트 자체가 돌지 않는다.
+  // 덕분에 사장님이 받는 테스트 링크가 실제 고객이 보게 될 화면과 똑같아진다.
   const { contractId, parties } = svc.createContract({
-    contractNo: `TEST-${new Date().toISOString().slice(0, 10)}`,
-    title: '전자계약 발송 테스트', amount: 0,
-    body: { note: '본인번호 테스트(법적 효력 없음)', clauses: [] },
+    contractNo: nextContractNo(svc, 'TEST'),
+    title: '전자계약 발송 테스트',
+    amount: 1000,
+    body: buildStandardBody({
+      site: '테스트 현장(발송 확인용)', scope: ['발송 테스트'], amount: 1000,
+      customerName: '테스트', period: '발송 확인용',
+    }),
     operator: { name: '만물대표', phone: '010-0000-1111' },
     customer: { name: '테스트', phone: digits },
   });
@@ -275,23 +373,57 @@ async function runSelfTest(svc, resolveProvider, phone, baseUrl) {
   const { token } = svc.issueSignLink(contractId, parties.customer, 'sign');
   const signUrl = baseUrl ? `${String(baseUrl).replace(/\/$/, '')}/sign#t=${token}` : `/sign#t=${token}`;
   const res = await svc.sendMessage(contractId, parties.customer, 'contract_sign', sel.provider,
-    { site: '테스트 현장', amount: '0', signUrl }, digits);
+    { site: '테스트 현장', amount: '1000', signUrl }, digits);
   return { status: res.status, reason: res.reason || null, provider: sel.provider.name };
 }
 
+// 계약번호 채번 — 메모리 카운터가 아니라 DB 에서 '오늘 접두사의 최댓값 + 1'.
+// ※ 예전에는 let _qsSeq = 0 이었다. 프로세스 메모리라 배포·재시작하면 0으로 돌아가,
+//   그날 이미 보낸 건수만큼 UNIQUE 충돌 → 원인 불명 500 이 났다(계약번호는 UNIQUE).
+//   실측: 같은 파일 DB 에 두 번째 프로세스를 띄우면 첫 발송부터 실패했다.
+function nextContractNo(svc, kind = 'MM') {
+  const prefix = `${kind}-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-`;
+  // substr 은 1-기준 → 접두사 바로 뒤의 일련번호만 숫자로 읽어 최댓값을 구한다
+  const row = svc.db.prepare(
+    'SELECT MAX(CAST(substr(contract_no, ?) AS INTEGER)) m FROM contracts WHERE contract_no LIKE ?'
+  ).get(prefix.length + 1, prefix + '%');
+  return prefix + String(((row && row.m) || 0) + 1).padStart(3, '0');
+}
+
 // 원클릭 발송: 생성→잠금→서명링크→발송. 현장 앱이 계약 데이터를 넘기면 한 번에 처리.
-let _qsSeq = 0;
 async function quickSend(svc, provider, b) {
   if (!b || !b.customer || !b.customer.phone) throw new AppError('BAD_INPUT', '고객 정보(이름·전화)가 필요합니다.');
   if (!b.operator || !b.operator.phone) throw new AppError('BAD_INPUT', '사업자 정보가 필요합니다.');
-  _qsSeq += 1;
-  const contractNo = b.contractNo || `MM-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(_qsSeq).padStart(3, '0')}`;
-  const amount = b.amount | 0;
-  const body = b.body || {};
-  const { contractId, parties } = svc.createContract({
-    contractNo, title: b.title || '공사 도급계약서', amount, body,
-    operator: b.operator, customer: b.customer,
-  });
+  const amount = Math.round(Number(b.amount) || 0);
+  // 현장 앱은 현장·범위·금액·고객만 보낸다. 계약 본문(조항·지급조건)은 서버가 표준안으로 채운다.
+  // 앱에 조항 문구를 복사해 두면 두 곳이 갈라지고, 예전에는 그 결과로 조항 0줄·지급조건 0원짜리
+  // 계약서에 고객이 서명하게 돼 있었다. 본문을 직접 보낸 경우(조항 포함)에만 그대로 쓴다.
+  const given = b.body || {};
+  const body = (Array.isArray(given.clauses) && given.clauses.length)
+    ? given
+    : buildStandardBody({
+        site: given.site || '', scope: given.scope || '', amount,
+        vatIncluded: given.vatIncluded, period: given.period || '',
+        customerName: (b.customer && b.customer.name) || given.customerName || '',
+        operator: { co: (b.operator && b.operator.co) || undefined, rep: (b.operator && b.operator.name) || undefined },
+      });
+  // 채번→INSERT 사이에 await 가 없어 프로세스 안에서는 경합이 없다.
+  // 다만 배포 겹침 등으로 두 프로세스가 같은 파일 DB 를 쓸 때는 같은 번호를 집을 수 있어,
+  // 그때만 다시 채번해 재시도한다(번호를 직접 지정한 경우는 재시도 없이 그대로 알린다).
+  let contractId, parties, contractNo;
+  for (let attempt = 0; ; attempt++) {
+    contractNo = b.contractNo || nextContractNo(svc);
+    try {
+      ({ contractId, parties } = svc.createContract({
+        contractNo, title: b.title || '공사 도급계약서', amount, body,
+        operator: b.operator, customer: b.customer,
+      }));
+      break;
+    } catch (e) {
+      if (e && e.code === 'DUP_CONTRACT_NO' && !b.contractNo && attempt < 3) continue;
+      throw e;
+    }
+  }
   svc.lockDocument(contractId);
   svc.seedPaymentSchedule(contractId); // body.payment 있으면 대금 스케줄 자동 생성(없으면 0)
   const { token } = svc.issueSignLink(contractId, parties.customer, 'sign');
@@ -341,17 +473,42 @@ function seedDemoContract(svc, provider) {
   const { token } = svc.issueSignLink(contractId, parties.customer, 'sign');
   return { contractId, partyId: parties.customer, token, signPath: `/sign#t=${token}` };
 }
-const BODY_LIMIT = 5e6; // 5MB — 서명 이미지(base64) 여유 포함
-function body(req) {
+// 본문 상한 — 바이트 기준. 라우트 대부분은 작은 JSON 이라 256KB 면 넉넉하고,
+// 서명 제출(이미지 base64)만 5MB 를 쓴다(라우트에서 명시).
+// ※ 예전에는 문자열로 이어 붙이며 '글자 수'를 셌다. 한글은 UTF-8 3바이트 = 1글자라
+//   5MB 상한을 한글 14.7MB 가 통과했다(실측 — 서버 RSS +72MB). 버퍼로 모아 바이트를 센다.
+//   버퍼 누적은 청크 경계에서 멀티바이트 글자가 갈라져도 안전하다(마지막에 한 번에 디코드).
+const BODY_LIMIT_DEFAULT = 256e3;
+const BODY_LIMIT_SIGNATURE = 5e6;
+function body(req, limit = BODY_LIMIT_DEFAULT) {
   return new Promise((resolve, reject) => {
-    let d = '', tooBig = false;
+    // 초과 시: 즉시 끊지 않는다 — 413 응답이 나가기 전에 소켓을 죽이면 클라이언트는
+    // ECONNRESET 만 보고 왜 실패했는지 모른다(실측). 응답이 나갈 시간을 주고 끊는다.
+    let dead = false;
+    const bail = () => {
+      dead = true;
+      const e = new AppError('PAYLOAD_TOO_LARGE', '요청 본문이 너무 큽니다.'); e.httpStatus = 413;
+      reject(e);
+      req.resume();                            // 남은 데이터는 버린다(버퍼링 안 함)
+      setTimeout(() => { try { req.destroy(); } catch { /* 이미 닫힘 */ } }, 1000).unref();
+    };
+    // content-length 를 먼저 본다 — 초과 선언이면 본문을 한 바이트도 모으지 않는다
+    const declared = Number(req.headers['content-length'] || 0);
+    if (declared > limit) { bail(); return; }
+    const chunks = [];
+    let size = 0;
     req.on('data', (c) => {
-      if (tooBig) return;
-      d += c;
-      if (d.length > BODY_LIMIT) { tooBig = true; d = ''; const e = new AppError('PAYLOAD_TOO_LARGE', '요청 본문이 너무 큽니다.'); e.httpStatus = 413; reject(e); req.destroy(); }
+      if (dead) return;
+      size += c.length;                       // Buffer.length = 바이트
+      if (size > limit) { chunks.length = 0; bail(); return; }
+      chunks.push(c);
     });
-    req.on('end', () => { if (tooBig) return; try { resolve(d ? JSON.parse(d) : {}); } catch (e) { reject(new AppError('BAD_JSON', 'JSON 파싱 실패')); } });
-    req.on('error', (err) => { if (!tooBig) reject(err); });
+    req.on('end', () => {
+      if (dead) return;
+      try { const d = Buffer.concat(chunks).toString('utf8'); resolve(d ? JSON.parse(d) : {}); }
+      catch (e) { reject(new AppError('BAD_JSON', 'JSON 파싱 실패')); }
+    });
+    req.on('error', (err) => { if (!dead) reject(err); });
   });
 }
 
