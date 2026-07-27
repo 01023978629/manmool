@@ -3,10 +3,11 @@
   'use strict';
 
   const SQM_PER_PYEONG = 3.3058;
-  const PRICE_BASIS = '2026.07 수도권 소규모 현장';
+  const PRICE_BASIS = '2026.07 수도권 소규모 현장 · 부가세 포함 · 철거·폐기 별도';
   const PRICE_SOURCES = [
     { label: '2026 시중노임단가', href: 'https://info.cak.or.kr/lay1/bbs/S1T9C12/A/2/view.do?article_seq=153489&condition=&cpage=1&keyword=&mode=view&rows=10' },
     { label: '2026 건설공사 표준품셈', href: 'https://www.codil.or.kr/helpdesk/read.do?bbsId=BBSMSTR_900000000202&nttId=13261' },
+    { label: '2026 하반기 표준시장단가', href: 'https://www.codil.or.kr/helpdesk/read.do?bbsId=BBSMSTR_900000000204&nttId=13281' },
     { label: '욕실 패키지 시장가', href: 'https://soomgo.com/market/products/6560ec0bb9f9d6cebf0a3460' },
     { label: '2026 도배 시장가', href: 'https://soomgo.com/blog/interior/%EB%8F%84%EB%B0%B0%EA%B0%80%EA%B2%A9/' }
   ];

@@ -4,8 +4,8 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SITE_PATH = path.join(ROOT, 'data', 'site.json');
-const TARGET_PER_SPACE = 30;
-const CACHE_VERSION = '20260723-space30';
+const TOTAL_TARGET = 300;
+const CACHE_VERSION = '20260727-space300';
 
 const SPACE_ORDER = ['거실', '침실', '주방', '욕실', '현관', '서재', '아이방', '드레스룸'];
 const SPACE_SLUGS = {
@@ -17,6 +17,19 @@ const SPACE_SLUGS = {
   '서재': 'study',
   '아이방': 'kids',
   '드레스룸': 'dressing'
+};
+const TARGET_BY_SPACE = Object.fromEntries(
+  SPACE_ORDER.map((space, index) => [space, Math.floor(TOTAL_TARGET / SPACE_ORDER.length) + (index < TOTAL_TARGET % SPACE_ORDER.length ? 1 : 0)])
+);
+const FEATURED_IMAGE_BY_SPACE = {
+  '거실': 'assets/designs/ai-300-living-warm-minimal.webp',
+  '침실': 'assets/designs/ai-300-bedroom-hotel.webp',
+  '주방': 'assets/designs/ai-300-kitchen-modern.webp',
+  '욕실': 'assets/designs/ai-300-bathroom-greige.webp',
+  '현관': 'assets/designs/ai-300-entry-minimal.webp',
+  '서재': 'assets/designs/ai-300-study-japandi.webp',
+  '아이방': 'assets/designs/ai-300-kids-safe.webp',
+  '드레스룸': 'assets/designs/ai-300-dressing-oak.webp'
 };
 
 const AREA_BINS = [
@@ -104,9 +117,11 @@ function validate(site) {
 
   for (const space of SPACE_ORDER) {
     const list = site.portfolio.filter((item) => item.spaceType === space);
-    if (list.length !== TARGET_PER_SPACE) errors.push(`${space}: ${list.length}건 (목표 ${TARGET_PER_SPACE}건)`);
+    const target = TARGET_BY_SPACE[space];
+    if (list.length !== target) errors.push(`${space}: ${list.length}건 (목표 ${target}건)`);
     if (new Set(list.map((item) => item.style)).size < 8) errors.push(`${space}: 스타일 구성이 8종 미만`);
   }
+  if (site.portfolio.length !== TOTAL_TARGET) errors.push(`전체: ${site.portfolio.length}건 (목표 ${TOTAL_TARGET}건)`);
 
   if (errors.length) throw new Error(`공간별 카탈로그 검증 실패\n- ${errors.join('\n- ')}`);
 }
@@ -122,15 +137,16 @@ const additions = [];
 
 for (const space of SPACE_ORDER) {
   const current = items.filter((item) => item.spaceType === space);
-  if (current.length > TARGET_PER_SPACE) throw new Error(`${space} 사례가 목표보다 많습니다: ${current.length}건`);
+  const target = TARGET_BY_SPACE[space];
+  if (current.length > target) throw new Error(`${space} 사례가 목표보다 많습니다: ${current.length}건`);
 
-  const photoPool = [...new Set(current.map((item) => plainPhoto(item.photo)).filter(Boolean))]
+  const photoPool = [...new Set([FEATURED_IMAGE_BY_SPACE[space], ...current.map((item) => plainPhoto(item.photo))].filter(Boolean))]
     .filter((photo) => fs.existsSync(path.join(ROOT, photo)));
   if (!photoPool.length) throw new Error(`${space}: 사용할 로컬 이미지가 없습니다.`);
 
   const styleCounts = new Map(styles.map((style) => [style, current.filter((item) => item.style === style).length]));
   const areaCounts = new Map(AREA_BINS.map((bin) => [bin.id, current.filter((item) => binForArea(item.area)?.id === bin.id).length]));
-  const needed = TARGET_PER_SPACE - current.length;
+  const needed = target - current.length;
 
   for (let index = 0; index < needed; index += 1) {
     const sequence = current.length + index + 1;
@@ -172,7 +188,7 @@ for (const space of SPACE_ORDER) {
       photoMirror: sequence % 6 === 0,
       imageAlt: `${title} ${space} 인테리어 AI 추천 이미지`,
       aiDesign: true,
-      catalogBatch: '2026-07-23-space30'
+      catalogBatch: '2026-07-27-space300'
     };
 
     if (tilePlan) item.tilePlan = tilePlan;

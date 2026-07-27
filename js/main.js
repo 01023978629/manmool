@@ -146,6 +146,16 @@ const STYLE_FEEL_TAGS = {
   '재팬디': ['고요한', '절제된', '자연스러운'],
   '스마트 수납': ['실용적인', '공간활용', '정돈된']
 };
+const SPACE_CONSTRUCTION_STEPS = {
+  '거실': ['바탕면 보수·전기 위치 확정', '벽·천장 도장 또는 도배', '강마루·걸레받이 시공', '수납가구·조명 설치와 마감 점검'],
+  '침실': ['침대 기준 콘센트·조명 위치 확정', '벽·천장 마감', '바닥·걸레받이 시공', '붙박이장·헤드월 설치와 문 간섭 점검'],
+  '주방': ['철거 후 급배수·전기·후드 위치 확정', '주방가구 제작·수평 설치', '상판·싱크·수전 연결', '백스플래시·실리콘·조명 마감'],
+  '욕실': ['철거·배관 점검과 바탕 정리', '2차 방수·코너 보강·담수시험', '벽타일 후 바닥타일 물매 시공', '도기·수전·파티션·환기 설치'],
+  '현관': ['바탕면과 중문 개구부 실측', '바닥 타일·줄눈 시공', '신발장·벤치 수납 설치', '중문·센서 조명 설치와 동선 점검'],
+  '서재': ['책상 기준 전기·조명 위치 확정', '벽·바닥 마감', '데스크·책장 수평 설치', '벽 고정·배선 정리와 의자 통로 점검'],
+  '아이방': ['저VOC 벽·바닥 마감', '성장형 가구 제작·배치', '수납장 전도 방지 고정', '조명·콘센트 안전과 재배치 공간 점검'],
+  '드레스룸': ['환기·전기·조명 위치 확정', '벽·바닥 마감', '시스템장·서랍 수평 설치', '센서 조명·행거·서랍 인출 간격 점검']
+};
 
 const SPACE_DESIGN_SHEETS = {
   '거실': ['assets/design-sheets/living-a.webp', 'assets/design-sheets/living-b.webp'],
@@ -275,6 +285,9 @@ function assignPortfolioDesignSheets(items) {
   const spaceCounts = {};
   const styleCounts = {};
   items.forEach((item) => {
+    // 300개 확장 배치는 개별 WebP 시안을 직접 노출한다.
+    // 기존 240개만 스프라이트 최적화를 유지해 첫 로딩 용량을 지킨다.
+    if (item.catalogBatch === '2026-07-27-space300') return;
     const sheets = SPACE_DESIGN_SHEETS[item.spaceType];
     if (!sheets) return;
     const spaceIndex = spaceCounts[item.spaceType] || 0;
@@ -292,7 +305,7 @@ function assignPortfolioDesignSheets(items) {
 // 시안 스프라이트는 CSS 배경이라 loading="lazy" 가 안 먹는다. 게다가 .reveal 이
 // display:none 이 아니라 opacity:0 이라 화면 밖 카드도 렌더트리에 남아, 그냥 두면
 // 시트 16장(약 2.5MB — 첫 로딩의 79%)이 첫 진입에 전부 내려온다.
-// → 격자(240장)는 화면에 다가올 때 채우고(observeSprites), 모달은 즉시 채운다.
+// → 격자(300장)는 화면에 다가올 때 채우고(observeSprites), 모달은 즉시 채운다.
 function portfolioSpriteStyle(item, eager) {
   const cell = Math.max(0, Math.min(15, Number(item.__designCell) || 0));
   const column = cell % 4;
@@ -532,11 +545,12 @@ function renderPortfolio(items, filterConfig) {
         .some((v) => v && String(v).toLowerCase().includes(q.toLowerCase()))));
 
     const hasActive = !!(state.complex && state.complex.trim()) || groups.some((g) => state[g.key]);
-    const hasThirtyPerSpace = spaceTypes.length > 0 &&
-      spaceTypes.every((space) => items.filter((item) => item.spaceType === space).length === 30);
+    const spaceCounts = spaceTypes.map((space) => items.filter((item) => item.spaceType === space).length);
+    const hasBalancedCatalog = items.length === 300 && spaceCounts.length > 0 &&
+      Math.max(...spaceCounts) - Math.min(...spaceCounts) <= 1;
     renderCostGuide();
-    const countSummary = !hasActive && hasThirtyPerSpace
-      ? `${spaceTypes.length}개 공간 · 공간별 30개 · 총 ${list.length}개 디자인`
+    const countSummary = !hasActive && hasBalancedCatalog
+      ? `${spaceTypes.length}개 공간 · 공간별 37~38개 · 총 ${list.length}개 디자인`
       : `총 ${list.length}개 디자인`;
     countEl.innerHTML = countSummary +
       (hasActive ? ' · <button type="button" class="folio-reset" data-folio-reset>필터 초기화</button>' : '');
@@ -811,6 +825,7 @@ function openFolioModal(item, all) {
     ['지역', item.region]
   ].filter(([, v]) => v).slice(0, 6);
   const matLabel = item.aiDesign ? '추천 자재·마감' : '주요 자재';
+  const constructionSteps = SPACE_CONSTRUCTION_STEPS[item.spaceType] || [];
   const tileNote = item.tileNote || (item.spaceType === '욕실'
     ? '욕실은 현장 배수구 위치와 바닥 높이를 실측한 뒤 물매와 재단선을 최종 확정합니다.'
     : '현장 치수에 따라 끝단 재단과 줄눈 시작 위치를 최종 조정합니다.');
@@ -831,6 +846,7 @@ function openFolioModal(item, all) {
       </div>
       ${gridRows.length ? `<dl class="fm-grid">${gridRows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>` : ''}
       ${(item.tilePlan || []).length ? `<div class="fm-block fm-tile-plan"><h4>실시공 타일 규격</h4><dl>${item.tilePlan.map((row) => `<div><dt>${row.label}</dt><dd>${row.value}</dd></div>`).join('')}</dl><p>${tileNote}</p></div>` : ''}
+      ${constructionSteps.length ? `<div class="fm-block"><h4>권장 시공 순서</h4><ol>${constructionSteps.map((step) => `<li>${step}</li>`).join('')}</ol></div>` : ''}
       ${(item.palette || []).length ? `<div class="fm-block"><h4>컬러 팔레트</h4><div class="fm-palette">${item.palette.map((c) => `<span style="background:${c}" title="${c}"></span>`).join('')}</div></div>` : ''}
       ${item.tip ? `<div class="fm-block"><h4>💡 AI 추천 포인트</h4><p>${item.tip}</p></div>` : ''}
       ${item.trendNote ? `<div class="fm-block fm-trend-note"><h4>트렌드 리서치</h4><p>${item.trendNote}</p></div>` : ''}

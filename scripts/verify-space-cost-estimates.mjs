@@ -8,12 +8,13 @@ vm.runInNewContext(fs.readFileSync('js/design-bom.js', 'utf8'), context);
 const site = JSON.parse(fs.readFileSync('data/site.json', 'utf8'));
 const catalog = JSON.parse(fs.readFileSync('data/material-catalog.json', 'utf8'));
 const expectedSpaces = ['거실', '침실', '주방', '욕실', '현관', '서재', '아이방', '드레스룸'];
+const expectedCounts = new Map(expectedSpaces.map((space, index) => [space, index < 4 ? 38 : 37]));
 const rows = site.portfolio.map((item) => ({
   item,
   bom: context.window.DesignBom.build(item, catalog)
 }));
 
-assert.equal(rows.length, 240, '디자인 시안은 총 240개여야 합니다.');
+assert.equal(rows.length, 300, '디자인 시안은 총 300개여야 합니다.');
 
 for (const row of rows) {
   const { item, bom } = row;
@@ -30,7 +31,7 @@ for (const row of rows) {
 
 const summary = expectedSpaces.map((space) => {
   const list = rows.filter((row) => row.item.spaceType === space);
-  assert.equal(list.length, 30, `${space}: 디자인이 30개여야 합니다.`);
+  assert.equal(list.length, expectedCounts.get(space), `${space}: 디자인 수가 균형 배분 기준과 다릅니다.`);
 
   const representative = list
     .filter((row) =>
@@ -59,4 +60,4 @@ assert.ok(bathroomLow >= 500 && bathroomLow <= 800, '표준형 욕실 하한은 
 assert.ok(bathroomHigh >= 700 && bathroomHigh <= 1000, '표준형 욕실 상한은 700~1,000만원 범위여야 합니다.');
 
 console.table(summary);
-console.log('공간별 예상비용 검증 완료: 8개 공간 · 240개 시안');
+console.log('공간별 예상비용 검증 완료: 8개 공간 · 300개 시안');
