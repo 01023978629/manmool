@@ -1163,6 +1163,14 @@ function setupPortfolioFabVisibility() {
 const FALLBACK_CONTACT = { phone: '010-2397-8629', email: '1dncjf@naver.com', hours: '평일 09:00 - 17:30', address: '대전광역시 중구 돌다리로19번길 9, 1층(석교동)' };
 
 function renderFallbackNotice() {
+  /* 데이터를 못 불러오면 시뮬레이터·우리집 한 채는 초기화 자체가 안 된다(init 이 조기 반환).
+     그러면 제목만 있고 속이 빈 상자가 남아 고객은 "고장났나" 하고 나간다. 전화 안내로 대체한다. */
+  const emptyMsg = '<p style="text-align:center;color:var(--ink-soft);padding:18px 0">지금은 이 기능을 불러오지 못했습니다. 새로고침하시거나 <a href="tel:' +
+    FALLBACK_CONTACT.phone.replace(/[^0-9]/g, '') + '"><b>' + FALLBACK_CONTACT.phone + '</b></a> 로 편하게 문의해 주세요.</p>';
+  ['simBody', 'lbBody'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el && !el.children.length) el.innerHTML = emptyMsg;
+  });
   const grid = document.getElementById('servicesGrid');
   if (grid && !grid.children.length) {
     grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--ink-soft)">콘텐츠를 일시적으로 불러오지 못했습니다. 새로고침하시거나, 아래 연락처로 문의해 주세요.<br/>📞 <a href="tel:' + FALLBACK_CONTACT.phone.replace(/[^0-9]/g, '') + '"><b>' + FALLBACK_CONTACT.phone + '</b></a> (' + FALLBACK_CONTACT.hours + ')</p>';
