@@ -88,7 +88,7 @@
   </script>
   <link rel="preload" as="image" href="assets/site/hero-interior.jpg" fetchpriority="high" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23b8895a'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="css/styles.css?v=20260728-paginate" />
+  <link rel="stylesheet" href="css/styles.css?v=20260728-area" />
 </head>
 <body>
   <!-- ===== Utility bar (업무 시스템) ===== -->
@@ -518,6 +518,13 @@
           <p>전화·이메일·카카오톡 어디로든 편하게 문의하세요.</p>
         </div>
         <ul class="contact-list contact-list-row" id="contactList"></ul>
+        <!-- 서비스 지역 — JSON-LD areaServed(대전·세종·충남)의 하위 집합이라 새 사실이 아니다.
+             지역 업체인데 본문에 지역이 없으면 손님도 검색엔진도 어디를 다니는지 모른다. 정적 HTML 로만 둔다. -->
+        <div class="service-area">
+          <h3>서비스 지역</h3>
+          <p>대전 전 지역(중구·서구·유성구·대덕구·동구) · 세종시 · 충남 인근<br />
+          지역이 애매하시면 <a href="tel:01023978629">010-2397-8629</a> 로 문의 주세요. 방문 가능 여부를 바로 알려드립니다.</p>
+        </div>
       </div>
     </section>
   </main>

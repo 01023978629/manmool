@@ -889,6 +889,11 @@ img.lb-shot, img.lb-cand-shot { object-fit: cover; }
 .folio-more-wrap { display: flex; justify-content: center; margin-top: 18px; }
 .folio-more-btn { min-height: 44px; padding: 12px 22px; font-size: 15px; }
 .folio-more-btn[hidden] { display: none; }
+
+/* 서비스 지역 — 연락처 아래 정적 블록 */
+.service-area { margin-top: 26px; padding: 18px 20px; background: var(--bg-alt); border-radius: var(--radius-sm); text-align: center; }
+.service-area h3 { font-size: 16px; margin-bottom: 8px; }
+.service-area p { font-size: 15px; color: var(--ink-soft); line-height: 1.7; }
 .lb-tile-b { padding: 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .lb-tile-head { display: flex; align-items: center; gap: 6px; }
 .lb-space-name { font-size: 12px; font-weight: 800; color: var(--link-strong); }
