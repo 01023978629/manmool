@@ -48,6 +48,24 @@ check(/id="portfolio"/.test(index) && /AI 추천 인테리어 디자인/.test(in
   check(claimed === n,
     `화면에는 "총 ${claimed}가지"라고 적혀 있는데 실제 시안은 ${n}개다 — 고객에게 숫자를 부풀려 말하게 된다`,
     `화면 표기(총 ${claimed}가지)와 실제 시안 수 일치`);
+
+  // "총 N가지"가 사실이려면 개수만 맞아선 부족하다 — 손님은 설명이 아니라 사진으로 훑는다.
+  // 사진·자른위치·배율·좌우반전이 전부 같으면 손님 눈에는 같은 시안 두 개다(js/main.js portfolioPhotoStyle 기준).
+  // 지금 61건이 겹쳐 있다(전부 2026-07-23 배치). 자세한 목록은 scripts/report-photo-duplicates.mjs.
+  // 여기서는 '더 나빠지지 않는다'만 지킨다 — 고칠 때마다 이 숫자를 내려 잡는다.
+  const DUP_CEILING = 61;
+  const seen = new Map();
+  (site.portfolio || []).forEach((x) => {
+    const k = [String(x.photo || '').split('?')[0], x.photoPosition || '', x.photoScale || '', x.photoMirror ? 'm' : ''].join('|');
+    seen.set(k, (seen.get(k) || 0) + 1);
+  });
+  const dup = [...seen.values()].reduce((a, c) => a + (c > 1 ? c - 1 : 0), 0);
+  check(dup <= DUP_CEILING,
+    `사진이 완전히 겹치는 시안이 ${dup}건으로 늘었다(허용 ${DUP_CEILING}) — 새 시안이 기존 사진을 그대로 재사용했다. node scripts/report-photo-duplicates.mjs 로 확인해라`,
+    `사진 겹침 ${dup}건 (한도 ${DUP_CEILING} 이하)`);
+  if (dup < DUP_CEILING) {
+    ok.push(`↓ 겹침이 ${DUP_CEILING} → ${dup} 로 줄었다 — 이 파일의 DUP_CEILING 을 ${dup} 로 내려 잡아라`);
+  }
 }
 
 /* ③ 메뉴를 늘리지 않는다 ------------------------------------------------ */
