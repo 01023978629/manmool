@@ -56,9 +56,26 @@ export function settingsStatus(env, db) {
       hint: set ? (s.secret ? maskTail(v) : String(v)) : null,
     };
   });
-  const liveReady = ['SOLAPI_API_KEY', 'SOLAPI_API_SECRET', 'SOLAPI_PF_ID', 'SOLAPI_SENDER', 'SOLAPI_TEMPLATE_SIGN']
-    .every((k) => merged[k]);
-  return { fields, live: merged.ALIMTALK_LIVE === '1', liveReady, pepperSet: !!env.CONTRACT_PEPPER };
+  // 실제로 코드가 발송하는 템플릿은 contract_sign(서명요청)과 contract_done(계약완료+사본열람) 둘이다.
+  // 예전에는 SIGN 만 보고 '준비완료'라고 했는데, DONE 이 비면 서명요청은 정상 도착하고
+  // 고객 완료통지만 NO_APPROVED_TEMPLATE 로 100% 실패한다 — 그런데 화면은 초록불이었다.
+  // 알림톡 템플릿 심사는 건별로 며칠 걸려 '하나만 먼저 승인'이 정상 경로이므로,
+  // 서버를 못 뜨게 막는 대신 무엇이 비었는지 화면에 그대로 적는다.
+  const LIVE_REQUIRED = [
+    { key: 'SOLAPI_API_KEY', label: 'API 키' },
+    { key: 'SOLAPI_API_SECRET', label: 'API 시크릿' },
+    { key: 'SOLAPI_PF_ID', label: '발신프로필(채널) ID' },
+    { key: 'SOLAPI_SENDER', label: '발신번호' },
+    { key: 'SOLAPI_TEMPLATE_SIGN', label: '서명요청 템플릿 ID' },
+    { key: 'SOLAPI_TEMPLATE_DONE', label: '완료 템플릿 ID' },
+  ];
+  const liveMissing = LIVE_REQUIRED.filter((r) => !merged[r.key]).map((r) => ({ key: r.key, label: r.label }));
+  return {
+    fields, live: merged.ALIMTALK_LIVE === '1',
+    liveReady: liveMissing.length === 0,
+    liveMissing,
+    pepperSet: !!env.CONTRACT_PEPPER,
+  };
 }
 
 function maskTail(v) {
