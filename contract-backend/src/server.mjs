@@ -429,7 +429,9 @@ async function quickSend(svc, provider, b) {
   const { token } = svc.issueSignLink(contractId, parties.customer, 'sign');
   const base = (b.baseUrl || '').replace(/\/$/, '');
   const signUrl = base ? `${base}/sign#t=${token}` : `/sign#t=${token}`;
-  const variables = { site: body.site || '', amount: String(amount), signUrl };
+  // 고객이 읽는 금액에는 콤마를 넣는다 — "30000000원" 은 계약 문자로서 무성의하게 읽힌다.
+  // 저장·해시에 쓰는 amount(정수)와는 무관하다. 대표 완료 SMS 도 같은 표기(toLocaleString)를 쓴다.
+  const variables = { site: body.site || '', amount: Number(amount).toLocaleString('en-US'), signUrl };
   // 고객 번호를 rawPhone 으로 넘겨 실제 발송(Mock 이면 무시). 서버가 당사자 해시 대조.
   const delivery = await svc.sendMessage(contractId, parties.customer, b.templateKey || 'contract_sign', provider, variables, b.customer.phone);
   return { contractId, contractNo, signPath: `/sign#t=${token}`, provider: provider.name, delivery };
