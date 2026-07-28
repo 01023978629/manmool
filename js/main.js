@@ -844,7 +844,7 @@ function openFolioModal(item, all) {
     : s.photo
       ? `<span class="fm-sim-thumb" style="background-image:url('${s.photo}');background-size:cover;background-position:${s.photoPosition || 'center'}"></span>`
       : `<span class="fm-sim-thumb" style="background:linear-gradient(150deg, ${s.afterColor || '#cdb8a0'}, ${shade(s.afterColor || '#cdb8a0', -14)})"></span>`;
-  const simSub = (s) => [s.spaceType, s.process || s.style].filter(Boolean).join(' · ') || '시공 사례';
+  const simSub = (s) => [s.spaceType, s.process || s.style].filter(Boolean).join(' · ') || '추천 디자인';
 
   const mediaCap = item.aiDesign ? 'AI 추천 디자인 시안' : '시공 현장';
   const hasSingleMedia = !!(item.__designSheet || item.photo);
@@ -856,7 +856,7 @@ function openFolioModal(item, all) {
     : `<figure><div class="fm-img">${roomScene(item, 'b', item.beforeColor)}</div><figcaption>BEFORE</figcaption></figure>
        <figure><div class="fm-img">${roomScene(item, 'a', item.afterColor)}</div><figcaption class="after">AFTER</figcaption></figure>`;
 
-  const headTag = item.style || item.process || item.category || '시공 사례';
+  const headTag = item.style || item.process || item.category || '추천 디자인';
   const headSub = [item.region, item.complex].filter(Boolean).join(' · ');
   const designBom = item.aiDesign && window.DesignBom
     ? (item.__designBom || window.DesignBom.build(item, window.MANMUL && window.MANMUL.materialCatalog))
