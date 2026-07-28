@@ -51,9 +51,9 @@ check(/id="portfolio"/.test(index) && /AI 추천 인테리어 디자인/.test(in
 
   // "총 N가지"가 사실이려면 개수만 맞아선 부족하다 — 손님은 설명이 아니라 사진으로 훑는다.
   // 사진·자른위치·배율·좌우반전이 전부 같으면 손님 눈에는 같은 시안 두 개다(js/main.js portfolioPhotoStyle 기준).
-  // 지금 61건이 겹쳐 있다(전부 2026-07-23 배치). 자세한 목록은 scripts/report-photo-duplicates.mjs.
+  // 지금 59건이 겹쳐 있다(전부 2026-07-23 배치). 자세한 목록은 scripts/report-photo-duplicates.mjs.
   // 여기서는 '더 나빠지지 않는다'만 지킨다 — 고칠 때마다 이 숫자를 내려 잡는다.
-  const DUP_CEILING = 61;
+  const DUP_CEILING = 59;
   const seen = new Map();
   (site.portfolio || []).forEach((x) => {
     const k = [String(x.photo || '').split('?')[0], x.photoPosition || '', x.photoScale || '', x.photoMirror ? 'm' : ''].join('|');
