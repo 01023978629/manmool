@@ -316,6 +316,16 @@ function portfolioSpriteStyle(item, eager) {
 
 // eager=true 는 누르는 즉시 보여야 하는 곳(모달·유사 디자인 썸네일)에서만 쓴다.
 function portfolioSpriteMarkup(item, className, eager) {
+  // 모든 시안에 스프라이트 시트가 배정되는 것은 아니다 — 300 확장 배치(2026-07-27-space300) 60개는
+  // 첫 로딩 용량을 지키려고 assignPortfolioDesignSheets 가 일부러 건너뛴다.
+  // 그 시안을 스프라이트로 그리면 data-sheet="undefined" 가 찍혀 회색 빈칸이 된다(실측 214칸 중 39칸).
+  // 폴백을 호출부마다 복사하면 언젠가 또 빠지므로 여기 한 곳에서 처리한다.
+  if (!item.__designSheet) {
+    if (item.photo) {
+      return `<img class="${className}" src="${item.photo}" alt="${item.imageAlt || item.title}" style="${portfolioPhotoStyle(item)}" loading="${eager ? 'eager' : 'lazy'}" decoding="async">`;
+    }
+    return `<span class="${className}" role="img" aria-label="${item.imageAlt || item.title}"></span>`;
+  }
   const lazyAttr = eager ? '' : ` data-sheet="${item.__designSheet}"`;
   return `<span class="${className} portfolio-sprite" role="img" aria-label="${item.imageAlt || item.title}"${lazyAttr} style="${portfolioSpriteStyle(item, eager)}"></span>`;
 }
@@ -324,7 +334,9 @@ function portfolioSpriteMarkup(item, className, eager) {
 let spriteObserver;
 function fillSprite(el) {
   const url = el.getAttribute('data-sheet');
-  if (!url) return;
+  // 'undefined' 는 문자열이라 truthy 다 — 이 가드가 없으면 url('undefined') 를 배경으로 넣어
+  // 회색 칸 + 404 요청이 된다. 위 폴백으로 이제 여기 도달할 일은 없지만, 다음에 또 새면 여기서 막힌다.
+  if (!url || url === 'undefined') return;
   el.style.backgroundImage = `url('${url}')`;
   el.removeAttribute('data-sheet');
 }

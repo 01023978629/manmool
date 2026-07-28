@@ -881,6 +881,9 @@ ul, ol { list-style: none; }
 .lb-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
 .lb-tile { border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); display: flex; flex-direction: column; }
 .lb-shot { display: block; width: 100%; aspect-ratio: 4 / 3; background-color: var(--bg-alt); background-repeat: no-repeat; }
+/* 스프라이트가 없는 시안은 <img> 로 그린다(main.js portfolioSpriteMarkup 폴백).
+   object-fit 이 없으면 4:3 틀에 눌려 사진이 찌그러진다. */
+img.lb-shot, img.lb-cand-shot { object-fit: cover; }
 .lb-tile-b { padding: 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .lb-tile-head { display: flex; align-items: center; gap: 6px; }
 .lb-space-name { font-size: 12px; font-weight: 800; color: var(--link-strong); }

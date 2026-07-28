@@ -152,6 +152,14 @@ check(/portfolioSpriteMarkup\(/.test(look) && !/portfolioSpriteMarkup\([^)]*,\s*
 check(/observeSprites\(\)/.test(look),
   '렌더 후 observeSprites() 호출이 없다 — 사진이 빈 칸으로 남는다',
   '렌더 후 사진 관찰자 재부착');
+// 모든 시안에 스프라이트 시트가 배정되는 것은 아니다(300 확장 배치 60개는 일부러 제외).
+// 폴백 없이 스프라이트로 그리면 data-sheet="undefined" → 회색 빈칸이 된다. 실제로 214칸 중 39칸이 그랬다.
+check(/if \(!item\.__designSheet\)/.test(main),
+  'portfolioSpriteMarkup 에 __designSheet 없는 시안 폴백이 없다 — 시트 미배정 시안이 회색 빈칸으로 나간다',
+  '스프라이트 미배정 시안 사진 폴백 존재');
+check(/url === 'undefined'/.test(main),
+  "fillSprite 가 문자열 'undefined' 를 걸러내지 않는다 — url('undefined') 배경과 404 요청이 남는다",
+  "fillSprite 가 'undefined' 문자열을 막음");
 
 /* ⑭ 스코프 이탈 없음 ---------------------------------------------------- */
 // 이미지 저장·업로드·네트워크는 이 화면의 일이 아니다(시뮬레이터가 이미 갖고 있다).
