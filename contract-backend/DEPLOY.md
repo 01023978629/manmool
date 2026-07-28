@@ -51,8 +51,21 @@ fly secrets set CONTRACT_PEPPER=$(openssl rand -hex 32) ADMIN_TOKEN=$(openssl ra
 fly tokens create deploy
 ```
 
-→ 이후 `git push`(main) 하면 Actions 가 `flyctl deploy` 실행. `FLY_API_TOKEN` 없으면 워크플로는
-**조용히 건너뜁니다**(설정 전 실패 소음 없음). 첫 배포만 위 `fly launch` 로 앱을 만들면 됩니다.
+→ 이후 `git push`(main) 하면 Actions 가 `flyctl deploy` 실행. 첫 배포만 위 `fly launch` 로 앱을 만들면 됩니다.
+
+> ⚠️ **`FLY_API_TOKEN` 이 없으면 워크플로가 실패합니다.** 예전에는 조용히 건너뛰고 '성공'으로
+> 끝났는데, 그 탓에 **16번 연속으로 배포가 한 번도 실행되지 않았는데도 초록불**이었습니다
+> (2026-07-28 발견). 서버는 옛 버전 그대로인데 최신인 줄 알게 되는 것이 설정 전 실패 소음보다
+> 훨씬 비쌉니다. 이 워크플로는 `contract-backend` 가 바뀔 때만 도니 소음도 크지 않습니다.
+>
+> 배포 뒤에는 `/healthz` 가 200 을 줄 때까지 최대 6번 확인합니다. `flyctl` 이 성공했는데
+> 컨테이너가 기동 중 죽는 경우를 잡기 위한 것입니다.
+
+**지금 뜬 서버가 최신인지 10초 만에 확인하는 법** — `/admin` → 설정에서
+**「대표 완료통지 수신번호」** 칸이 보이면 최신이고, 안 보이면 옛 버전입니다.
+설정 칸 목록은 `admin.html` 에 박혀 있지 않고 서버가 `GET /admin/status` 로 내려주므로
+(`settings.mjs` 의 `SETTING_DEFS`), **화면에 그 칸이 있다는 것 자체가 서버가 새 코드라는 증거**입니다.
+계약이 한 건도 없어도 확인할 수 있습니다.
 
 수동으로 하고 싶으면 아래 A(Fly) 또는 B(Render)를 따르세요.
 

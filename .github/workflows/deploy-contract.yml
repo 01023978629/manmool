@@ -2,7 +2,10 @@ name: Deploy Contract Backend (Fly.io)
 
 # 전자계약 서버 자동 배포.
 #   * contract-backend 가 바뀌어 main 에 들어오면 자동 배포(수동 실행도 가능).
-#   * FLY_API_TOKEN 시크릿이 없으면 조용히 건너뛴다(설정 전에는 실패 소음 없음).
+#   * FLY_API_TOKEN 이 없으면 **실패한다.** 예전에는 조용히 건너뛰고 '성공'으로 끝났는데,
+#     그 탓에 16번 연속으로 배포가 한 번도 실행되지 않았는데도 초록불이었다(2026-07-28 발견).
+#     "배포 안 됨"을 "성공"으로 보고하는 것이 설정 전 실패 소음보다 훨씬 비싸다.
+#     이 워크플로는 contract-backend 가 바뀔 때만 도니 소음도 크지 않다.
 # 사장님 1회 준비(README/ DEPLOY.md 참고):
 #   1) fly 앱·볼륨 생성:  fly launch --no-deploy --name <앱이름> ; fly volumes create contract_data --size 1
 #   2) 시크릿 주입:       fly secrets set CONTRACT_PEPPER=... ADMIN_TOKEN=... CORS_ORIGINS=https://01023978629.github.io
@@ -25,26 +28,54 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # FLY_API_TOKEN 미설정이면 배포를 건너뛴다(설정 전 실패 소음 방지).
+      # 토큰이 없으면 여기서 멈춘다. 조용히 넘어가면 '배포됐다'고 착각하게 된다.
       - name: Check Fly token
-        id: gate
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
         run: |
           if [ -z "$FLY_API_TOKEN" ]; then
-            echo "FLY_API_TOKEN 미설정 — 자동 배포를 건너뜁니다. DEPLOY.md 의 1회 준비를 마치면 활성화됩니다."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "::error title=배포하지 못했습니다::FLY_API_TOKEN 시크릿이 없어 계약 서버가 갱신되지 않았습니다."
+            echo ""
+            echo "  운영 서버는 옛 버전 그대로입니다. 이 저장소의 코드와 다릅니다."
+            echo ""
+            echo "  해결 (1회, 약 2분):"
+            echo "    1) PC 터미널에서:  fly tokens create deploy"
+            echo "    2) 출력된 값 전체(FlyV1 로 시작)를 복사"
+            echo "    3) GitHub 저장소 → Settings → Secrets and variables → Actions"
+            echo "       → New repository secret → 이름 FLY_API_TOKEN → 값 붙여넣기"
+            echo "    4) 이 워크플로를 Re-run 하면 배포됩니다"
+            echo ""
+            echo "  자세한 내용: contract-backend/DEPLOY.md"
+            exit 1
           fi
+          echo "FLY_API_TOKEN 확인됨 — 배포를 진행합니다."
 
       - name: Setup flyctl
-        if: steps.gate.outputs.skip == 'false'
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy to Fly.io
-        if: steps.gate.outputs.skip == 'false'
         working-directory: contract-backend
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
         run: flyctl deploy --remote-only --config fly.toml --dockerfile Dockerfile
+
+      # 배포됐다고 말하려면 실제로 그 버전이 떠 있는지 봐야 한다.
+      # 여기가 없으면 flyctl 이 성공했는데 컨테이너가 죽는 경우를 못 잡는다.
+      - name: 배포된 서버가 실제로 응답하는지 확인
+        run: |
+          # fly.toml 의 app 줄에는 뒤에 주석이 붙어 있다. 주석을 먼저 걷어내지 않으면 앱 이름에 딸려 들어간다.
+          APP=$(grep -m1 '^app' contract-backend/fly.toml \
+                | sed 's/#.*//; s/.*=[[:space:]]*//; s/["'"'"']//g; s/[[:space:]]*$//')
+          if [ -z "$APP" ]; then echo "::error::fly.toml 에서 app 이름을 읽지 못했습니다"; exit 1; fi
+          URL="https://${APP}.fly.dev/healthz"
+          echo "확인 대상: $URL"
+          for i in 1 2 3 4 5 6; do
+            CODE=$(curl -sS -m 30 -o /tmp/health.json -w '%{http_code}' "$URL" || echo 000)
+            if [ "$CODE" = "200" ]; then
+              echo "응답 정상:"; cat /tmp/health.json; echo; exit 0
+            fi
+            echo "  ${i}회차 응답 $CODE — 10초 뒤 다시 (Fly 절전이라 첫 응답이 느릴 수 있음)"
+            sleep 10
+          done
+          echo "::error title=배포 후 서버가 응답하지 않습니다::flyctl 은 성공했지만 ${URL} 이 200 을 주지 않습니다. 컨테이너가 기동 중 죽었을 수 있습니다."
+          exit 1
