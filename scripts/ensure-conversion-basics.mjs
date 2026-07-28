@@ -155,6 +155,23 @@ try {
     '상담 접수 경로 연결됨');
 } catch (e) { fail.push('data/config.json 을 읽지 못했다: ' + e.message); }
 
+/* 카탈로그 이어보기 — 300장을 한 번에 DOM 에 넣으면 폰 스크롤이 무거워진다.
+   실측: 통짜 렌더 시 DOM 9,866개·카탈로그 마크업 391KB → 점진 렌더 1,575개·31KB.
+   손님 대부분이 폰으로 들어오므로 여기가 되돌아가면 이탈로 직결된다. */
+{
+  const idx = read('index.html');
+  const mainJs = read('js/main.js');
+  check(/id="portfolioMore"/.test(idx),
+    'index.html 에 카탈로그 더 보기 버튼(#portfolioMore)이 없다',
+    '카탈로그 더 보기 버튼 존재');
+  check(/const PAGE = \d+/.test(mainJs) && /insertAdjacentHTML\('beforeend'/.test(mainJs),
+    'renderPortfolio 가 점진 렌더를 하지 않는다 — 300장을 한 번에 그리면 폰 스크롤이 무거워진다',
+    '카탈로그 점진 렌더 유지');
+  check(!/grid\.innerHTML = keys\.map/.test(mainJs),
+    'renderPortfolio 가 다시 통짜 렌더(grid.innerHTML = keys.map)로 돌아갔다',
+    '통짜 렌더로 되돌아가지 않음');
+}
+
 if (fail.length) {
   console.error('✗ 전환 기본기 ' + fail.length + '건 깨짐\n');
   fail.forEach((f) => console.error('  - ' + f));

@@ -884,6 +884,11 @@ ul, ol { list-style: none; }
 /* 스프라이트가 없는 시안은 <img> 로 그린다(main.js portfolioSpriteMarkup 폴백).
    object-fit 이 없으면 4:3 틀에 눌려 사진이 찌그러진다. */
 img.lb-shot, img.lb-cand-shot { object-fit: cover; }
+
+/* 카탈로그 이어보기 — 300장을 한 번에 그리지 않는다(폰 스크롤 부담). */
+.folio-more-wrap { display: flex; justify-content: center; margin-top: 18px; }
+.folio-more-btn { min-height: 44px; padding: 12px 22px; font-size: 15px; }
+.folio-more-btn[hidden] { display: none; }
 .lb-tile-b { padding: 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .lb-tile-head { display: flex; align-items: center; gap: 6px; }
 .lb-space-name { font-size: 12px; font-weight: 800; color: var(--link-strong); }

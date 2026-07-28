@@ -366,6 +366,13 @@ function renderPortfolio(items, filterConfig) {
   const costGuideEl = document.getElementById('portfolioCostGuide');
   const countEl = document.getElementById('portfolioCount');
   const emptyEl = document.getElementById('portfolioEmpty');
+  const moreBtn = document.getElementById('portfolioMore');
+  // '더 보기'는 다시 그릴 때마다 새 목록의 것으로 갈아끼운다(아래 render 안에서 대입).
+  let portfolioAppendPage = null;
+  if (moreBtn && !moreBtn.dataset.bound) {
+    moreBtn.dataset.bound = '1';
+    moreBtn.addEventListener('click', () => { if (portfolioAppendPage) portfolioAppendPage(); });
+  }
   const cfg = filterConfig || {};
   assignPortfolioDesignSheets(items);
   const budgetGradeLabels = {
@@ -620,13 +627,43 @@ function renderPortfolio(items, filterConfig) {
       ...order.filter((key) => grouped[key]),
       ...Object.keys(grouped).filter((key) => !order.includes(key))
     ];
+    // 300장을 한 번에 넣으면 폰에서 스크롤이 무거워진다(실측: DOM 요소 9,866개 · 카탈로그 마크업 391KB).
+    // 순서를 그대로 둔 채 조각으로 나눠 두고, 눌러서 이어 그린다. 사진 지연 로딩은 그대로 유지된다.
     let gi = 0;
-    grid.innerHTML = keys.map((key) =>
-      `<h3 class="folio-group-head">${key} ${groupBySpace ? '디자인' : '스타일'} <em>${grouped[key].length}</em></h3>` +
-      grouped[key].map((i) => cardHTML(i, gi++)).join('')
-    ).join('');
-    observeReveal();
-    observeSprites();
+    const chunks = [];
+    keys.forEach((key) => {
+      chunks.push({ card: false, html: `<h3 class="folio-group-head">${key} ${groupBySpace ? '디자인' : '스타일'} <em>${grouped[key].length}</em></h3>` });
+      grouped[key].forEach((i) => chunks.push({ card: true, html: cardHTML(i, gi++) }));
+    });
+
+    const PAGE = 24;
+    let cursor = 0;
+    let shownCards = 0;
+    grid.innerHTML = '';
+
+    const appendPage = () => {
+      let added = 0;
+      let buf = '';
+      // 카드 수로만 센다 — 공간 제목은 늘 카드 앞에 붙으므로 제목만 남고 끊기는 일이 없다.
+      while (cursor < chunks.length && added < PAGE) {
+        const c = chunks[cursor++];
+        buf += c.html;
+        if (c.card) added++;
+      }
+      shownCards += added;
+      grid.insertAdjacentHTML('beforeend', buf);
+      observeReveal();
+      observeSprites();
+      if (moreBtn) {
+        const left = list.length - shownCards;
+        moreBtn.hidden = left <= 0;
+        moreBtn.textContent = left > 0 ? `디자인 ${Math.min(PAGE, left)}개 더 보기 (${shownCards}/${list.length})` : '';
+      }
+    };
+
+    // 필터를 바꿔 다시 그릴 때마다 새 목록으로 갈아끼운다. 예전 목록의 '더 보기'가 남으면 안 된다.
+    portfolioAppendPage = appendPage;
+    appendPage();
   };
 
   const clearDownstream = (key) => {

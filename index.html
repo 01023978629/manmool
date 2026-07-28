@@ -88,7 +88,7 @@
   </script>
   <link rel="preload" as="image" href="assets/site/hero-interior.jpg" fetchpriority="high" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23b8895a'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="css/styles.css?v=20260728-shotfallback" />
+  <link rel="stylesheet" href="css/styles.css?v=20260728-paginate" />
 </head>
 <body>
   <!-- ===== Utility bar (업무 시스템) ===== -->
@@ -230,6 +230,8 @@
         <div class="space-cost-guide" id="portfolioCostGuide"></div>
         <p class="folio-count" id="portfolioCount"></p>
         <div class="portfolio-cards" id="portfolioGrid"></div>
+        <!-- 300장을 한 번에 그리면 폰에서 스크롤이 무거워진다(실측 DOM 9,866개). 눌러서 이어 본다. -->
+        <div class="folio-more-wrap"><button type="button" class="btn btn-ghost folio-more-btn" id="portfolioMore" hidden></button></div>
         <p class="folio-empty" id="portfolioEmpty" hidden>조건에 맞는 사례가 없습니다. 필터를 조정해 보세요.</p>
 
         <!-- 우리집 한 채로 보기 — 공간마다 시안을 한 장씩 놓고 공사 범위를 정한다.
@@ -550,7 +552,7 @@
   </div>
 
   <script src="js/design-bom.js?v=20260727-sim2"></script>
-  <script src="js/main.js?v=20260728-shotfallback"></script>
+  <script src="js/main.js?v=20260728-paginate"></script>
   <script src="js/estimate.js?v=20260719-fixes"></script>
   <script src="js/simulator.js?v=20260727-sim4"></script>
   <script src="js/lookbook.js?v=20260728-lookbook1"></script>
