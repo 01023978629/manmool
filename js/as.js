@@ -9,14 +9,16 @@
   const TYPES = ['누수', '들뜸', '크랙', '오염', '작동불량', '결로', '기타'];
 
   // 유형 → 긴급도·담당(자동 규칙). 고위험은 전문가 확인 안내를 붙임.
+  // 만물인테리어는 1인 업체다 — 담당은 실제 운영 그대로 '대표 직접' 또는 '협력 ○○팀'으로만 적는다.
+  // 있지도 않은 직원 이름을 지어내 손님을 오해시키지 않는다.
   const RULE = {
-    '누수': { urgency: '긴급', worker: '정설비(설비)', high: true },
-    '작동불량': { urgency: '보통', worker: '이전기(전기)', high: true },
-    '결로': { urgency: '보통', worker: '김현장(현장소장)', high: false },
-    '들뜸': { urgency: '보통', worker: '박목공(목공)', high: false },
-    '크랙': { urgency: '낮음', worker: '박목공(목공)', high: false },
-    '오염': { urgency: '낮음', worker: '청소팀', high: false },
-    '기타': { urgency: '보통', worker: '김현장(현장소장)', high: false }
+    '누수': { urgency: '긴급', worker: '협력 설비팀', high: true },
+    '작동불량': { urgency: '보통', worker: '협력 전기팀', high: true },
+    '결로': { urgency: '보통', worker: '대표 직접 확인', high: false },
+    '들뜸': { urgency: '보통', worker: '협력 목공팀', high: false },
+    '크랙': { urgency: '낮음', worker: '협력 목공팀', high: false },
+    '오염': { urgency: '낮음', worker: '대표 직접 확인', high: false },
+    '기타': { urgency: '보통', worker: '대표 직접 확인', high: false }
   };
   const urgencyClass = (u) => u === '긴급' ? 'st-긴급' : u === '보통' ? 'st-진행' : 'st-대기';
 
