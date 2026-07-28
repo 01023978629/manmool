@@ -172,6 +172,18 @@ try {
     '통짜 렌더로 되돌아가지 않음');
 }
 
+/* 시안 공유 주소(#design=id) — 검색·공유로 들어올 진입점이 홈 하나뿐이던 것을 고친 것.
+   id 기반이어야 카탈로그가 늘어도 같은 시안이 열리고, 공용 해시 헬퍼를 거쳐야 #sim=·#look= 과 공존한다. */
+{
+  const mainJs = read('js/main.js');
+  check(/MANMUL_HASH\.read\('design'\)/.test(mainJs) && /p\.id === sharedDesign/.test(mainJs),
+    '시안 공유 주소(#design=id) 진입이 없거나 id 기반이 아니다 — 공유 링크가 죽거나 다른 시안이 열린다',
+    '시안 공유 주소 진입(id 기반) 유지');
+  check(/MANMUL_HASH\.build\('design'/.test(mainJs) && !/pushState\([^)]*design/.test(mainJs),
+    '시안 모달이 공용 해시 헬퍼를 안 쓰거나 pushState 를 쓴다 — 다른 해시 키를 지우거나 뒤로가기가 길어진다',
+    '시안 해시가 공용 헬퍼·replaceState 사용');
+}
+
 if (fail.length) {
   console.error('✗ 전환 기본기 ' + fail.length + '건 깨짐\n');
   fail.forEach((f) => console.error('  - ' + f));

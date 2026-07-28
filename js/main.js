@@ -816,6 +816,7 @@ function roomScene(i, idx, baseColor) {
 
 /* ---------- 사례 상세 모달 (Before/After + 유사 사례) ---------- */
 let __fmOpener = null; // 모달을 연 요소 — 닫을 때 포커스 복귀(접근성)
+const __siteTitle = document.title; // 시안 모달이 title 을 바꾼 뒤 닫을 때 되돌릴 원본
 
 function openFolioModal(item, all) {
   if (!item) return;
@@ -920,6 +921,11 @@ function openFolioModal(item, all) {
 
   modal.hidden = false;
   document.body.style.overflow = 'hidden';
+  // 시안마다 공유 가능한 주소(#design=id). id 기반이라 카탈로그가 늘어도 같은 시안이 열린다.
+  // replaceState 를 쓴다 — 유사 시안을 몇 번 눌렀다고 뒤로가기가 그만큼 길어지면 폰에서 빠져나가기 힘들다.
+  // 공용 헬퍼(MANMUL_HASH)를 거쳐야 #sim=·#look= 과 한 주소에 공존한다.
+  if (window.MANMUL_HASH) { try { history.replaceState(null, '', window.MANMUL_HASH.build('design', item.id)); } catch (e) {} }
+  document.title = `${item.title} · 만물인테리어`;
   const closeBtn = modal.querySelector('.folio-modal-close');
   if (closeBtn) closeBtn.focus();
 
@@ -956,6 +962,12 @@ function setupFolioModal() {
   const close = () => {
     modal.hidden = true;
     document.body.style.overflow = '';
+    // 주소에서 design 키만 걷어낸다 — 같이 있던 #sim=·#look= 은 남아야 한다.
+    try {
+      const parts = String(location.hash || '').replace(/^#/, '').split('&').filter((p) => p && p.indexOf('design=') !== 0);
+      history.replaceState(null, '', location.origin + location.pathname + (parts.length ? '#' + parts.join('&') : ''));
+    } catch (e) {}
+    document.title = __siteTitle;
     // 모달을 연 요소로 포커스 복귀 (요소가 재렌더로 사라졌으면 생략)
     if (__fmOpener && document.contains(__fmOpener)) { try { __fmOpener.focus(); } catch (e) {} }
     __fmOpener = null;
@@ -1337,6 +1349,14 @@ async function init() {
   if (typeof window.initLookbook === 'function') window.initLookbook(window.MANMUL);
   // inquiry.js 초기화 (body 끝에서 먼저 로드됨)
   if (typeof window.initInquiry === 'function') window.initInquiry(window.MANMUL);
+
+  // 공유받은 시안 주소(#design=id)로 들어오면 그 시안을 바로 연다.
+  // 못 찾으면(내려간 시안) 아무것도 열지 않는다 — 다른 시안을 대신 여는 것이 더 나쁘다.
+  const sharedDesign = window.MANMUL_HASH.read('design');
+  if (sharedDesign) {
+    const it = (data.portfolio || []).find((p) => p.id === sharedDesign);
+    if (it) openFolioModal(it, data.portfolio);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);
