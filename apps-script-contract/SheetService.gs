@@ -9,12 +9,12 @@
  *   · 스크립트 속성을 읽는다(props_ / cfg_)
  *
  * 하지 않는 일:
- *   · 계약 규칙을 모른다. 상태 전이·금액 계산·검증은 Pure.gs 와 Contracts.gs 가 한다.
+ *   · 계약 규칙을 모른다. 상태 전이·금액 계산·검증은 Pure.gs 와 ContractService.gs 가 한다.
  *     여기서 status 를 판단하거나 금액을 고치지 않는다.
- *   · Drive 를 만지지 않는다(Docs.gs 담당).
+ *   · Drive 를 만지지 않는다(DriveService.gs 담당).
  *   · 줄을 지우지 않는다. 이 파일에 deleteRow 는 없다 — 계약 기록은 지우는 물건이 아니다.
  *   · 비밀값을 시트에 쓰지 않는다. Settings 시트에 금지어 키가 들어오면 거부한다.
- *   · LockService 를 잡지 않는다. 잠금은 동작 전체를 감싸야 하므로 부르는 쪽(Contracts.gs·
+ *   · LockService 를 잡지 않는다. 잠금은 동작 전체를 감싸야 하므로 부르는 쪽(ContractService.gs·
  *     Sign.gs)의 몫이다. 여기서 함수마다 잠그면 잠금이 잘게 쪼개져 아무 것도 못 막는다.
  *
  * ⚠ 열은 **뒤에 추가만** 한다(Schema.gs 참고). 중간에 끼우면 이미 쌓인 줄과 어긋난다.
@@ -234,7 +234,7 @@ function objectFromRow_(header, row) {
  * 조용히 합치거나 골라 주지 않는다. 뒤에서 사람이 알아볼 수 있게 그대로 둔다.
  *
  * 비교는 문자열로 한다(시트가 숫자로 되돌려 주는 경우가 있어서다).
- * ⚠ 토큰 대조는 이 함수로 해시를 찾은 뒤, 최종 확인은 Crypto.gs 의 constantTimeEq 로 하라.
+ * ⚠ 토큰 대조는 이 함수로 해시를 찾은 뒤, 최종 확인은 AuthService.gs 의 constantTimeEq 로 하라.
  */
 function findRow_(name, key, value) {
   var sh = sheet_(name);
@@ -409,7 +409,7 @@ function scrubDetail_(detail) {
  * 같은 번호의 계약서가 둘 있으면 그 순간 두 장 다 증거로 못 쓴다.
  *
  * ⚠ 이 함수는 **읽고 나서 그 번호로 줄을 쓰기까지의 사이가 비어 있다.**
- *   그래서 부르는 쪽(Contracts.gs 의 createContract_)은 반드시
+ *   그래서 부르는 쪽(ContractService.gs 의 createContract_)은 반드시
  *   LockService.getScriptLock() 을 잡은 상태여야 한다(PROTOCOL.md 동시성 항목).
  *   잠금 없이 두 요청이 겹치면 같은 번호를 두 번 돌려준다. 이 함수는 그것을 막지 못한다.
  */

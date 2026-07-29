@@ -16,8 +16,8 @@
  *     create·lock·void 는 이미 스크립트 잠금 안에서 불린다. 여기서 또 잡으면
  *     같은 실행이 같은 잠금을 두 번 잡는 꼴이 되어 스스로 BUSY 로 막힐 수 있다.
  *     대신 계약번호 중복만은 잠금 없이도 안 나도록 아래에서 따로 확인한다.
- *   · 시트·드라이브를 직접 여는 일 → Store.gs / Docs.gs
- *   · 해시·토큰 만들기 → Crypto.gs (여기서 Utilities.* 를 직접 부르지 않는다)
+ *   · 시트·드라이브를 직접 여는 일 → SheetService.gs / DriveService.gs
+ *   · 해시·토큰 만들기 → AuthService.gs (여기서 Utilities.* 를 직접 부르지 않는다)
  *   · 고객 화면과 서명 접수 → Sign.gs, 알림 발송 → Notify.gs
  *   · 금액 계산·검증·상태 전이 판정 → Pure.gs (여기서 규칙을 다시 쓰지 않는다)
  *
@@ -88,7 +88,7 @@ function createContract_(p, ctx) {
   var now = ctNow_(ctx);
   var phoneRaw = (input.customer && input.customer.phone) || '';
 
-  // 번호 해시는 PEPPER 가 있어야 만들어진다. Crypto.gs 는 PEPPER 가 없으면 멈추는데,
+  // 번호 해시는 PEPPER 가 있어야 만들어진다. AuthService.gs 는 PEPPER 가 없으면 멈추는데,
   // 그 실패는 '서버 오류'가 아니라 '설정이 덜 됐다'이다. 사장님이 무엇을 해야 하는지가
   // 달라지므로 코드도 달라야 한다.
   var phoneHash;
@@ -350,7 +350,7 @@ function issueSignLink_(id, ttlHours, ctx) {
 
   var token = String(randomToken() || '');
   // 토큰이 짧으면 추측당한다. 규약은 32바이트 이상(base64url 로 43자 안팎)이다.
-  // 여기서 길이를 확인하는 것은 Crypto.gs 를 고치다 실수로 짧아졌을 때 조용히 넘어가지 않기 위해서다.
+  // 여기서 길이를 확인하는 것은 AuthService.gs 를 고치다 실수로 짧아졌을 때 조용히 넘어가지 않기 위해서다.
   if (token.length < 32) throw ctFail_('SERVER_ERROR', '서명 토큰을 만들지 못했습니다');
 
   appendRow_(SHEETS.TOKENS, {
@@ -562,7 +562,7 @@ function updatePayment_(p, ctx) {
  * 8) 전체 백업 내보내기
  * ============================================================ */
 /**
- * 전 시트를 JSON 한 덩어리로 만들어 Docs.gs 의 backupFolder_ 에 저장한다.
+ * 전 시트를 JSON 한 덩어리로 만들어 DriveService.gs 의 backupFolder_ 에 저장한다.
  *
  * ⚠ 실행 1회당 6분(PROTOCOL.md '알아 두셔야 할 제약'). 시트를 통째로 읽어 문자열로 만드는
  *   일이라, 계약이 수천 건으로 늘면 이 함수 하나로 6분을 넘겨 구글이 중간에 끊는다.
@@ -688,14 +688,14 @@ function ctCopy_(a, b) {
   for (k in (b || {})) if (Object.prototype.hasOwnProperty.call(b, k)) o[k] = b[k];
   return o;
 }
-// id 는 추측 불가해야 한다. Crypto.gs 의 randomToken() 앞 16글자만 잘라도 90비트가 넘어
+// id 는 추측 불가해야 한다. AuthService.gs 의 randomToken() 앞 16글자만 잘라도 90비트가 넘어
 // 남의 계약 id 를 맞혀 들어오는 일은 없다. 짧아야 화면과 파일 이름에 얹기 좋다.
 function ctNewId_(prefix) {
   var t = String(randomToken() || '').replace(/[^A-Za-z0-9_-]/g, '');
   if (t.length < 16) throw ctFail_('SERVER_ERROR', '무작위 값을 만들지 못했습니다');
   return prefix + '_' + t.slice(0, 16);
 }
-// Docs.gs 가 파일 객체를 주든 id 문자열을 주든 받아 적는다.
+// DriveService.gs 가 파일 객체를 주든 id 문자열을 주든 받아 적는다.
 // 두 파일을 각자 쓰다 보면 반환 형태가 어긋나기 쉬운데, 그 때문에 잠금이 실패하면 안 된다.
 function ctFileId_(v) {
   if (!v) return '';
@@ -717,7 +717,7 @@ function ctParseBody_(json) {
 }
 
 /* ---------- 시트 읽기 ---------- */
-// 줄을 고치려면 시트의 몇 번째 줄인지가 필요하다. Store.gs 의 readAll_ 이 각 줄에
+// 줄을 고치려면 시트의 몇 번째 줄인지가 필요하다. SheetService.gs 의 readAll_ 이 각 줄에
 // _rowIndex 를 붙여 주므로 그것을 쓴다. 직접 세지 않는 이유: readAll_ 은 빈 줄을 건너뛰어
 // 돌려주기 때문에, 배열 순서로 i+2 를 계산하면 손으로 한 줄 지운 시트에서 **엉뚱한 줄**을
 // 고치게 된다. (_rowIndex 가 없는 경우에만 마지막 수단으로 센다)
@@ -768,7 +768,7 @@ function ctPaymentIndex_() {
 function ctHas_(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
 // 한 계약의 사건 이력(최근 CT_EVENT_LIMIT 건).
 // 사건 시트는 지우지 않는 원장이라 계속 길어진다. 지금은 전부 읽어 걸러내지만,
-// 수만 줄이 되면 Store.gs 에 계약별 조회를 따로 만들어야 한다.
+// 수만 줄이 되면 SheetService.gs 에 계약별 조회를 따로 만들어야 한다.
 function ctEventsOf_(contractId) {
   var rows = readAll_(SHEETS.EVENTS) || [];
   var mine = [];
@@ -865,7 +865,7 @@ function ctPlanView_(plan) {
 // 계약번호는 사장님이 전화로 부르는 이름이다. 두 계약이 같은 번호를 갖는 순간
 // 통화로 계약을 특정할 방법이 사라지고, 그 순간 두 장 다 증거로 쓰기 어려워진다.
 //
-// Store.gs 의 nextContractSeq_ 는 '그 해 마지막 번호 + 1'을 계산할 뿐, 그 번호를 잡아 두지
+// SheetService.gs 의 nextContractSeq_ 는 '그 해 마지막 번호 + 1'을 계산할 뿐, 그 번호를 잡아 두지
 // 않는다(그 파일 주석에도 적혀 있다 — 잠금은 부르는 쪽 몫이다). 잠금은 Code.gs 가 잡지만,
 // 여기서 한 번 더 그물을 친다: 받은 번호가 이미 시트에 있으면 다음 번호로 옮겨 간다.
 // nextContractSeq_ 를 다시 부르는 것은 소용이 없다 — 아직 줄을 안 썼으니 같은 값이 또 나온다.
@@ -875,7 +875,7 @@ function ctReserveContractNo_(nowIso) {
   try {
     seq = nextContractSeq_(year);
   } catch (e) {
-    // Store.gs·Pure.gs 는 코드 없이 한국어 메시지만 던진다. 여기서 규약 형태로 바꿔 준다.
+    // SheetService.gs·Pure.gs 는 코드 없이 한국어 메시지만 던진다. 여기서 규약 형태로 바꿔 준다.
     throw ctFail_('SERVER_ERROR', ctShortMsg_(e));
   }
   for (var i = 0; i < CT_NO_RETRY; i++) {

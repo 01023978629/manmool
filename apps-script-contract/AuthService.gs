@@ -8,7 +8,7 @@
  *   · 상수시간 비교
  *
  * 하지 않는 일:
- *   · 시트·Drive 를 읽거나 쓰지 않는다 (Store.gs / Docs.gs 담당)
+ *   · 시트·Drive 를 읽거나 쓰지 않는다 (SheetService.gs / DriveService.gs 담당)
  *   · 토큰을 저장하지 않는다. 여기서 만든 원문은 부른 쪽이 한 번 응답에 싣고 버린다.
  *     시트에는 SHA-256 해시만 남는다(Schema.gs COLS_TOKENS.tokenHash).
  *   · 16진수 변환을 직접 하지 않는다 — Pure.gs 의 bytesToHex 를 쓴다.
@@ -101,7 +101,7 @@ function hmacHex(str) {
 // PEPPER 가 없으면 **조용히 넘어가지 않고 멈춘다.**
 // 없는 채로 돌면 빈 문자열을 키로 쓴 해시가 시트에 쌓이는데, 그건 가린 것이 아니라
 // 가린 척한 것이다. 나중에 PEPPER 를 넣는 순간 앞뒤 값이 어긋나 대조도 안 된다.
-// Store.gs 의 cfg_ 를 쓰지 않는 이유: 비밀값은 일반 설정 통로를 타지 않게 하고,
+// SheetService.gs 의 cfg_ 를 쓰지 않는 이유: 비밀값은 일반 설정 통로를 타지 않게 하고,
 // 이 파일 하나만 봐도 어디서 오는 값인지 보이게 하려는 것이다.
 function pepperOrThrow_() {
   if (PEPPER_CACHE_) return PEPPER_CACHE_;

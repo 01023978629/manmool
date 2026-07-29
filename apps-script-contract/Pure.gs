@@ -11,7 +11,7 @@
  *   · import/export 를 쓰지 않는다 (Apps Script 는 모듈이 없다)
  *   · const/let 대신 var, 화살표함수 대신 function — Apps Script 편집기에
  *     붙여넣는 사람이 문법 오류로 막히는 일이 없게 한다
- *   · Utilities.* 를 부르지 않는다 (해시는 Crypto.gs 담당)
+ *   · Utilities.* 를 부르지 않는다 (해시는 AuthService.gs 담당)
  *
  * 금액은 전부 **원 단위 정수**로 다룬다. 부동소수 반올림으로 1원이 새는 것을
  * 계약서에서는 허용하지 않는다.
