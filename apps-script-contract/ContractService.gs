@@ -903,15 +903,21 @@ function ctPaymentEvent_(next) {
 // 앱이 본문을 직접 보내면 그 내용을 그대로 쓴다. 안 보내면 표준 본문을 만들어 넣는다.
 function ctBodyFor_(input, v) {
   var body = (input.body && typeof input.body === 'object' && !Array.isArray(input.body)) ? input.body : null;
-  if (!body) {
+  // 조항이 없는 body 는 '계약서'가 아니라 '재료'다.
+  // 현장 앱은 body:{site:'둔산동', scope:['욕실']} 처럼 아는 것만 담아 보낸다 —
+  // 그것을 그대로 본문으로 삼으면 조항이 없어 잠글 수 없고, 본문을 고치는 동작이 규약에 없어
+  // 그 계약은 취소 말고는 길이 없어진다. 그래서 조항이 없으면 재료로 보고 표준 본문을 만든다.
+  var hasClauses = !!(body && ctIsArray_(body.clauses) && body.clauses.length);
+  if (!hasClauses) {
+    var h = body || {};
     return ctStandardBody_({
-      site: input.site || input.address || '',
-      scope: input.scope || input.title || '',
+      site: h.site || input.site || input.address || '',
+      scope: h.scope || input.scope || input.title || '',
       amount: v.amount,
-      vatIncluded: input.vatIncluded,
+      vatIncluded: (h.vatIncluded != null) ? h.vatIncluded : input.vatIncluded,
       customerName: v.customerName,
-      period: input.period || '',
-      operator: input.operator
+      period: h.period || input.period || '',
+      operator: h.operator || input.operator
     });
   }
   // 보내온 본문은 고치지 않되, 잠금 검사에 꼭 필요한데 비어 있는 칸만 채운다.
