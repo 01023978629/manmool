@@ -912,6 +912,22 @@ img.lb-shot, img.lb-cand-shot { object-fit: cover; }
 .of-benefit b { color: var(--ink); }
 .of-note { margin-top: 14px; font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
 
+.trust-check-link { margin-top: 20px; text-align: center; font-size: 15px; }
+
+/* 욕실 방수 사전점검 — 셀프 체크 */
+.bc-list { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+.bc-item { text-align: left; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--surface); font-family: inherit; cursor: pointer; min-height: 44px; }
+.bc-item b { display: block; font-size: 15px; }
+.bc-item small { display: block; margin-top: 3px; font-size: 13px; color: var(--ink-soft); }
+.bc-item.on { border-color: var(--brand); background: var(--brand-soft, #f3e7d9); }
+.bc-item.on b::before { content: '✓ '; color: var(--brand-dark, var(--brand)); }
+.bc-box { margin: 8px 0 4px; padding: 16px 18px; border-radius: var(--radius-sm); background: var(--bg-alt);
+  font-size: 15px; line-height: 1.75; }
+.bc-urgent { border: 1.5px solid #c96a3f; }
+.bc-cta { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.bc-cta .btn { min-height: 44px; }
+
 /* 서비스 지역 — 연락처 아래 정적 블록 */
 .service-area { margin-top: 26px; padding: 18px 20px; background: var(--bg-alt); border-radius: var(--radius-sm); text-align: center; }
 .service-area h3 { font-size: 16px; margin-bottom: 8px; }
