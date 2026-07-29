@@ -890,6 +890,28 @@ img.lb-shot, img.lb-cand-shot { object-fit: cover; }
 .folio-more-btn { min-height: 44px; padding: 12px 22px; font-size: 15px; }
 .folio-more-btn[hidden] { display: none; }
 
+/* 관리사무소 전용 창구 — 채팅형 단계 진행(생활 서비스 앱의 예약 흐름 감각) */
+.office-wrap { max-width: 640px; }
+.of-chat { display: flex; flex-direction: column; gap: 10px; margin: 22px 0 14px; }
+.of-msg { max-width: 86%; padding: 13px 16px; border-radius: 16px; font-size: 15px; line-height: 1.65; }
+.of-bot { align-self: flex-start; background: var(--bg-alt); border-bottom-left-radius: 5px; }
+.of-me { align-self: flex-end; background: var(--brand); color: #fff; border-bottom-right-radius: 5px; font-weight: 600; }
+.of-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 6px; }
+.of-chip { min-height: 44px; padding: 10px 16px; border: 1.5px solid var(--line); border-radius: 999px;
+  background: var(--surface); font-size: 15px; font-family: inherit; cursor: pointer; }
+.of-chip.on { border-color: var(--brand); background: var(--brand-soft, #f3e7d9); font-weight: 700; }
+.of-chip-next { border-style: dashed; color: var(--brand-dark, var(--brand)); font-weight: 700; }
+.of-inputbar { display: flex; gap: 8px; margin: 6px 0 10px; }
+.of-inputbar input { flex: 1; min-height: 46px; padding: 10px 14px; border: 1.5px solid var(--line);
+  border-radius: 12px; font-size: 16px; font-family: inherit; }
+.of-small { font-size: 13px; color: var(--ink-soft); }
+.of-benefit { margin-top: 30px; padding: 20px; background: var(--bg-alt); border-radius: var(--radius-sm); }
+.of-benefit h3 { font-size: 16px; margin-bottom: 10px; }
+.of-benefit ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.of-benefit li { font-size: 14.5px; line-height: 1.65; color: var(--ink-soft); }
+.of-benefit b { color: var(--ink); }
+.of-note { margin-top: 14px; font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
+
 /* 서비스 지역 — 연락처 아래 정적 블록 */
 .service-area { margin-top: 26px; padding: 18px 20px; background: var(--bg-alt); border-radius: var(--radius-sm); text-align: center; }
 .service-area h3 { font-size: 16px; margin-bottom: 8px; }
