@@ -203,7 +203,7 @@
       </div>
       ${sims.length ? `
       <div class="cr-similar">
-        <h4>${sims.some((s) => s.aiDesign) ? '추천 디자인' : '비슷한 시공 사례'}</h4>
+        <h4>${sims.some((s) => s.aiDesign) ? '추천 디자인' : '비슷한 추천 디자인'}</h4>
         <div class="cr-similar-grid">
           ${sims.map((s) => {
             const thumb = s.photo

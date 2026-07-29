@@ -80,7 +80,7 @@ def article_html(a, insights):
       </a>
       <nav class="main-nav" id="mainNav" aria-label="주요 메뉴">
         <a href="../index.html#about">회사 소개</a>
-        <a href="../index.html#portfolio">시공 사례</a>
+        <a href="../index.html#portfolio">추천 디자인</a>
         <a href="../index.html#estimator">AI 예상견적</a>
         <a href="../blog.html">인사이트</a>
         <a href="../index.html#inquiry">상담 신청</a>

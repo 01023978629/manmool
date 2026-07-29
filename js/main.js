@@ -316,6 +316,16 @@ function portfolioSpriteStyle(item, eager) {
 
 // eager=true 는 누르는 즉시 보여야 하는 곳(모달·유사 디자인 썸네일)에서만 쓴다.
 function portfolioSpriteMarkup(item, className, eager) {
+  // 모든 시안에 스프라이트 시트가 배정되는 것은 아니다 — 300 확장 배치(2026-07-27-space300) 60개는
+  // 첫 로딩 용량을 지키려고 assignPortfolioDesignSheets 가 일부러 건너뛴다.
+  // 그 시안을 스프라이트로 그리면 data-sheet="undefined" 가 찍혀 회색 빈칸이 된다(실측 214칸 중 39칸).
+  // 폴백을 호출부마다 복사하면 언젠가 또 빠지므로 여기 한 곳에서 처리한다.
+  if (!item.__designSheet) {
+    if (item.photo) {
+      return `<img class="${className}" src="${item.photo}" alt="${item.imageAlt || item.title}" style="${portfolioPhotoStyle(item)}" loading="${eager ? 'eager' : 'lazy'}" decoding="async">`;
+    }
+    return `<span class="${className}" role="img" aria-label="${item.imageAlt || item.title}"></span>`;
+  }
   const lazyAttr = eager ? '' : ` data-sheet="${item.__designSheet}"`;
   return `<span class="${className} portfolio-sprite" role="img" aria-label="${item.imageAlt || item.title}"${lazyAttr} style="${portfolioSpriteStyle(item, eager)}"></span>`;
 }
@@ -324,7 +334,9 @@ function portfolioSpriteMarkup(item, className, eager) {
 let spriteObserver;
 function fillSprite(el) {
   const url = el.getAttribute('data-sheet');
-  if (!url) return;
+  // 'undefined' 는 문자열이라 truthy 다 — 이 가드가 없으면 url('undefined') 를 배경으로 넣어
+  // 회색 칸 + 404 요청이 된다. 위 폴백으로 이제 여기 도달할 일은 없지만, 다음에 또 새면 여기서 막힌다.
+  if (!url || url === 'undefined') return;
   el.style.backgroundImage = `url('${url}')`;
   el.removeAttribute('data-sheet');
 }
@@ -354,6 +366,13 @@ function renderPortfolio(items, filterConfig) {
   const costGuideEl = document.getElementById('portfolioCostGuide');
   const countEl = document.getElementById('portfolioCount');
   const emptyEl = document.getElementById('portfolioEmpty');
+  const moreBtn = document.getElementById('portfolioMore');
+  // '더 보기'는 다시 그릴 때마다 새 목록의 것으로 갈아끼운다(아래 render 안에서 대입).
+  let portfolioAppendPage = null;
+  if (moreBtn && !moreBtn.dataset.bound) {
+    moreBtn.dataset.bound = '1';
+    moreBtn.addEventListener('click', () => { if (portfolioAppendPage) portfolioAppendPage(); });
+  }
   const cfg = filterConfig || {};
   assignPortfolioDesignSheets(items);
   const budgetGradeLabels = {
@@ -608,13 +627,43 @@ function renderPortfolio(items, filterConfig) {
       ...order.filter((key) => grouped[key]),
       ...Object.keys(grouped).filter((key) => !order.includes(key))
     ];
+    // 300장을 한 번에 넣으면 폰에서 스크롤이 무거워진다(실측: DOM 요소 9,866개 · 카탈로그 마크업 391KB).
+    // 순서를 그대로 둔 채 조각으로 나눠 두고, 눌러서 이어 그린다. 사진 지연 로딩은 그대로 유지된다.
     let gi = 0;
-    grid.innerHTML = keys.map((key) =>
-      `<h3 class="folio-group-head">${key} ${groupBySpace ? '디자인' : '스타일'} <em>${grouped[key].length}</em></h3>` +
-      grouped[key].map((i) => cardHTML(i, gi++)).join('')
-    ).join('');
-    observeReveal();
-    observeSprites();
+    const chunks = [];
+    keys.forEach((key) => {
+      chunks.push({ card: false, html: `<h3 class="folio-group-head">${key} ${groupBySpace ? '디자인' : '스타일'} <em>${grouped[key].length}</em></h3>` });
+      grouped[key].forEach((i) => chunks.push({ card: true, html: cardHTML(i, gi++) }));
+    });
+
+    const PAGE = 24;
+    let cursor = 0;
+    let shownCards = 0;
+    grid.innerHTML = '';
+
+    const appendPage = () => {
+      let added = 0;
+      let buf = '';
+      // 카드 수로만 센다 — 공간 제목은 늘 카드 앞에 붙으므로 제목만 남고 끊기는 일이 없다.
+      while (cursor < chunks.length && added < PAGE) {
+        const c = chunks[cursor++];
+        buf += c.html;
+        if (c.card) added++;
+      }
+      shownCards += added;
+      grid.insertAdjacentHTML('beforeend', buf);
+      observeReveal();
+      observeSprites();
+      if (moreBtn) {
+        const left = list.length - shownCards;
+        moreBtn.hidden = left <= 0;
+        moreBtn.textContent = left > 0 ? `디자인 ${Math.min(PAGE, left)}개 더 보기 (${shownCards}/${list.length})` : '';
+      }
+    };
+
+    // 필터를 바꿔 다시 그릴 때마다 새 목록으로 갈아끼운다. 예전 목록의 '더 보기'가 남으면 안 된다.
+    portfolioAppendPage = appendPage;
+    appendPage();
   };
 
   const clearDownstream = (key) => {
@@ -767,6 +816,7 @@ function roomScene(i, idx, baseColor) {
 
 /* ---------- 사례 상세 모달 (Before/After + 유사 사례) ---------- */
 let __fmOpener = null; // 모달을 연 요소 — 닫을 때 포커스 복귀(접근성)
+const __siteTitle = document.title; // 시안 모달이 title 을 바꾼 뒤 닫을 때 되돌릴 원본
 
 function openFolioModal(item, all) {
   if (!item) return;
@@ -795,7 +845,7 @@ function openFolioModal(item, all) {
     : s.photo
       ? `<span class="fm-sim-thumb" style="background-image:url('${s.photo}');background-size:cover;background-position:${s.photoPosition || 'center'}"></span>`
       : `<span class="fm-sim-thumb" style="background:linear-gradient(150deg, ${s.afterColor || '#cdb8a0'}, ${shade(s.afterColor || '#cdb8a0', -14)})"></span>`;
-  const simSub = (s) => [s.spaceType, s.process || s.style].filter(Boolean).join(' · ') || '시공 사례';
+  const simSub = (s) => [s.spaceType, s.process || s.style].filter(Boolean).join(' · ') || '추천 디자인';
 
   const mediaCap = item.aiDesign ? 'AI 추천 디자인 시안' : '시공 현장';
   const hasSingleMedia = !!(item.__designSheet || item.photo);
@@ -807,7 +857,7 @@ function openFolioModal(item, all) {
     : `<figure><div class="fm-img">${roomScene(item, 'b', item.beforeColor)}</div><figcaption>BEFORE</figcaption></figure>
        <figure><div class="fm-img">${roomScene(item, 'a', item.afterColor)}</div><figcaption class="after">AFTER</figcaption></figure>`;
 
-  const headTag = item.style || item.process || item.category || '시공 사례';
+  const headTag = item.style || item.process || item.category || '추천 디자인';
   const headSub = [item.region, item.complex].filter(Boolean).join(' · ');
   const designBom = item.aiDesign && window.DesignBom
     ? (item.__designBom || window.DesignBom.build(item, window.MANMUL && window.MANMUL.materialCatalog))
@@ -871,6 +921,11 @@ function openFolioModal(item, all) {
 
   modal.hidden = false;
   document.body.style.overflow = 'hidden';
+  // 시안마다 공유 가능한 주소(#design=id). id 기반이라 카탈로그가 늘어도 같은 시안이 열린다.
+  // replaceState 를 쓴다 — 유사 시안을 몇 번 눌렀다고 뒤로가기가 그만큼 길어지면 폰에서 빠져나가기 힘들다.
+  // 공용 헬퍼(MANMUL_HASH)를 거쳐야 #sim=·#look= 과 한 주소에 공존한다.
+  if (window.MANMUL_HASH) { try { history.replaceState(null, '', window.MANMUL_HASH.build('design', item.id)); } catch (e) {} }
+  document.title = `${item.title} · 만물인테리어`;
   const closeBtn = modal.querySelector('.folio-modal-close');
   if (closeBtn) closeBtn.focus();
 
@@ -907,6 +962,12 @@ function setupFolioModal() {
   const close = () => {
     modal.hidden = true;
     document.body.style.overflow = '';
+    // 주소에서 design 키만 걷어낸다 — 같이 있던 #sim=·#look= 은 남아야 한다.
+    try {
+      const parts = String(location.hash || '').replace(/^#/, '').split('&').filter((p) => p && p.indexOf('design=') !== 0);
+      history.replaceState(null, '', location.origin + location.pathname + (parts.length ? '#' + parts.join('&') : ''));
+    } catch (e) {}
+    document.title = __siteTitle;
     // 모달을 연 요소로 포커스 복귀 (요소가 재렌더로 사라졌으면 생략)
     if (__fmOpener && document.contains(__fmOpener)) { try { __fmOpener.focus(); } catch (e) {} }
     __fmOpener = null;
@@ -1288,6 +1349,14 @@ async function init() {
   if (typeof window.initLookbook === 'function') window.initLookbook(window.MANMUL);
   // inquiry.js 초기화 (body 끝에서 먼저 로드됨)
   if (typeof window.initInquiry === 'function') window.initInquiry(window.MANMUL);
+
+  // 공유받은 시안 주소(#design=id)로 들어오면 그 시안을 바로 연다.
+  // 못 찾으면(내려간 시안) 아무것도 열지 않는다 — 다른 시안을 대신 여는 것이 더 나쁘다.
+  const sharedDesign = window.MANMUL_HASH.read('design');
+  if (sharedDesign) {
+    const it = (data.portfolio || []).find((p) => p.id === sharedDesign);
+    if (it) openFolioModal(it, data.portfolio);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);

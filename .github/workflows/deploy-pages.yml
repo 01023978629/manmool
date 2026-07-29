@@ -1,10 +1,14 @@
 name: Deploy to GitHub Pages
 
+# 공개 사이트는 main 에서만 배포된다.
+# 예전에는 작업 브랜치도 트리거에 있었지만, github-pages 환경이 배포 가능한 브랜치를 제한하고 있어
+# 러너가 배정되기도 전에 2초 만에 거부됐다 — 2026-07-26~27 에 12번 연속 빨간불(main 은 같은 워크플로로 매번 성공).
+# 성공할 수 없는 트리거를 두면 빨간불이 일상이 되고, 진짜 고장을 놓치게 된다.
+# 작업 브랜치 내용을 실제로 보려면 main 에 병합해야 한다.
 on:
   push:
     branches:
       - main
-      - claude/ai-interior-design-site-zr06i8
   workflow_dispatch:
 
 permissions:

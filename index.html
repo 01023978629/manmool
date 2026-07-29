@@ -88,7 +88,7 @@
   </script>
   <link rel="preload" as="image" href="assets/site/hero-interior.jpg" fetchpriority="high" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23b8895a'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="css/styles.css?v=20260728-lookbook1" />
+  <link rel="stylesheet" href="css/styles.css?v=20260728-phone-type" />
 </head>
 <body>
   <!-- ===== Utility bar (업무 시스템) ===== -->
@@ -198,7 +198,7 @@
         <div class="section-head">
           <span class="eyebrow">HOW IT WORKS</span>
           <h2 id="automationHeadline">체계적이고 효율적인 운영 프로세스</h2>
-          <p id="automationSub">n8n 워크플로와 카카오톡 챗봇이 상담·견적·시공·사후관리를 자동으로 순환시킵니다.</p>
+          <p id="automationSub">자동 접수 시스템과 카카오톡이 상담·견적·시공·사후관리를 이어서 처리합니다.</p>
         </div>
 
         <!-- n8n · 카카오 자동화 파이프라인 -->
@@ -230,6 +230,8 @@
         <div class="space-cost-guide" id="portfolioCostGuide"></div>
         <p class="folio-count" id="portfolioCount"></p>
         <div class="portfolio-cards" id="portfolioGrid"></div>
+        <!-- 300장을 한 번에 그리면 폰에서 스크롤이 무거워진다(실측 DOM 9,866개). 눌러서 이어 본다. -->
+        <div class="folio-more-wrap"><button type="button" class="btn btn-ghost folio-more-btn" id="portfolioMore" hidden></button></div>
         <p class="folio-empty" id="portfolioEmpty" hidden>조건에 맞는 사례가 없습니다. 필터를 조정해 보세요.</p>
 
         <!-- 우리집 한 채로 보기 — 공간마다 시안을 한 장씩 놓고 공사 범위를 정한다.
@@ -360,7 +362,7 @@
           <h2>단계별 상담 문의</h2>
           <p>공간 정보를 단계별로 입력하면 <strong>AI가 1차 분석</strong>하고, 대표 검토 후 예상 범위와 실측 일정을 안내드립니다.</p>
           <ul class="inquiry-flow">
-            <li><span>1</span> 폼 제출 → <b>n8n</b>이 접수·저장</li>
+            <li><span>1</span> 폼 제출 → 자동으로 접수·저장</li>
             <li><span>2</span> AI가 요약·공사분류·추가질문 생성</li>
             <li><span>3</span> 대표에게 <b>카카오톡</b> 알림</li>
             <li><span>4</span> 대표 승인 후 고객에게 안내 발송</li>
@@ -516,6 +518,13 @@
           <p>전화·이메일·카카오톡 어디로든 편하게 문의하세요.</p>
         </div>
         <ul class="contact-list contact-list-row" id="contactList"></ul>
+        <!-- 서비스 지역 — JSON-LD areaServed(대전·세종·충남)의 하위 집합이라 새 사실이 아니다.
+             지역 업체인데 본문에 지역이 없으면 손님도 검색엔진도 어디를 다니는지 모른다. 정적 HTML 로만 둔다. -->
+        <div class="service-area">
+          <h3>서비스 지역</h3>
+          <p>대전 전 지역(중구·서구·유성구·대덕구·동구) · 세종시 · 충남 인근<br />
+          지역이 애매하시면 <a href="tel:01023978629">010-2397-8629</a> 로 문의 주세요. 방문 가능 여부를 바로 알려드립니다.</p>
+        </div>
       </div>
     </section>
   </main>
@@ -550,7 +559,7 @@
   </div>
 
   <script src="js/design-bom.js?v=20260727-sim2"></script>
-  <script src="js/main.js?v=20260728-lookbook2"></script>
+  <script src="js/main.js?v=20260728-designhash"></script>
   <script src="js/estimate.js?v=20260719-fixes"></script>
   <script src="js/simulator.js?v=20260727-sim4"></script>
   <script src="js/lookbook.js?v=20260728-lookbook1"></script>

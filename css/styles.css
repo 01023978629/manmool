@@ -881,6 +881,19 @@ ul, ol { list-style: none; }
 .lb-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
 .lb-tile { border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); display: flex; flex-direction: column; }
 .lb-shot { display: block; width: 100%; aspect-ratio: 4 / 3; background-color: var(--bg-alt); background-repeat: no-repeat; }
+/* 스프라이트가 없는 시안은 <img> 로 그린다(main.js portfolioSpriteMarkup 폴백).
+   object-fit 이 없으면 4:3 틀에 눌려 사진이 찌그러진다. */
+img.lb-shot, img.lb-cand-shot { object-fit: cover; }
+
+/* 카탈로그 이어보기 — 300장을 한 번에 그리지 않는다(폰 스크롤 부담). */
+.folio-more-wrap { display: flex; justify-content: center; margin-top: 18px; }
+.folio-more-btn { min-height: 44px; padding: 12px 22px; font-size: 15px; }
+.folio-more-btn[hidden] { display: none; }
+
+/* 서비스 지역 — 연락처 아래 정적 블록 */
+.service-area { margin-top: 26px; padding: 18px 20px; background: var(--bg-alt); border-radius: var(--radius-sm); text-align: center; }
+.service-area h3 { font-size: 16px; margin-bottom: 8px; }
+.service-area p { font-size: 15px; color: var(--ink-soft); line-height: 1.7; }
 .lb-tile-b { padding: 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .lb-tile-head { display: flex; align-items: center; gap: 6px; }
 .lb-space-name { font-size: 12px; font-weight: 800; color: var(--link-strong); }
@@ -1043,6 +1056,18 @@ ul, ol { list-style: none; }
   .lb-wrap { padding: 16px; border-radius: var(--radius-sm); }
   .lb-tiles { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .lb-space, .lb-chip, .lb-back, .lb-swap, .lb-detail { min-height: 44px; font-size: 15px; }
-  .lb-switch-btn { min-height: 44px; font-size: 14px; flex: 1; }
+  .lb-switch-btn { min-height: 44px; font-size: 15px; flex: 1; }
   .lb-cand { flex-basis: 120px; }
+}
+
+/* 폰 본문 글씨 마무리 — 데스크톱은 그대로 두고, 손님이 읽어야 하는 문장만 폰에서 15px 급으로.
+   제목·배지·캡션처럼 작아야 자연스러운 것은 올리지 않는다. */
+@media (max-width: 640px) {
+  .inquiry-safenote { font-size: 14.5px; }   /* 예상상담 고지 — 금액 관련 안내라 읽혀야 한다 */
+  .consent { font-size: 15px; }              /* 개인정보 동의 문구 */
+  .sum-row { font-size: 15px; }              /* 제출 전 요약(예산 포함) */
+  .done-note { font-size: 14.5px; }          /* 제출 완료 안내 */
+  .lb-sub { font-size: 14.5px; }             /* 우리집 한 채 단계 설명 */
+  .lb-fact-p { font-size: 14px; }            /* 사실 카드 본문 */
+  .sim-note { font-size: 13.5px; }           /* 시뮬레이터 고지 */
 }

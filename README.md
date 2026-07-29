@@ -119,7 +119,7 @@ integrations/n8n/*.workflow.json        n8n 워크플로(import용)
   `ensure-site-integrity` · `ensure-conversion-basics` · `ensure-lead-route-parity` ·
   `ensure-simulator-honesty`(시뮬레이터 고지·범위표기·게이팅 부재) ·
   `ensure-lookbook-honesty`(보기 모드 고지·금액 미계산·판정 금지) ·
-  `verify-space-cost-estimates`(시안 240개·예상비용 불변)
+  `verify-space-cost-estimates`(시안 300개·예상비용 불변)
 - **예외 1가지**: `insights`(블로그 글)를 수정했으면 `python3 scripts/prerender-posts.py`를
   실행해 `posts/` 정적 페이지를 재생성한 뒤 함께 커밋하세요. (네이버 등 JS 렌더링이
   불안정한 검색엔진이 글을 개별 색인하도록 글마다 정적 페이지를 둡니다 — sitemap도 이 주소 기준)

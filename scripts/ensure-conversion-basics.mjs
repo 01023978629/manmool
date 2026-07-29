@@ -155,6 +155,35 @@ try {
     '상담 접수 경로 연결됨');
 } catch (e) { fail.push('data/config.json 을 읽지 못했다: ' + e.message); }
 
+/* 카탈로그 이어보기 — 300장을 한 번에 DOM 에 넣으면 폰 스크롤이 무거워진다.
+   실측: 통짜 렌더 시 DOM 9,866개·카탈로그 마크업 391KB → 점진 렌더 1,575개·31KB.
+   손님 대부분이 폰으로 들어오므로 여기가 되돌아가면 이탈로 직결된다. */
+{
+  const idx = read('index.html');
+  const mainJs = read('js/main.js');
+  check(/id="portfolioMore"/.test(idx),
+    'index.html 에 카탈로그 더 보기 버튼(#portfolioMore)이 없다',
+    '카탈로그 더 보기 버튼 존재');
+  check(/const PAGE = \d+/.test(mainJs) && /insertAdjacentHTML\('beforeend'/.test(mainJs),
+    'renderPortfolio 가 점진 렌더를 하지 않는다 — 300장을 한 번에 그리면 폰 스크롤이 무거워진다',
+    '카탈로그 점진 렌더 유지');
+  check(!/grid\.innerHTML = keys\.map/.test(mainJs),
+    'renderPortfolio 가 다시 통짜 렌더(grid.innerHTML = keys.map)로 돌아갔다',
+    '통짜 렌더로 되돌아가지 않음');
+}
+
+/* 시안 공유 주소(#design=id) — 검색·공유로 들어올 진입점이 홈 하나뿐이던 것을 고친 것.
+   id 기반이어야 카탈로그가 늘어도 같은 시안이 열리고, 공용 해시 헬퍼를 거쳐야 #sim=·#look= 과 공존한다. */
+{
+  const mainJs = read('js/main.js');
+  check(/MANMUL_HASH\.read\('design'\)/.test(mainJs) && /p\.id === sharedDesign/.test(mainJs),
+    '시안 공유 주소(#design=id) 진입이 없거나 id 기반이 아니다 — 공유 링크가 죽거나 다른 시안이 열린다',
+    '시안 공유 주소 진입(id 기반) 유지');
+  check(/MANMUL_HASH\.build\('design'/.test(mainJs) && !/pushState\([^)]*design/.test(mainJs),
+    '시안 모달이 공용 해시 헬퍼를 안 쓰거나 pushState 를 쓴다 — 다른 해시 키를 지우거나 뒤로가기가 길어진다',
+    '시안 해시가 공용 헬퍼·replaceState 사용');
+}
+
 if (fail.length) {
   console.error('✗ 전환 기본기 ' + fail.length + '건 깨짐\n');
   fail.forEach((f) => console.error('  - ' + f));

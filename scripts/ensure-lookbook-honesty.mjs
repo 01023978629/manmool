@@ -30,14 +30,43 @@ check(/js\/lookbook\.js\?v=/.test(index) && /initLookbook/.test(main),
   'lookbook.js 로드 또는 main.js 초기화 연결이 끊겼다',
   'lookbook.js 로드·초기화 연결');
 
-/* ② 기존 240 카탈로그를 대체하지 않는다 -------------------------------- */
+/* ② 기존 사례 카탈로그를 대체하지 않는다 -------------------------------- */
 // 사장님 지시: "AI 인테리어 사례는 두고" — 새 보기는 그것을 덮지 않는다.
 check(/id="portfolio"/.test(index) && /AI 추천 인테리어 디자인/.test(index),
-  '기존 "AI 추천 인테리어 디자인"(240 사례) 섹션이 사라졌다',
+  '기존 "AI 추천 인테리어 디자인" 섹션이 사라졌다',
   '기존 사례 카탈로그 유지됨');
-check(Array.isArray(site.portfolio) && site.portfolio.length === 240,
-  `site.json portfolio 가 240개가 아니다(${site.portfolio && site.portfolio.length}) — 카탈로그가 파손됐다`,
-  'portfolio 240개 유지');
+// 개수를 숫자로 박아두면 카탈로그를 늘릴 때마다 검증기가 거짓으로 빨간불이 된다(실제로 300 확장 때 그랬다).
+// 지켜야 할 것은 '몇 개냐'가 아니라 ⑴ 줄지 않았고 ⑵ 화면에 적은 숫자가 사실이냐 두 가지다.
+{
+  const n = Array.isArray(site.portfolio) ? site.portfolio.length : 0;
+  const FLOOR = 240; // 지금까지 공개된 최소치 — 이 아래로 내려가면 카탈로그가 잘려나간 것이다
+  check(n >= FLOOR,
+    `site.json portfolio 가 ${n}개로 줄었다(최소 ${FLOOR}) — 카탈로그가 파손됐다`,
+    `portfolio ${n}개 (축소 없음)`);
+  const claim = index.match(/총\s*([\d,]+)\s*가지/);
+  const claimed = claim ? Number(claim[1].replace(/,/g, '')) : null;
+  check(claimed === n,
+    `화면에는 "총 ${claimed}가지"라고 적혀 있는데 실제 시안은 ${n}개다 — 고객에게 숫자를 부풀려 말하게 된다`,
+    `화면 표기(총 ${claimed}가지)와 실제 시안 수 일치`);
+
+  // "총 N가지"가 사실이려면 개수만 맞아선 부족하다 — 손님은 설명이 아니라 사진으로 훑는다.
+  // 사진·자른위치·배율·좌우반전이 전부 같으면 손님 눈에는 같은 시안 두 개다(js/main.js portfolioPhotoStyle 기준).
+  // 지금 59건이 겹쳐 있다(전부 2026-07-23 배치). 자세한 목록은 scripts/report-photo-duplicates.mjs.
+  // 여기서는 '더 나빠지지 않는다'만 지킨다 — 고칠 때마다 이 숫자를 내려 잡는다.
+  const DUP_CEILING = 59;
+  const seen = new Map();
+  (site.portfolio || []).forEach((x) => {
+    const k = [String(x.photo || '').split('?')[0], x.photoPosition || '', x.photoScale || '', x.photoMirror ? 'm' : ''].join('|');
+    seen.set(k, (seen.get(k) || 0) + 1);
+  });
+  const dup = [...seen.values()].reduce((a, c) => a + (c > 1 ? c - 1 : 0), 0);
+  check(dup <= DUP_CEILING,
+    `사진이 완전히 겹치는 시안이 ${dup}건으로 늘었다(허용 ${DUP_CEILING}) — 새 시안이 기존 사진을 그대로 재사용했다. node scripts/report-photo-duplicates.mjs 로 확인해라`,
+    `사진 겹침 ${dup}건 (한도 ${DUP_CEILING} 이하)`);
+  if (dup < DUP_CEILING) {
+    ok.push(`↓ 겹침이 ${DUP_CEILING} → ${dup} 로 줄었다 — 이 파일의 DUP_CEILING 을 ${dup} 로 내려 잡아라`);
+  }
+}
 
 /* ③ 메뉴를 늘리지 않는다 ------------------------------------------------ */
 // 메뉴가 늘면 "우리집 사양서"와 "우리집 한 채"를 고객이 구분하지 못한다.
@@ -123,6 +152,14 @@ check(/portfolioSpriteMarkup\(/.test(look) && !/portfolioSpriteMarkup\([^)]*,\s*
 check(/observeSprites\(\)/.test(look),
   '렌더 후 observeSprites() 호출이 없다 — 사진이 빈 칸으로 남는다',
   '렌더 후 사진 관찰자 재부착');
+// 모든 시안에 스프라이트 시트가 배정되는 것은 아니다(300 확장 배치 60개는 일부러 제외).
+// 폴백 없이 스프라이트로 그리면 data-sheet="undefined" → 회색 빈칸이 된다. 실제로 214칸 중 39칸이 그랬다.
+check(/if \(!item\.__designSheet\)/.test(main),
+  'portfolioSpriteMarkup 에 __designSheet 없는 시안 폴백이 없다 — 시트 미배정 시안이 회색 빈칸으로 나간다',
+  '스프라이트 미배정 시안 사진 폴백 존재');
+check(/url === 'undefined'/.test(main),
+  "fillSprite 가 문자열 'undefined' 를 걸러내지 않는다 — url('undefined') 배경과 404 요청이 남는다",
+  "fillSprite 가 'undefined' 문자열을 막음");
 
 /* ⑭ 스코프 이탈 없음 ---------------------------------------------------- */
 // 이미지 저장·업로드·네트워크는 이 화면의 일이 아니다(시뮬레이터가 이미 갖고 있다).

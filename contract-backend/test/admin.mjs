@@ -34,7 +34,16 @@ const save = await call('POST', '/admin/settings', { token: 'adm-secret', json: 
   BOGUS_KEY: 'x', // 허용되지 않은 키는 무시돼야 함
 } } });
 ok('설정 저장 성공', save.status === 200 && save.data.saved === 6);
-ok('저장 후 liveReady=true', save.data.status.liveReady === true && save.data.status.live === true);
+// 완료 템플릿(SOLAPI_TEMPLATE_DONE)이 아직 비어 있다. 예전에는 이 상태에서 '준비완료' 초록불이
+// 떴는데, 그러면 고객 완료통지가 100% 실패하는 것을 사장님이 알 방법이 없다.
+ok('완료 템플릿이 없으면 준비완료가 아니다', save.data.status.liveReady === false && save.data.status.live === true);
+ok('무엇이 비었는지 알려준다', (save.data.status.liveMissing || []).some((m) => m.key === 'SOLAPI_TEMPLATE_DONE'));
+
+const save2 = await call('POST', '/admin/settings', { token: 'adm-secret', json: { settings: {
+  SOLAPI_TEMPLATE_DONE: 'T-DONE',
+} } });
+ok('완료 템플릿까지 채우면 liveReady=true', save2.data.status.liveReady === true && save2.data.status.live === true);
+ok('다 채우면 빈 항목이 없다', (save2.data.status.liveMissing || []).length === 0);
 
 // 시크릿 마스킹: secret 필드는 원문 반환 금지, 끝 4자리만
 const secretField = save.data.status.fields.find((f) => f.key === 'SOLAPI_API_SECRET');

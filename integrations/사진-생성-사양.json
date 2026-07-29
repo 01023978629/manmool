@@ -1,0 +1,173 @@
+{
+  "_읽는법": "사례 사진 19장 생성 사양. integrations/코덱스-인계-사진정리.md 3장과 함께 본다. 이미지를 만든 뒤 assets/designs/ 에 넣고 data/site.json 의 해당 시안 photo 를 바꾼다.",
+  "작성": "2026-07-28",
+  "목표": {
+    "근거": "사진 한 장이 감당하는 시안을 최대 5개로 낮춘다. 지금 현관은 사진 2장으로 37개를 감당하고 한 장이 33번 쓰인다.",
+    "필요장수": 19,
+    "달성후": "공간마다 사진 8장 이상 · 사진 겹침 0건 · 한 장당 최대 5개 시안",
+    "더_욕심낸다면": "최대 4개로 낮추려면 31장이 필요하다. 19장을 먼저 끝내고 다시 판단한다."
+  },
+  "기술사양": {
+    "해상도": "1536x1024 (가로 3:2). 기존 ai-300-*.webp 와 같다",
+    "형식": "webp",
+    "용량": "장당 150KB 이하. 기존 8장이 56~144KB 다",
+    "파일명": "assets/designs/ai-20260728-{공간}-{슬러그}.webp",
+    "캐시버스팅": "site.json 의 photo 값에 ?v=20260728-photofix 를 붙인다. 붙이지 않으면 손님 브라우저가 옛 사진을 계속 보여준다",
+    "확인": "node scripts/report-photo-duplicates.mjs 로 겹침이 줄었는지 본다"
+  },
+  "모든_이미지_공통_금지": [
+    "이미지 안에 글자를 넣지 마라 — 한글이든 영문이든. photoMirror 로 좌우를 뒤집으면 글자가 거꾸로 보이고, 생성 모델이 만드는 글자는 대개 뜻 없는 기호가 된다",
+    "사람을 넣지 마라 — 초상권 문제가 없더라도, 손님은 '우리집'을 상상하러 온 것이지 남의 집에 사는 사람을 보러 온 것이 아니다",
+    "브랜드 로고·상표를 넣지 마라",
+    "천장이 3m 넘는 서양식 대저택처럼 만들지 마라 — 한국 아파트 천장은 2.3~2.4m 다. 스케일이 어긋나면 손님이 '우리집이랑 다르네' 하고 나간다",
+    "실제 시공 사진처럼 보이게 만들지 마라 — 이 카탈로그는 category 가 'AI추천' 이다. 사진에 시공 흔적·현장 자재·작업자를 넣으면 실적으로 오해된다"
+  ],
+  "모든_이미지_공통_지시": "photorealistic interior photograph of a South Korean apartment, ceiling height about 2.4m, natural daylight from a window, wide-angle but no fisheye distortion, straight verticals, neutral white balance, no text, no signage, no people, no brand logos, clean and lived-in but not staged-empty, 3:2 landscape, 1536x1024",
+  "이미지": [
+    {
+      "파일": "ai-20260728-entry-japandi-lattice.webp",
+      "공간": "현관",
+      "스타일": "재팬디",
+      "덮을_구조": ["격자 중문형 현관", "격자 중문 현관", "아치 중문 현관"],
+      "프롬프트": "Korean apartment entryway with an oak lattice sliding partition door (격자 중문) separating hall from living area, warm light oak grid frame with frosted glass panels, diatomite-textured off-white walls, low hinoki bench with woven basket underneath, matte porcelain floor tile in warm grey, slim ceiling downlights, japandi restraint"
+    },
+    {
+      "파일": "ai-20260728-entry-hotel-gallery.webp",
+      "공간": "현관",
+      "스타일": "호텔식",
+      "덮을_구조": ["갤러리 현관", "전신거울 현관", "반개방 현관"],
+      "프롬프트": "Hotel-style Korean apartment entry hall, large-format greige porcelain floor tiles, full-height mirror panel on one wall, recessed wall niche with concealed LED strip lighting, dark walnut shoe cabinet with brass handles, a single framed abstract canvas with no text, soft indirect ceiling cove lighting"
+    },
+    {
+      "파일": "ai-20260728-entry-warm-bench.webp",
+      "공간": "현관",
+      "스타일": "웜 베이지",
+      "덮을_구조": ["벤치 수납형 현관", "벤치 수납 현관", "콘솔 수납형 현관"],
+      "프롬프트": "Warm beige Korean apartment entryway, built-in bench with rounded corners and a linen cushion, rattan-front shoe cabinet doors, beige microcement wall finish, oak trim, small round mirror, woven jute mat, soft afternoon daylight, cozy and calm"
+    },
+    {
+      "파일": "ai-20260728-entry-industrial-steel.webp",
+      "공간": "현관",
+      "스타일": "인더스트리얼",
+      "덮을_구조": ["파티션 수납형 현관", "파티션 현관", "복도형 현관"],
+      "프롬프트": "Industrial-style Korean apartment entry, black steel frame partition with clear ribbed glass, exposed micro-cement wall texture in cool grey, matte black hardware, dark grey large tile floor, blackened metal coat hooks, single pendant with black shade, restrained and masculine"
+    },
+    {
+      "파일": "ai-20260728-entry-french-molding.webp",
+      "공간": "현관",
+      "스타일": "프렌치",
+      "덮을_구조": ["콘솔 수납형 현관", "라운드 중문 현관", "아치 중문형 현관"],
+      "프롬프트": "French-style Korean apartment entryway, ivory paneled molding on the walls and door, herringbone oak flooring, slim console table with curved legs, arched doorway opening, small brass wall sconce, pale sage accent on the door, delicate and bright"
+    },
+    {
+      "파일": "ai-20260728-entry-smart-slim.webp",
+      "공간": "현관",
+      "스타일": "스마트 수납",
+      "덮을_구조": ["슬림 수납 현관", "신발장 통합 현관", "팬트리 연계 현관", "센서 조명 현관"],
+      "프롬프트": "Compact Korean apartment entryway maximizing storage, floor-to-ceiling handleless white shoe cabinets with push-open doors, a narrow open niche at waist height for keys, motion-sensor LED strip under the cabinet base, pale grey tile floor, tight but uncluttered, bright even lighting"
+    },
+
+    {
+      "파일": "ai-20260728-kids-scandi-bunk.webp",
+      "공간": "아이방",
+      "스타일": "북유럽",
+      "덮을_구조": ["2인 아이방", "벙커 침대 아이방", "패밀리 학습방"],
+      "프롬프트": "Scandinavian style Korean apartment children's room for two siblings, solid birch bunk bed with rounded safety rails and a built-in ladder, white walls, light oak flooring, pale blue and mustard textile accents, low open toy shelving, soft daylight from a wide window, safe and airy"
+    },
+    {
+      "파일": "ai-20260728-kids-window-desk.webp",
+      "공간": "아이방",
+      "스타일": "미니멀",
+      "덮을_구조": ["창가 책상 아이방", "창가 데스크형 아이방", "창가 독서형 아이방", "독서 코너 아이방"],
+      "프롬프트": "Minimal Korean apartment study-focused children's room, a long light oak desk running along the window wall with two task chairs, a cork pinboard above with no writing on it, slim white wall shelves, warm white walls, uncluttered floor, bright natural daylight"
+    },
+    {
+      "파일": "ai-20260728-kids-japandi-platform.webp",
+      "공간": "아이방",
+      "스타일": "재팬디",
+      "덮을_구조": ["평상 침대 아이방", "평상 수납형 아이방", "한쪽 벽 수납형"],
+      "프롬프트": "Japandi Korean apartment children's room with a low wooden platform bed built over drawer storage, oatmeal linen bedding, warm oak and off-white palette, paper-shade pendant light, a single low reading nook cushion, minimal toys, calm and grounded, soft diffuse daylight"
+    },
+    {
+      "파일": "ai-20260728-kids-art-color.webp",
+      "공간": "아이방",
+      "스타일": "빈티지",
+      "덮을_구조": ["미술 놀이 아이방", "컬러 포인트 아이방", "오픈 놀이 아이방"],
+      "프롬프트": "Playful Korean apartment children's room with a creative corner, one sage green painted accent wall, a small wooden easel, low round table with two child chairs, open cubby storage with fabric bins in mustard and terracotta, warm oak floor, vintage-toned soft lighting"
+    },
+    {
+      "파일": "ai-20260728-kids-growth-sliding.webp",
+      "공간": "아이방",
+      "스타일": "스마트 수납",
+      "덮을_구조": ["성장형 수납 아이방", "슬라이딩 수납 아이방", "가변형 아이방", "모듈 가구 아이방"],
+      "프롬프트": "Korean apartment children's room built for growing storage, floor-to-ceiling built-in wardrobe with pale grey sliding doors, an adjustable-height desk beside it, modular cube shelving with rounded edges, light oak floor, white walls, neat and adaptable, even bright lighting"
+    },
+
+    {
+      "파일": "ai-20260728-study-hotel-lounge.webp",
+      "공간": "서재",
+      "스타일": "호텔식",
+      "덮을_구조": ["라운지 서재", "미디어 서재", "갤러리 서재"],
+      "프롬프트": "Hotel-lounge style Korean apartment home study, dark walnut built-in bookshelf wall with concealed LED shelf lighting, a leather lounge chair with a slim floor lamp, deep charcoal accent wall, brass-toned hardware, warm low-key ambient light, quiet and refined"
+    },
+    {
+      "파일": "ai-20260728-study-french-tea.webp",
+      "공간": "서재",
+      "스타일": "프렌치",
+      "덮을_구조": ["티룸 겸용 서재", "아치 빌트인 책장형", "벽면 라이브러리형"],
+      "프롬프트": "French-style Korean apartment study doubling as a tea room, arched built-in bookcase niches painted in soft ivory, molding detail on the surrounds, a small round marble tea table with two curved-back chairs, herringbone oak floor, sheer linen curtain diffusing daylight, delicate and bright"
+    },
+    {
+      "파일": "ai-20260728-study-dual-desk.webp",
+      "공간": "서재",
+      "스타일": "모던",
+      "덮을_구조": ["듀얼 데스크 서재", "집중형 서재", "코너 데스크 서재"],
+      "프롬프트": "Modern Korean apartment shared home office for a couple, two facing desks in matte white with light oak tops, a low divider shelf between them, wall-mounted monitor arms, warm grey walls, slim linear ceiling light, cable management visible but tidy, clean and functional daylight"
+    },
+    {
+      "파일": "ai-20260728-study-folding-compact.webp",
+      "공간": "서재",
+      "스타일": "스마트 수납",
+      "덮을_구조": ["폴딩 데스크 서재", "폴딩 데스크형 서재", "컴팩트 홈오피스", "슬라이딩 서재"],
+      "프롬프트": "Compact Korean apartment home office carved out of a small room, a wall-mounted folding desk in light oak shown open, slim shelving above, a fold-away chair, pale warm white walls, a narrow window with a roller blind, everything within arm's reach, bright and efficient"
+    },
+
+    {
+      "파일": "ai-20260728-dressing-boutique-glass.webp",
+      "공간": "드레스룸",
+      "스타일": "호텔식",
+      "덮을_구조": ["부티크 드레스룸", "유리장 드레스룸", "아일랜드 드레스룸"],
+      "프롬프트": "Boutique hotel style Korean apartment dressing room, brass-framed clear glass cabinet doors with interior LED lighting, a low island drawer unit with a stone top, dark walnut interiors, greige carpet tile floor, handbags and folded knitwear neatly arranged, warm gallery lighting"
+    },
+    {
+      "파일": "ai-20260728-dressing-mirror-slide.webp",
+      "공간": "드레스룸",
+      "스타일": "모던",
+      "덮을_구조": ["미러 드레스룸", "슬라이딩 드레스룸", "컴팩트 드레스룸", "히든 드레스룸"],
+      "프롬프트": "Modern compact Korean apartment dressing room, full-height mirrored sliding wardrobe doors reflecting soft daylight, handleless matte grey panels, a narrow bench, light oak floor, minimal and space-saving, clean even lighting without glare hotspots"
+    },
+    {
+      "파일": "ai-20260728-dressing-powder.webp",
+      "공간": "드레스룸",
+      "스타일": "프렌치",
+      "덮을_구조": ["파우더 연계 드레스룸", "부티크 드레스룸", "양면 수납 드레스룸"],
+      "프롬프트": "French-style Korean apartment dressing room with an attached vanity corner, ivory paneled wardrobe fronts with slim brass knobs, a curved vanity desk with a round lit mirror, upholstered stool in dusty rose, warm ivory walls, herringbone oak floor, soft flattering light"
+    },
+    {
+      "파일": "ai-20260728-dressing-japandi-open.webp",
+      "공간": "드레스룸",
+      "스타일": "재팬디",
+      "덮을_구조": ["오픈 시스템 드레스룸", "오픈 시스템장형", "워크인 드레스룸", "ㄱ자 드레스룸"],
+      "프롬프트": "Japandi Korean apartment walk-in dressing room, light oak open shelving system with slim black rails, folded neutral-toned clothing, a linen curtain softening one section instead of a door, off-white plaster walls, woven storage baskets, calm and orderly, soft diffuse daylight"
+    }
+  ],
+  "만든_뒤_할_일": [
+    "1) 19장을 assets/designs/ 에 넣는다",
+    "2) data/site.json 에서 겹치는 61건 + 한 사진이 5개를 넘게 쓰는 시안을 새 사진으로 옮긴다. 옮길 때 시안의 style·structure 가 사양의 스타일·덮을_구조 와 맞는 것으로 보낸다",
+    "3) 남는 겹침은 photoPosition·photoScale·photoMirror 로 가른다 (값의 범위는 인계서 1장)",
+    "4) node scripts/report-photo-duplicates.mjs — 겹침 0 확인",
+    "5) scripts/ensure-lookbook-honesty.mjs 의 DUP_CEILING 을 새 숫자로 내려 잡는다",
+    "6) for f in scripts/*.mjs; do node \"$f\"; done — 전부 통과",
+    "7) 작업 브랜치에 올리고 draft PR. 본문에 겹침이 61에서 몇으로 줄었는지 숫자로 적는다"
+  ]
+}
