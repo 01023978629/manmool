@@ -1,0 +1,1215 @@
+<!--
+  ============================================================
+  만물인테리어 전자계약 — 관리자 화면 (contract-admin-ui-v1)
+  ------------------------------------------------------------
+  이 화면이 하는 일 (사장님이 PC·폰에서 계약을 살펴보는 창)
+    · 관리자 토큰으로 들어가기 — 토큰은 **이 탭에만**(sessionStorage) 잠깐 둔다
+    · 계약 목록: 번호·제목·고객·금액·상태·날짜 / 상태 필터 / 번호·고객명 검색
+    · 계약 상세: 대금 3회차 청구·입금 표시, 서명 링크 재발급, 계약 취소, 사건 이력
+    · CSV 내보내기 · 백업 실행 · 자가진단(selfTest) · 상태 점검(health)
+
+  이 화면이 하지 않는 일
+    · 계약을 새로 만들지 않는다. 생성·잠금·링크발급을 한 번에 하는 quickSend 는
+      현장 앱이 담당한다. 만드는 곳이 둘이면 계약번호가 두 갈래로 갈라진다.
+    · 금액·상태를 스스로 계산하지 않는다. 서버가 준 값만 그린다.
+    · 관리자 토큰을 화면 어디에도 다시 보여주지 않는다. 입력칸은 password 이고
+      로그인 직후 비운다. 로그·오류 문구에도 절대 싣지 않는다.
+    · 전화번호 원문을 다루지 않는다. 서버는 마스킹본(010-****-5678)만 준다.
+
+  ★ 왜 sessionStorage 인가 (localStorage 를 쓰지 않는 이유)
+      localStorage 는 브라우저를 껐다 켜도 남는다. 사장님이 현장 PC·가족 컴퓨터에서
+      한 번 로그인하면 그 뒤로 그 컴퓨터를 여는 누구나 계약을 열 수 있다는 뜻이다.
+      sessionStorage 는 **탭을 닫으면 사라진다.** 매번 다시 입력하는 번거로움을
+      감수하고 이쪽을 고른다. 이 이유는 화면에도 적어 두었다(로그인 카드 아래).
+      · 웹앱 주소는 비밀이 아니므로 localStorage 에 기억해 둔다(토큰과 다르게 취급한다).
+
+  ★ Code.gs 와의 약속
+      var t = HtmlService.createTemplateFromFile('Admin');
+      t.BOOT_JSON = JSON.stringify({ apiUrl: '<웹앱 exec 주소>' });
+      return t.evaluate()
+        .addMetaTag('viewport', 'width=device-width, initial-scale=1')   // ★ 반드시
+        .setTitle('전자계약 관리 · 만물인테리어');
+    BOOT_JSON 이 없으면 화면이 주소를 직접 입력받는다(그래야 배포 전에도 쓸 수 있다).
+
+  ★ 통신은 PROTOCOL.md 의 text/plain POST 하나만 쓴다.
+    google.script.run 을 쓰지 않는 이유는 Sign.html 머리말과 같다 —
+    통로가 둘이면 토큰 검사·시각 검사·중복요청 처리를 두 곳에 짜야 하고,
+    언젠가 한쪽만 고쳐진다.
+
+  ★ 동작 이름은 사장님이 지정한 이름이 정본이다(listContracts·recordPayment…).
+    PROTOCOL.md 의 점 표기(contract.list…)는 별칭으로 함께 보내 본다. 아래 ACT 한 곳에만 있다.
+
+  ★ 자바스크립트는 ES5 로만(var·function). 사장님이 쓰시는 폰·PC 브라우저를 가리지 않게 한다.
+  ★ 서버가 준 값은 innerHTML 로 그리지 않는다. 전부 createElement + textContent 다.
+  ============================================================
+-->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="robots" content="noindex, nofollow">
+<title>전자계약 관리 · 만물인테리어</title>
+<style>
+:root{
+  --brand:#b98a59; --brand-deep:#8f6739; --brand-tint:#f4ece1;
+  --ink:#2b2521; --ink-soft:#6f655a; --ink-faint:#9a8f83;
+  --bg:#f7f3ec; --card:#fffdfa; --line:#e6dccd; --line-strong:#d6c8b2;
+  --ok:#2f7a55; --ok-tint:#e3f0e9; --warn:#b0453a; --warn-tint:#f8e7e3;
+  --info:#3c6382; --info-tint:#e6eef4;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic","맑은 고딕",system-ui,sans-serif;
+  font-size:15.5px;line-height:1.65;-webkit-text-size-adjust:100%}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1080px;margin:0 auto;padding:0 14px 60px}
+.hide{display:none !important}
+
+.top{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.top .in{max-width:1080px;margin:0 auto;padding:11px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mark{width:34px;height:34px;border-radius:9px;background:var(--brand);color:#fff;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+.co strong{display:block;font-size:15px;font-weight:800}
+.co span{display:block;font-size:11.5px;color:var(--ink-faint)}
+.spacer{flex:1 1 auto}
+
+h1{font-size:21px;margin:20px 0 6px;font-weight:800;letter-spacing:-.02em}
+h2{font-size:16.5px;margin:20px 0 8px;font-weight:800}
+h3{font-size:14.5px;margin:14px 0 6px;font-weight:700;color:var(--brand-deep)}
+p{margin:0 0 9px}
+.lead{color:var(--ink-soft);font-size:14.5px}
+.note{font-size:13px;color:var(--ink-soft);line-height:1.6}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;word-break:break-all}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px;margin:0 0 12px}
+.card.tint{background:var(--brand-tint);border-color:var(--line-strong)}
+
+label.fld{display:block;font-size:13px;font-weight:700;color:var(--ink-soft);margin:12px 0 5px}
+input[type=text],input[type=password],input[type=number],select{
+  width:100%;padding:12px 12px;font-size:16px;font-family:inherit;color:var(--ink);background:#fff;
+  border:1.5px solid var(--line-strong);border-radius:10px}
+input:focus,select:focus{outline:2px solid var(--brand);outline-offset:1px;border-color:var(--brand)}
+
+.btn{display:inline-block;min-height:46px;padding:11px 16px;border-radius:10px;border:1.5px solid transparent;
+  font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;touch-action:manipulation;background:#fff}
+.btn-main{background:var(--brand);color:#fff}
+.btn-main:active{background:var(--brand-deep)}
+.btn-sub{color:var(--brand-deep);border-color:var(--line-strong)}
+.btn-warn{color:#8d3229;border-color:#e2b6ae;background:#fff}
+.btn-sm{min-height:38px;padding:7px 11px;font-size:13.5px;border-radius:8px}
+.btn-wide{display:block;width:100%}
+.btn:disabled{opacity:.5;cursor:default}
+.btn:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px}
+
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+.filters select{width:auto;min-width:130px}
+.filters input{width:auto;flex:1 1 190px;min-width:150px}
+
+/* 표 — 좁은 화면에서는 가로로 밀어서 본다 */
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);
+  border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:720px}
+th,td{padding:11px 12px;text-align:left;border-bottom:1px solid var(--line);font-size:14.5px;white-space:nowrap}
+th{background:var(--brand-tint);color:var(--brand-deep);font-size:13px;font-weight:800;position:sticky;top:0}
+td.r,th.r{text-align:right}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#faf5ee}
+tbody tr:last-child td{border-bottom:none}
+td.title{white-space:normal;min-width:200px}
+
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap}
+.t-DRAFT{background:#eee9e1;color:#6f655a}
+.t-LOCKED{background:#e6eef4;color:#33556e}
+.t-SENT{background:var(--brand-tint);color:var(--brand-deep)}
+.t-VIEWED{background:#f0e7d6;color:#7a5a2c}
+.t-SIGNING{background:#efe3cd;color:#7a5a2c}
+.t-COMPLETED{background:var(--ok-tint);color:#1f5c3f}
+.t-VOID{background:var(--warn-tint);color:#8d3229}
+
+.row{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.row:last-child{border-bottom:none}
+.row .k{color:var(--ink-soft);flex:0 0 auto}
+.row .v{text-align:right;font-weight:600;word-break:break-word}
+
+.msg{border-radius:10px;padding:11px 13px;font-size:14px;line-height:1.6;margin:10px 0}
+.msg-ok{background:var(--ok-tint);color:#1f5c3f;border:1px solid #bcdccb}
+.msg-warn{background:var(--warn-tint);color:#7d2f27;border:1px solid #e9c6bf}
+.msg-info{background:var(--info-tint);color:#2b4d66;border:1px solid #c6d8e5}
+
+.logbox{max-height:190px;overflow-y:auto}
+.logline{display:flex;gap:9px;font-size:13.5px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.logline:last-child{border-bottom:none}
+.logline .t{color:var(--ink-faint);flex:0 0 auto;font-variant-numeric:tabular-nums}
+.logline.bad .m{color:#8d3229;font-weight:700}
+.logline.good .m{color:#1f5c3f}
+
+.check{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.check:last-child{border-bottom:none}
+.check .st{flex:0 0 auto;font-weight:800;font-size:12.5px;padding:2px 9px;border-radius:999px}
+.check .st.pass{background:var(--ok-tint);color:#1f5c3f}
+.check .st.fail{background:var(--warn-tint);color:#8d3229}
+.check .nm{font-weight:700}
+.check .ds{color:var(--ink-soft);font-size:13.5px}
+
+.pay td{white-space:normal}
+.pay .btnrow{gap:6px}
+
+textarea{width:100%;min-height:150px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12.5px;border:1.5px solid var(--line-strong);border-radius:10px;padding:10px}
+
+/* 확인 시트 — 돈·취소처럼 되돌리기 어려운 동작은 한 번 더 묻는다 */
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);
+  border-top:2px solid var(--brand);box-shadow:0 -8px 24px rgba(60,40,20,.18);padding:16px}
+.sheet .in{max-width:1080px;margin:0 auto}
+.sheet p{font-size:15.5px;font-weight:700;margin-bottom:12px}
+footer{max-width:1080px;margin:0 auto;padding:20px 14px 48px;color:var(--ink-faint);font-size:12.5px}
+</style>
+</head>
+<body>
+
+<!-- 서버가 심어 주는 값(주소만). 속성으로 받아 JSON.parse 하므로 따옴표가 섞여도 문서가 깨지지 않는다. -->
+<div id="boot" hidden data-boot="<?= (typeof BOOT_JSON !== 'undefined' && BOOT_JSON) ? BOOT_JSON : '' ?>"></div>
+
+<div class="top"><div class="in">
+  <div class="mark">만물</div>
+  <div class="co"><strong>전자계약 관리</strong><span>만물인테리어</span></div>
+  <span class="spacer"></span>
+  <button type="button" class="btn btn-sub btn-sm hide" id="btnOut">나가기(토큰 지우기)</button>
+</div></div>
+
+<div class="wrap">
+
+  <!-- ① 로그인 -->
+  <section id="scLogin">
+    <h1>관리자 토큰을 입력하세요</h1>
+    <p class="lead">스크립트 속성 <b>ADMIN_TOKEN</b> 에 넣어 둔 값입니다.</p>
+
+    <div class="card">
+      <div id="urlBox">
+        <label class="fld" for="fUrl">웹앱 주소 (…/exec)</label>
+        <input type="text" id="fUrl" inputmode="url" autocomplete="off" spellcheck="false"
+               placeholder="https://script.google.com/macros/s/…/exec">
+        <p class="note">배포 주소입니다. 비밀값이 아니므로 이 브라우저에 기억해 둡니다.</p>
+      </div>
+
+      <label class="fld" for="fToken">관리자 토큰</label>
+      <input type="password" id="fToken" autocomplete="off" spellcheck="false" placeholder="붙여넣기">
+      <p class="msg msg-warn hide" id="loginErr" role="alert"></p>
+      <button type="button" class="btn btn-main btn-wide" id="btnIn" style="margin-top:12px">들어가기</button>
+    </div>
+
+    <div class="card tint">
+      <h3>토큰은 이 탭에만 잠깐 둡니다</h3>
+      <p class="note">
+        입력하신 토큰은 브라우저의 <b>sessionStorage</b> 에만 보관되며, <b>이 탭을 닫는 순간 지워집니다.</b><br>
+        오래 남는 localStorage 를 쓰지 않는 이유는 이렇습니다 — 거기에 두면 브라우저를 껐다 켜도 값이 남아,
+        이 컴퓨터를 여는 누구나 계약을 열어볼 수 있게 됩니다. 매번 다시 입력하는 번거로움을 택했습니다.<br>
+        토큰은 입력 후 화면 어디에도 다시 표시되지 않습니다. 잃어버리셨다면 스크립트 속성에서 새로 발급하세요.
+      </p>
+    </div>
+  </section>
+
+  <!-- ② 본 화면 -->
+  <section id="scMain" class="hide">
+
+    <div class="tools">
+      <button type="button" class="btn btn-sub" id="btnReload">목록 새로고침</button>
+      <button type="button" class="btn btn-sub" id="btnCsv">CSV 내보내기</button>
+      <button type="button" class="btn btn-sub" id="btnBackup">백업 실행</button>
+      <button type="button" class="btn btn-sub" id="btnTest">자가진단</button>
+      <button type="button" class="btn btn-sub" id="btnHealth">상태 점검</button>
+    </div>
+
+    <!-- 도구 결과가 여기 뜬다 -->
+    <div id="panel" class="hide"></div>
+
+    <!-- 목록 -->
+    <div id="listView">
+      <div class="filters">
+        <select id="fStatus" aria-label="상태 필터">
+          <option value="">상태 전체</option>
+          <option value="DRAFT">작성중</option>
+          <option value="LOCKED">잠금(확정)</option>
+          <option value="SENT">발송됨</option>
+          <option value="VIEWED">열람함</option>
+          <option value="SIGNING">서명중</option>
+          <option value="COMPLETED">체결완료</option>
+          <option value="VOID">취소됨</option>
+        </select>
+        <input type="text" id="fSearch" placeholder="계약번호 · 고객명 · 제목 검색" autocomplete="off">
+        <button type="button" class="btn btn-sub btn-sm" id="btnSearchClear">지우기</button>
+      </div>
+      <p class="note" id="listCount"></p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr>
+            <th>계약번호</th><th>제목</th><th>고객</th><th class="r">금액</th>
+            <th>상태</th><th>등록일</th><th class="r">미수금</th>
+          </tr></thead>
+          <tbody id="listBody"></tbody>
+        </table>
+      </div>
+      <div class="btnrow" style="margin-top:10px">
+        <button type="button" class="btn btn-sub hide" id="btnMore">더 보기</button>
+      </div>
+    </div>
+
+    <!-- 상세 -->
+    <div id="detailView" class="hide"></div>
+
+    <h2>최근 작업 기록</h2>
+    <div class="card logbox" id="logBox"><p class="note">아직 없습니다.</p></div>
+  </section>
+
+</div>
+
+<div id="sheet" class="sheet hide"><div class="in">
+  <p id="sheetText"></p>
+  <div class="btnrow">
+    <button type="button" class="btn btn-main" id="sheetYes">예, 진행합니다</button>
+    <button type="button" class="btn btn-sub" id="sheetNo">아니요</button>
+  </div>
+</div></div>
+
+<footer>
+  만물인테리어 전자계약 · 이 화면의 모든 시각은 서버(구글) 기준입니다.<br>
+  화면에 보이는 전화번호는 마스킹된 값이며, 원문은 서버에도 저장되지 않습니다.
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- 동작 이름 ----------
+     사장님이 지정한 이름이 정본. 점 표기는 별칭으로 한 번만 다시 시도한다. */
+  var ACT = {
+    list:   { name: 'listContracts', alias: 'contract.list' },
+    get:    { name: 'getContract',   alias: 'contract.get' },
+    pay:    { name: 'recordPayment', alias: 'payment.update' },
+    link:   { name: 'issueSignLink', alias: 'signlink.issue' },
+    voidC:  { name: 'voidContract',  alias: 'contract.void' },
+    backup: { name: 'backup',        alias: 'backup.export' },
+    csv:    { name: 'exportCsv',     alias: 'contract.exportCsv' },
+    test:   { name: 'selfTest',      alias: 'diag.selfTest' },
+    health: { name: 'health',        alias: 'health' }
+  };
+
+  var TOKEN_KEY = 'mmct_admin_token';   // sessionStorage — 탭을 닫으면 사라진다
+  var URL_KEY = 'mmct_api_url';         // localStorage — 주소는 비밀이 아니다
+  var PAGE_SIZE = 50;
+  var TIMEOUT = 60000;
+  var TIMEOUT_LONG = 180000;            // 백업·CSV 는 시트를 통째로 읽는다
+
+  var CFG = { apiUrl: '' };
+  var S = { items: [], total: 0, offset: 0, hasMore: false, status: '', q: '', cur: null, busy: false, dirty: false };
+
+  var ST_KO = {
+    DRAFT: '작성중', LOCKED: '잠금(확정)', SENT: '발송됨', VIEWED: '열람함',
+    SIGNING: '서명중', COMPLETED: '체결완료', VOID: '취소됨'
+  };
+  var PAY_KO = { PENDING: '대기', INVOICED: '청구함', PAID: '입금확인' };
+  var EV_KO = {
+    CONTRACT_CREATED: '계약 생성', CONTRACT_LOCKED: '본문 확정(잠금)',
+    SIGN_LINK_ISSUED: '서명 링크 발급', SIGN_LINK_OPENED: '고객이 링크 열람',
+    SIGN_SUBMITTED: '서명 제출', CONTRACT_COMPLETED: '체결 완료',
+    CONTRACT_VOIDED: '계약 취소', PAYMENT_INVOICED: '대금 청구 표시',
+    PAYMENT_PAID: '입금 표시', MESSAGE_QUEUED: '메시지 발송 요청',
+    MESSAGE_BLOCKED: '메시지 발송 막힘', BACKUP_EXPORTED: '백업 내보내기',
+    ADMIN_AUTH_FAILED: '관리자 인증 실패', TOKEN_REJECTED: '고객 토큰 거부'
+  };
+
+  /* ============================================================
+   * 도구
+   * ============================================================ */
+  function $(id) { return document.getElementById(id); }
+  function show(id) { $(id).classList.remove('hide'); }
+  function hide(id) { $(id).classList.add('hide'); }
+  function setText(el, v) { if (el) el.textContent = (v == null ? '' : String(v)); }
+  function str(v) { return v == null ? '' : String(v); }
+  function won(n) {
+    var v = Number(n);
+    if (!isFinite(v)) v = 0;
+    var neg = v < 0; if (neg) v = -v;
+    return (neg ? '-' : '') + String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+  function safeUrl(u) {
+    var s = String(u == null ? '' : u).trim();
+    return /^https?:\/\//i.test(s) ? s : '';
+  }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = String(text);
+    return e;
+  }
+  function kv(parent, k, v) {
+    if (v == null || v === '') return;
+    var r = el('div', 'row');
+    r.appendChild(el('span', 'k', k));
+    r.appendChild(el('span', 'v', v));
+    parent.appendChild(r);
+  }
+  var DOW = ['일', '월', '화', '수', '목', '금', '토'];
+  function when(iso, withTime) {
+    var t = Date.parse(iso);
+    if (!isFinite(t)) return '';
+    var d = new Date(t);
+    var s = d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+    if (withTime === false) return s;
+    return s + ' (' + DOW[d.getDay()] + ') ' + p2(d.getHours()) + ':' + p2(d.getMinutes());
+  }
+  function p2(n) { return (n < 10 ? '0' : '') + n; }
+
+  /* ============================================================
+   * 통신 — text/plain POST
+   * ============================================================ */
+  function api(act, payload, opt, cb) {
+    var o = opt || {};
+    if (!CFG.apiUrl) { cb({ code: 'NO_API', message: '웹앱 주소가 없습니다.' }); return; }
+    var token = sessionToken();
+    if (!token) { cb({ code: 'UNAUTHORIZED', message: '토큰이 없습니다. 다시 들어가 주세요.' }); return; }
+
+    send(act.name, false);
+
+    function send(actionName, isRetry) {
+      var body = {
+        action: actionName,
+        ts: Date.now(),
+        adminToken: token,      // ← 요청 본문에만 실린다. 화면·기록 어디에도 남기지 않는다.
+        payload: payload || {}
+      };
+      if (o.idem) body.idem = o.idem;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', CFG.apiUrl, true);
+      // text/plain 이라야 preflight(OPTIONS) 없이 나간다 — PROTOCOL.md 첫 절.
+      xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
+      xhr.timeout = o.timeout || TIMEOUT;
+      xhr.ontimeout = function () { cb({ code: 'TIMEOUT', message: '서버가 시간 안에 응답하지 않았습니다.' }); };
+      xhr.onerror = function () { cb({ code: 'NETWORK', message: '인터넷 연결을 확인해 주세요.' }); };
+      xhr.onload = function () {
+        var res = null;
+        try { res = JSON.parse(xhr.responseText); } catch (e) { res = null; }
+        if (!res || typeof res !== 'object') {
+          cb({ code: 'BAD_RESPONSE', message: '서버가 JSON 이 아닌 화면을 보냈습니다(배포 접근 권한을 확인하세요).' });
+          return;
+        }
+        // 규약: HTTP 상태는 언제나 200. ok 로 판단한다.
+        if (res.ok === true) { cb(null, res); return; }
+        var code = String(res.error || 'SERVER_ERROR');
+        if (!isRetry && act.alias && act.alias !== actionName && unknownAction(code, res.message)) {
+          send(act.alias, true); return;
+        }
+        cb({ code: code, message: str(res.message) });
+      };
+      try { xhr.send(JSON.stringify(body)); }
+      catch (e) { cb({ code: 'NETWORK', message: '요청을 보내지 못했습니다.' }); }
+    }
+  }
+  function unknownAction(code, msg) {
+    if (code !== 'BAD_REQUEST') return false;
+    var m = str(msg);
+    return m.indexOf('동작') >= 0 || m.indexOf('action') >= 0 || m.indexOf('알 수 없') >= 0;
+  }
+
+  // 실패 문구를 사람이 읽는 말로. 토큰 값은 절대 싣지 않는다.
+  function why(err) {
+    var c = str(err && err.code);
+    var m = str(err && err.message);
+    if (c === 'UNAUTHORIZED') return '관리자 토큰이 맞지 않습니다.';
+    if (c === 'NOT_CONFIGURED') return '스크립트 속성이 덜 설정되었습니다. ' + m;
+    if (c === 'CLOCK_SKEW') return '이 기기의 시각이 서버와 10분 넘게 어긋납니다. 날짜·시간을 자동으로 맞춰 주세요.';
+    if (c === 'BUSY') return '다른 작업이 진행 중입니다. 잠시 뒤 다시 눌러 주세요.';
+    if (c === 'NETWORK') return '인터넷 연결이 끊겼습니다.';
+    if (c === 'TIMEOUT') return '서버가 시간 안에 응답하지 않았습니다(계약이 많으면 백업은 오래 걸립니다).';
+    if (c === 'BAD_RESPONSE') return m;
+    return (m || '처리하지 못했습니다.') + ' [' + c + ']';
+  }
+
+  /* ============================================================
+   * 토큰 보관 — sessionStorage 만
+   * ============================================================ */
+  function sessionToken() {
+    try { return window.sessionStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; }
+  }
+  function setToken(v) {
+    try { window.sessionStorage.setItem(TOKEN_KEY, v); } catch (e) { /* 사생활 보호 모드 등 */ }
+  }
+  function dropToken() {
+    try { window.sessionStorage.removeItem(TOKEN_KEY); } catch (e) { }
+  }
+
+  /* ============================================================
+   * 기록(로그) — 화면 아래 '최근 작업 기록'
+   * ============================================================ */
+  var logCount = 0;
+  function log(kind, text) {
+    var box = $('logBox');
+    if (!logCount) box.textContent = '';
+    var line = el('div', 'logline ' + (kind === 'bad' ? 'bad' : (kind === 'good' ? 'good' : '')));
+    var d = new Date();
+    line.appendChild(el('span', 't', p2(d.getHours()) + ':' + p2(d.getMinutes()) + ':' + p2(d.getSeconds())));
+    line.appendChild(el('span', 'm', text));
+    box.insertBefore(line, box.firstChild);
+    logCount++;
+    while (box.childNodes.length > 40) box.removeChild(box.lastChild);
+  }
+
+  /* ============================================================
+   * 확인 시트 — 되돌리기 어려운 동작은 한 번 더 묻는다
+   * ============================================================ */
+  var askYes = null;
+  function ask(text, onYes) {
+    setText($('sheetText'), text);
+    askYes = onYes;
+    show('sheet');
+  }
+  function askClose() { hide('sheet'); askYes = null; }
+
+  /* ============================================================
+   * 목록
+   * ============================================================ */
+  function loadList(append) {
+    if (S.busy) return;
+    S.busy = true;
+    var off = append ? S.offset : 0;
+    api(ACT.list, { status: S.status, limit: PAGE_SIZE, offset: off }, { timeout: TIMEOUT }, function (err, res) {
+      S.busy = false;
+      if (err) {
+        if (err.code === 'UNAUTHORIZED') { logout('관리자 토큰이 맞지 않습니다. 다시 입력해 주세요.'); return; }
+        log('bad', '목록을 불러오지 못했습니다 — ' + why(err));
+        return;
+      }
+      var items = (Object.prototype.toString.call(res.items) === '[object Array]') ? res.items : [];
+      S.items = append ? S.items.concat(items) : items;
+      S.total = Number(res.total) || S.items.length;
+      S.offset = (Number(res.offset) || 0) + items.length;
+      S.hasMore = res.hasMore === true;
+      drawList();
+      log('good', '계약 목록 ' + S.items.length + '건을 불러왔습니다(전체 ' + S.total + '건).');
+    });
+  }
+
+  function drawList() {
+    var body = $('listBody');
+    body.textContent = '';
+    var q = S.q;
+    var shown = 0, i;
+    for (i = 0; i < S.items.length; i++) {
+      var c = S.items[i] || {};
+      if (q && !match(c, q)) continue;
+      shown++;
+      body.appendChild(rowOf(c));
+    }
+    if (!shown) {
+      var tr = el('tr');
+      var td = el('td', null, q ? '검색 결과가 없습니다.' : '계약이 없습니다.');
+      td.colSpan = 7;
+      td.style.color = '#6f655a';
+      tr.appendChild(td);
+      body.appendChild(tr);
+    }
+    setText($('listCount'),
+      '전체 ' + S.total + '건 · 불러온 ' + S.items.length + '건' + (q ? ' · 검색 결과 ' + shown + '건' : ''));
+    if (S.hasMore) show('btnMore'); else hide('btnMore');
+  }
+
+  // 검색은 받아온 목록 안에서 한다. 서버에 검색 동작이 없기 때문이다.
+  // 그래서 '더 보기'로 더 불러올수록 검색 범위도 넓어진다 — 화면에 건수를 함께 적어 둔다.
+  function match(c, q) {
+    var hay = (str(c.contractNo) + ' ' + str(c.customerName) + ' ' + str(c.title)).toLowerCase();
+    return hay.indexOf(q) >= 0;
+  }
+
+  function rowOf(c) {
+    var tr = el('tr');
+    tr.appendChild(el('td', 'mono', str(c.contractNo)));
+    tr.appendChild(el('td', 'title', str(c.title)));
+    tr.appendChild(el('td', null, str(c.customerName) + (c.customerPhoneMasked ? ' · ' + c.customerPhoneMasked : '')));
+    tr.appendChild(el('td', 'r num', won(c.amount) + '원'));
+
+    var tdSt = el('td');
+    var st = str(c.status) || 'DRAFT';
+    tdSt.appendChild(el('span', 'tag t-' + st, ST_KO[st] || st));
+    tr.appendChild(tdSt);
+
+    tr.appendChild(el('td', 'num', when(c.createdAt, false)));
+
+    var recv = (c.payment && c.payment.receivable != null) ? c.payment.receivable : null;
+    tr.appendChild(el('td', 'r num', recv == null ? '—' : won(recv) + '원'));
+
+    tr.onclick = function () { openDetail(str(c.id)); };
+    return tr;
+  }
+
+  /* ============================================================
+   * 상세
+   * ============================================================ */
+  function openDetail(id) {
+    if (!id) return;
+    log('', '계약 상세를 불러옵니다…');
+    api(ACT.get, { id: id }, { timeout: TIMEOUT }, function (err, res) {
+      if (err) {
+        if (err.code === 'UNAUTHORIZED') { logout('관리자 토큰이 맞지 않습니다. 다시 입력해 주세요.'); return; }
+        log('bad', '계약을 불러오지 못했습니다 — ' + why(err));
+        return;
+      }
+      S.cur = res;
+      drawDetail(res);
+      hide('listView'); hide('panel'); show('detailView');
+      window.scrollTo(0, 0);
+    });
+  }
+
+  function backToList() {
+    S.cur = null;
+    hide('detailView'); show('listView');
+    // 상세에서 무언가 바꿨으면 목록의 금액·상태도 옛것이다. 그때만 다시 부른다
+    // (Apps Script 는 하루 실행 시간에 한도가 있어, 안 바뀌었으면 부르지 않는다).
+    if (S.dirty) { S.dirty = false; loadList(false); }
+    window.scrollTo(0, 0);
+  }
+
+  function drawDetail(res) {
+    var c = res.contract || {};
+    var pays = (Object.prototype.toString.call(res.payments) === '[object Array]') ? res.payments : [];
+    var v = $('detailView');
+    v.textContent = '';
+
+    var back = el('button', 'btn btn-sub btn-sm', '← 목록으로');
+    back.type = 'button';
+    back.onclick = backToList;
+    v.appendChild(back);
+
+    var head = el('p');
+    head.style.margin = '14px 0 0';
+    head.appendChild(el('span', 'tag t-' + (str(c.status) || 'DRAFT'), ST_KO[str(c.status)] || str(c.status)));
+    head.appendChild(document.createTextNode(' '));
+    head.appendChild(el('span', 'mono', str(c.contractNo)));
+    v.appendChild(head);
+    v.appendChild(el('h1', null, str(c.title)));
+
+    /* 기본 정보 */
+    var card = el('div', 'card');
+    kv(card, '계약금액', won(c.amount) + '원');
+    kv(card, '고객(갑)', str(c.customerName) + (c.customerPhoneMasked ? ' · ' + c.customerPhoneMasked : ''));
+    kv(card, '수급인(을)', str(c.operatorName));
+    kv(card, '미수금', res.outstanding != null ? won(res.outstanding) + '원' : '');
+    kv(card, '등록', when(c.createdAt));
+    kv(card, '잠금(본문 확정)', when(c.lockedAt));
+    kv(card, '링크 발송', when(c.sentAt));
+    kv(card, '고객 열람', when(c.viewedAt));
+    kv(card, '서명', when(c.signedAt));
+    kv(card, '체결 완료', when(c.completedAt));
+    kv(card, '취소', when(c.voidedAt));
+    if (c.docHash) kv(card, '문서 지문', str(c.docHash).slice(0, 24) + '…');
+    v.appendChild(card);
+
+    /* 대금 3회차 */
+    v.appendChild(el('h2', null, '대금 3회차'));
+    var wrap = el('div', 'tablewrap');
+    var tb = el('table', 'pay');
+    var thead = el('thead');
+    var htr = el('tr');
+    var hs = ['회차', '금액', '상태', '표시 시각', '표시하기'];
+    for (var h = 0; h < hs.length; h++) {
+      var th = el('th', h === 1 ? 'r' : null, hs[h]);
+      htr.appendChild(th);
+    }
+    thead.appendChild(htr); tb.appendChild(thead);
+    var tbody = el('tbody');
+    for (var i = 0; i < pays.length; i++) tbody.appendChild(payRow(c, pays[i]));
+    tb.appendChild(tbody);
+    wrap.appendChild(tb);
+    v.appendChild(wrap);
+
+    /* 서명 링크 재발급 */
+    v.appendChild(el('h2', null, '서명 링크'));
+    var lk = el('div', 'card');
+    var st = str(c.status) || 'DRAFT';
+    // 서버가 거절할 상태라면 미리 말해 준다. 눌러 보고 나서 오류를 읽게 하지 않는다.
+    if (st === 'DRAFT') {
+      lk.appendChild(el('p', 'note', '작성중(DRAFT) 상태에서는 서명 링크를 만들 수 없습니다 — 본문 확정(잠금)이 먼저입니다. '
+        + '현장 앱의 "한 번에 보내기(quickSend)"로 만든 계약은 이미 잠겨 있습니다.'));
+      v.appendChild(lk);
+      return drawVoidAndEvents(v, c, res);
+    }
+    if (st === 'COMPLETED' || st === 'VOID') {
+      lk.appendChild(el('p', 'note', st === 'COMPLETED'
+        ? '체결이 끝난 계약에는 새 서명 링크를 만들지 않습니다.'
+        : '취소된 계약에는 서명 링크를 만들지 않습니다.'));
+      v.appendChild(lk);
+      return drawVoidAndEvents(v, c, res);
+    }
+    var lp = el('p', 'note', '새 링크를 만들어도 앞서 보낸 링크는 살아 있습니다(만료·사용·취소로만 닫힙니다). '
+      + '만들어진 링크 주소는 이 화면에서 한 번만 보입니다 — 서버에는 남지 않습니다.');
+    lk.appendChild(lp);
+    var ttlLbl = el('label', 'fld', '유효시간(시간, 기본 72)');
+    ttlLbl.setAttribute('for', 'fTtl');
+    lk.appendChild(ttlLbl);
+    var ttl = el('input');
+    ttl.type = 'number'; ttl.id = 'fTtl'; ttl.value = '72'; ttl.min = '1'; ttl.max = '720';
+    ttl.style.maxWidth = '160px';
+    lk.appendChild(ttl);
+    var lrow = el('div', 'btnrow');
+    lrow.style.marginTop = '10px';
+    var bLink = el('button', 'btn btn-main', '서명 링크 발급');
+    bLink.type = 'button';
+    bLink.onclick = function () { issueLink(str(c.id), ttl.value, lk); };
+    lrow.appendChild(bLink);
+    lk.appendChild(lrow);
+    var out = el('div');
+    out.id = 'linkOut';
+    lk.appendChild(out);
+    v.appendChild(lk);
+
+    return drawVoidAndEvents(v, c, res);
+  }
+
+  /* 계약 취소 + 사건 이력. 서명 링크 칸이 어떻게 끝나든 이 둘은 항상 그린다. */
+  function drawVoidAndEvents(v, c, res) {
+    v.appendChild(el('h2', null, '계약 취소'));
+    var vd = el('div', 'card');
+    if (str(c.status) === 'COMPLETED') {
+      vd.appendChild(el('p', 'note', '체결이 끝난 계약은 취소할 수 없습니다. 해제는 별도 합의서로 진행하세요.'));
+    } else if (str(c.status) === 'VOID') {
+      vd.appendChild(el('p', 'note', '이미 취소된 계약입니다.'));
+    } else {
+      vd.appendChild(el('p', 'note', '취소하면 이 계약의 미사용 서명 링크가 모두 즉시 무효가 됩니다. 되돌릴 수 없습니다.'));
+      var rl = el('label', 'fld', '취소 사유(선택, 기록에 남습니다)');
+      rl.setAttribute('for', 'fReason');
+      vd.appendChild(rl);
+      var reason = el('input');
+      reason.type = 'text'; reason.id = 'fReason'; reason.maxLength = 200;
+      reason.placeholder = '예: 고객 요청으로 공사 보류';
+      vd.appendChild(reason);
+      var brow = el('div', 'btnrow');
+      brow.style.marginTop = '10px';
+      var bVoid = el('button', 'btn btn-warn', '이 계약 취소하기');
+      bVoid.type = 'button';
+      bVoid.onclick = function () {
+        ask(str(c.contractNo) + ' 계약을 취소합니다. 미사용 서명 링크가 모두 무효가 되고 되돌릴 수 없습니다. 진행할까요?', function () {
+          voidIt(str(c.id), reason.value);
+        });
+      };
+      brow.appendChild(bVoid);
+      vd.appendChild(brow);
+    }
+    v.appendChild(vd);
+
+    /* 사건 이력 */
+    v.appendChild(el('h2', null, '사건 이력'));
+    var ev = el('div', 'card');
+    var items = (Object.prototype.toString.call(res.events) === '[object Array]') ? res.events : [];
+    if (!items.length) {
+      ev.appendChild(el('p', 'note', '기록이 없습니다.'));
+    } else {
+      for (var j = items.length - 1; j >= 0; j--) {
+        var e = items[j] || {};
+        var line = el('div', 'row');
+        var left = el('span', 'k', when(e.at));
+        var right = el('span', 'v');
+        right.style.fontWeight = '600';
+        right.appendChild(el('span', null, (EV_KO[str(e.event)] || str(e.event))));
+        if (e.detail) {
+          var d2 = el('div', 'note', str(e.detail));
+          d2.style.fontWeight = '400';
+          right.appendChild(d2);
+        }
+        line.appendChild(left); line.appendChild(right);
+        ev.appendChild(line);
+      }
+      if (res.eventsTruncated) ev.appendChild(el('p', 'note', '※ 오래된 기록 일부는 표시되지 않았습니다.'));
+    }
+    v.appendChild(ev);
+  }
+
+  function payRow(c, p) {
+    var tr = el('tr');
+    tr.appendChild(el('td', null, str(p.label) || str(p.stage)));
+    tr.appendChild(el('td', 'r num', won(p.amount) + '원'));
+
+    var st = str(p.status).toUpperCase() || 'PENDING';
+    tr.appendChild(el('td', null, PAY_KO[st] || st));
+    tr.appendChild(el('td', 'num', when(p.paidAt) || when(p.invoicedAt) || '—'));
+
+    var td = el('td');
+    var row = el('div', 'btnrow');
+    row.appendChild(payBtn(c, p, 'INVOICED', '청구 표시', st === 'INVOICED'));
+    row.appendChild(payBtn(c, p, 'PAID', '입금 표시', st === 'PAID'));
+    row.appendChild(payBtn(c, p, 'PENDING', '대기로 되돌리기', st === 'PENDING'));
+    td.appendChild(row);
+    if (p.memo) td.appendChild(el('div', 'note', '메모: ' + str(p.memo)));
+    tr.appendChild(td);
+    return tr;
+  }
+
+  function payBtn(c, p, next, label, isNow) {
+    var b = el('button', 'btn btn-sm ' + (next === 'PAID' ? 'btn-main' : 'btn-sub'), label);
+    b.type = 'button';
+    b.disabled = !!isNow;
+    b.onclick = function () {
+      // 돈에 관한 표시는 한 번 더 묻는다. 잘못 눌러도 기록에는 남는다.
+      ask(str(c.contractNo) + ' ' + (str(p.label) || str(p.stage)) + ' ' + won(p.amount) + '원을 “'
+        + (PAY_KO[next] || next) + '”로 표시합니다. 진행할까요?', function () {
+        setPay(str(c.id), str(p.stage), next);
+      });
+    };
+    return b;
+  }
+
+  function setPay(id, stage, next) {
+    api(ACT.pay, { id: id, stage: stage, status: next }, { timeout: TIMEOUT }, function (err, res) {
+      if (err) { log('bad', '대금 표시를 바꾸지 못했습니다 — ' + why(err)); return; }
+      S.dirty = true;      // 목록의 미수금이 옛것이 되었다
+      log('good', str(res.contractNo) + ' ' + str(res.label) + ' ' + won(res.amount) + '원 → '
+        + (PAY_KO[str(res.status)] || str(res.status))
+        + (res.reverted ? ' (되돌림)' : '')
+        + ' · 미수금 ' + won(res.outstanding) + '원');
+      openDetail(id);      // 서버가 확정한 값으로 화면을 다시 그린다
+    });
+  }
+
+  function issueLink(id, ttl, card) {
+    var hours = parseInt(ttl, 10);
+    api(ACT.link, { id: id, ttlHours: (isFinite(hours) && hours > 0) ? hours : undefined },
+      { timeout: TIMEOUT }, function (err, res) {
+        var out = $('linkOut');
+        if (out) out.textContent = '';
+        if (err) { log('bad', '서명 링크를 만들지 못했습니다 — ' + why(err)); return; }
+
+        log('good', str(res.contractNo) + ' 서명 링크 발급 · 만료 ' + when(res.expiresAt));
+
+        var box = el('div', 'msg msg-ok');
+        box.appendChild(el('div', null, '링크를 만들었습니다. 만료: ' + when(res.expiresAt)));
+        var url = safeUrl(res.url);
+        if (url) {
+          var f = el('input');
+          f.type = 'text'; f.value = url; f.readOnly = true;
+          f.style.marginTop = '8px';
+          f.onfocus = function () { f.select(); };
+          box.appendChild(f);
+          var brow = el('div', 'btnrow');
+          brow.style.marginTop = '8px';
+          var bc = el('button', 'btn btn-sub btn-sm', '주소 복사');
+          bc.type = 'button';
+          bc.onclick = function () {
+            f.select();
+            var okc = false;
+            try { okc = document.execCommand('copy'); } catch (e2) { okc = false; }
+            bc.textContent = okc ? '복사했습니다' : '직접 복사해 주세요';
+          };
+          brow.appendChild(bc);
+          var open = el('a', 'btn btn-sub btn-sm', '링크 열어 보기');
+          open.href = url; open.target = '_blank'; open.rel = 'noopener';
+          open.style.textDecoration = 'none';
+          brow.appendChild(open);
+          box.appendChild(brow);
+        } else {
+          box.appendChild(el('div', 'note', str(res.message)
+            || 'WEBAPP_URL 이 설정되지 않아 링크 주소를 만들지 못했습니다.'));
+        }
+        box.appendChild(el('div', 'note',
+          '※ 이 주소는 지금 이 화면에서만 볼 수 있습니다. 서버에는 남지 않으니 지금 고객에게 보내 주세요.'));
+        if (out) out.appendChild(box); else card.appendChild(box);
+      });
+  }
+
+  function voidIt(id, reason) {
+    api(ACT.voidC, { id: id, reason: str(reason).slice(0, 200) }, { timeout: TIMEOUT }, function (err, res) {
+      if (err) { log('bad', '취소하지 못했습니다 — ' + why(err)); return; }
+      S.dirty = true;
+      log('good', str(res.contractNo || id) + ' 취소 완료 · 무효화된 링크 ' + (res.revokedTokens || 0) + '건');
+      openDetail(id);
+    });
+  }
+
+  /* ============================================================
+   * 도구 — CSV · 백업 · 자가진단 · 상태 점검
+   * ============================================================ */
+  function panel(title) {
+    var p = $('panel');
+    p.textContent = '';
+    p.classList.remove('hide');
+    var card = el('div', 'card');
+    var h = el('h2', null, title);
+    h.style.marginTop = '0';
+    card.appendChild(h);
+    var close = el('button', 'btn btn-sub btn-sm', '닫기');
+    close.type = 'button';
+    close.onclick = function () { p.classList.add('hide'); p.textContent = ''; };
+    card.appendChild(close);
+    p.appendChild(card);
+    window.scrollTo(0, 0);
+    return card;
+  }
+
+  function doCsv() {
+    var box = panel('CSV 내보내기');
+    box.appendChild(el('p', 'note', '서버에 요청하는 중입니다…'));
+    api(ACT.csv, { status: S.status }, { timeout: TIMEOUT_LONG }, function (err, res) {
+      var body = panel('CSV 내보내기');
+      if (err) {
+        body.appendChild(el('div', 'msg msg-warn',
+          '서버 CSV 내보내기를 하지 못했습니다 — ' + why(err) + ' 지금 화면에 불러온 목록으로 대신 만들었습니다.'));
+        offerCsv(body, localCsv(), '계약목록_화면본_' + stamp() + '.csv');
+        log('bad', 'CSV: 서버 요청 실패 — 화면 목록으로 대체했습니다.');
+        return;
+      }
+      var text = str(res.csv || res.text || res.content);
+      var url = safeUrl(res.url || res.fileUrl);
+      if (!url && res.fileId) {
+        // 사장님 소유 드라이브 파일이므로 이 주소는 사장님 계정에서 열린다.
+        url = 'https://drive.google.com/file/d/' + encodeURIComponent(str(res.fileId)) + '/view';
+      }
+      if (url) {
+        var a = el('a', 'btn btn-main', '드라이브에서 CSV 열기');
+        a.href = url; a.target = '_blank'; a.rel = 'noopener';
+        a.style.textDecoration = 'none';
+        body.appendChild(el('p', 'note', '서버가 CSV 파일을 드라이브에 저장했습니다.'));
+        body.appendChild(a);
+      }
+      if (text) offerCsv(body, text, str(res.fileName) || '계약목록_' + stamp() + '.csv');
+      if (!text && !url) {
+        body.appendChild(el('div', 'msg msg-warn', '서버가 CSV 내용을 주지 않았습니다. 화면 목록으로 만들었습니다.'));
+        offerCsv(body, localCsv(), '계약목록_화면본_' + stamp() + '.csv');
+      }
+      log('good', 'CSV 내보내기를 마쳤습니다.');
+    });
+  }
+
+  // 내려받기를 걸어 두되, 화면 안(iframe)에서 막힐 수 있으므로 복사용 상자도 함께 둔다.
+  // 되지도 않는 버튼만 남겨 두고 "왜 안 되지" 하게 만들지 않는다.
+  function offerCsv(box, text, fileName) {
+    var brow = el('div', 'btnrow');
+    var bd = el('button', 'btn btn-main', 'CSV 파일 내려받기');
+    bd.type = 'button';
+    bd.onclick = function () { download(text, fileName); };
+    brow.appendChild(bd);
+    box.appendChild(brow);
+    box.appendChild(el('p', 'note',
+      '내려받기가 시작되지 않으면(브라우저가 막는 경우가 있습니다) 아래 상자의 내용을 복사해 붙여넣어 쓰세요.'));
+    var ta = el('textarea');
+    ta.value = text;
+    ta.readOnly = true;
+    ta.onfocus = function () { ta.select(); };
+    box.appendChild(ta);
+  }
+
+  function download(text, fileName) {
+    try {
+      // 엑셀이 한글을 깨뜨리지 않도록 UTF-8 BOM 을 앞에 붙인다.
+      var blob = new Blob(['﻿' + text], { type: 'text/csv;charset=utf-8;' });
+      var url = window.URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.setTimeout(function () { window.URL.revokeObjectURL(url); }, 4000);
+    } catch (e) {
+      log('bad', '내려받기가 막혔습니다. 화면의 상자에서 복사해 주세요.');
+    }
+  }
+
+  function stamp() {
+    var d = new Date();
+    return String(d.getFullYear()) + p2(d.getMonth() + 1) + p2(d.getDate()) + '_' + p2(d.getHours()) + p2(d.getMinutes());
+  }
+
+  // 화면에 불러온 목록으로 만드는 CSV(서버가 못 줄 때의 대비).
+  function localCsv() {
+    var cols = ['계약번호', '제목', '고객', '연락처(마스킹)', '금액', '상태', '등록일', '체결일', '미수금'];
+    var lines = [cols.join(',')];
+    for (var i = 0; i < S.items.length; i++) {
+      var c = S.items[i] || {};
+      var recv = (c.payment && c.payment.receivable != null) ? c.payment.receivable : '';
+      lines.push([
+        csvCell(c.contractNo), csvCell(c.title), csvCell(c.customerName), csvCell(c.customerPhoneMasked),
+        csvCell(c.amount), csvCell(ST_KO[str(c.status)] || str(c.status)),
+        csvCell(when(c.createdAt, false)), csvCell(when(c.completedAt, false)), csvCell(recv)
+      ].join(','));
+    }
+    return lines.join('\r\n');
+  }
+
+  // 엑셀은 = + - @ 로 시작하는 칸을 수식으로 읽는다. 고객 이름에 =HYPERLINK(…) 가 들어 있으면
+  // 파일을 여는 순간 그것이 실행된다. 앞에 작은따옴표를 붙여 글자로 못박는다
+  // (Pure.gs 의 sheetSafe 와 같은 뜻이다 — 시트든 엑셀이든 막는 이유는 하나다).
+  function csvCell(v) {
+    var s = (v == null) ? '' : String(v);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    if (/[",\n\r]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function doBackup() {
+    ask('전체 계약 자료를 드라이브 백업 폴더에 JSON 으로 저장합니다. 계약이 많으면 1분 넘게 걸릴 수 있습니다. 진행할까요?', function () {
+      var box = panel('백업 실행');
+      box.appendChild(el('p', 'note', '백업하는 중입니다… 화면을 닫지 마세요.'));
+      api(ACT.backup, {}, { timeout: TIMEOUT_LONG }, function (err, res) {
+        var body = panel('백업 실행');
+        if (err) {
+          body.appendChild(el('div', 'msg msg-warn', '백업하지 못했습니다 — ' + why(err)));
+          log('bad', '백업 실패 — ' + why(err));
+          return;
+        }
+        var c2 = el('div');
+        kv(c2, '파일 이름', str(res.fileName));
+        kv(c2, '크기', res.bytes != null ? won(res.bytes) + ' 바이트' : '');
+        kv(c2, '파일 지문', str(res.sha256).slice(0, 24) + '…');
+        if (res.counts) {
+          for (var k in res.counts) {
+            if (Object.prototype.hasOwnProperty.call(res.counts, k)) kv(c2, k, won(res.counts[k]) + '줄');
+          }
+        }
+        if (res.summary && res.summary.contracts) {
+          kv(c2, '계약 건수', won(res.summary.contracts.count) + '건');
+          kv(c2, '계약금액 합계', won(res.summary.contracts.amountTotal) + '원');
+        }
+        body.appendChild(el('div', 'msg msg-ok', '백업을 저장했습니다.'));
+        body.appendChild(c2);
+        if (res.fileId) {
+          var a = el('a', 'btn btn-sub btn-sm', '드라이브에서 열기');
+          a.href = 'https://drive.google.com/file/d/' + encodeURIComponent(str(res.fileId)) + '/view';
+          a.target = '_blank'; a.rel = 'noopener'; a.style.textDecoration = 'none';
+          body.appendChild(a);
+        }
+        log('good', '백업 완료 · ' + str(res.fileName));
+      });
+    });
+  }
+
+  function doSelfTest() {
+    var box = panel('자가진단');
+    box.appendChild(el('p', 'note', '점검하는 중입니다…'));
+    api(ACT.test, {}, { timeout: TIMEOUT_LONG }, function (err, res) {
+      var body = panel('자가진단');
+      if (err) {
+        body.appendChild(el('div', 'msg msg-warn', '자가진단을 실행하지 못했습니다 — ' + why(err)));
+        log('bad', '자가진단 실패 — ' + why(err));
+        return;
+      }
+      var checks = normChecks(res);
+      var pass = 0, fail = 0, i;
+      for (i = 0; i < checks.length; i++) { if (checks[i].ok) pass++; else fail++; }
+
+      body.appendChild(el('div', 'msg ' + (fail ? 'msg-warn' : 'msg-ok'),
+        checks.length
+          ? ('총 ' + checks.length + '개 항목 중 ' + pass + '개 통과, ' + fail + '개 실패' + (fail ? ' — 실패 항목을 확인하세요.' : ' — 이상 없습니다.'))
+          : '서버가 점검 항목을 보내지 않았습니다.'));
+
+      for (i = 0; i < checks.length; i++) {
+        var c = checks[i];
+        var line = el('div', 'check');
+        line.appendChild(el('span', 'st ' + (c.ok ? 'pass' : 'fail'), c.ok ? '통과' : '실패'));
+        var t = el('div');
+        t.appendChild(el('div', 'nm', c.name));
+        if (c.msg) t.appendChild(el('div', 'ds', c.msg));
+        line.appendChild(t);
+        body.appendChild(line);
+      }
+      log(fail ? 'bad' : 'good', '자가진단 · 통과 ' + pass + ' / 실패 ' + fail);
+    });
+  }
+
+  // 서버가 어떤 이름으로 주든(checks·items·results·tests) 같은 모양으로 만든다.
+  function normChecks(res) {
+    var raw = null;
+    var keys = ['checks', 'items', 'results', 'tests'];
+    for (var k = 0; k < keys.length; k++) {
+      if (Object.prototype.toString.call(res[keys[k]]) === '[object Array]') { raw = res[keys[k]]; break; }
+    }
+    var out = [];
+    if (!raw) return out;
+    for (var i = 0; i < raw.length; i++) {
+      var r = raw[i];
+      if (typeof r === 'string') { out.push({ name: r, ok: true, msg: '' }); continue; }
+      r = r || {};
+      var okv = (r.ok != null) ? r.ok : ((r.pass != null) ? r.pass : ((r.passed != null) ? r.passed : r.success));
+      out.push({
+        name: str(r.name || r.label || r.title || r.id || ('항목 ' + (i + 1))),
+        ok: okv === true || okv === 'ok' || okv === 'PASS',
+        msg: str(r.message || r.detail || r.note || r.error || '')
+      });
+    }
+    return out;
+  }
+
+  function doHealth() {
+    var box = panel('상태 점검');
+    box.appendChild(el('p', 'note', '확인하는 중입니다…'));
+    api(ACT.health, {}, { timeout: TIMEOUT }, function (err, res) {
+      var body = panel('상태 점검');
+      if (err) {
+        body.appendChild(el('div', 'msg msg-warn', '상태를 확인하지 못했습니다 — ' + why(err)));
+        log('bad', '상태 점검 실패 — ' + why(err));
+        return;
+      }
+      body.appendChild(el('div', 'msg msg-ok', '서버가 정상적으로 응답했습니다.'));
+      var c2 = el('div');
+      flatten(res, '', c2, 0);
+      body.appendChild(c2);
+      log('good', '상태 점검 정상.');
+    });
+  }
+
+  // 응답을 한 줄씩 편다. 값이 비밀처럼 보이는 이름이면 내용을 찍지 않는다
+  // (Schema.gs 의 SETTINGS_FORBIDDEN 과 같은 취지 — 화면은 시트보다 더 여러 사람이 본다).
+  function flatten(obj, prefix, into, depth) {
+    if (depth > 3) return;
+    for (var k in obj) {
+      if (!Object.prototype.hasOwnProperty.call(obj, k)) continue;
+      if (k === 'ok') continue;
+      var v = obj[k];
+      var name = prefix ? (prefix + '.' + k) : k;
+      if (looksSecret(k)) { kv(into, name, '(가려 둠)'); continue; }
+      if (v && typeof v === 'object') { flatten(v, name, into, depth + 1); continue; }
+      kv(into, name, (typeof v === 'boolean') ? (v ? '예' : '아니오') : str(v));
+    }
+  }
+  function looksSecret(k) {
+    var s = String(k).toUpperCase();
+    var bad = ['TOKEN', 'SECRET', 'KEY', 'PEPPER', 'PASSWORD', 'PASSWD', 'APIKEY', 'CREDENTIAL'];
+    for (var i = 0; i < bad.length; i++) if (s.indexOf(bad[i]) >= 0) return true;
+    return false;
+  }
+
+  /* ============================================================
+   * 로그인·로그아웃
+   * ============================================================ */
+  function login() {
+    var url = safeUrl($('fUrl').value || CFG.apiUrl);
+    var token = String($('fToken').value || '').trim();
+    var e = $('loginErr');
+
+    if (!url) { fail('웹앱 주소(…/exec)를 https 로 시작하게 입력해 주세요.'); return; }
+    if (!token) { fail('관리자 토큰을 입력해 주세요.'); return; }
+
+    CFG.apiUrl = url;
+    try { window.localStorage.setItem(URL_KEY, url); } catch (e2) { }
+    setToken(token);
+    // 입력칸을 즉시 비운다. 화면에도, 브라우저의 자동완성에도 남기지 않는다.
+    $('fToken').value = '';
+
+    $('btnIn').disabled = true;
+    $('btnIn').textContent = '확인 중…';
+    api(ACT.list, { limit: PAGE_SIZE, offset: 0 }, { timeout: TIMEOUT }, function (err, res) {
+      $('btnIn').disabled = false;
+      $('btnIn').textContent = '들어가기';
+      if (err) {
+        dropToken();
+        fail(why(err));
+        return;
+      }
+      e.classList.add('hide');
+      hide('scLogin'); show('scMain'); show('btnOut');
+      S.items = (Object.prototype.toString.call(res.items) === '[object Array]') ? res.items : [];
+      S.total = Number(res.total) || S.items.length;
+      S.offset = S.items.length;
+      S.hasMore = res.hasMore === true;
+      drawList();
+      log('good', '들어왔습니다. 계약 ' + S.total + '건.');
+    });
+
+    function fail(msg) {
+      setText(e, msg);
+      e.classList.remove('hide');
+      // 주소가 틀려서 실패했을 수도 있다. 숨겨 뒀던 주소칸을 다시 열어 고칠 수 있게 한다.
+      show('urlBox');
+    }
+  }
+
+  function logout(msg) {
+    dropToken();
+    S.items = []; S.cur = null; S.offset = 0; S.total = 0;
+    hide('scMain'); hide('btnOut'); hide('detailView'); show('listView'); show('scLogin');
+    var e = $('loginErr');
+    if (msg) { setText(e, msg); e.classList.remove('hide'); } else { e.classList.add('hide'); }
+    $('fToken').value = '';
+    window.scrollTo(0, 0);
+  }
+
+  /* ============================================================
+   * 시작
+   * ============================================================ */
+  function boot() {
+    var raw = '';
+    var holder = $('boot');
+    if (holder) raw = holder.getAttribute('data-boot') || '';
+    var b = {};
+    if (raw) { try { b = JSON.parse(raw) || {}; } catch (e) { b = {}; } }
+
+    CFG.apiUrl = safeUrl(b.apiUrl);
+    var saved = '';
+    try { saved = window.localStorage.getItem(URL_KEY) || ''; } catch (e2) { saved = ''; }
+    if (!CFG.apiUrl) CFG.apiUrl = safeUrl(saved);
+
+    $('fUrl').value = CFG.apiUrl;
+    // 서버가 주소를 심어 줬으면 굳이 보여주지 않는다(입력할 일이 없다).
+    if (safeUrl(b.apiUrl)) hide('urlBox');
+
+    wire();
+
+    // 새로고침해도 같은 탭이면 토큰이 살아 있다. 바로 목록을 부른다.
+    if (sessionToken() && CFG.apiUrl) {
+      hide('scLogin'); show('scMain'); show('btnOut');
+      loadList(false);
+    }
+  }
+
+  function wire() {
+    $('btnIn').onclick = login;
+    $('fToken').onkeydown = function (ev) { if (ev.keyCode === 13) login(); };
+    $('fUrl').onkeydown = function (ev) { if (ev.keyCode === 13) $('fToken').focus(); };
+
+    $('btnOut').onclick = function () {
+      ask('토큰을 지우고 나갑니다. 다시 보시려면 토큰을 새로 입력하셔야 합니다. 진행할까요?', function () {
+        logout('나왔습니다. 토큰이 지워졌습니다.');
+      });
+    };
+
+    $('btnReload').onclick = function () { S.offset = 0; loadList(false); };
+    $('btnMore').onclick = function () { loadList(true); };
+    $('btnCsv').onclick = doCsv;
+    $('btnBackup').onclick = doBackup;
+    $('btnTest').onclick = doSelfTest;
+    $('btnHealth').onclick = doHealth;
+
+    $('fStatus').onchange = function () {
+      S.status = String(this.value || '');
+      S.offset = 0;
+      loadList(false);
+    };
+    $('fSearch').oninput = function () {
+      S.q = String(this.value || '').trim().toLowerCase();
+      drawList();
+    };
+    $('btnSearchClear').onclick = function () {
+      $('fSearch').value = ''; S.q = ''; drawList();
+    };
+
+    $('sheetYes').onclick = function () {
+      var f = askYes;
+      askClose();
+      if (f) f();
+    };
+    $('sheetNo').onclick = askClose;
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>
