@@ -68,6 +68,24 @@ check(/id="portfolio"/.test(index) && /AI 추천 인테리어 디자인/.test(in
   }
 }
 
+/* ②-2 사진 설명(imageAlt)이 스크린리더·검색엔진에 제대로 나간다 ---------- */
+// "라인리스 화이트 현관 현관 인테리어"처럼 낱말이 겹치면 낭독기가 그대로 두 번 읽고
+// 검색엔진도 그대로 색인한다. 231건을 접고 39건을 채운 상태(2026-07-29)를 지킨다.
+{
+  const port = site.portfolio || [];
+  const noAlt = port.filter((x) => !x.imageAlt).length;
+  check(noAlt === 0,
+    `imageAlt 없는 시안이 ${noAlt}건 생겼다 — 낭독기·검색엔진에 제목만 나간다`,
+    'imageAlt 전 시안 존재');
+  const dup = port.filter((x) => {
+    const w = String(x.imageAlt || '').split(' ');
+    return w.some((t, i) => i > 0 && t === w[i - 1]);
+  });
+  check(dup.length === 0,
+    `imageAlt 에 같은 낱말이 붙어 반복되는 시안 ${dup.length}건 — 예: ${dup[0] ? dup[0].imageAlt : ''}`,
+    'imageAlt 연속 중복 낱말 없음');
+}
+
 /* ③ 메뉴를 늘리지 않는다 ------------------------------------------------ */
 // 메뉴가 늘면 "우리집 사양서"와 "우리집 한 채"를 고객이 구분하지 못한다.
 check(!/href="#lookbook"/.test(index) && !/href="#lb/.test(index),

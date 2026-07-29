@@ -262,6 +262,7 @@
     {
       "id": "design-minimal-white",
       "title": "미니멀 화이트 거실",
+      "imageAlt": "미니멀 화이트 거실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "거실",
       "structure": "독립형 거실",
@@ -287,6 +288,7 @@
     {
       "id": "design-natural-wood",
       "title": "내추럴 우드 거실",
+      "imageAlt": "내추럴 우드 거실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "거실",
       "structure": "거실·다이닝 통합형",
@@ -312,6 +314,7 @@
     {
       "id": "design-scandi",
       "title": "북유럽 스칸디 거실",
+      "imageAlt": "북유럽 스칸디 거실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "거실",
       "structure": "거실·워크존 통합형",
@@ -337,6 +340,7 @@
     {
       "id": "design-modern-gray",
       "title": "모던 그레이 거실",
+      "imageAlt": "모던 그레이 거실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "거실",
       "structure": "독립형 거실",
@@ -366,6 +370,7 @@
     {
       "id": "design-industrial",
       "title": "인더스트리얼 거실",
+      "imageAlt": "인더스트리얼 거실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "거실",
       "structure": "오픈형 대형 거실",
@@ -391,6 +396,7 @@
     {
       "id": "design-vintage",
       "title": "빈티지 레트로 거실",
+      "imageAlt": "빈티지 레트로 거실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "거실",
       "structure": "컴팩트 독립형 거실",
@@ -416,6 +422,7 @@
     {
       "id": "design-warm-beige",
       "title": "웜 베이지 침실",
+      "imageAlt": "웜 베이지 침실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "침실",
       "structure": "붙박이장형 침실",
@@ -441,6 +448,7 @@
     {
       "id": "design-french",
       "title": "프렌치 모던 침실",
+      "imageAlt": "프렌치 모던 침실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "침실",
       "structure": "호텔형 침실",
@@ -466,6 +474,7 @@
     {
       "id": "design-modern-kitchen",
       "title": "모던 화이트 주방",
+      "imageAlt": "모던 화이트 주방 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "주방",
       "structure": "ㄷ자형 주방",
@@ -496,6 +505,7 @@
     {
       "id": "design-hotel-bath",
       "title": "호텔식 욕실",
+      "imageAlt": "호텔식 욕실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "욕실",
       "structure": "세면·샤워 분리형",
@@ -527,6 +537,7 @@
     {
       "id": "design-natural-bed",
       "title": "내추럴 우드 침실",
+      "imageAlt": "내추럴 우드 침실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "침실",
       "structure": "붙박이장형 침실",
@@ -552,6 +563,7 @@
     {
       "id": "design-white-kitchen",
       "title": "미니멀 화이트 주방",
+      "imageAlt": "미니멀 화이트 주방 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "주방",
       "structure": "일자형 주방",
@@ -582,6 +594,7 @@
     {
       "id": "design-wood-kitchen",
       "title": "내추럴 우드 주방",
+      "imageAlt": "내추럴 우드 주방 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "주방",
       "structure": "아일랜드형 주방",
@@ -611,6 +624,7 @@
     {
       "id": "design-white-bath",
       "title": "모던 화이트 욕실",
+      "imageAlt": "모던 화이트 욕실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "욕실",
       "structure": "컴팩트 욕실",
@@ -642,6 +656,7 @@
     {
       "id": "design-wood-bath",
       "title": "내추럴 우드 욕실",
+      "imageAlt": "내추럴 우드 욕실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "욕실",
       "structure": "세면·샤워 분리형",
@@ -673,6 +688,7 @@
     {
       "id": "design-trend-white-oak-living",
       "title": "화이트 오크 정돈형 거실",
+      "imageAlt": "화이트 오크 정돈형 거실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "거실",
       "structure": "거실·다이닝 통합형",
@@ -701,6 +717,7 @@
     {
       "id": "design-trend-sage-storage-living",
       "title": "세이지 수납형 거실",
+      "imageAlt": "세이지 수납형 거실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "거실",
       "structure": "수납 특화형 거실",
@@ -729,6 +746,7 @@
     {
       "id": "design-trend-compact-blue-living",
       "title": "블루 포인트 컴팩트 거실",
+      "imageAlt": "블루 포인트 컴팩트 거실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "거실",
       "structure": "거실·워크존 통합형",
@@ -757,6 +775,7 @@
     {
       "id": "design-trend-navy-oak-kitchen",
       "title": "네이비 오크 아일랜드 주방",
+      "imageAlt": "네이비 오크 아일랜드 주방 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "주방",
       "structure": "아일랜드형 주방",
@@ -789,6 +808,7 @@
     {
       "id": "design-trend-japandi-indigo-bedroom",
       "title": "재팬디 인디고 침실",
+      "imageAlt": "재팬디 인디고 침실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "침실",
       "structure": "호텔형 침실",
@@ -817,6 +837,7 @@
     {
       "id": "design-trend-travertine-spa-bath",
       "title": "트래버틴 스파 욕실",
+      "imageAlt": "트래버틴 스파 욕실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "욕실",
       "structure": "세면·샤워 분리형",
@@ -851,6 +872,7 @@
     {
       "id": "design-trend-arch-entry-24",
       "title": "아치형 수납 현관",
+      "imageAlt": "아치형 수납 현관 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "현관",
       "structure": "복도형 현관",
@@ -879,6 +901,7 @@
     {
       "id": "design-trend-sage-study-34",
       "title": "세이지 라이브러리 서재",
+      "imageAlt": "세이지 라이브러리 서재 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "서재",
       "structure": "벽면 서재형",
@@ -907,6 +930,7 @@
     {
       "id": "design-trend-modular-kids-30",
       "title": "성장형 모듈 아이방",
+      "imageAlt": "성장형 모듈 아이방 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "아이방",
       "structure": "가변형 아이방",
@@ -935,6 +959,7 @@
     {
       "id": "design-trend-wardrobe-laundry-42",
       "title": "호텔형 드레스룸 세탁존",
+      "imageAlt": "호텔형 드레스룸 세탁존 드레스룸 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "드레스룸",
       "structure": "워크인 드레스룸",
@@ -963,6 +988,7 @@
     {
       "id": "design-scandi-blue-kitchen-34",
       "title": "북유럽 블루그레이 주방",
+      "imageAlt": "북유럽 블루그레이 주방 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "주방",
       "structure": "ㄷ자형 주방",
@@ -980,6 +1006,7 @@
     {
       "id": "design-scandi-storage-bedroom-18",
       "title": "스칸디 수납형 침실",
+      "imageAlt": "스칸디 수납형 침실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "침실",
       "structure": "붙박이장형 침실",
@@ -997,6 +1024,7 @@
     {
       "id": "design-vintage-green-kitchen-32",
       "title": "빈티지 그린 아일랜드 주방",
+      "imageAlt": "빈티지 그린 아일랜드 주방 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "주방",
       "structure": "아일랜드형 주방",
@@ -1018,6 +1046,7 @@
     {
       "id": "design-vintage-hotel-bedroom-20",
       "title": "미드센추리 호텔형 침실",
+      "imageAlt": "미드센추리 호텔형 침실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "침실",
       "structure": "호텔형 침실",
@@ -1035,6 +1064,7 @@
     {
       "id": "design-smart-studio-storage-18",
       "title": "가변형 원룸 스마트 수납",
+      "imageAlt": "가변형 원룸 스마트 수납 거실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "거실",
       "structure": "가변형 원룸",
@@ -1052,6 +1082,7 @@
     {
       "id": "design-warm-beige-family-living-34",
       "title": "웜 베이지 가족형 거실",
+      "imageAlt": "웜 베이지 가족형 거실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "거실",
       "structure": "거실·다이닝 통합형",
@@ -1069,6 +1100,7 @@
     {
       "id": "design-warm-beige-dry-bath-24",
       "title": "웜 베이지 건식 분리 욕실",
+      "imageAlt": "웜 베이지 건식 분리 욕실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "욕실",
       "structure": "세면·샤워 분리형",
@@ -1092,6 +1124,7 @@
     {
       "id": "design-industrial-island-kitchen-32",
       "title": "소프트 인더스트리얼 주방",
+      "imageAlt": "소프트 인더스트리얼 주방 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "주방",
       "structure": "아일랜드형 주방",
@@ -1113,6 +1146,7 @@
     {
       "id": "design-industrial-library-study-24",
       "title": "인더스트리얼 라이브러리 서재",
+      "imageAlt": "인더스트리얼 라이브러리 서재 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "서재",
       "structure": "벽면 서재형",
@@ -1130,6 +1164,7 @@
     {
       "id": "design-japandi-garden-living-34",
       "title": "재팬디 가든형 거실",
+      "imageAlt": "재팬디 가든형 거실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "거실",
       "structure": "거실·다이닝 통합형",
@@ -1147,6 +1182,7 @@
     {
       "id": "design-japandi-hinoki-bath-24",
       "title": "재팬디 히노키 욕실",
+      "imageAlt": "재팬디 히노키 욕실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "욕실",
       "structure": "세면·샤워 분리형",
@@ -1170,6 +1206,7 @@
     {
       "id": "design-french-modern-living-34",
       "title": "프렌치 모던 살롱 거실",
+      "imageAlt": "프렌치 모던 살롱 거실 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "거실",
       "structure": "대면형 거실",
@@ -1187,6 +1224,7 @@
     {
       "id": "design-french-sage-kitchen-30",
       "title": "프렌치 세이지 주방",
+      "imageAlt": "프렌치 세이지 주방 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "주방",
       "structure": "ㄱ자형 주방",
@@ -1208,6 +1246,7 @@
     {
       "id": "design-hotel-suite-dressing-42",
       "title": "호텔 스위트 드레스룸",
+      "imageAlt": "호텔 스위트 드레스룸 인테리어 참고 이미지",
       "category": "AI추천",
       "spaceType": "드레스룸",
       "structure": "침실·드레스룸 연결형",
@@ -1473,7 +1512,7 @@
       "trendLabel": "52평 미니멀 · 추천 사례 5",
       "trendNote": "미니멀의 색감과 현관 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/arch-entry-24.jpg?v=20260723-catalog110",
-      "imageAlt": "라인리스 화이트 현관 현관 인테리어 참고 이미지",
+      "imageAlt": "라인리스 화이트 현관 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -1513,7 +1552,7 @@
       "trendLabel": "42평 미니멀 · 추천 사례 6",
       "trendNote": "미니멀의 색감과 침실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/warm-beige.jpg?v=20260723-catalog110",
-      "imageAlt": "무몰딩 플랫폼 침실 침실 인테리어 참고 이미지",
+      "imageAlt": "무몰딩 플랫폼 침실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -1543,7 +1582,7 @@
       "trendLabel": "18평 미니멀 · 추천 사례 7",
       "trendNote": "미니멀의 색감과 서재 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/sage-study-34.jpg?v=20260723-catalog110",
-      "imageAlt": "화이트 큐브 서재 서재 인테리어 참고 이미지",
+      "imageAlt": "화이트 큐브 서재 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -1573,7 +1612,7 @@
       "trendLabel": "34평 미니멀 · 추천 사례 8",
       "trendNote": "미니멀의 색감과 아이방 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/modular-kids-30.jpg?v=20260723-catalog110",
-      "imageAlt": "슬림 수납 아이방 아이방 인테리어 참고 이미지",
+      "imageAlt": "슬림 수납 아이방 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -1603,7 +1642,7 @@
       "trendLabel": "52평 미니멀 · 추천 사례 9",
       "trendNote": "미니멀의 색감과 욕실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/white-bath.jpg?v=20260723-catalog110",
-      "imageAlt": "건식 라인 욕실 욕실 인테리어 참고 이미지",
+      "imageAlt": "건식 라인 욕실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -1652,7 +1691,7 @@
       "trendLabel": "42평 미니멀 · 추천 사례 10",
       "trendNote": "미니멀의 색감과 거실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/modern-gray.jpg?v=20260723-catalog110",
-      "imageAlt": "오픈 다이닝 미니멀 거실 거실 인테리어 참고 이미지",
+      "imageAlt": "오픈 다이닝 미니멀 거실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -1682,7 +1721,7 @@
       "trendLabel": "52평 내추럴 · 추천 사례 7",
       "trendNote": "내추럴의 색감과 거실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/japandi-garden-living-34.jpg?v=20260723-catalog110",
-      "imageAlt": "오크 라운지 거실 거실 인테리어 참고 이미지",
+      "imageAlt": "오크 라운지 거실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -1712,7 +1751,7 @@
       "trendLabel": "18평 내추럴 · 추천 사례 8",
       "trendNote": "내추럴의 색감과 침실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/japandi-indigo-bedroom.jpg?v=20260723-catalog110",
-      "imageAlt": "린넨 휴식 침실 침실 인테리어 참고 이미지",
+      "imageAlt": "린넨 휴식 침실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -1742,7 +1781,7 @@
       "trendLabel": "42평 내추럴 · 추천 사례 9",
       "trendNote": "내추럴의 색감과 주방 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/scandi-blue-kitchen-34.jpg?v=20260723-catalog110",
-      "imageAlt": "내추럴 베이 주방 주방 인테리어 참고 이미지",
+      "imageAlt": "내추럴 베이 주방 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -1782,7 +1821,7 @@
       "trendLabel": "52평 내추럴 · 추천 사례 10",
       "trendNote": "내추럴의 색감과 아이방 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/modular-kids-30.jpg?v=20260723-catalog110",
-      "imageAlt": "라탄 독서 아이방 아이방 인테리어 참고 이미지",
+      "imageAlt": "라탄 독서 아이방 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -1812,7 +1851,7 @@
       "trendLabel": "52평 북유럽 · 추천 사례 5",
       "trendNote": "북유럽의 색감과 거실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/natural-wood.jpg?v=20260723-catalog110",
-      "imageAlt": "애쉬 톤 패밀리 거실 거실 인테리어 참고 이미지",
+      "imageAlt": "애쉬 톤 패밀리 거실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -1842,7 +1881,7 @@
       "trendLabel": "42평 북유럽 · 추천 사례 6",
       "trendNote": "북유럽의 색감과 주방 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/wood-kitchen.jpg?v=20260723-catalog110",
-      "imageAlt": "파스텔 블루 주방 주방 인테리어 참고 이미지",
+      "imageAlt": "파스텔 블루 주방 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -1882,7 +1921,7 @@
       "trendLabel": "18평 북유럽 · 추천 사례 7",
       "trendNote": "북유럽의 색감과 욕실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/wood-bath.jpg?v=20260723-catalog110",
-      "imageAlt": "스칸디 라이트 욕실 욕실 인테리어 참고 이미지",
+      "imageAlt": "스칸디 라이트 욕실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -1931,7 +1970,7 @@
       "trendLabel": "52평 북유럽 · 추천 사례 8",
       "trendNote": "북유럽의 색감과 침실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/natural-bed.jpg?v=20260723-catalog110",
-      "imageAlt": "창가 데스크 침실 침실 인테리어 참고 이미지",
+      "imageAlt": "창가 데스크 침실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -1961,7 +2000,7 @@
       "trendLabel": "42평 북유럽 · 추천 사례 9",
       "trendNote": "북유럽의 색감과 아이방 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/modular-kids-30.jpg?v=20260723-catalog110",
-      "imageAlt": "컬러 블록 아이방 아이방 인테리어 참고 이미지",
+      "imageAlt": "컬러 블록 아이방 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -1991,7 +2030,7 @@
       "trendLabel": "34평 북유럽 · 추천 사례 10",
       "trendNote": "북유럽의 색감과 현관 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/arch-entry-24.jpg?v=20260723-catalog110",
-      "imageAlt": "화이트 애쉬 현관 현관 인테리어 참고 이미지",
+      "imageAlt": "화이트 애쉬 현관 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -2073,7 +2112,7 @@
       "trendLabel": "52평 모던 · 추천 사례 9",
       "trendNote": "모던의 색감과 침실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/warm-beige.jpg?v=20260723-catalog110",
-      "imageAlt": "프레임리스 모던 침실 침실 인테리어 참고 이미지",
+      "imageAlt": "프레임리스 모던 침실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -2103,7 +2142,7 @@
       "trendLabel": "18평 모던 · 추천 사례 10",
       "trendNote": "모던의 색감과 거실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/minimal-white.jpg?v=20260723-catalog110",
-      "imageAlt": "라인 조명 미디어 거실 거실 인테리어 참고 이미지",
+      "imageAlt": "라인 조명 미디어 거실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -2165,7 +2204,7 @@
       "trendLabel": "18평 인더스트리얼 · 추천 사례 6",
       "trendNote": "인더스트리얼의 색감과 주방 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/modern-kitchen.jpg?v=20260723-catalog110",
-      "imageAlt": "블랙 프레임 로프트 주방 주방 인테리어 참고 이미지",
+      "imageAlt": "블랙 프레임 로프트 주방 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -2205,7 +2244,7 @@
       "trendLabel": "52평 인더스트리얼 · 추천 사례 7",
       "trendNote": "인더스트리얼의 색감과 침실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/vintage-hotel-bedroom-20.jpg?v=20260723-catalog110",
-      "imageAlt": "브릭 포인트 침실 침실 인테리어 참고 이미지",
+      "imageAlt": "브릭 포인트 침실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -2235,7 +2274,7 @@
       "trendLabel": "42평 인더스트리얼 · 추천 사례 8",
       "trendNote": "인더스트리얼의 색감과 현관 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/arch-entry-24.jpg?v=20260723-catalog110",
-      "imageAlt": "메탈 그리드 현관 현관 인테리어 참고 이미지",
+      "imageAlt": "메탈 그리드 현관 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -2275,7 +2314,7 @@
       "trendLabel": "18평 인더스트리얼 · 추천 사례 9",
       "trendNote": "인더스트리얼의 색감과 욕실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/white-bath.jpg?v=20260723-catalog110",
-      "imageAlt": "다크 타일 샤워 욕실 욕실 인테리어 참고 이미지",
+      "imageAlt": "다크 타일 샤워 욕실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -2324,7 +2363,7 @@
       "trendLabel": "24평 인더스트리얼 · 추천 사례 10",
       "trendNote": "인더스트리얼의 색감과 드레스룸 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/wardrobe-laundry-42.jpg?v=20260723-catalog110",
-      "imageAlt": "메탈 프레임 드레스룸 드레스룸 인테리어 참고 이미지",
+      "imageAlt": "메탈 프레임 드레스룸 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -2354,7 +2393,7 @@
       "trendLabel": "52평 빈티지 · 추천 사례 4",
       "trendNote": "빈티지의 색감과 거실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/french-modern-living-34.jpg?v=20260723-catalog110",
-      "imageAlt": "월넛 미드센추리 거실 거실 인테리어 참고 이미지",
+      "imageAlt": "월넛 미드센추리 거실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -2384,7 +2423,7 @@
       "trendLabel": "42평 빈티지 · 추천 사례 5",
       "trendNote": "빈티지의 색감과 주방 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/french-sage-kitchen-30.jpg?v=20260723-catalog110",
-      "imageAlt": "브라스 포인트 주방 주방 인테리어 참고 이미지",
+      "imageAlt": "브라스 포인트 주방 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -2424,7 +2463,7 @@
       "trendLabel": "18평 빈티지 · 추천 사례 6",
       "trendNote": "빈티지의 색감과 침실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/french.jpg?v=20260723-catalog110",
-      "imageAlt": "플로럴 부티크 침실 침실 인테리어 참고 이미지",
+      "imageAlt": "플로럴 부티크 침실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -2505,7 +2544,7 @@
       "trendLabel": "42평 빈티지 · 추천 사례 8",
       "trendNote": "빈티지의 색감과 서재 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/industrial-library-study-24.jpg?v=20260723-catalog110",
-      "imageAlt": "레코드 라이브러리 서재 서재 인테리어 참고 이미지",
+      "imageAlt": "레코드 라이브러리 서재 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -2535,7 +2574,7 @@
       "trendLabel": "18평 빈티지 · 추천 사례 9",
       "trendNote": "빈티지의 색감과 현관 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/arch-entry-24.jpg?v=20260723-catalog110",
-      "imageAlt": "세이지 클래식 현관 현관 인테리어 참고 이미지",
+      "imageAlt": "세이지 클래식 현관 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -2681,7 +2720,7 @@
       "trendLabel": "52평 웜 베이지 · 추천 사례 6",
       "trendNote": "웜 베이지의 색감과 침실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/french.jpg?v=20260723-catalog110",
-      "imageAlt": "부클 헤드월 침실 침실 인테리어 참고 이미지",
+      "imageAlt": "부클 헤드월 침실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -2762,7 +2801,7 @@
       "trendLabel": "42평 웜 베이지 · 추천 사례 8",
       "trendNote": "웜 베이지의 색감과 서재 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/sage-study-34.jpg?v=20260723-catalog110",
-      "imageAlt": "베이지 홈오피스 서재 서재 인테리어 참고 이미지",
+      "imageAlt": "베이지 홈오피스 서재 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -2792,7 +2831,7 @@
       "trendLabel": "24평 웜 베이지 · 추천 사례 9",
       "trendNote": "웜 베이지의 색감과 현관 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/arch-entry-24.jpg?v=20260723-catalog110",
-      "imageAlt": "웜 뉴트럴 현관 현관 인테리어 참고 이미지",
+      "imageAlt": "웜 뉴트럴 현관 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -2832,7 +2871,7 @@
       "trendLabel": "34평 웜 베이지 · 추천 사례 10",
       "trendNote": "웜 베이지의 색감과 아이방 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/modular-kids-30.jpg?v=20260723-catalog110",
-      "imageAlt": "라운드 수납 아이방 아이방 인테리어 참고 이미지",
+      "imageAlt": "라운드 수납 아이방 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -2862,7 +2901,7 @@
       "trendLabel": "52평 프렌치 · 추천 사례 4",
       "trendNote": "프렌치의 색감과 거실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/vintage.jpg?v=20260723-catalog110",
-      "imageAlt": "파리지앵 몰딩 거실 거실 인테리어 참고 이미지",
+      "imageAlt": "파리지앵 몰딩 거실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -2892,7 +2931,7 @@
       "trendLabel": "18평 프렌치 · 추천 사례 5",
       "trendNote": "프렌치의 색감과 주방 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/vintage-green-kitchen-32.jpg?v=20260723-catalog110",
-      "imageAlt": "세이지 셰이커 주방 주방 인테리어 참고 이미지",
+      "imageAlt": "세이지 셰이커 주방 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -2932,7 +2971,7 @@
       "trendLabel": "42평 프렌치 · 추천 사례 6",
       "trendNote": "프렌치의 색감과 침실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/vintage-hotel-bedroom-20.jpg?v=20260723-catalog110",
-      "imageAlt": "부티크 패널 침실 침실 인테리어 참고 이미지",
+      "imageAlt": "부티크 패널 침실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -3013,7 +3052,7 @@
       "trendLabel": "52평 프렌치 · 추천 사례 8",
       "trendNote": "프렌치의 색감과 서재 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/industrial-library-study-24.jpg?v=20260723-catalog110",
-      "imageAlt": "아치 책장 서재 서재 인테리어 참고 이미지",
+      "imageAlt": "아치 책장 서재 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -3043,7 +3082,7 @@
       "trendLabel": "18평 프렌치 · 추천 사례 9",
       "trendNote": "프렌치의 색감과 현관 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/arch-entry-24.jpg?v=20260723-catalog110",
-      "imageAlt": "체크 보드 현관 현관 인테리어 참고 이미지",
+      "imageAlt": "체크 보드 현관 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -3115,7 +3154,7 @@
       "trendLabel": "52평 호텔식 · 추천 사례 8",
       "trendNote": "호텔식의 색감과 침실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/japandi-indigo-bedroom.jpg?v=20260723-catalog110",
-      "imageAlt": "월넛 헤드월 스위트 침실 침실 인테리어 참고 이미지",
+      "imageAlt": "월넛 헤드월 스위트 침실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -3145,7 +3184,7 @@
       "trendLabel": "18평 호텔식 · 추천 사례 9",
       "trendNote": "호텔식의 색감과 거실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/modern-gray.jpg?v=20260723-catalog110",
-      "imageAlt": "스톤 라운지 거실 거실 인테리어 참고 이미지",
+      "imageAlt": "스톤 라운지 거실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -3175,7 +3214,7 @@
       "trendLabel": "24평 호텔식 · 추천 사례 10",
       "trendNote": "호텔식의 색감과 욕실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/wood-bath.jpg?v=20260723-catalog110",
-      "imageAlt": "브라스 파우더 욕실 욕실 인테리어 참고 이미지",
+      "imageAlt": "브라스 파우더 욕실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -3224,7 +3263,7 @@
       "trendLabel": "42평 재팬디 · 추천 사례 4",
       "trendNote": "재팬디의 색감과 거실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/natural-wood.jpg?v=20260723-catalog110",
-      "imageAlt": "오크 다다미 라운지 거실 거실 인테리어 참고 이미지",
+      "imageAlt": "오크 다다미 라운지 거실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -3254,7 +3293,7 @@
       "trendLabel": "52평 재팬디 · 추천 사례 5",
       "trendNote": "재팬디의 색감과 침실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/scandi-storage-bedroom-18.jpg?v=20260723-catalog110",
-      "imageAlt": "쇼지 슬라이딩 침실 침실 인테리어 참고 이미지",
+      "imageAlt": "쇼지 슬라이딩 침실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -3284,7 +3323,7 @@
       "trendLabel": "18평 재팬디 · 추천 사례 6",
       "trendNote": "재팬디의 색감과 주방 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/wood-kitchen.jpg?v=20260723-catalog110",
-      "imageAlt": "우드 블록 주방 주방 인테리어 참고 이미지",
+      "imageAlt": "우드 블록 주방 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -3373,7 +3412,7 @@
       "trendLabel": "52평 재팬디 · 추천 사례 8",
       "trendNote": "재팬디의 색감과 서재 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/sage-study-34.jpg?v=20260723-catalog110",
-      "imageAlt": "선반형 차실 서재 서재 인테리어 참고 이미지",
+      "imageAlt": "선반형 차실 서재 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -3403,7 +3442,7 @@
       "trendLabel": "18평 재팬디 · 추천 사례 9",
       "trendNote": "재팬디의 색감과 아이방 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/modular-kids-30.jpg?v=20260723-catalog110",
-      "imageAlt": "자작나무 재팬디 아이방 아이방 인테리어 참고 이미지",
+      "imageAlt": "자작나무 재팬디 아이방 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -3433,7 +3472,7 @@
       "trendLabel": "34평 재팬디 · 추천 사례 10",
       "trendNote": "재팬디의 색감과 현관 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/arch-entry-24.jpg?v=20260723-catalog110",
-      "imageAlt": "정갈한 격자 현관 현관 인테리어 참고 이미지",
+      "imageAlt": "정갈한 격자 현관 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -3505,7 +3544,7 @@
       "trendLabel": "52평 스마트 수납 · 추천 사례 7",
       "trendNote": "스마트 수납의 색감과 주방 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/scandi-blue-kitchen-34.jpg?v=20260723-catalog110",
-      "imageAlt": "팬트리 연결 스마트 주방 주방 인테리어 참고 이미지",
+      "imageAlt": "팬트리 연결 스마트 주방 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23",
       "tilePlan": [
@@ -3545,7 +3584,7 @@
       "trendLabel": "42평 스마트 수납 · 추천 사례 8",
       "trendNote": "스마트 수납의 색감과 침실 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/scandi-storage-bedroom-18.jpg?v=20260723-catalog110",
-      "imageAlt": "브리지장 수납 침실 침실 인테리어 참고 이미지",
+      "imageAlt": "브리지장 수납 침실 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -3607,7 +3646,7 @@
       "trendLabel": "24평 스마트 수납 · 추천 사례 10",
       "trendNote": "스마트 수납의 색감과 드레스룸 동선을 조합한 AI 추천 참고 사례입니다. 실제 자재와 치수는 현장 실측 후 확정합니다.",
       "photo": "assets/designs/hotel-suite-dressing-42.jpg?v=20260723-catalog110",
-      "imageAlt": "슬라이딩 워크인 드레스룸 드레스룸 인테리어 참고 이미지",
+      "imageAlt": "슬라이딩 워크인 드레스룸 인테리어 참고 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23"
     },
@@ -3639,7 +3678,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 리딩 코너 거실 거실 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 리딩 코너 거실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -3671,7 +3710,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "빈티지 플렉스 거실 거실 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 플렉스 거실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -3703,7 +3742,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.025,
       "photoMirror": true,
-      "imageAlt": "웜 베이지 낮은 가구 거실 거실 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 낮은 가구 거실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "David Kristianto",
@@ -3738,7 +3777,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "미니멀 창가 벤치 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 창가 벤치 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -3771,7 +3810,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "모던 워크존 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 워크존 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -3804,7 +3843,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "호텔식 평상 수납 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 평상 수납 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Royaloak India",
@@ -3839,7 +3878,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 파우더 연계 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 파우더 연계 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -3871,7 +3910,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "내추럴 슬라이딩 수납 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 슬라이딩 수납 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -3903,7 +3942,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "북유럽 간접조명 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 간접조명 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -3935,7 +3974,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "프렌치 부티크 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 부티크 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -3968,7 +4007,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "재팬디 패브릭 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 패브릭 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -4001,7 +4040,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 오픈 드레스 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 오픈 드레스 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -4034,7 +4073,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "미니멀 컴팩트 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 컴팩트 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Royaloak India",
@@ -4069,7 +4108,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "모던 라운지 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 라운지 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -4101,7 +4140,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.025,
       "photoMirror": true,
-      "imageAlt": "빈티지 테라스 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 테라스 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -4134,7 +4173,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "웜 베이지 팬트리 연계 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 팬트리 연계 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4179,7 +4218,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "호텔식 다이닝 통합 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 다이닝 통합 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4222,7 +4261,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "재팬디 창가 조리대 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 창가 조리대 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4265,7 +4304,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 카페형 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 카페형 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4307,7 +4346,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "내추럴 투톤 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 투톤 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4349,7 +4388,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "북유럽 히든 수납 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 히든 수납 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4392,7 +4431,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "프렌치 슬림 아일랜드 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 슬림 아일랜드 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4435,7 +4474,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "미니멀 패밀리 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 패밀리 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4478,7 +4517,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 오픈 선반 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 오픈 선반 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4521,7 +4560,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "빈티지 세컨드 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 세컨드 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4566,7 +4605,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.025,
       "photoMirror": true,
-      "imageAlt": "웜 베이지 홈바 연계 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 홈바 연계 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4610,7 +4649,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 워크인 샤워 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 워크인 샤워 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4661,7 +4700,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "내추럴 건식 세면 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 건식 세면 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4713,7 +4752,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.025,
       "photoMirror": true,
-      "imageAlt": "북유럽 파우더 연계 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 파우더 연계 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4764,7 +4803,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "모던 조적 욕조 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 조적 욕조 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4816,7 +4855,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "프렌치 호텔형 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 호텔형 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4868,7 +4907,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "미니멀 컴팩트 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 컴팩트 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4922,7 +4961,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 스파 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 스파 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -4974,7 +5013,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "빈티지 반건식 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 반건식 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5025,7 +5064,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "스마트 수납 세면 분리 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 세면 분리 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5076,7 +5115,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "재팬디 부부 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 부부 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5127,7 +5166,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "내추럴 패밀리 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 패밀리 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5179,7 +5218,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "북유럽 젠다이 수납 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 젠다이 수납 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5230,7 +5269,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "모던 코너 샤워 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 코너 샤워 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5283,7 +5322,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "웜 베이지 프레임리스 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 프레임리스 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5335,7 +5374,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.025,
       "photoMirror": true,
-      "imageAlt": "프렌치 테라조 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 테라조 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5387,7 +5426,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "호텔식 갤러리 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 갤러리 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5430,7 +5469,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "모던 신발장 통합 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 신발장 통합 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5473,7 +5512,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 외투 수납 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 외투 수납 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5516,7 +5555,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "호텔식 반개방 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 반개방 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5559,7 +5598,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "재팬디 라운드 중문 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 라운드 중문 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5602,7 +5641,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "미니멀 센서 조명 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 센서 조명 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5645,7 +5684,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "내추럴 컴팩트 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 컴팩트 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5688,7 +5727,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "북유럽 벤치 수납 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 벤치 수납 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5731,7 +5770,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 아치 중문 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 아치 중문 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5774,7 +5813,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.025,
       "photoMirror": true,
-      "imageAlt": "빈티지 격자 중문 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 격자 중문 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5817,7 +5856,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "웜 베이지 전신거울 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 전신거울 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5860,7 +5899,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "프렌치 오픈 선반 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 오픈 선반 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5903,7 +5942,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "모던 팬트리 연계 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 팬트리 연계 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5946,7 +5985,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 슬림 수납 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 슬림 수납 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -5989,7 +6028,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "호텔식 파티션 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 파티션 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -6032,7 +6071,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "재팬디 갤러리 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 갤러리 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -6075,7 +6114,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "미니멀 신발장 통합 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 신발장 통합 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -6118,7 +6157,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "내추럴 외투 수납 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 외투 수납 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -6161,7 +6200,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "북유럽 반개방 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 반개방 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -6204,7 +6243,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 라운드 중문 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 라운드 중문 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -6247,7 +6286,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "빈티지 센서 조명 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 센서 조명 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -6290,7 +6329,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.025,
       "photoMirror": true,
-      "imageAlt": "웜 베이지 컴팩트 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 컴팩트 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "tilePlan": [
@@ -6333,7 +6372,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "호텔식 갤러리 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 갤러리 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -6365,7 +6404,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "내추럴 미디어 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 미디어 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -6398,7 +6437,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "북유럽 코너 데스크 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 코너 데스크 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Elijah Pilchard",
@@ -6433,7 +6472,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "프렌치 오픈 책장 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 오픈 책장 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -6534,7 +6573,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "모던 창가 데스크 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 창가 데스크 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -6567,7 +6606,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "빈티지 벽면 책장 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 벽면 책장 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -6600,7 +6639,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.025,
       "photoMirror": true,
-      "imageAlt": "웜 베이지 라이브러리 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 라이브러리 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Elijah Pilchard",
@@ -6635,7 +6674,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "호텔식 폴딩 데스크 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 폴딩 데스크 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -6668,7 +6707,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 티룸 겸용 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 티룸 겸용 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -6700,7 +6739,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "내추럴 듀얼 데스크 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 듀얼 데스크 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Elijah Pilchard",
@@ -6735,7 +6774,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "북유럽 집중형 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 집중형 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -6767,7 +6806,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 라운지 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 라운지 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -6800,7 +6839,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "프렌치 슬라이딩 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 슬라이딩 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Elijah Pilchard",
@@ -6835,7 +6874,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "재팬디 갤러리 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 갤러리 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -6868,7 +6907,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "미니멀 미디어 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 미디어 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -6901,7 +6940,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "모던 코너 데스크 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 코너 데스크 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Elijah Pilchard",
@@ -6936,7 +6975,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "빈티지 오픈 책장 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 오픈 책장 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -7037,7 +7076,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 라운드 수납 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 라운드 수납 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "ASR Design Studio",
@@ -7072,7 +7111,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "모던 오픈 놀이 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 오픈 놀이 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -7105,7 +7144,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "호텔식 슬라이딩 수납 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 슬라이딩 수납 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "ASR Design Studio",
@@ -7140,7 +7179,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "프렌치 미술 놀이 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 미술 놀이 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -7173,7 +7212,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "재팬디 컴팩트 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 컴팩트 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "ASR Design Studio",
@@ -7241,7 +7280,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "내추럴 성장형 수납 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 성장형 수납 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "ASR Design Studio",
@@ -7276,7 +7315,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "북유럽 창가 책상 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 창가 책상 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -7309,7 +7348,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.025,
       "photoMirror": true,
-      "imageAlt": "인더스트리얼 놀이 학습 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 놀이 학습 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "ASR Design Studio",
@@ -7344,7 +7383,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "빈티지 평상 침대 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 평상 침대 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -7377,7 +7416,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "웜 베이지 모듈 가구 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 모듈 가구 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "ASR Design Studio",
@@ -7412,7 +7451,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "모던 2인 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 2인 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -7445,7 +7484,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "호텔식 벙커 침대 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 벙커 침대 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "ASR Design Studio",
@@ -7480,7 +7519,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 독서 코너 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 독서 코너 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -7513,7 +7552,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "프렌치 컬러 포인트 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 컬러 포인트 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "ASR Design Studio",
@@ -7548,7 +7587,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "재팬디 라운드 수납 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 라운드 수납 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -7581,7 +7620,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "미니멀 오픈 놀이 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 오픈 놀이 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "ASR Design Studio",
@@ -7616,7 +7655,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "내추럴 슬라이딩 수납 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 슬라이딩 수납 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -7649,7 +7688,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "북유럽 미술 놀이 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 미술 놀이 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "ASR Design Studio",
@@ -7684,7 +7723,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 컴팩트 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 컴팩트 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -7752,7 +7791,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.025,
       "photoMirror": true,
-      "imageAlt": "웜 베이지 슬라이딩 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 슬라이딩 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Franco Debartolo",
@@ -7787,7 +7826,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "프렌치 세탁 연계 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 세탁 연계 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -7819,7 +7858,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "재팬디 컴팩트 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 컴팩트 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -7852,7 +7891,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "미니멀 ㄱ자 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 ㄱ자 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Franco Debartolo",
@@ -7887,7 +7926,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "내추럴 양면 수납 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 양면 수납 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -7919,7 +7958,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "북유럽 부티크 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 부티크 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -7952,7 +7991,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "빈티지 슈즈 수납 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 슈즈 수납 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Franco Debartolo",
@@ -7987,7 +8026,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 미러 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 미러 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -8020,7 +8059,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "모던 모듈 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 모듈 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -8053,7 +8092,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 히든 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 히든 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Franco Debartolo",
@@ -8088,7 +8127,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "웜 베이지 워크인 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 워크인 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -8121,7 +8160,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "프렌치 오픈 시스템 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 오픈 시스템 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -8153,7 +8192,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.025,
       "photoMirror": true,
-      "imageAlt": "재팬디 유리장 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 유리장 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Franco Debartolo",
@@ -8188,7 +8227,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "미니멀 파우더 연계 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 파우더 연계 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -8221,7 +8260,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "내추럴 아일랜드 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 아일랜드 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -8253,7 +8292,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "북유럽 슬라이딩 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 슬라이딩 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Franco Debartolo",
@@ -8288,7 +8327,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "빈티지 세탁 연계 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 세탁 연계 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -8321,7 +8360,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 컴팩트 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 컴팩트 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -8353,7 +8392,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "호텔식 ㄱ자 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 ㄱ자 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Franco Debartolo",
@@ -8388,7 +8427,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "모던 양면 수납 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 양면 수납 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -8421,7 +8460,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 부티크 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 부티크 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -8454,7 +8493,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "웜 베이지 슈즈 수납 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 슈즈 수납 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Franco Debartolo",
@@ -8489,7 +8528,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "프렌치 미러 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 미러 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -8521,7 +8560,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "재팬디 모듈 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 모듈 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30"
     },
@@ -8554,7 +8593,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1.025,
       "photoMirror": true,
-      "imageAlt": "미니멀 히든 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 히든 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-23-space30",
       "imageCredit": "Franco Debartolo",
@@ -8589,7 +8628,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "호텔식 창가 라운지 거실 거실 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 창가 라운지 거실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -8621,7 +8660,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "프렌치 미디어월 거실 거실 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 미디어월 거실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "imageCredit": "David Kristianto",
@@ -8655,7 +8694,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "재팬디 다이닝 연계 거실 거실 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 다이닝 연계 거실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "imageCredit": "pranav adarsh",
@@ -8690,7 +8729,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 수납 벽 거실 거실 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 벽 거실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "imageCredit": "Aalo Lens",
@@ -8756,7 +8795,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "북유럽 갤러리월 거실 거실 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 갤러리월 거실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -8788,7 +8827,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "모던 홈시네마 거실 거실 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 홈시네마 거실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -8820,7 +8859,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 라운드 가구 거실 거실 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 라운드 가구 거실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -8852,7 +8891,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "웜 베이지 헤드월 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 헤드월 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -8885,7 +8924,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "호텔식 호텔형 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 호텔형 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "imageCredit": "Royaloak India",
@@ -8920,7 +8959,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 붙박이장 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 붙박이장 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -8953,7 +8992,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 창가 벤치 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 창가 벤치 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -8985,7 +9024,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "빈티지 워크존 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 워크존 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -9018,7 +9057,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "미니멀 평상 수납 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 평상 수납 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -9050,7 +9089,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "내추럴 파우더 연계 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 파우더 연계 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -9082,7 +9121,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "북유럽 슬라이딩 수납 침실 침실 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 슬라이딩 수납 침실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -9115,7 +9154,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 대면형 아일랜드 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 대면형 아일랜드 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9158,7 +9197,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "호텔식 ㄱ자형 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 ㄱ자형 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9203,7 +9242,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "재팬디 ㄷ자형 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 ㄷ자형 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9248,7 +9287,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "모던 갤리형 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 갤리형 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9291,7 +9330,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "빈티지 팬트리 연계 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 팬트리 연계 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9334,7 +9373,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "웜 베이지 다이닝 통합 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 다이닝 통합 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9377,7 +9416,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "프렌치 창가 조리대 주방 주방 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 창가 조리대 주방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9463,7 +9502,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "미니멀 워크인 샤워 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 워크인 샤워 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9515,7 +9554,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 건식 세면 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 건식 세면 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9569,7 +9608,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "빈티지 파우더 연계 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 파우더 연계 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9620,7 +9659,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 조적 욕조 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 조적 욕조 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9671,7 +9710,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "내추럴 호텔형 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 호텔형 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9723,7 +9762,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "북유럽 컴팩트 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 컴팩트 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9774,7 +9813,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "모던 스파 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 스파 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9825,7 +9864,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "웜 베이지 반건식 욕실 욕실 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 반건식 욕실 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9877,7 +9916,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "프렌치 벤치 수납 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 벤치 수납 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9920,7 +9959,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "모던 아치 중문 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 아치 중문 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -9963,7 +10002,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 격자 중문 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 격자 중문 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -10006,7 +10045,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "호텔식 전신거울 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 전신거울 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -10049,7 +10088,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "재팬디 오픈 선반 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 오픈 선반 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -10092,7 +10131,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "미니멀 팬트리 연계 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 팬트리 연계 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -10135,7 +10174,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "내추럴 슬림 수납 현관 현관 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 슬림 수납 현관 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "tilePlan": [
@@ -10178,7 +10217,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "북유럽 창가 데스크 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 창가 데스크 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -10210,7 +10249,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "내추럴 벽면 책장 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 벽면 책장 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "imageCredit": "Elijah Pilchard",
@@ -10245,7 +10284,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "스마트 수납 라이브러리 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "스마트 수납 라이브러리 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -10277,7 +10316,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 폴딩 데스크 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 폴딩 데스크 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -10310,7 +10349,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "빈티지 티룸 겸용 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 티룸 겸용 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -10343,7 +10382,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "웜 베이지 듀얼 데스크 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 듀얼 데스크 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "imageCredit": "Elijah Pilchard",
@@ -10378,7 +10417,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "프렌치 집중형 서재 서재 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 집중형 서재 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -10411,7 +10450,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "호텔식 성장형 수납 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 성장형 수납 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -10444,7 +10483,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "모던 창가 책상 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "모던 창가 책상 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -10477,7 +10516,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "웜 베이지 놀이 학습 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "웜 베이지 놀이 학습 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "imageCredit": "ASR Design Studio",
@@ -10512,7 +10551,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "재팬디 평상 침대 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 평상 침대 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -10545,7 +10584,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "미니멀 모듈 가구 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 모듈 가구 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -10578,7 +10617,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "북유럽 2인 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 2인 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "imageCredit": "ASR Design Studio",
@@ -10613,7 +10652,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "인더스트리얼 벙커 침대 아이방 아이방 인테리어 AI 추천 이미지",
+      "imageAlt": "인더스트리얼 벙커 침대 아이방 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -10646,7 +10685,7 @@
       "photoPosition": "58% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "빈티지 워크인 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "빈티지 워크인 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -10679,7 +10718,7 @@
       "photoPosition": "50% 42%",
       "photoScale": 1.075,
       "photoMirror": false,
-      "imageAlt": "내추럴 오픈 시스템 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "내추럴 오픈 시스템 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "imageCredit": "Franco Debartolo",
@@ -10713,7 +10752,7 @@
       "photoPosition": "50% 58%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "북유럽 유리장 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "북유럽 유리장 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -10746,7 +10785,7 @@
       "photoPosition": "35% 50%",
       "photoScale": 1.025,
       "photoMirror": false,
-      "imageAlt": "프렌치 파우더 연계 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "프렌치 파우더 연계 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -10778,7 +10817,7 @@
       "photoPosition": "65% 50%",
       "photoScale": 1.05,
       "photoMirror": false,
-      "imageAlt": "호텔식 아일랜드 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "호텔식 아일랜드 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     },
@@ -10810,7 +10849,7 @@
       "photoPosition": "50% 50%",
       "photoScale": 1.075,
       "photoMirror": true,
-      "imageAlt": "재팬디 슬라이딩 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "재팬디 슬라이딩 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300",
       "imageCredit": "Franco Debartolo",
@@ -10845,7 +10884,7 @@
       "photoPosition": "42% 50%",
       "photoScale": 1,
       "photoMirror": false,
-      "imageAlt": "미니멀 세탁 연계 드레스룸 드레스룸 인테리어 AI 추천 이미지",
+      "imageAlt": "미니멀 세탁 연계 드레스룸 인테리어 AI 추천 이미지",
       "aiDesign": true,
       "catalogBatch": "2026-07-27-space300"
     }
