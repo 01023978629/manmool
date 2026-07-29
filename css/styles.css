@@ -912,6 +912,19 @@ img.lb-shot, img.lb-cand-shot { object-fit: cover; }
 .of-benefit b { color: var(--ink); }
 .of-note { margin-top: 14px; font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
 
+/* 대표 시안 정적 페이지 */
+.dp-title { font-size: 26px; margin: 6px 0 10px; }
+.dp-photo { width: 100%; border-radius: var(--radius-sm); margin: 14px 0; }
+.dp-specs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+.dp-specs dt { font-size: 12px; color: var(--ink-soft); }
+.dp-specs dd { font-size: 15px; font-weight: 700; }
+.dp-pal { display: flex; gap: 6px; margin: 10px 0; }
+.dp-pal span { width: 34px; height: 22px; border-radius: 6px; border: 1px solid var(--line); }
+.dp-h2 { font-size: 17px; margin: 16px 0 8px; }
+.dp-mats { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.dp-mats li { padding: 7px 12px; background: var(--bg-alt); border-radius: 999px; font-size: 13.5px; }
+.dp-tip { margin: 14px 0; padding: 13px 16px; background: var(--bg-alt); border-radius: var(--radius-sm); font-size: 14.5px; line-height: 1.7; }
+
 .trust-check-link { margin-top: 20px; text-align: center; font-size: 15px; }
 
 /* 욕실 방수 사전점검 — 셀프 체크 */
