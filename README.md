@@ -116,10 +116,13 @@ integrations/n8n/*.workflow.json        n8n 워크플로(import용)
 - 사이트 콘텐츠는 **`data/site.json`**, 연동 설정은 **`data/config.json`** 하나로 관리됩니다.
 - 두 파일만 수정하면 코드 변경 없이 사이트·연동이 갱신되므로, AI 에이전트가 운영할 수 있습니다.
 - 검증기(전부 `node scripts/<파일>` 로 실행, 실패 시 exit 1):
-  `ensure-site-integrity` · `ensure-conversion-basics` · `ensure-lead-route-parity` ·
+  `ensure-site-integrity` · `ensure-conversion-basics`(접수 경로·점진 렌더·시안 공유주소 포함) ·
+  `ensure-lead-route-parity` ·
   `ensure-simulator-honesty`(시뮬레이터 고지·범위표기·게이팅 부재) ·
-  `ensure-lookbook-honesty`(보기 모드 고지·금액 미계산·판정 금지) ·
+  `ensure-lookbook-honesty`(보기 모드 고지·금액 미계산·판정 금지·사진 겹침 한도·imageAlt) ·
+  `ensure-design-catalog-coverage` · `ensure-space-catalog-coverage` ·
   `verify-space-cost-estimates`(시안 300개·예상비용 불변)
+  진단 도구(검증기 아님): `report-photo-duplicates`(사진 겹침 현황, `--ids` 로 대상 목록)
 - **예외 1가지**: `insights`(블로그 글)를 수정했으면 `python3 scripts/prerender-posts.py`를
   실행해 `posts/` 정적 페이지를 재생성한 뒤 함께 커밋하세요. (네이버 등 JS 렌더링이
   불안정한 검색엔진이 글을 개별 색인하도록 글마다 정적 페이지를 둡니다 — sitemap도 이 주소 기준)
