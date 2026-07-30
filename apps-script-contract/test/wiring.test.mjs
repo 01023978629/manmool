@@ -370,9 +370,21 @@ try {
     && aView.contract.contractNo !== bView.contract.contractNo,
   '같은 idem 을 다른 고객 토큰이 써도 캐시 결과가 섞이지 않는다');
 
-  const bogus = postReq({ action: 'sign.view', signToken: 'z'.repeat(43), idem, payload: {} });
+  // ★ 이 검사는 '캐시를 열기 전에 진짜 토큰을 대조하는가'를 재야 한다.
+  //   그냥 위조 토큰이 TOKEN_INVALID 를 받는지만 보면, 사전 인증을 통째로 들어내도
+  //   초록으로 남는다 — 캐시가 빗나가면 어차피 처리기가 거절하기 때문이다.
+  //   그래서 **사전 인증이 없을 때 쓰였을 캐시 열쇠**(scope = 토큰의 단순 해시)에
+  //   미끼를 심어 두고, 그 미끼가 나오지 않는지 본다.
+  //   사전 인증을 제거하면 scope 가 정확히 이 값이 되어 미끼가 튀어나온다.
+  const forgedToken = 'z'.repeat(43);
+  const naiveScope = ctx.sha256Hex(forgedToken);
+  ctx.gwIdemPut_('sign.view', 'preauth-bait', naiveScope,
+    { ok: true, marker: 'LEAKED-VIA-UNAUTHENTICATED-CACHE' });
+  const bogus = postReq({ action: 'sign.view', signToken: forgedToken, idem: 'preauth-bait', payload: {} });
   check(bogus.ok === false && bogus.error === 'TOKEN_INVALID',
     '실제 고객 토큰 인증이 멱등성 캐시 조회보다 먼저다', JSON.stringify(bogus));
+  check(JSON.stringify(bogus).indexOf('LEAKED-VIA-UNAUTHENTICATED-CACHE') < 0,
+    '인증 전에는 멱등성 캐시를 읽지 않는다 — 위조 토큰이 남의 캐시를 못 연다', JSON.stringify(bogus));
 
   const rootId = postReq({
     action: 'sign.view', signToken: b.link.token, idem: 'root-id',
@@ -388,6 +400,31 @@ try {
   check(nestedId.ok === false && nestedId.error === 'BAD_REQUEST',
     '고객 요청 중첩 계약 id 를 거절한다', JSON.stringify(nestedId));
 
+  // 값이 아니라 **존재**로 거절하는가. 빈 문자열·null 을 통과시키던 옛 동작으로
+  // 되돌리면 여기서 잡힌다(값을 실어 보내는 위 두 검사로는 못 잡는다).
+  const emptyId = postReq({
+    action: 'sign.view', signToken: b.link.token, idem: 'empty-id', payload: { contractId: '' }
+  });
+  check(emptyId.ok === false && emptyId.error === 'BAD_REQUEST',
+    '빈 문자열 계약 id 도 거절한다 — 값이 아니라 존재로 막는다', JSON.stringify(emptyId));
+  const nullId = postReq({
+    action: 'sign.view', signToken: b.link.token, idem: 'null-id', id: null, payload: {}
+  });
+  check(nullId.ok === false && nullId.error === 'BAD_REQUEST',
+    'null 계약 id 도 거절한다', JSON.stringify(nullId));
+
+  // 인증 전에 도는 검사라 깊이·크기에 한도가 있어야 한다. 없으면 토큰 모양만 맞춘
+  // 아무나 스택을 터뜨리고 영문 엔진 오류가 고객 화면에 나간다(실측으로 겪었다).
+  // 깊이는 한도(GW_ID_SCAN_MAX_DEPTH=12)를 넉넉히 넘되, 테스트 하네스의 JSON.stringify
+  // 자체가 터지지 않을 만큼만 잡는다. 40000 겹으로 하면 요청을 만들다가 하네스가 죽는다.
+  let deep = {}; const deepRoot = deep;
+  for (let i = 0; i < 200; i++) { deep.a = {}; deep = deep.a; }
+  const deepRes = postReq({ action: 'sign.view', signToken: forgedToken, payload: deepRoot });
+  check(deepRes.ok === false && deepRes.error === 'BAD_REQUEST',
+    '아주 깊게 중첩된 payload 를 스택이 터지기 전에 거절한다', JSON.stringify(deepRes).slice(0, 160));
+  check(String(deepRes.message || '').indexOf('call stack') < 0,
+    '내부 엔진 오류 문구를 고객에게 내보내지 않는다', String(deepRes.message || ''));
+
   ctx.gwIdemPut_('selfTest', 'admin-auth-first', 'admin',
     { ok: true, marker: 'cached-admin-result' });
   const unauth = postReq({ action: 'selfTest', idem: 'admin-auth-first', payload: {} });
@@ -396,7 +433,18 @@ try {
   '관리자 인증이 멱등성 캐시 조회보다 먼저다', JSON.stringify(unauth));
 
   const originalIdemPut = ctx.gwIdemPut_;
+  const originalIdemGet = ctx.gwIdemGet_;
   let heldWhileCaching = false;
+  // ★ 저장(put)만 감시하면 E 의 위험한 절반이 비어 있다.
+  //   사고는 '조회가 잠금 밖이라 둘 다 빗나가고 같은 작업이 두 번 도는 것'이다.
+  //   그래서 **마지막 조회**가 잠금 안에서 일어났는지를 본다.
+  //   잠금 밖 선(先)조회는 일부러 둔 빠른 길이므로(캐시 적중 시 BUSY 회피),
+  //   '한 번이라도 잠금 안에서 조회했는가'로 재야 한다.
+  let getInsideLock = false;
+  ctx.gwIdemGet_ = function (action, idemKey, scope) {
+    if (g.LockService.getScriptLock()._held) getInsideLock = true;
+    return originalIdemGet(action, idemKey, scope);
+  };
   ctx.gwIdemPut_ = function (action, idemKey, scope, result) {
     heldWhileCaching = g.LockService.getScriptLock()._held;
     return originalIdemPut(action, idemKey, scope, result);
@@ -420,9 +468,12 @@ try {
     countAfterSecond = ctx.readAll_(ctx.SHEETS.CONTRACTS).length;
   } finally {
     ctx.gwIdemPut_ = originalIdemPut;
+    ctx.gwIdemGet_ = originalIdemGet;
   }
   check(heldWhileCaching === true,
     '잠금 작업의 멱등성 결과를 LockService 해제 전에 저장한다');
+  check(getInsideLock === true,
+    '잠금 작업의 멱등성 캐시를 잠금 안에서도 다시 조회한다 — 조회가 잠금 밖에만 있으면 두 번 실행된다');
   check(firstQuick.ok === true && secondQuick.ok === true
     && firstQuick.contractId === secondQuick.contractId
     && countAfterFirst === countAfterSecond,
@@ -502,6 +553,51 @@ try {
 }
 check(!orderErr, '서명 저장 순서 검사가 끝까지 실행된다',
   orderErr ? String(orderErr.stack || orderErr.message) : '');
+
+section('6-2) 부분 실패 뒤 고객에게 하는 말이 사실과 맞는가');
+{
+  // 서명 완료는 ① Drive → ② Contracts → ③ SignTokens 순으로 쓴다.
+  // ③만 실패하면 계약은 COMPLETED 인데 토큰이 살아 있다. 고객이 다시 누르면
+  // 예전에는 BAD_STATE 가 나갔고, Sign.html 이 그것을 'voided' 로 매핑해
+  // **"🚫 취소된 계약입니다"** 를 띄웠다 — 정상 체결된 계약을 두고 하는 거짓말이다.
+  const pctx = { at: new Date().toISOString(), actor: 'admin' };
+  const made = ctx.createContract_({
+    title: '부분실패 검사', amount: 2000000,
+    customer: { name: '박고객', phone: '010-4444-5555' }, body: { site: '탄방동', scope: ['도배'] }
+  }, pctx);
+  const cid = made.contractId || made.id;
+  ctx.lockContract_(cid, pctx);
+  const lk = ctx.issueSignLink_(cid, 72, pctx);
+  const docHash = ctx.getContract_(cid).contract.docHash;
+
+  // SignTokens 의 usedAt 쓰기만 실패시킨다.
+  const realUpdate = ctx.updateRow_;
+  ctx.updateRow_ = function (name, rowIndex, patch) {
+    if (name === ctx.SHEETS.TOKENS && patch && Object.prototype.hasOwnProperty.call(patch, 'usedAt')) {
+      throw new Error('SERVER_ERROR|토큰 소진 쓰기 실패(주입)');
+    }
+    return realUpdate(name, rowIndex, patch);
+  };
+  try {
+    ctx.signSubmit_(lk.token, { signerName: '박고객', signatureImage: PNG_DATA_URI, agreed: true,
+      docHashSeen: docHash }, { at: new Date().toISOString(), actor: 'customer' });
+  } catch (e) { /* 주입한 실패 */ }
+  ctx.updateRow_ = realUpdate;
+
+  const after = ctx.getContract_(cid).contract;
+  check(after.status === 'COMPLETED', '부분 실패해도 계약 자체는 완료로 기록된다', after.status);
+
+  let again = null;
+  try {
+    ctx.signSubmit_(lk.token, { signerName: '박고객', signatureImage: PNG_DATA_URI, agreed: true,
+      docHashSeen: docHash }, { at: new Date().toISOString(), actor: 'customer' });
+  } catch (e) { again = String(e.message); }
+  check(!!again, '완료된 계약에 다시 서명할 수 없다', again || '통과해 버렸다');
+  check(again && again.indexOf('TOKEN_USED') === 0,
+    '이미 체결된 계약을 "취소됐다"고 말하지 않는다 — TOKEN_USED 로 답한다', again);
+  check(again && again.indexOf('BAD_STATE') !== 0,
+    'BAD_STATE 를 쓰지 않는다 — Sign.html 이 그것을 "취소된 계약" 화면으로 매핑한다', again);
+}
 
 section('7) 발송은 꺼져 있다');
 const n1 = ctx.notifySend_({ to: '010-1234-5678', text: '테스트', kind: 'notify' }, { at: new Date().toISOString() });

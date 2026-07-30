@@ -187,13 +187,23 @@ function gwHandle_(req) {
   }
 
   if (def.lock) {
-    // 조회·실행·보관을 한 잠금 안에 둔다. 잠금을 먼저 놓고 결과를 보관하면
-    // 그 짧은 틈에 같은 idem 요청이 들어와 작업이 두 번 실행될 수 있다.
+    // 이중 확인(double-checked). 두 번 읽는 데는 각각 이유가 있다.
+    //
+    //   ① 잠금 **밖에서** 한 번 — 이미 저장된 결과가 있으면 잠금을 잡을 필요가 없다.
+    //      이게 없으면, 다른 작업이 잠금을 쥐고 있는 동안 재시도한 고객이 저장된
+    //      성공 결과를 못 받고 BUSY 로 튕긴다(전화가 끊겨 다시 누른 바로 그 상황이다).
+    //      인증은 이미 위에서 끝났고 idemScope 가 자기 토큰으로 묶여 있으므로,
+    //      여기서 읽는 것은 언제나 '자기 결과'다.
+    //   ② 잠금 **안에서** 다시 — ①에서 둘 다 놓쳤을 때, 하나가 먼저 실행해 저장하면
+    //      뒤따라 들어온 쪽은 여기서 적중해 두 번 실행하지 않는다.
+    //      조회를 잠금 밖에만 두면 그 사이가 벌어져 같은 작업이 두 번 돈다.
+    var preCached = gwIdemGet_(req.action, req.idem, idemScope);
+    if (preCached) return preCached;
     return gwWithLock_(function () {
       var lockedCached = gwIdemGet_(req.action, req.idem, idemScope);
       if (lockedCached) return lockedCached;
       var lockedRes = gwOk_(handler(rq));
-      gwIdemPut_(req.action, req.idem, idemScope, lockedRes);
+      gwIdemPut_(req.action, req.idem, idemScope, lockedRes);   // 저장까지 잠금 안에서
       return lockedRes;
     });
   }
@@ -376,21 +386,70 @@ function gwCustomerPayload_(payload) {
   return p;
 }
 
-/* 계약 id 계열 열쇠의 '존재'를 본다. 빈 문자열이나 null 도 조용히 허용하지 않는다. */
+/* 계약 id 계열 열쇠의 '존재'를 본다. 빈 문자열이나 null 도 조용히 허용하지 않는다.
+ *
+ * ★ 깊이와 노드 수에 한도를 둔다. 이 검사는 **토큰을 대조하기 전에** 돈다
+ *   (gwCustomerPayload_ → 여기 → 그 뒤에야 gwCustomerIdemScope_ 가 진짜 토큰을 본다).
+ *   한도가 없으면 토큰 모양만 맞춘 아무나 40000겹짜리 payload 로 스택을 터뜨릴 수 있고,
+ *   그 'Maximum call stack size exceeded' 라는 영문 엔진 문구가 고객 화면에 그대로 나간다
+ *   (실측: depth 20000 에서 재현). Apps Script V8 스택은 Node 보다 얕아 임계는 더 낮다.
+ *
+ *   한도를 넘으면 '못 봤다'가 아니라 **거절**한다. 다 뒤지지 못한 payload 를 통과시키면
+ *   깊이만 늘려 검사를 우회할 수 있기 때문이다. 정상 요청은 두 겹을 넘지 않는다
+ *   (sign.submit 의 payload 는 {signerName, signatureImage, agreed, docHashSeen} 평면이다). */
+var GW_ID_SCAN_MAX_DEPTH = 12;
+var GW_ID_SCAN_MAX_NODES = 2000;
+
 function gwHasContractIdKey_(value, recursive) {
   if (!value || typeof value !== 'object') return false;
+  // 얕은 검사(recursive=false)는 '이 층에 id 열쇠가 있나'만 본다.
+  // 여기에 깊이 한도를 적용하면 payload 를 가진 **모든 정상 요청**이 거절된다
+  // (실제로 그렇게 만들었다가 테스트가 잡았다 — quickSend 까지 전부 막혔다).
+  if (!recursive) return gwHasOwnIdKey_(value);
+  return gwScanIdKey_(value, GW_ID_SCAN_MAX_DEPTH, { nodes: GW_ID_SCAN_MAX_NODES });
+}
+
+function gwHasOwnIdKey_(value) {
   for (var i = 0; i < GW_ID_KEYS.length; i++) {
     if (gwHas_(value, GW_ID_KEYS[i])) return true;
   }
-  if (!recursive) return false;
+  return false;
+}
+
+function gwScanIdKey_(value, depthLeft, budget) {
+  if (!value || typeof value !== 'object') return false;
+  if (--budget.nodes < 0) {
+    throw gwFail_('BAD_REQUEST', '요청 내용이 너무 복잡합니다 — 값을 줄여 다시 보내 주세요');
+  }
+  if (gwHasOwnIdKey_(value)) return true;
+  if (depthLeft <= 0) {
+    // 더 들어갈 수 없다. 안 본 곳을 '없다'로 넘기면 깊이로 검사를 피할 수 있다.
+    return gwHasNestedObject_(value)
+      ? (function () { throw gwFail_('BAD_REQUEST', '요청 내용이 너무 깊습니다 — 값을 줄여 다시 보내 주세요'); }())
+      : false;
+  }
   if (gwIsArray_(value)) {
     for (var a = 0; a < value.length; a++) {
-      if (gwHasContractIdKey_(value[a], true)) return true;
+      if (gwScanIdKey_(value[a], depthLeft - 1, budget)) return true;
     }
     return false;
   }
   for (var k in value) {
-    if (gwHas_(value, k) && gwHasContractIdKey_(value[k], true)) return true;
+    if (gwHas_(value, k) && gwScanIdKey_(value[k], depthLeft - 1, budget)) return true;
+  }
+  return false;
+}
+
+/* 이 값 바로 아래에 더 들어갈 객체가 남아 있는가 — 깊이 한도에 걸렸을 때만 쓴다. */
+function gwHasNestedObject_(value) {
+  if (gwIsArray_(value)) {
+    for (var a = 0; a < value.length; a++) {
+      if (value[a] && typeof value[a] === 'object') return true;
+    }
+    return false;
+  }
+  for (var k in value) {
+    if (gwHas_(value, k) && value[k] && typeof value[k] === 'object') return true;
   }
   return false;
 }

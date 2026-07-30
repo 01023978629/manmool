@@ -166,7 +166,20 @@ function signSubmit_(signToken, payload, ctx) {
     throw sgFail_('BAD_STATE', '아직 서명할 수 있는 상태가 아닙니다. 담당자에게 문의해 주세요.');
   }
   if (CT_SIGNABLE.indexOf(String(c.status)) < 0) {
-    throw sgFail_('BAD_STATE', '이미 처리된 계약입니다.');
+    // ★ 상태별로 다른 코드를 던진다. 한 코드로 뭉뚱그리면 고객에게 거짓말을 하게 된다.
+    //
+    // 실제로 겪은 경로: 서명 완료 처리 중 Contracts 는 써졌는데 SignTokens 쓰기만 실패하면
+    // 계약은 COMPLETED 인데 토큰이 살아 있다. 고객이 다시 누르면 여기 걸리는데,
+    // BAD_STATE 를 Sign.html 이 'voided' 로 매핑해 **"🚫 취소된 계약입니다"** 를 띄웠다.
+    // 정상 체결된 계약을 취소됐다고 말하는 것이라, 고객은 완료본도 못 받고 사장님께
+    // "계약이 취소됐다는데요" 로 전화가 온다.
+    if (String(c.status) === STATUS.COMPLETED) {
+      throw sgFail_('TOKEN_USED', '이미 서명이 끝난 계약입니다. 완료본은 담당자가 보내 드립니다.');
+    }
+    if (String(c.status) === STATUS.VOID) {
+      throw sgFail_('TOKEN_REVOKED', '취소된 계약입니다. 담당자에게 문의해 주세요.');
+    }
+    throw sgFail_('BAD_STATE', '아직 서명할 수 있는 상태가 아닙니다. 담당자에게 문의해 주세요.');
   }
   var v = validateSignInput(p);      // Pure.gs — 성명·서명이미지·동의·지문
   if (!v.ok) throw sgFail_('BAD_REQUEST', v.errors.join(' · '));
