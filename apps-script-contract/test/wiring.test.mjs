@@ -134,6 +134,20 @@ function makeFakeGoogle(props) {
   const SHEET = new SS();
 
   const triggers = [];
+  const cacheData = {};
+  const scriptLock = {
+    _held: false,
+    releaseCount: 0,
+    tryLock() {
+      if (this._held) return false;
+      this._held = true;
+      return true;
+    },
+    releaseLock() {
+      this._held = false;
+      this.releaseCount++;
+    }
+  };
   return {
     PropertiesService: { getScriptProperties: () => ({ getProperty: (k) => (k in props ? props[k] : null), setProperty: (k, v) => { props[k] = v; } }) },
     SpreadsheetApp: { openById: (id) => { if (id !== 'SHEET_ID') throw new Error('없는 시트'); return SHEET; } },
@@ -149,8 +163,8 @@ function makeFakeGoogle(props) {
       formatDate: (d) => new Date(d).toISOString().slice(0, 19).replace('T', ' '),
       sleep: () => {}
     },
-    LockService: { getScriptLock: () => ({ _held: false, tryLock() { this._held = true; return true; }, releaseLock() { this._held = false; } }) },
-    CacheService: { getScriptCache: () => { const m = {}; return { get: (k) => (k in m ? m[k] : null), put: (k, v) => { m[k] = v; }, remove: (k) => { delete m[k]; } }; } },
+    LockService: { getScriptLock: () => scriptLock },
+    CacheService: { getScriptCache: () => ({ get: (k) => (k in cacheData ? cacheData[k] : null), put: (k, v) => { cacheData[k] = v; }, remove: (k) => { delete cacheData[k]; } }) },
     ScriptApp: {
       getProjectTriggers: () => triggers,
       deleteTrigger: (t) => { const i = triggers.indexOf(t); if (i >= 0) triggers.splice(i, 1); },
@@ -327,7 +341,169 @@ if (flow) {
   check(relink && relink.indexOf('LOCKED') === 0, '완료된 계약에 새 서명 링크를 낼 수 없다', relink || '링크가 나왔다');
 }
 
-section('6) 발송은 꺼져 있다');
+section('6) 보안 경계와 실패 순서');
+const postReq = (body) => {
+  const req = { ...body, ts: Date.now() };
+  return JSON.parse(ctx.doPost({ postData: { contents: JSON.stringify(req) } }).getContent());
+};
+const makeLinked = (name, amount) => {
+  const opCtx = { at: new Date().toISOString(), actor: 'admin' };
+  const made = ctx.createContract_({
+    title: '인테리어 공사 계약서',
+    amount,
+    customer: { name, phone: '010-1111-2222' },
+    body: { site: '테스트 현장', scope: ['욕실'] }
+  }, opCtx);
+  ctx.lockContract_(made.contractId || made.id, opCtx);
+  const link = ctx.issueSignLink_(made.contractId || made.id, 72, opCtx);
+  return { made, link };
+};
+
+let boundaryErr = null;
+try {
+  const a = makeLinked('고객가', 4100000);
+  const b = makeLinked('고객나', 4200000);
+  const idem = 'customer-cache-scope-test';
+  const aView = postReq({ action: 'sign.view', signToken: a.link.token, idem, payload: {} });
+  const bView = postReq({ action: 'sign.view', signToken: b.link.token, idem, payload: {} });
+  check(aView.ok === true && bView.ok === true
+    && aView.contract.contractNo !== bView.contract.contractNo,
+  '같은 idem 을 다른 고객 토큰이 써도 캐시 결과가 섞이지 않는다');
+
+  const bogus = postReq({ action: 'sign.view', signToken: 'z'.repeat(43), idem, payload: {} });
+  check(bogus.ok === false && bogus.error === 'TOKEN_INVALID',
+    '실제 고객 토큰 인증이 멱등성 캐시 조회보다 먼저다', JSON.stringify(bogus));
+
+  const rootId = postReq({
+    action: 'sign.view', signToken: b.link.token, idem: 'root-id',
+    contractId: a.made.contractId || a.made.id, payload: {}
+  });
+  check(rootId.ok === false && rootId.error === 'BAD_REQUEST',
+    '고객 요청 최상위 계약 id 를 거절한다', JSON.stringify(rootId));
+
+  const nestedId = postReq({
+    action: 'sign.view', signToken: b.link.token, idem: 'nested-id',
+    payload: { meta: { contractId: a.made.contractId || a.made.id } }
+  });
+  check(nestedId.ok === false && nestedId.error === 'BAD_REQUEST',
+    '고객 요청 중첩 계약 id 를 거절한다', JSON.stringify(nestedId));
+
+  ctx.gwIdemPut_('selfTest', 'admin-auth-first', 'admin',
+    { ok: true, marker: 'cached-admin-result' });
+  const unauth = postReq({ action: 'selfTest', idem: 'admin-auth-first', payload: {} });
+  check(unauth.ok === false && unauth.error === 'UNAUTHORIZED'
+    && JSON.stringify(unauth).indexOf('cached-admin-result') < 0,
+  '관리자 인증이 멱등성 캐시 조회보다 먼저다', JSON.stringify(unauth));
+
+  const originalIdemPut = ctx.gwIdemPut_;
+  let heldWhileCaching = false;
+  ctx.gwIdemPut_ = function (action, idemKey, scope, result) {
+    heldWhileCaching = g.LockService.getScriptLock()._held;
+    return originalIdemPut(action, idemKey, scope, result);
+  };
+  let firstQuick, secondQuick, countAfterFirst, countAfterSecond;
+  try {
+    const quickBody = {
+      action: 'quickSend',
+      adminToken: props.ADMIN_TOKEN,
+      idem: 'atomic-quick-send',
+      payload: {
+        title: '원자성 검사 계약서',
+        amount: 4500000,
+        customer: { name: '원자성검사', phone: '010-3333-4444' },
+        body: { site: '원자성 현장', scope: ['주방'] }
+      }
+    };
+    firstQuick = postReq(quickBody);
+    countAfterFirst = ctx.readAll_(ctx.SHEETS.CONTRACTS).length;
+    secondQuick = postReq(quickBody);
+    countAfterSecond = ctx.readAll_(ctx.SHEETS.CONTRACTS).length;
+  } finally {
+    ctx.gwIdemPut_ = originalIdemPut;
+  }
+  check(heldWhileCaching === true,
+    '잠금 작업의 멱등성 결과를 LockService 해제 전에 저장한다');
+  check(firstQuick.ok === true && secondQuick.ok === true
+    && firstQuick.contractId === secondQuick.contractId
+    && countAfterFirst === countAfterSecond,
+  '같은 quickSend idem 재시도는 계약을 한 건만 만든다',
+  JSON.stringify({ firstQuick, secondQuick, countAfterFirst, countAfterSecond }));
+} catch (e) {
+  boundaryErr = e;
+}
+check(!boundaryErr, '고객·관리자 보안 경계 검사가 끝까지 실행된다',
+  boundaryErr ? String(boundaryErr.stack || boundaryErr.message) : '');
+
+let lockThrown = false;
+try {
+  ctx.gwWithLock_(() => { throw new Error('injected-handler-failure'); });
+} catch (e) {
+  lockThrown = String(e.message).indexOf('injected-handler-failure') >= 0;
+}
+const sharedLock = g.LockService.getScriptLock();
+check(lockThrown && sharedLock._held === false && sharedLock.releaseCount > 0,
+  '처리기가 실패해도 LockService 를 finally 에서 해제한다');
+
+let orderErr = null;
+try {
+  const ordered = makeLinked('순서검사', 4300000);
+  const orderedView = ctx.signView_(ordered.link.token, { at: new Date().toISOString(), actor: 'customer' });
+  const originalUpdate = ctx.updateRow_;
+  const writes = [];
+  ctx.updateRow_ = function (sheetName, rowIndex, patch) {
+    if (patch && (patch.status === ctx.STATUS.COMPLETED
+      || Object.prototype.hasOwnProperty.call(patch, 'usedAt'))) {
+      writes.push(sheetName);
+    }
+    return originalUpdate(sheetName, rowIndex, patch);
+  };
+  try {
+    ctx.signSubmit_(ordered.link.token, {
+      signerName: '순서검사',
+      signatureImage: PNG_DATA_URI,
+      agreed: true,
+      docHashSeen: orderedView.contract.docHash
+    }, { at: new Date().toISOString(), actor: 'customer' });
+  } finally {
+    ctx.updateRow_ = originalUpdate;
+  }
+  check(writes[0] === ctx.SHEETS.CONTRACTS && writes[1] === ctx.SHEETS.TOKENS,
+    '서명 저장 순서는 Drive 뒤 시트 완료 기록, 그 다음 토큰 소진이다', JSON.stringify(writes));
+
+  const failed = makeLinked('실패주입', 4400000);
+  const failedView = ctx.signView_(failed.link.token, { at: new Date().toISOString(), actor: 'customer' });
+  const originalUpdate2 = ctx.updateRow_;
+  ctx.updateRow_ = function (sheetName, rowIndex, patch) {
+    if (sheetName === ctx.SHEETS.CONTRACTS && patch && patch.status === ctx.STATUS.COMPLETED) {
+      throw new Error('injected-contract-sheet-failure');
+    }
+    return originalUpdate2(sheetName, rowIndex, patch);
+  };
+  let injected = null;
+  try {
+    ctx.signSubmit_(failed.link.token, {
+      signerName: '실패주입',
+      signatureImage: PNG_DATA_URI,
+      agreed: true,
+      docHashSeen: failedView.contract.docHash
+    }, { at: new Date().toISOString(), actor: 'customer' });
+  } catch (e) {
+    injected = String(e.message);
+  } finally {
+    ctx.updateRow_ = originalUpdate2;
+  }
+  const tokenAfterFailure = ctx.findRow_(ctx.SHEETS.TOKENS, 'tokenHash', ctx.sha256Hex(failed.link.token));
+  check(injected && injected.indexOf('injected-contract-sheet-failure') >= 0
+    && tokenAfterFailure && !tokenAfterFailure.obj.usedAt,
+  '시트 완료 기록 실패 시 토큰을 소진하지 않아 재시도할 수 있다',
+  injected || '실패가 주입되지 않음');
+} catch (e) {
+  orderErr = e;
+}
+check(!orderErr, '서명 저장 순서 검사가 끝까지 실행된다',
+  orderErr ? String(orderErr.stack || orderErr.message) : '');
+
+section('7) 발송은 꺼져 있다');
 const n1 = ctx.notifySend_({ to: '010-1234-5678', text: '테스트', kind: 'notify' }, { at: new Date().toISOString() });
 check(n1.sent === false && n1.reason === 'MOCK_OFF', '기본 상태에서 발송은 MOCK_OFF', JSON.stringify(n1));
 check(n1.to.indexOf('****') > 0 && n1.to.indexOf('1234') < 0, '결과에 번호 원문이 없다(마스킹본만)', n1.to);

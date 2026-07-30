@@ -10,7 +10,8 @@
  *
  * 하지 않는 것:
  *   · 관리자 기능을 열어 주지 않는다 (목록·취소·대금은 여기 없다)
- *   · 토큰 원문을 저장하거나 되돌려주지 않는다 (해시로만 찾는다)
+ *   · 요청으로 받은 토큰 원문을 저장하거나 되돌려주지 않는다 (해시로만 찾는다)
+ *     새 완료본 열람 토큰은 고객이 바로 열 수 있도록 발급 응답에 한 번만 포함한다.
  *   · 서명 이미지를 원장·응답에 싣지 않는다 (Drive 에만 둔다)
  *
  * 잠금에 대하여: signContract 는 Code.gs 가 LockService 를 잡은 채로 부른다.
@@ -33,6 +34,18 @@ var SG_VIEW_TTL_MIN_MAX = 60 * 24; // 하루. 그보다 길면 사실상 상시 
  * @throws TOKEN_INVALID / TOKEN_EXPIRED / TOKEN_USED / TOKEN_REVOKED
  */
 function sgResolve_(rawToken, purpose, ctx) {
+  return sgResolveState_(rawToken, purpose, false, ctx);
+}
+
+/**
+ * 멱등성 캐시 조회용 인증 범위. 원문은 되돌리지 않고 시트에 저장된 해시만 반환한다.
+ * 서명 제출의 재시도에 한해 used 토큰을 캐시 조회까지 허용한다.
+ */
+function sgIdemScope_(rawToken, purpose, allowUsed, ctx) {
+  return sgResolveState_(rawToken, purpose, allowUsed === true, ctx).tokenHash;
+}
+
+function sgResolveState_(rawToken, purpose, allowUsed, ctx) {
   var raw = String(rawToken == null ? '' : rawToken).trim();
   // 모양이 아예 아니면 시트를 뒤지지도 않는다. 무작위 대입에 시트 조회를 태우지 않기 위해서다.
   if (raw.length < 20 || raw.length > 200) {
@@ -40,7 +53,8 @@ function sgResolve_(rawToken, purpose, ctx) {
     throw sgFail_('TOKEN_INVALID', '링크가 올바르지 않습니다. 받으신 링크를 다시 눌러 주세요.');
   }
 
-  var hit = findRow_(SHEETS.TOKENS, 'tokenHash', sha256Hex(raw));
+  var tokenHash = sha256Hex(raw);
+  var hit = findRow_(SHEETS.TOKENS, 'tokenHash', tokenHash);
   if (!hit || !hit.obj) {
     sgReject_(ctx, 'not-found');
     throw sgFail_('TOKEN_INVALID', '링크가 올바르지 않거나 이미 정리된 링크입니다.');
@@ -57,15 +71,18 @@ function sgResolve_(rawToken, purpose, ctx) {
   var now = sgNow_(ctx);
   var state = tokenState(t, now);   // Pure.gs — revoked > used > expired 순으로 판정
   if (state === 'revoked') { sgReject_(ctx, 'revoked'); throw sgFail_('TOKEN_REVOKED', '취소된 계약의 링크입니다. 담당자에게 문의해 주세요.'); }
-  if (state === 'used') { sgReject_(ctx, 'used'); throw sgFail_('TOKEN_USED', '이미 서명이 끝난 링크입니다. 완료본은 담당자가 보내 드립니다.'); }
+  if (state === 'used' && !allowUsed) { sgReject_(ctx, 'used'); throw sgFail_('TOKEN_USED', '이미 서명이 끝난 링크입니다. 완료본은 담당자가 보내 드립니다.'); }
   if (state === 'expired') { sgReject_(ctx, 'expired'); throw sgFail_('TOKEN_EXPIRED', '링크 사용 기한이 지났습니다. 담당자에게 새 링크를 요청해 주세요.'); }
-  if (state !== 'ok') { sgReject_(ctx, state); throw sgFail_('TOKEN_INVALID', '링크를 확인할 수 없습니다.'); }
+  if (state !== 'ok' && !(allowUsed && state === 'used')) {
+    sgReject_(ctx, state);
+    throw sgFail_('TOKEN_INVALID', '링크를 확인할 수 없습니다.');
+  }
 
   var c = ctFindContract_(String(t.contractId || ''));
   if (isTerminal(c.obj.status) && String(c.obj.status) === STATUS.VOID) {
     throw sgFail_('TOKEN_REVOKED', '취소된 계약입니다. 담당자에게 문의해 주세요.');
   }
-  return { tok: hit, c: c };
+  return { tok: hit, c: c, tokenHash: tokenHash };
 }
 
 /** 거절을 원장에 남긴다. **입력된 토큰은 절대 남기지 않는다** — 사유만. */
@@ -188,9 +205,9 @@ function signSubmit_(signToken, payload, ctx) {
     statusHistory: ctEventsOf_(c.id)
   });
 
-  /* ---------- ③ 시트 기록 + 토큰 소진 ---------- */
-  // 토큰 소진과 완료 기록을 함께 쓴다. 잠금 안에서 도므로 그 사이에 다른 제출이 끼어들 수 없다.
-  updateRow_(SHEETS.TOKENS, r.tok.rowIndex, { usedAt: now });
+  /* ---------- ③ 시트 완료 기록 → 토큰 소진 ---------- */
+  // 완료 기록이 실패하면 토큰은 살아 있어 고객이 다시 제출할 수 있어야 한다.
+  // 잠금 안에서 도므로 완료 기록과 토큰 소진 사이에 다른 제출이 끼어들 수 없다.
   updateRow_(SHEETS.CONTRACTS, r.c.rowIndex, {
     status: STATUS.COMPLETED,
     signedAt: now,
@@ -203,6 +220,7 @@ function signSubmit_(signToken, payload, ctx) {
     completedSha256: completed.sha256,
     updatedAt: now
   });
+  updateRow_(SHEETS.TOKENS, r.tok.rowIndex, { usedAt: now });
   logEvent_(c.id, EVENTS.SIGN_SUBMITTED, '고객 서명 접수 · ' + v.signerName, ctx);
   logEvent_(c.id, EVENTS.CONTRACT_COMPLETED,
     '완료본 v' + completed.version + ' · 증거 ' + evidence.fileName, ctx);

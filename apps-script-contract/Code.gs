@@ -19,7 +19,8 @@
  *   · 문자를 직접 보내지 않는다 → Notify.gs. 없으면 없다고 말한다(보낸 척하지 않는다).
  *
  * 비밀 취급 — 이 파일이 지키는 선
- *   · 받은 adminToken·signToken 값을 **어디에도 남기지 않는다.** 응답·시트·Logger 전부.
+ *   · POST 로 받은 adminToken·signToken 값을 **어디에도 남기거나 되비추지 않는다.**
+ *     단, 새로 발급한 고객 링크의 bearer 토큰은 그 링크를 전달하기 위한 발급 응답에 한 번 포함된다.
  *     인증 실패도 "실패했다"만 기록한다(무엇이 틀렸는지 적으면 그게 곧 힌트다).
  *   · health·selfTest 는 "설정됐는가(있음/없음)"만 답한다. 값은 한 글자도 싣지 않는다.
  *   · PEPPER 로 만든 해시도 응답에 싣지 않는다. 고정 문자열의 해시를 흘리면
@@ -121,6 +122,9 @@ function gwParse_(e) {
     adminToken: (typeof body.adminToken === 'string') ? body.adminToken : '',
     signToken: (typeof body.signToken === 'string') ? body.signToken.trim() : '',
     idem: idem,
+    // 고객 경로에서 최상위 id 계열 열쇠도 거절하기 위한 표식.
+    // payload 밖의 알 수 없는 값을 조용히 버리기 전에 존재 여부만 보존한다.
+    rootContractIdPresent: gwHasContractIdKey_(body, false),
     payload: (body.payload && typeof body.payload === 'object' && !gwIsArray_(body.payload))
       ? body.payload : {},
     // 고객 기기가 스스로 알려준 User-Agent. 헤더는 Apps Script 가 주지 않으므로
@@ -141,12 +145,16 @@ function gwHandle_(req) {
 
   var def = gwLookup_(req.action);
   var path = gwPath_(def, req);
-  var rq, handler;
+  var rq, handler, idemScope = '';
 
   if (path === 'customer') {
     // ── 고객 경로 ──────────────────────────────────────────────
     // 관리자 토큰을 요구하지 않는다. 대신 계약 id 를 **절대 받지 않는다**.
     // id 로 열 수 있으면 id 를 바꿔 가며 남의 계약을 찾아볼 수 있다.
+    if (req.rootContractIdPresent) {
+      throw gwFail_('BAD_REQUEST',
+        '고객 요청에는 계약 id 를 담을 수 없습니다 — 링크의 토큰만으로 처리합니다');
+    }
     var token = gwCustomerToken_(req);
     handler = def.customerHandler || def.handler;
     rq = {
@@ -155,9 +163,14 @@ function gwHandle_(req) {
       payload: gwCustomerPayload_(req.payload),
       ctx: gwCtx_(req, 'customer')
     };
+    // 모양만 보는 gwCustomerToken_ 으로는 인증이 아니다. 캐시를 읽기 전에
+    // SignTokens 의 해시와 상태를 실제로 대조한다. 같은 idem 을 다른 고객 토큰이
+    // 재사용해도 결과가 섞이지 않도록 캐시 범위도 토큰 해시로 묶는다.
+    idemScope = gwCustomerIdemScope_(token, req.action, rq.ctx);
   } else if (path === 'admin') {
     // ── 관리자 경로 ────────────────────────────────────────────
     gwRequireAdmin_(req);
+    idemScope = 'admin';
     handler = def.adminHandler || def.handler;
     // rq 에 adminToken 을 넣지 않는다. 핸들러가 토큰을 볼 이유가 없고,
     // 볼 수 없으면 실수로 어딘가에 적을 수도 없다.
@@ -165,6 +178,7 @@ function gwHandle_(req) {
   } else {
     // ── 열린 경로 ── health 하나뿐이다. 값이 아니라 상태만 답한다.
     handler = def.handler;
+    idemScope = 'public';
     rq = { action: req.action, payload: req.payload, ctx: gwCtx_(req, 'system') };
   }
 
@@ -172,17 +186,22 @@ function gwHandle_(req) {
     throw gwFail_('SERVER_ERROR', '동작 처리기가 준비되지 않았습니다: ' + req.action);
   }
 
-  var cached = gwIdemGet_(req.action, req.idem);
-  if (cached) return cached;                 // 다시 실행하지 않는다
-
-  var res;
   if (def.lock) {
-    res = gwWithLock_(function () { return gwOk_(handler(rq)); });
-  } else {
-    res = gwOk_(handler(rq));
+    // 조회·실행·보관을 한 잠금 안에 둔다. 잠금을 먼저 놓고 결과를 보관하면
+    // 그 짧은 틈에 같은 idem 요청이 들어와 작업이 두 번 실행될 수 있다.
+    return gwWithLock_(function () {
+      var lockedCached = gwIdemGet_(req.action, req.idem, idemScope);
+      if (lockedCached) return lockedCached;
+      var lockedRes = gwOk_(handler(rq));
+      gwIdemPut_(req.action, req.idem, idemScope, lockedRes);
+      return lockedRes;
+    });
   }
 
-  gwIdemPut_(req.action, req.idem, res);
+  var cached = gwIdemGet_(req.action, req.idem, idemScope);
+  if (cached) return cached;                 // 다시 실행하지 않는다
+  var res = gwOk_(handler(rq));
+  gwIdemPut_(req.action, req.idem, idemScope, res);
   return res;
 }
 
@@ -327,7 +346,7 @@ function gwAuthFailed_(action, why) {
   } catch (e) { /* 기록 실패가 거절을 막지 못하게 한다 */ }
 }
 
-/* 고객 토큰. 여기서는 '토큰처럼 생겼는가'만 본다 — 진짜인지는 Sign.gs 가 판정한다. */
+/* 고객 토큰의 모양을 먼저 본다. 실제 해시·상태 대조는 캐시 전에 gwCustomerIdemScope_ 가 한다. */
 function gwCustomerToken_(req) {
   if (req.adminToken) {
     throw gwFail_('BAD_REQUEST', '고객 요청에는 관리자 토큰을 함께 보낼 수 없습니다');
@@ -350,13 +369,43 @@ function gwCustomerToken_(req) {
  */
 function gwCustomerPayload_(payload) {
   var p = payload || {};
-  for (var i = 0; i < GW_ID_KEYS.length; i++) {
-    if (gwHas_(p, GW_ID_KEYS[i]) && p[GW_ID_KEYS[i]] !== '' && p[GW_ID_KEYS[i]] != null) {
-      throw gwFail_('BAD_REQUEST',
-        '고객 요청에는 계약 id 를 담을 수 없습니다 — 링크의 토큰만으로 처리합니다');
-    }
+  if (gwHasContractIdKey_(p, true)) {
+    throw gwFail_('BAD_REQUEST',
+      '고객 요청에는 계약 id 를 담을 수 없습니다 — 링크의 토큰만으로 처리합니다');
   }
   return p;
+}
+
+/* 계약 id 계열 열쇠의 '존재'를 본다. 빈 문자열이나 null 도 조용히 허용하지 않는다. */
+function gwHasContractIdKey_(value, recursive) {
+  if (!value || typeof value !== 'object') return false;
+  for (var i = 0; i < GW_ID_KEYS.length; i++) {
+    if (gwHas_(value, GW_ID_KEYS[i])) return true;
+  }
+  if (!recursive) return false;
+  if (gwIsArray_(value)) {
+    for (var a = 0; a < value.length; a++) {
+      if (gwHasContractIdKey_(value[a], true)) return true;
+    }
+    return false;
+  }
+  for (var k in value) {
+    if (gwHas_(value, k) && gwHasContractIdKey_(value[k], true)) return true;
+  }
+  return false;
+}
+
+/**
+ * 고객 자격 증명을 멱등성 캐시보다 먼저 실제 대조한다.
+ * sign.submit 재시도는 첫 응답을 잃었을 수 있으므로 이미 소진된 정확한 토큰도
+ * 캐시 조회까지만 허용한다. 캐시가 없으면 실제 처리기가 TOKEN_USED 로 거절한다.
+ */
+function gwCustomerIdemScope_(token, action, ctx) {
+  var purpose = (action === 'completeContract' || action === 'done.view') ? 'view' : 'sign';
+  var allowUsed = (action === 'signContract' || action === 'sign.submit');
+  var f = gwFn_(['sgIdemScope_']);
+  if (!f) throw gwFail_('SERVER_ERROR', '고객 토큰 인증 모듈이 준비되지 않았습니다');
+  return f(token, purpose, allowUsed, ctx);
 }
 
 /* ============================================================
@@ -429,16 +478,17 @@ function gwWithLock_(fn) {
  *
  * 실패한 결과는 보관하지 않는다. 첫 시도가 일시적인 이유로 실패했다면 다시 해 볼 수 있어야 한다.
  */
-function gwIdemKey_(action, idem) {
-  // 동작 이름을 함께 넣는다. 같은 idem 을 다른 동작에 재사용해도 남의 결과가 나오지 않게.
+function gwIdemKey_(action, idem, scope) {
+  // 동작과 인증 범위를 함께 넣는다. 같은 idem 을 다른 동작이나 다른 고객이
+  // 재사용해도 남의 결과가 나오지 않게 한다.
   // 해시로 접는 이유: idem 원문 길이·문자에 상관없이 캐시 열쇠 규격에 맞추기 위해서다.
-  return 'ctidem:' + sha256Hex(action + '|' + idem).slice(0, 40);
+  return 'ctidem:' + sha256Hex(action + '|' + String(scope || '') + '|' + idem).slice(0, 40);
 }
 
-function gwIdemGet_(action, idem) {
+function gwIdemGet_(action, idem, scope) {
   if (!idem) return null;
   try {
-    var raw = CacheService.getScriptCache().get(gwIdemKey_(action, idem));
+    var raw = CacheService.getScriptCache().get(gwIdemKey_(action, idem, scope));
     if (!raw) return null;
     var o = JSON.parse(raw);
     return (o && typeof o === 'object') ? o : null;
@@ -447,13 +497,13 @@ function gwIdemGet_(action, idem) {
   }
 }
 
-function gwIdemPut_(action, idem, res) {
+function gwIdemPut_(action, idem, scope, res) {
   if (!idem || !res || res.ok === false) return;
   try {
     var json = JSON.stringify(res);
     // 캐시 한 칸은 100KB 가 한계다. 넘치면 저장하지 않는다(넘긴 채로 넣으면 통째로 실패한다).
     if (json.length > GW_IDEM_MAX_BYTES) return;
-    CacheService.getScriptCache().put(gwIdemKey_(action, idem), json, GW_IDEM_TTL_SEC);
+    CacheService.getScriptCache().put(gwIdemKey_(action, idem, scope), json, GW_IDEM_TTL_SEC);
   } catch (e) { /* 보관 실패는 응답을 막지 않는다 */ }
 }
 
@@ -480,7 +530,7 @@ function gwId_(payload) {
 }
 
 /* ============================================================
- * 6) 고객 동작 — Sign.gs 로 넘긴다. 토큰 판정은 여기서 하지 않는다.
+ * 6) 고객 동작 — Sign.gs 로 넘긴다. 처리기는 잠금 안에서 토큰 상태를 다시 판정한다.
  * ============================================================ */
 function gwSignView_(rq) {
   return gwCallSign_(['signView_', 'viewContract_'], [rq.signToken, rq.ctx], '계약서 열람');
