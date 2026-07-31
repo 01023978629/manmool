@@ -34,7 +34,9 @@
 | `SheetService.gs` | 시트 읽기·쓰기·원장 기록. 열은 **이름으로만** 찾음 | Sheets · Properties |
 | `DriveService.gs` | 계약별 폴더 · 원본 PDF · 서명 PNG · 완료본 · 증거 JSON · 백업 폴더 | Drive |
 | `ContractService.gs` | 계약 생성·조회·잠금·취소·링크발급·대금·백업 | 위 계층을 부름 |
-| **`Sign.gs`** | 고객 서명 처리 — `signView_` · `signSubmit_` · `doneView_` · `signBoot_` | **⚠ 아직 없습니다 (아래)** |
+| `Sign.gs` | 고객 서명 처리 — `signView_` · `signSubmit_` · `doneView_` · `signBoot_` | Drive · Sheets |
+| `Notify.gs` | 알림톡·문자 발송. **두 겹으로 꺼져 있음**(기본 안 나감) | UrlFetch |
+| `AiService.gs` | AI 통과창구 — 키를 기기에서 서버로 옮김. 한도·유료잠금 | UrlFetch · Properties |
 | `MigrationService.gs` | 옛 자료 CSV 를 시트에 **덧붙이기**(덮어쓰지 않음) | Drive · Sheets |
 | `Code.gs` | 창구. `doPost`/`doGet`·동작표·자격증명·잠금·멱등·health·selfTest | 전부 |
 | `Sign.html` | 고객 서명 화면(폰) | — |
@@ -44,20 +46,18 @@
 | `tools/migrate-sqlite-to-sheets.mjs` | 옛 백업 DB → 시트용 CSV (읽기 전용) | — |
 | `tools/make-fixture-db.mjs` | 이전 도구를 시험할 가짜 DB 만들기 | — |
 
-### ⚠ 지금 빠져 있는 것 — `Sign.gs`
+### AI 키를 서버로 옮긴 이유 — `AiService.gs`
 
-`Code.gs` 는 고객 동작(`sign.view` · `signContract` · `completeContract`)을 받으면
-`signView_` · `signSubmit_` · `doneView_` 라는 함수를 **이름으로 찾아** 부릅니다.
-이 함수들이 있어야 할 `Sign.gs` 가 **아직 이 저장소에 없습니다.**
+전에는 Gemini 키가 **사장님 폰 브라우저 안**에 있었습니다. 그래서 기기마다 따로 넣어야 했고,
+사파리가 7일마다 지웠고, 한도를 기기마다 따로 셌습니다(PC 200 + 폰 200 = 400건).
 
-| | |
-| --- | --- |
-| 지금 되는 것 | 계약 생성·잠금·목록·대금·취소·백업·CSV·자가진단 — **관리자 쪽은 전부** |
-| 지금 안 되는 것 | **고객 서명 전 과정.** 링크는 발급되지만 고객이 열면 서명이 접수되지 않습니다 |
-| 어떻게 알아보나 | `health` 응답의 `modules.sign` 이 `false` 입니다 |
-| 무너지지는 않나 | 무너지지 않습니다. `Code.gs` 가 “서명 처리 모듈(Sign.gs)이 설치되지 않아…” 라고 정확히 답합니다 |
+`GEMINI_API_KEY` 를 스크립트 속성으로 옮기고 `ai.ask` 로 통과시키면 셋 다 없어집니다.
+현장 앱은 서버에 키가 없으면(`AI_NOT_CONFIGURED`) **조용히 기기 키로 되돌아갑니다** — AI 가 멈추지 않습니다.
+반대로 한도 초과(`AI_QUOTA`)일 때는 **되돌아가지 않습니다.** 우회하면 한 곳에서 센다는 말이 거짓이 되니까요.
 
-**`Sign.gs` 가 들어오기 전에는 고객에게 서명 링크를 보내지 마세요.**
+**유료(ChatGPT)는 기본으로 잠겨 있습니다.** `AI_ALLOW_PAID=1` 을 넣어야 열립니다.
+OpenAI 키에는 도메인 제한 기능이 아예 없어, 새면 막을 방법이 없기 때문입니다.
+자세한 것은 [PROTOCOL.md](./PROTOCOL.md) 의 `ai.ask` 절을 보세요.
 
 ### 계층 규칙
 

@@ -41,9 +41,16 @@ var AI_RESP_MAX = 400 * 1024;      // 응답이 이보다 크면 잘라 돌려�
 /* 한도 — 기기별이 아니라 **여기 한 곳에서** 센다.
    현장 앱의 QUOTA_CFG(하루 200 · 분당 8)와 같은 값으로 맞춘다. */
 var AI_CAP = {
-  gemini: { day: 200, perMin: 8, label: 'Gemini' },
-  openai: { day: 200, perMin: 8, label: 'ChatGPT' }
+  gemini: { day: 200, perMin: 8, label: 'Gemini', paid: false },
+  openai: { day: 200, perMin: 8, label: 'ChatGPT', paid: true }
 };
+
+/* ★ 돈이 나가는 제공자는 기본으로 잠근다.
+   Gemini 는 무료라 키만 있으면 바로 쓴다. ChatGPT 는 쓴 만큼 청구되므로,
+   키가 있어도 AI_ALLOW_PAID='1' 을 따로 넣기 전에는 나가지 않는다.
+   키를 실수로 붙여 넣었다가 요금이 붙는 일이 없게 하는 두 번째 자물쇠다.
+   (발송에서 ALIMTALK_LIVE 로 같은 방식을 쓴다 — 돈이 걸리면 관문을 둘로 둔다) */
+function aiPaidAllowed_() { return String(cfg_('AI_ALLOW_PAID', '')) === '1'; }
 var AI_QUOTA_PROP = 'AI_QUOTA_STATE';   // 스크립트 속성에 JSON 한 덩어리로 보관
 
 /* ============================================================
@@ -60,6 +67,12 @@ function aiAsk_(p, ctx) {
   var provider = String(o.provider || '').toLowerCase();
   if (provider !== 'gemini' && provider !== 'openai') {
     throw aiFail_('BAD_REQUEST', '알 수 없는 AI 제공자입니다: ' + provider);
+  }
+
+  if (AI_CAP[provider].paid && !aiPaidAllowed_()) {
+    throw aiFail_('AI_PAID_BLOCKED',
+      AI_CAP[provider].label + ' 는 쓴 만큼 요금이 붙습니다. 지금은 잠겨 있습니다 — ' +
+      '무료인 Gemini 를 쓰시거나, 정말 쓰시려면 스크립트 속성에 AI_ALLOW_PAID=1 을 넣으세요.');
   }
 
   var key = aiKeyOf_(provider);
@@ -116,13 +129,17 @@ function aiStatus_() {
   for (var k in AI_CAP) {
     if (!Object.prototype.hasOwnProperty.call(AI_CAP, k)) continue;
     var has = !!aiKeyOf_(k);
-    if (has) out.available = true;
+    var blocked = AI_CAP[k].paid && !aiPaidAllowed_();
+    if (blocked) has = false;          // 잠겨 있으면 '쓸 수 있다'고 말하지 않는다
     out.providers[k] = {
       configured: has,
+      paid: !!AI_CAP[k].paid,
+      blocked: blocked,
       label: AI_CAP[k].label,
       usedToday: (q.count && q.count[k]) || 0,
       dayCap: AI_CAP[k].day
     };
+    if (has) out.available = true;     // 잠긴 것은 '쓸 수 있는 AI' 로 세지 않는다
   }
   return out;
 }

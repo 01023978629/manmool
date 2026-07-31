@@ -636,8 +636,22 @@ section('6-3) AI 중계 — 키를 서버에 두고 브라우저로 내려보내
   const r1 = ctx.aiAsk_({ provider: 'gemini', model: 'gemini-2.0-flash', body: { contents: [{ parts: [{ text: '견적 항목 제안' }] }] } }, aiCtx);
   check(r1 && r1.ok === true && r1.json && r1.json.candidates, 'Gemini 중계가 답을 돌려준다', JSON.stringify(r1).slice(0, 120));
 
+  // ★ 돈이 나가는 ChatGPT 는 키가 있어도 기본으로 잠겨 있어야 한다.
+  //   키를 실수로 붙여 넣었다가 요금이 붙는 일이 없게 하는 두 번째 자물쇠다.
+  let paidBlocked = null;
+  try { ctx.aiAsk_({ provider: 'openai', model: 'gpt-4o-mini', body: { messages: [] } }, aiCtx); }
+  catch (e) { paidBlocked = String(e.message); }
+  check(paidBlocked && paidBlocked.indexOf('AI_PAID_BLOCKED') === 0,
+    '유료 ChatGPT 는 키가 있어도 기본으로 잠겨 있다', paidBlocked || '그냥 나갔다 — 요금이 붙는다');
+  check(ctx.aiStatus_().providers.openai.configured === false,
+    '잠긴 유료 AI 를 "쓸 수 있다"고 말하지 않는다');
+
+  // 명시적으로 켠 뒤에만 나간다.
+  props.AI_ALLOW_PAID = '1';
   const r2 = ctx.aiAsk_({ provider: 'openai', model: 'gpt-4o-mini', body: { messages: [{ role: 'user', content: '요약' }] } }, aiCtx);
-  check(r2 && r2.ok === true && r2.json && r2.json.choices, 'ChatGPT 중계가 답을 돌려준다', JSON.stringify(r2).slice(0, 120));
+  check(r2 && r2.ok === true && r2.json && r2.json.choices,
+    'AI_ALLOW_PAID=1 을 넣으면 ChatGPT 도 나간다', JSON.stringify(r2).slice(0, 120));
+  delete props.AI_ALLOW_PAID;
 
   // ★ 키가 응답에 실려 브라우저로 내려가면 안 된다 — 이 중계의 존재 이유다.
   const both = JSON.stringify([r1, r2]);
