@@ -28,6 +28,7 @@ import { readFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { createRequire } from 'node:module';
 
 const DIR = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -36,8 +37,15 @@ try { ({ chromium } = await import('/opt/node22/lib/node_modules/playwright/inde
 catch (_) {
   try { ({ chromium } = await import('playwright')); }
   catch (__) {
-    console.log('SKIP  Playwright 가 없어 화면 검사를 건너뜁니다 — 이 환경에서는 .gs 검사만 유효합니다.');
-    process.exit(0);
+    try {
+      // ESM 의 bare import 는 Windows 번들 런타임이 NODE_PATH 로 제공한 모듈을
+      // 찾지 못한다. createRequire 는 같은 NODE_PATH 를 따라가므로 로컬·Codex
+      // 양쪽에서 화면 검사를 실제로 실행할 수 있다.
+      ({ chromium } = createRequire(import.meta.url)('playwright'));
+    } catch (___) {
+      console.log('SKIP  Playwright 가 없어 화면 검사를 건너뜁니다 — 이 환경에서는 .gs 검사만 유효합니다.');
+      process.exit(0);
+    }
   }
 }
 
