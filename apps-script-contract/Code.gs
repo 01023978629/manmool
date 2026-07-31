@@ -253,6 +253,11 @@ function gwActions_() {
     { names: ['backup', 'backup.export'], handler: gwBackup_, admin: true, lock: false },
     { names: ['exportCsv', 'contract.exportCsv', 'export.csv'], handler: gwExportCsv_, admin: true, lock: false },
     { names: ['notify.send', 'notifySend'], handler: gwNotify_, admin: true, lock: false },
+    // AI 중계 — 키를 브라우저에서 서버로 옮기기 위한 통과창구.
+    // lock:false 인 이유: 한도 계산은 AiService 안에서 자기 잠금으로 처리하고,
+    // 여기서 전체 잠금을 잡으면 AI 응답을 기다리는 동안 계약 처리까지 멈춘다.
+    { names: ['ai.ask', 'aiAsk'], handler: gwAiAsk_, admin: true, lock: false },
+    { names: ['ai.status', 'aiStatus'], handler: gwAiStatus_, admin: true, lock: false },
     { names: ['settings.get', 'settingsGet'], handler: gwSettingsGet_, admin: true, lock: false },
     { names: ['settings.set', 'settingsSet'], handler: gwSettingsSet_, admin: true, lock: true },
 
@@ -588,6 +593,22 @@ function gwId_(payload) {
   return id;
 }
 
+/* ---------- AI 중계 ---------- */
+/* AiService.gs 가 없으면 없다고 답한다. 있는 척하지 않는다 —
+   앱이 이 답을 보고 기기에 넣어 둔 키로 되돌아갈 수 있어야 한다. */
+function gwAiAsk_(rq) {
+  var f = gwFn_(['aiAsk_']);
+  if (!f) throw gwFail_('AI_NOT_CONFIGURED', 'AI 중계 모듈(AiService.gs)이 설치되지 않았습니다');
+  return f(rq.payload, rq.ctx);
+}
+function gwAiStatus_(rq) {
+  var f = gwFn_(['aiStatus_']);
+  if (!f) return { ok: true, available: false, providers: {}, note: 'AI 중계 모듈이 설치되지 않았습니다' };
+  var st = f();
+  st.ok = true;
+  return st;
+}
+
 /* ============================================================
  * 6) 고객 동작 — Sign.gs 로 넘긴다. 처리기는 잠금 안에서 토큰 상태를 다시 판정한다.
  * ============================================================ */
@@ -772,7 +793,13 @@ function gwHealth_() {
     },
     modules: {
       sign: !!gwFn_(['signView_', 'viewContract_']),
-      notify: !!gwFn_(['notifySend_', 'sendNotify_'])
+      notify: !!gwFn_(['notifySend_', 'sendNotify_']),
+      ai: !!gwFn_(['aiAsk_'])
+    },
+    // 앱이 'AI 를 서버로 보낼까 기기 키로 부를까'를 정하는 데 쓴다. 키 값은 싣지 않는다.
+    ai: {
+      gemini: gwHasProp_('GEMINI_API_KEY'),
+      openai: gwHasProp_('OPENAI_API_KEY')
     },
     notify: { live: gwLive_() },     // 기본은 false(꺼짐)
     serverTime: new Date().toISOString(),

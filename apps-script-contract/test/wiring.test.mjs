@@ -135,6 +135,7 @@ function makeFakeGoogle(props) {
 
   const triggers = [];
   const cacheData = {};
+  const fetchLog = [];
   const scriptLock = {
     _held: false,
     releaseCount: 0,
@@ -172,9 +173,25 @@ function makeFakeGoogle(props) {
       getService: () => ({ getUrl: () => 'https://script.google.com/macros/s/TEST/exec' })
     },
     // 시간대·사용자 — ctTz_ 등이 쓴다.
+    __fetchLog: fetchLog,
     Session: { getScriptTimeZone: () => 'Asia/Seoul', getActiveUser: () => ({ getEmail: () => '' }), getEffectiveUser: () => ({ getEmail: () => '' }) },
     Logger: { log: () => {} },
-    UrlFetchApp: { fetch: () => { throw new Error('테스트에서 외부 발송을 시도했다 — 발송이 꺼져 있어야 한다'); } },
+    // 외부 호출은 기본적으로 막는다(발송이 꺼져 있어야 하므로).
+    // 다만 AI 중계 검사를 하려면 아는 두 곳은 흉내낼 수 있어야 한다.
+    // fetchLog 에 남겨 '무엇을 어디로 보냈는지'를 검사에서 확인한다.
+    UrlFetchApp: {
+      fetch: (url, opt) => {
+        const u = String(url);
+        fetchLog.push({ url: u, headers: (opt && opt.headers) || {}, payload: (opt && opt.payload) || '' });
+        if (/generativelanguage\.googleapis\.com/.test(u)) {
+          return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ candidates: [{ content: { parts: [{ text: '가짜 제미나이 답' }] } }] }) };
+        }
+        if (/api\.openai\.com/.test(u)) {
+          return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ choices: [{ message: { content: '가짜 지피티 답' } }] }) };
+        }
+        throw new Error('테스트에서 모르는 곳으로 외부 호출을 시도했다: ' + u);
+      }
+    },
     HtmlService: {
       createTemplateFromFile: (n) => ({ BOOT_JSON: '', evaluate: () => ({ addMetaTag() { return this; }, setTitle() { return this; }, setXFrameOptionsMode() { return this; }, getContent: () => '<html>' + n + '</html>' }) }),
       createHtmlOutput: (h) => ({ _h: h, addMetaTag() { return this; }, setTitle() { return this; }, setXFrameOptionsMode() { return this; }, getContent: () => h }),
@@ -597,6 +614,79 @@ section('6-2) 부분 실패 뒤 고객에게 하는 말이 사실과 맞는가')
     '이미 체결된 계약을 "취소됐다"고 말하지 않는다 — TOKEN_USED 로 답한다', again);
   check(again && again.indexOf('BAD_STATE') !== 0,
     'BAD_STATE 를 쓰지 않는다 — Sign.html 이 그것을 "취소된 계약" 화면으로 매핑한다', again);
+}
+
+section('6-3) AI 중계 — 키를 서버에 두고 브라우저로 내려보내지 않는다');
+{
+  const GK = 'AIza-SERVER-GEMINI-KEY-9999';
+  const OK_ = 'sk-SERVER-OPENAI-KEY-8888';
+  const aiCtx = { at: new Date().toISOString(), actor: 'admin' };
+
+  // 키가 없으면 '없다'고 답해야 한다 — 있는 척하면 앱이 기기 키로 못 되돌아간다.
+  let noKey = null;
+  try { ctx.aiAsk_({ provider: 'gemini', model: 'gemini-2.0-flash', body: { contents: [] } }, aiCtx); }
+  catch (e) { noKey = String(e.message); }
+  check(noKey && noKey.indexOf('AI_NOT_CONFIGURED') === 0,
+    '서버에 AI 키가 없으면 없다고 답한다', noKey || '통과해 버렸다');
+
+  props.GEMINI_API_KEY = GK;
+  props.OPENAI_API_KEY = OK_;
+  g.__fetchLog.length = 0;
+
+  const r1 = ctx.aiAsk_({ provider: 'gemini', model: 'gemini-2.0-flash', body: { contents: [{ parts: [{ text: '견적 항목 제안' }] }] } }, aiCtx);
+  check(r1 && r1.ok === true && r1.json && r1.json.candidates, 'Gemini 중계가 답을 돌려준다', JSON.stringify(r1).slice(0, 120));
+
+  const r2 = ctx.aiAsk_({ provider: 'openai', model: 'gpt-4o-mini', body: { messages: [{ role: 'user', content: '요약' }] } }, aiCtx);
+  check(r2 && r2.ok === true && r2.json && r2.json.choices, 'ChatGPT 중계가 답을 돌려준다', JSON.stringify(r2).slice(0, 120));
+
+  // ★ 키가 응답에 실려 브라우저로 내려가면 안 된다 — 이 중계의 존재 이유다.
+  const both = JSON.stringify([r1, r2]);
+  check(both.indexOf(GK) < 0 && both.indexOf(OK_) < 0,
+    '응답에 AI 키가 실리지 않는다 — 브라우저로 내려가지 않는다');
+
+  // 키는 헤더로만 나가야 한다(주소에 붙이면 오류 로그·중계 기록에 남는다).
+  const gemCall = g.__fetchLog.find((f) => /generativelanguage/.test(f.url));
+  check(gemCall && gemCall.url.indexOf(GK) < 0, 'Gemini 키를 주소에 붙이지 않는다', gemCall && gemCall.url);
+  check(gemCall && String(gemCall.headers['x-goog-api-key']) === GK, 'Gemini 키를 헤더로 보낸다');
+  const oaCall = g.__fetchLog.find((f) => /api\.openai\.com/.test(f.url));
+  check(oaCall && String(oaCall.headers.Authorization || '').indexOf(OK_) >= 0, 'ChatGPT 키를 헤더로 보낸다');
+
+  // 아는 두 곳 말고는 못 부른다.
+  let evil = null;
+  try { ctx.aiAsk_({ provider: 'http://evil.example/steal', model: 'x', body: {} }, aiCtx); }
+  catch (e) { evil = String(e.message); }
+  check(evil && evil.indexOf('BAD_REQUEST') === 0, '모르는 제공자는 거절한다', evil || '통과해 버렸다');
+
+  // 모델 이름으로 주소를 벗어날 수 없다.
+  let esc = null;
+  try { ctx.aiAsk_({ provider: 'gemini', model: '../../../v1/steal', body: { contents: [] } }, aiCtx); }
+  catch (e) { esc = String(e.message); }
+  check(esc && esc.indexOf('BAD_REQUEST') === 0, '모델 이름으로 주소를 벗어날 수 없다', esc || '통과해 버렸다');
+
+  // 한도를 한 곳에서 센다 — 기기가 몇 대든 합쳐서 센다.
+  const before = ctx.aiStatus_().providers.gemini.usedToday;
+  ctx.aiAsk_({ provider: 'gemini', model: 'gemini-2.0-flash', body: { contents: [] } }, aiCtx);
+  const after = ctx.aiStatus_().providers.gemini.usedToday;
+  check(after === before + 1, '사용량을 서버 한 곳에서 센다', before + ' → ' + after);
+
+  // 분당 한도에 걸리면 막는다(같은 분 안에 8건을 넘겨 본다).
+  let blocked = null;
+  for (let i = 0; i < 12 && !blocked; i++) {
+    try { ctx.aiAsk_({ provider: 'gemini', model: 'gemini-2.0-flash', body: { contents: [] } }, aiCtx); }
+    catch (e) { blocked = String(e.message); }
+  }
+  check(blocked && blocked.indexOf('AI_QUOTA') === 0, '분당 한도를 넘기면 막는다', blocked || '안 막혔다');
+
+  // 상태 응답에도 키가 없어야 한다.
+  const st = JSON.stringify(ctx.aiStatus_());
+  check(st.indexOf(GK) < 0 && st.indexOf(OK_) < 0, 'AI 상태 응답에 키가 없다', st.slice(0, 120));
+  check(/"configured":true/.test(st), 'AI 상태가 설정됨을 알려준다');
+
+  // health 도 값이 아니라 있음/없음만.
+  const h = JSON.stringify(ctx.gwHealth_ ? ctx.gwHealth_() : {});
+  check(h.indexOf(GK) < 0 && h.indexOf(OK_) < 0, 'health 응답에 AI 키가 없다');
+
+  delete props.GEMINI_API_KEY; delete props.OPENAI_API_KEY;
 }
 
 section('7) 발송은 꺼져 있다');

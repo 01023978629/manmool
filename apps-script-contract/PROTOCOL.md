@@ -82,6 +82,8 @@ HTTP 상태는 언제나 200 입니다(Apps Script 제약). **`ok` 를 보고 �
 | `signlink.issue` | `{id, ttlHours?}` | **원문 토큰을 이때 한 번만** 돌려준다. 서버는 해시만 저장 |
 | `contract.quickSend` | `{title, amount, customer:{name,phone}, body?, ttlHours?}` | 생성 → 잠금 → 링크발급을 **한 번에**. 아래 참조 |
 | `notify.send` | `{to, text, kind}` | 임의 문자 발송 시도. 발송이 꺼져 있으면 `sent:false` |
+| `ai.ask` | `{provider, model, body}` | **AI 중계.** 아래 참조 |
+| `ai.status` | — | 어떤 AI 가 준비됐는지·오늘 몇 건 썼는지. 키 값은 안 준다 |
 | `payment.update` | `{id, stage, status, memo?}` | 청구·입금 표시 |
 | `backup.export` | `{}` | 전체를 JSON 으로 Drive 백업 폴더에 저장 |
 | `settings.get` / `settings.set` | `{key,value}` | 비밀이 아닌 운영값만. 금지어 포함 키는 거부 |
@@ -121,6 +123,42 @@ HTTP 상태는 언제나 200 입니다(Apps Script 제약). **`ok` 를 보고 �
 
 `notify.sent` 가 `false` 여도 계약과 링크는 정상입니다 — 사장님이 링크를 직접 보내면 됩니다.
 **`notify.sent` 를 보지 않고 "보냈습니다"라고 화면에 띄우지 마세요.**
+
+### `ai.ask` — AI 키를 브라우저에서 서버로 옮기는 통과창구
+
+전에는 현장 앱이 Gemini·ChatGPT 를 **브라우저에서 직접** 불렀습니다. 그래서 키가
+사장님 폰 안에 있었고 네 가지가 따라왔습니다.
+
+| | |
+|---|---|
+| 기기마다 키를 따로 넣어야 함 | 키는 보안상 클라우드 백업에 안 실립니다 |
+| 사파리가 7일마다 지움 | 홈 화면에 추가 안 한 사이트의 저장소를 정리합니다 |
+| **ChatGPT 키는 도용을 막을 수 없음** | OpenAI 키에는 도메인 제한 기능이 아예 없습니다 |
+| 한도를 기기마다 따로 셈 | PC 200 + 폰 200 = 400건이 나갑니다 |
+
+`ai.ask` 는 키를 **스크립트 속성**으로 옮겨 넷을 한 번에 없앱니다.
+
+```jsonc
+// 요청 — 앱이 원래 그 API 에 보내던 본문을 그대로 body 에 담는다
+{ "action": "ai.ask", "adminToken": "…", "ts": …,
+  "payload": { "provider": "gemini", "model": "gemini-2.0-flash",
+               "body": { "contents": [ … ] } } }
+
+// 응답 — 제공자가 준 답을 그대로 돌려준다
+{ "ok": true, "provider": "gemini", "model": "…", "status": 200, "json": { … } }
+```
+
+- **얇은 통과창구입니다.** 프롬프트를 서버에서 다시 만들지 않습니다 — 그러면 앱과 서버
+  두 곳을 따로 고치게 되고 언젠가 한쪽만 고쳐집니다.
+- 부를 수 있는 곳은 **아는 두 곳뿐**입니다. 주소를 요청에서 받지 않습니다.
+- 키는 **헤더로만** 나갑니다. 주소에 붙이면 오류 로그·중계 기록에 남습니다.
+- 한도(하루 200 · 분당 8)를 **서버 한 곳에서** 셉니다. 실패하면 되돌립니다.
+- 서버에 키가 없으면 `AI_NOT_CONFIGURED` 로 답합니다. 앱은 이걸 보고 기기에 넣어 둔
+  키로 되돌아갈 수 있어야 합니다 — **있는 척하지 않습니다.**
+
+스크립트 속성: `GEMINI_API_KEY` · `OPENAI_API_KEY` (둘 다 선택)
+
+---
 
 ### GET
 
