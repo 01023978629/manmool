@@ -1,0 +1,1141 @@
+<!--
+  ============================================================
+  만물인테리어 전자계약 — 고객 서명 화면 (contract-sign-ui-v1)
+  ------------------------------------------------------------
+  이 화면이 하는 일
+    · 서버가 준 계약(제목·금액·대금 3회차·본문 조항)을 고객 폰에 그린다
+    · 성명 입력 → 손가락/마우스 서명 → 동의 체크 → "이대로 제출하시겠습니까" 확인
+    · signContract(별칭 sign.submit)로 서명을 보내고, 완료본 링크를 보여준다
+    · 만료·사용완료·취소·잘못된 링크·시계 어긋남을 **각각 다른 문구**로 안내한다
+
+  이 화면이 하지 않는 일 (하려고 들면 두 곳이 갈라진다)
+    · 금액·비율·상태를 스스로 계산하지 않는다. 서버가 준 값만 그린다.
+      (계약금 50%·중도금 40%·잔금 10%는 Pure.gs 의 PAYMENT_RATIO 가 정본이다)
+    · 문서 지문(docHash)을 만들지 않는다. 서버가 준 지문을 그대로 되돌려 보낼 뿐이다.
+      대조는 서버가 한다(어긋나면 DOC_TAMPERED).
+    · 토큰을 저장하지 않는다. localStorage·sessionStorage·쿠키 어디에도 쓰지 않는다.
+      새로고침하면 주소(?t=)에서 다시 온다. 남겨 두면 남의 폰에 링크가 남는다.
+    · 본인확인(문자 인증)을 하지 않는다. 이 링크를 받은 사람이 서명한 것으로 본다.
+      화면에 없는 보증을 문서에 적지 않는다.
+
+  ★ Code.gs 와의 약속 (이 화면이 서버에서 받는 것)
+      var t = HtmlService.createTemplateFromFile('Sign');
+      t.BOOT_JSON = JSON.stringify({
+        apiUrl : '<웹앱 exec 주소>',     // 없으면 제출을 못 한다(아래 참조)
+        token  : '<원문 서명 토큰>',      // ?t= 로 들어온 값
+        mode   : 'sign',                 // 'done' 이면 완료본 확인 화면으로 연다
+        state  : 'ok',                   // ok|expired|used|revoked|invalid|notfound|void
+        message: '',                     // state 가 ok 가 아닐 때 서버가 준 한국어 문구(있으면 우선)
+        data   : { …sign.view 응답 본체… } // 있으면 화면이 바로 그린다(왕복 1회 절약)
+      });
+      return t.evaluate()
+        .addMetaTag('viewport', 'width=device-width, initial-scale=1')   // ★ 반드시
+        .setTitle('계약서 서명 · 만물인테리어');
+
+    HtmlService 는 이 문서를 iframe 안에 넣고 **바깥 문서**를 따로 만든다.
+    아래 <meta viewport> 는 안쪽 문서용이고, 바깥 문서의 viewport 는
+    addMetaTag 로만 붙는다. 빠뜨리면 폰에서 글자가 개미만 하게 나온다.
+
+    BOOT_JSON 을 주지 않아도 화면은 뜬다. 다만 토큰과 주소를 모르므로
+    "링크 정보를 읽지 못했습니다"라고 정직하게 말하고 멈춘다.
+
+  ★ 왜 text/plain POST 인가 (google.script.run 을 쓰지 않은 이유)
+    PROTOCOL.md 의 통로 하나만 쓴다. 현장 앱·관리자 화면·이 화면이 같은 요청 형태를
+    쓰면 서버는 진입점 한 곳만 지키면 된다. google.script.run 을 쓰면 서버에 전용
+    함수가 하나 더 생기고, 그 함수는 규약 밖에 있어 토큰 검사·시각 검사·중복요청(idem)
+    처리를 따로 또 짜야 한다. 같은 검사를 두 번 짜면 언젠가 한쪽만 고쳐진다.
+    (Content-Type 이 text/plain 이어야 preflight 없이 나간다 — PROTOCOL.md 첫 절 참조)
+
+  ★ 자바스크립트는 ES5 로만 쓴다 (var·function, 화살표함수·const·let·fetch 금지)
+    고객은 카카오톡·문자 앱 안의 구형 WebView 로 이 링크를 연다. 거기서 문법 하나가
+    막히면 화면이 통째로 하얗게 뜨고, 고객은 "계약서가 안 열린다"고만 말할 수 있다.
+    통신도 fetch 가 아니라 XMLHttpRequest 를 쓴다(시간초과를 직접 다룰 수 있다).
+
+  ★ 서버가 준 값은 innerHTML 로 그리지 않는다
+    전부 createElement + textContent 로 넣는다. 이스케이프 함수를 부르는 것보다
+    강한 보장이다 — 본문에 <script> 가 들어 있어도 글자로 보일 뿐 실행될 수 없다.
+    주소(링크)는 http/https 인지 확인한 뒤에만 href 에 넣는다(javascript: 차단).
+  ============================================================
+-->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="robots" content="noindex, nofollow">
+<title>계약서 서명 · 만물인테리어</title>
+<style>
+/* 은은한 갈색 계열. 브랜드색은 #b98a59 하나를 기준으로 밝기만 바꿔 쓴다. */
+:root{
+  --brand:#b98a59; --brand-deep:#8f6739; --brand-tint:#f4ece1;
+  --ink:#2b2521; --ink-soft:#6f655a; --ink-faint:#9a8f83;
+  --bg:#f7f3ec; --card:#fffdfa; --line:#e6dccd; --line-strong:#d6c8b2;
+  --ok:#2f7a55; --ok-tint:#e2f0e8; --warn:#b0453a; --warn-tint:#f8e7e3;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic","맑은 고딕",system-ui,sans-serif;
+  font-size:17px; line-height:1.7; -webkit-text-size-adjust:100%;
+  -webkit-tap-highlight-color:rgba(185,138,89,.18);
+}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:600px;margin:0 auto;padding:0 16px 56px}
+
+/* 머리말 */
+.top{background:var(--card);border-bottom:1px solid var(--line)}
+.top .in{max-width:600px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:11px}
+.mark{width:40px;height:40px;border-radius:11px;background:var(--brand);color:#fff;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;letter-spacing:-.5px}
+.co strong{display:block;font-size:16px;font-weight:800;letter-spacing:-.02em}
+.co span{display:block;font-size:12px;color:var(--ink-faint);letter-spacing:.04em}
+
+/* 단계 표시 */
+.steps{display:flex;gap:6px;max-width:600px;margin:0 auto;padding:14px 16px 0}
+.steps i{flex:1;height:5px;border-radius:3px;background:var(--line)}
+.steps i.on{background:var(--brand)}
+.steps i.done{background:var(--brand-deep)}
+
+h1{font-size:23px;line-height:1.4;margin:18px 0 6px;letter-spacing:-.02em;font-weight:800}
+h2{font-size:17px;margin:22px 0 8px;font-weight:800;letter-spacing:-.01em}
+h3{font-size:15px;margin:14px 0 2px;font-weight:700;color:var(--brand-deep)}
+p{margin:0 0 10px}
+.lead{color:var(--ink-soft);font-size:15px;margin:0 0 16px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:0 0 12px}
+.card.tint{background:var(--brand-tint);border-color:var(--line-strong)}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;background:var(--brand-tint);
+  color:var(--brand-deep);font-size:12.5px;font-weight:700;letter-spacing:.02em}
+.row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.row:last-child{border-bottom:none}
+.row .k{color:var(--ink-soft);flex:0 0 auto}
+.row .v{text-align:right;font-weight:600;word-break:break-word}
+.amount{font-size:30px;font-weight:800;letter-spacing:-.03em;color:var(--brand-deep);margin:2px 0 0}
+.amount small{font-size:15px;font-weight:700;color:var(--ink-soft);margin-left:4px}
+.note{font-size:13.5px;color:var(--ink-soft);line-height:1.65}
+.hash{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;
+  color:var(--ink-soft);word-break:break-all}
+
+/* 계약 전문 */
+.doc{background:#fffdfa;border:1px solid var(--line);border-radius:12px;padding:14px 15px;
+  max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.doc p{white-space:pre-wrap;font-size:14.5px;line-height:1.75;margin:0 0 10px;color:#332c26}
+.doc h3:first-child{margin-top:0}
+.toggle{background:none;border:none;color:var(--brand-deep);font:inherit;font-size:14.5px;font-weight:700;
+  padding:12px 4px;min-height:48px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+/* 입력 */
+.fld{display:block;font-size:14px;font-weight:700;color:var(--ink-soft);margin:16px 0 6px}
+input[type=text]{width:100%;padding:15px 14px;font-size:18px;font-family:inherit;color:var(--ink);
+  background:#fff;border:1.5px solid var(--line-strong);border-radius:12px}
+input[type=text]:focus{outline:2px solid var(--brand);outline-offset:1px;border-color:var(--brand)}
+.err{color:var(--warn);font-size:14px;font-weight:600;margin:8px 0 0}
+.err:empty{margin:0}
+
+/* 서명판 */
+.padwrap{position:relative;margin-top:8px}
+canvas{display:block;width:100%;height:230px;background:#fff;border:1.5px dashed var(--line-strong);
+  border-radius:12px;touch-action:none;cursor:crosshair}
+.padhint{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;
+  color:var(--ink-faint);font-size:15px;pointer-events:none}
+.padbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px}
+
+/* 동의 */
+.consent{display:flex;gap:12px;align-items:flex-start;padding:15px 14px;border:1.5px solid var(--line-strong);
+  border-radius:12px;background:#fff;cursor:pointer;margin-top:14px}
+.consent.on{border-color:var(--brand);background:var(--brand-tint)}
+.consent .box{width:26px;height:26px;flex:0 0 auto;border:2px solid var(--line-strong);border-radius:8px;
+  background:#fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:800}
+.consent.on .box{background:var(--brand);border-color:var(--brand)}
+.consent .txt{font-size:15px;line-height:1.55}
+/* 진짜 체크박스는 숨기되 키보드 초점은 살려 둔다 — 초점 표시는 옆 네모에 그린다.
+   숨긴 입력에 초점이 갔는데 화면에 아무 표시가 없으면 키보드로는 어디에 있는지 알 수 없다. */
+.consent input{position:absolute;opacity:0;width:1px;height:1px}
+.consent input:focus + .box{outline:2px solid var(--brand);outline-offset:2px}
+
+/* 버튼 */
+.btn{display:block;width:100%;min-height:58px;padding:14px 16px;border-radius:13px;border:1.5px solid transparent;
+  font-family:inherit;font-size:18px;font-weight:800;letter-spacing:-.01em;cursor:pointer;touch-action:manipulation}
+.btn+.btn{margin-top:10px}
+.btn-main{background:var(--brand);color:#fff}
+.btn-main:active{background:var(--brand-deep)}
+.btn-sub{background:#fff;color:var(--brand-deep);border-color:var(--line-strong)}
+.btn-small{min-height:48px;font-size:15.5px;width:auto;padding:12px 18px}
+.btn:disabled{opacity:.55;cursor:default}
+.btn:focus-visible,.toggle:focus-visible,.consent:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+/* 안내·결과 */
+.msg{border-radius:12px;padding:14px 15px;font-size:15px;line-height:1.6;margin:12px 0}
+.msg-warn{background:var(--warn-tint);color:#7d2f27;border:1px solid #e9c6bf}
+.msg-ok{background:var(--ok-tint);color:#1f5c3f;border:1px solid #bcdccb}
+.msg-info{background:var(--brand-tint);color:#6d4f2c;border:1px solid var(--line-strong)}
+.center{text-align:center}
+.big-ico{font-size:52px;line-height:1;margin:24px 0 6px;text-align:center}
+.spin{display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.45);
+  border-top-color:#fff;border-radius:50%;vertical-align:-3px;margin-right:8px;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.hide{display:none !important}
+.sigshow{border:1px solid var(--line);border-radius:12px;background:#fff;padding:8px;text-align:center}
+.sigshow img{max-width:100%;height:auto;display:block;margin:0 auto}
+.tel{display:inline-block;font-weight:800;color:var(--brand-deep);text-decoration:none;
+  padding:10px 0;font-size:17px}
+footer{max-width:600px;margin:0 auto;padding:22px 16px 40px;color:var(--ink-faint);font-size:12.5px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<!-- 서버가 심어 주는 값. 스크립트 안이 아니라 속성으로 받는 이유:
+     표준 출력 스크립틀릿은 따옴표와 꺾쇠까지 이스케이프하므로, JSON 안에 어떤 글자가
+     들어 있어도 문서 구조를 깨뜨릴 수 없다. 스크립트 안에 그대로 찍으면 그 보장이 사라진다.
+     (typeof 검사 덕분에 Code.gs 가 BOOT_JSON 을 넣지 않아도 오류가 나지 않는다) -->
+<div id="boot" hidden data-boot="<?= (typeof BOOT_JSON !== 'undefined' && BOOT_JSON) ? BOOT_JSON : '' ?>"></div>
+
+<div class="top"><div class="in">
+  <div class="mark">만물</div>
+  <div class="co"><strong>만물인테리어</strong><span>전자 계약서</span></div>
+</div></div>
+
+<div class="steps" id="steps" aria-hidden="true"><i id="st1"></i><i id="st2"></i><i id="st3"></i></div>
+
+<div class="wrap">
+
+  <!-- ① 불러오는 중 -->
+  <section id="scLoad">
+    <h1>계약서를 불러오는 중입니다</h1>
+    <p class="lead">잠시만 기다려 주세요.</p>
+  </section>
+
+  <!-- ② 진행할 수 없는 경우 — 문구는 상태마다 다르게 채운다 -->
+  <section id="scStop" class="hide">
+    <div class="big-ico" id="stopIco">🔒</div>
+    <h1 class="center" id="stopTitle"></h1>
+    <p class="lead center" id="stopBody"></p>
+    <div class="card center" id="stopCall">
+      <p class="note" style="margin-bottom:4px">문의 · 만물인테리어</p>
+      <a class="tel" id="stopTel" href="#"></a>
+    </div>
+    <button type="button" class="btn btn-sub" id="btnReload">다시 시도</button>
+  </section>
+
+  <!-- ③ 계약 확인 + 서명 -->
+  <section id="scSign" class="hide">
+    <p style="margin:18px 0 0"><span class="badge" id="ctNo"></span></p>
+    <h1 id="ctTitle"></h1>
+    <p class="lead" id="ctWho"></p>
+
+    <div class="card">
+      <p class="note" style="margin-bottom:2px">총 계약금액</p>
+      <p class="amount num"><span id="ctAmount"></span><small id="ctVat"></small></p>
+      <div id="ctPays" style="margin-top:12px"></div>
+      <p class="note" id="ctRatio" style="margin-top:10px"></p>
+    </div>
+
+    <div class="card" id="ctFacts"></div>
+
+    <h2>계약 전문</h2>
+    <p class="note" style="margin-bottom:8px">아래 내용을 끝까지 읽어 보신 뒤 서명해 주세요.</p>
+    <div class="doc" id="ctDoc"></div>
+    <button type="button" class="toggle" id="btnDoc">전문 접기</button>
+
+    <div class="card">
+      <p class="note" style="margin-bottom:4px">문서 지문 (SHA-256)</p>
+      <p class="hash" id="ctHash"></p>
+      <p class="note" style="margin:8px 0 0">이 지문은 위 계약 내용에서 계산된 값입니다.
+        내용이 한 글자라도 바뀌면 지문이 달라지므로, 나중에 계약서가 바뀌지 않았음을 확인할 수 있습니다.</p>
+    </div>
+
+    <h2>서명</h2>
+
+    <label class="fld" for="fName">성명</label>
+    <input type="text" id="fName" autocomplete="name" inputmode="text" maxlength="40"
+           placeholder="계약자 본인 성명" enterkeyhint="done">
+
+    <p class="fld" id="sigLabel">서명 (손가락 또는 마우스로 그려 주세요)</p>
+    <div class="padwrap">
+      <canvas id="sigCanvas" aria-label="서명판"></canvas>
+      <div class="padhint" id="padHint">여기에 서명해 주세요</div>
+    </div>
+    <div class="padbar">
+      <span class="note">그린 그대로 계약서에 들어갑니다.</span>
+      <button type="button" class="btn btn-sub btn-small" id="btnClear">다시 그리기</button>
+    </div>
+
+    <label class="consent" id="cAgree" for="fAgree">
+      <input type="checkbox" id="fAgree">
+      <span class="box" id="cAgreeBox" aria-hidden="true">✓</span>
+      <span class="txt">위 계약 내용과 대금 지급 조건을 모두 확인하였으며,
+        전자적 방법으로 계약을 체결하는 데 동의합니다.</span>
+    </label>
+
+    <p class="err" id="signErr" role="alert" aria-live="assertive"></p>
+    <button type="button" class="btn btn-main" id="btnNext" style="margin-top:14px">확인 화면으로</button>
+    <p class="note center" style="margin-top:10px">이 화면을 여는 것만으로는 계약이 체결되지 않습니다.</p>
+  </section>
+
+  <!-- ④ 최종 확인 -->
+  <section id="scConfirm" class="hide">
+    <h1>이대로 제출하시겠습니까?</h1>
+    <p class="lead">제출하면 계약이 체결되고, 고객님 스스로 되돌릴 수 없습니다.</p>
+
+    <div class="card" id="cfSummary"></div>
+
+    <div class="card">
+      <p class="note" style="margin-bottom:6px">제출될 서명</p>
+      <div class="sigshow"><img id="cfSig" alt="입력하신 서명"></div>
+    </div>
+
+    <div class="msg msg-info">제출 시각과 문서 지문이 함께 기록됩니다.
+      서명은 한 번만 접수되며, 이 링크는 제출 후 닫힙니다.</div>
+
+    <p class="err" id="cfErr" role="alert" aria-live="assertive"></p>
+    <button type="button" class="btn btn-main" id="btnSubmit">제출합니다</button>
+    <button type="button" class="btn btn-sub" id="btnBack">돌아가서 고치기</button>
+    <p class="note center" id="cfWait" style="margin-top:12px"></p>
+  </section>
+
+  <!-- ⑤ 완료 -->
+  <section id="scDone" class="hide">
+    <div class="big-ico">✅</div>
+    <h1 class="center" id="doneTitle">서명이 완료되었습니다</h1>
+    <p class="lead center" id="doneLead">계약이 정상적으로 체결되었습니다. 감사합니다.</p>
+
+    <div class="card" id="doneFacts"></div>
+
+    <a class="btn btn-main" id="btnDoneOpen" href="#" style="text-align:center;text-decoration:none;line-height:30px" rel="noopener">완료본 확인·내려받기</a>
+    <p class="note center" id="doneHelp" style="margin-top:12px"></p>
+  </section>
+
+</div>
+
+<footer>
+  만물인테리어 · 대표 전병덕 · 사업자등록번호 895-48-01132<br>
+  이 화면의 모든 시각은 서버(구글) 기준으로 기록됩니다.
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- 동작 이름 ----------
+     사장님이 지정한 이름이 정본이다. PROTOCOL.md 의 점 표기는 별칭으로 함께 받아 준다.
+     서버가 한쪽만 알아듣더라도 화면이 멈추지 않도록, 정본으로 먼저 보내고
+     "모르는 동작"이라고 거절당하면 별칭으로 한 번만 다시 보낸다. 고칠 곳은 여기 하나다. */
+  var ACT = {
+    view:   { name: 'sign.view',     alias: 'viewContract' },
+    submit: { name: 'signContract',  alias: 'sign.submit'  },
+    done:   { name: 'done.view',     alias: 'completeContract' }
+  };
+
+  /* 서버가 연락처를 주지 않을 때 쓸 기본값. ContractService.gs 의 CT_OPERATOR 와 같은 값이며,
+     공개된 사업자 연락처다(비밀값이 아니다). */
+  var FALLBACK_TEL = '010-2397-8629';
+
+  var XHR_TIMEOUT_VIEW = 30000;     // 계약 불러오기
+  var XHR_TIMEOUT_SUBMIT = 120000;  // 제출 — 서버가 완료 PDF 를 만드는 동안 기다린다
+
+  var CFG = { apiUrl: '', token: '', mode: 'sign' };
+  var S = {
+    view: null, docHash: '', tel: FALLBACK_TEL,
+    strokes: [], cur: null, drawing: false, inkLen: 0,
+    sigData: '', idem: '', submitting: false, done: null
+  };
+  var cv, cx, dpr = 1;
+
+  /* ============================================================
+   * 작은 도구들
+   * ============================================================ */
+  function $(id) { return document.getElementById(id); }
+  function show(id) { $(id).classList.remove('hide'); }
+  function hide(id) { $(id).classList.add('hide'); }
+  function setText(el, v) { if (el) el.textContent = (v == null ? '' : String(v)); }
+
+  // 금액 표기. Pure.gs 의 formatWon 과 같은 규칙(천단위 쉼표).
+  function won(n) {
+    var v = Number(n);
+    if (!isFinite(v) || v < 0) v = 0;
+    return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  // 주소는 http/https 만 통과시킨다. 서버가 준 값이라도 javascript: 는 href 에 넣지 않는다.
+  function safeUrl(u) {
+    var s = String(u == null ? '' : u).trim();
+    return /^https?:\/\//i.test(s) ? s : '';
+  }
+
+  // 시각 표기. toLocaleString 은 기기·브라우저마다 결과가 달라 직접 만든다.
+  var DOW = ['일', '월', '화', '수', '목', '금', '토'];
+  function when(iso) {
+    var t = Date.parse(iso);
+    if (!isFinite(t)) return '';
+    var d = new Date(t);
+    var h = d.getHours();
+    var ap = h < 12 ? '오전' : '오후';
+    var h12 = h % 12; if (h12 === 0) h12 = 12;
+    var mm = d.getMinutes(); if (mm < 10) mm = '0' + mm;
+    return d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일('
+      + DOW[d.getDay()] + ') ' + ap + ' ' + h12 + ':' + mm;
+  }
+
+  // 중복요청 방지용 열쇠. 비밀이 아니라 '같은 제출인지' 알아보는 표식일 뿐이라
+  // 암호학적 난수가 필요하지 않다(진짜 토큰은 서버가 만든다 — AuthService.gs).
+  function idemKey() {
+    return 'sg_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  }
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = String(text);
+    return e;
+  }
+  function kv(parent, k, v) {
+    if (v == null || v === '') return;
+    var r = el('div', 'row');
+    r.appendChild(el('span', 'k', k));
+    r.appendChild(el('span', 'v', v));
+    parent.appendChild(r);
+  }
+
+  /* ============================================================
+   * 통신 — text/plain POST (PROTOCOL.md)
+   * ============================================================ */
+  /**
+   * cb(err, res) 로 부른다. err 는 { code, message } 형태.
+   * 성공/실패는 HTTP 상태가 아니라 **ok 필드**로 판단한다(규약: 상태는 언제나 200).
+   */
+  function api(act, payload, opt, cb) {
+    var o = opt || {};
+    if (!CFG.apiUrl) {
+      cb({ code: 'NO_API', message: '서버 주소를 알 수 없어 요청을 보내지 못했습니다.' });
+      return;
+    }
+    send(act.name, false);
+
+    function send(actionName, isRetry) {
+      var body = { action: actionName, ts: Date.now(), payload: payload || {} };
+      if (CFG.token) body.signToken = CFG.token;
+      if (o.idem) body.idem = o.idem;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', CFG.apiUrl, true);
+      // 이 한 줄이 preflight(OPTIONS)를 피하는 핵심이다. application/json 으로 바꾸면
+      // Apps Script 가 응답하지 못하는 OPTIONS 가 먼저 날아가고 그 자리에서 막힌다.
+      xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
+      xhr.timeout = o.timeout || XHR_TIMEOUT_VIEW;
+
+      xhr.ontimeout = function () {
+        cb({ code: 'TIMEOUT', message: '서버가 시간 안에 응답하지 않았습니다.' });
+      };
+      xhr.onerror = function () {
+        cb({ code: 'NETWORK', message: '인터넷 연결이 끊겼습니다.' });
+      };
+      xhr.onload = function () {
+        var res = null;
+        try { res = JSON.parse(xhr.responseText); } catch (e) { res = null; }
+        if (!res || typeof res !== 'object') {
+          // 로그인 페이지 같은 HTML 이 돌아온 경우다. '서버 오류'로 뭉개지 않는다.
+          cb({ code: 'BAD_RESPONSE', message: '서버가 계약 정보 대신 다른 화면을 보냈습니다(배포 설정 확인 필요).' });
+          return;
+        }
+        if (res.ok === true) { cb(null, res); return; }
+
+        var code = String(res.error || 'SERVER_ERROR');
+        // 정본 이름을 못 알아들었을 때만 별칭으로 한 번 더. 두 번 넘게 되풀이하지 않는다.
+        if (!isRetry && act.alias && act.alias !== actionName && looksUnknownAction(code, res.message)) {
+          send(act.alias, true);
+          return;
+        }
+        cb({ code: code, message: String(res.message || '') });
+      };
+
+      try {
+        xhr.send(JSON.stringify(body));
+      } catch (e) {
+        cb({ code: 'NETWORK', message: '요청을 보내지 못했습니다.' });
+      }
+    }
+  }
+
+  function looksUnknownAction(code, msg) {
+    if (code !== 'BAD_REQUEST') return false;
+    var m = String(msg || '');
+    return m.indexOf('동작') >= 0 || m.indexOf('action') >= 0 || m.indexOf('알 수 없') >= 0;
+  }
+
+  /* ============================================================
+   * 막힌 경우의 안내 — 상태마다 다른 문구
+   * ============================================================ */
+  /* '오류가 발생했습니다' 한 줄로 뭉개면 고객은 무엇을 해야 할지 모른다.
+     무엇이 일어났는지 · 계약은 어떻게 되는지 · 지금 무엇을 하면 되는지를 각각 적는다. */
+  var STOP = {
+    expired: {
+      ico: '⌛', title: '서명 링크의 유효기간이 지났습니다',
+      body: '보안을 위해 서명 링크는 일정 시간이 지나면 자동으로 닫힙니다. 계약 내용은 그대로 보관되어 있으니, 아래 번호로 연락 주시면 새 링크를 바로 보내 드립니다.',
+      call: true, retry: false
+    },
+    used: {
+      ico: '✅', title: '이미 서명이 완료된 계약입니다',
+      body: '이 링크로는 서명이 한 번만 가능하며, 서명은 이미 접수되었습니다. 완료된 계약서를 다시 받아 보시려면 아래 번호로 연락해 주세요.',
+      call: true, retry: false
+    },
+    revoked: {
+      ico: '🚫', title: '취소된 서명 링크입니다',
+      body: '이 링크는 사용이 중지되었습니다. 계약 내용이 바뀌어 새 링크가 발급되었을 수 있습니다. 받으신 문자 중 가장 최근 링크를 열어 보시고, 없으시면 아래 번호로 연락해 주세요.',
+      call: true, retry: false
+    },
+    voided: {
+      ico: '🚫', title: '취소된 계약입니다',
+      body: '이 계약은 취소되어 더 이상 서명할 수 없습니다. 착오라고 생각되시면 아래 번호로 연락해 주세요.',
+      call: true, retry: false
+    },
+    invalid: {
+      ico: '🔗', title: '링크 주소가 올바르지 않습니다',
+      body: '문자나 카카오톡에서 링크가 중간에 잘렸을 수 있습니다. 받으신 메시지의 링크를 처음부터 끝까지 눌러 다시 열어 주세요. 그래도 열리지 않으면 아래 번호로 연락해 주세요.',
+      call: true, retry: false
+    },
+    notfound: {
+      ico: '🔍', title: '계약을 찾을 수 없습니다',
+      body: '링크는 열렸지만 해당 계약이 없습니다. 아래 번호로 연락해 주시면 확인해 드리겠습니다.',
+      call: true, retry: false
+    },
+    tampered: {
+      ico: '⚠️', title: '안전을 위해 서명을 멈췄습니다',
+      body: '고객님이 보신 계약 내용과 서버에 보관된 내용이 서로 다릅니다. 이런 경우에는 서명을 진행하지 않습니다. 아래 번호로 연락해 주세요.',
+      call: true, retry: false
+    },
+    clock: {
+      ico: '🕐', title: '휴대폰 시계가 실제 시각과 어긋나 있습니다',
+      body: '보안 확인을 위해 기기 시각과 서버 시각을 맞춰 봅니다. 휴대폰 설정에서 날짜·시간을 "자동"으로 맞춘 뒤 다시 시도해 주세요.',
+      call: false, retry: true
+    },
+    network: {
+      ico: '📡', title: '인터넷 연결이 끊겼습니다',
+      body: '신호가 약한 곳일 수 있습니다. 연결을 확인하신 뒤 다시 시도해 주세요. 계약 내용은 그대로 있습니다.',
+      call: false, retry: true
+    },
+    timeout: {
+      ico: '⏱️', title: '서버가 시간 안에 응답하지 않았습니다',
+      body: '잠시 뒤 다시 시도해 주세요. 계속 같은 화면이 나오면 아래 번호로 연락해 주세요.',
+      call: true, retry: true
+    },
+    busy: {
+      ico: '⏱️', title: '지금은 다른 작업이 진행 중입니다',
+      body: '잠깐 뒤에 다시 시도해 주세요.',
+      call: false, retry: true
+    },
+    config: {
+      ico: '🛠️', title: '링크 정보를 읽지 못했습니다',
+      body: '서명 화면을 여는 데 필요한 정보가 서버에서 전달되지 않았습니다. 고객님 잘못이 아닙니다. 아래 번호로 연락해 주시면 새 링크를 보내 드리겠습니다.',
+      call: true, retry: false
+    },
+    server: {
+      ico: '⚠️', title: '계약서를 여는 중 문제가 생겼습니다',
+      body: '잠시 뒤 다시 시도해 주세요. 계속되면 아래 번호로 연락해 주시면 바로 확인하겠습니다.',
+      call: true, retry: true
+    }
+  };
+
+  // 서버 오류 코드 → 위 안내 열쇠.
+  function stopKeyOf(code) {
+    switch (String(code || '')) {
+      case 'TOKEN_EXPIRED': return 'expired';
+      case 'TOKEN_USED': return 'used';
+      case 'TOKEN_REVOKED': return 'revoked';
+      case 'TOKEN_INVALID': return 'invalid';
+      case 'NOT_FOUND': return 'notfound';
+      case 'DOC_TAMPERED': return 'tampered';
+      case 'CLOCK_SKEW': return 'clock';
+      case 'NETWORK': return 'network';
+      case 'TIMEOUT': return 'timeout';
+      case 'BUSY': return 'busy';
+      case 'NO_API': return 'config';
+      case 'BAD_RESPONSE': return 'config';
+      case 'LOCKED': return 'voided';
+      case 'BAD_STATE': return 'voided';
+      default: return 'server';
+    }
+  }
+
+  function stop(key, serverMsg) {
+    var s = STOP[key] || STOP.server;
+    hide('scLoad'); hide('scSign'); hide('scConfirm'); hide('scDone');
+    setText($('stopIco'), s.ico);
+    setText($('stopTitle'), s.title);
+    // 서버가 더 정확한 문구를 주면 그것을 함께 보여준다(붙여서 두 문장으로).
+    setText($('stopBody'), serverMsg ? (s.body + '\n\n안내: ' + serverMsg) : s.body);
+    $('stopBody').style.whiteSpace = 'pre-wrap';
+    if (s.call) {
+      show('stopCall');
+      var a = $('stopTel');
+      setText(a, S.tel);
+      a.href = 'tel:' + S.tel.replace(/[^0-9+]/g, '');
+    } else {
+      hide('stopCall');
+    }
+    if (s.retry) { show('btnReload'); } else { hide('btnReload'); }
+    $('steps').classList.add('hide');
+    show('scStop');
+    window.scrollTo(0, 0);
+  }
+
+  /* ============================================================
+   * 서버 응답을 화면이 쓰는 모양으로 정리
+   * ============================================================ */
+  /* 서버가 { contract:{…} } 로 감싸 줄 수도, 값을 그대로 펼쳐 줄 수도 있다.
+     화면이 둘 다 받아들이면 서버가 어느 쪽이든 고객이 하얀 화면을 보지 않는다. */
+  function normalize(d) {
+    var raw = d || {};
+    var c = (raw.contract && typeof raw.contract === 'object') ? raw.contract : raw;
+    var body = pickObj(raw.body, c.body) || {};
+    var v = {
+      contractNo: str(c.contractNo || raw.contractNo),
+      title: str(c.title || raw.title),
+      status: str(c.status || raw.status),
+      amount: num(c.amount != null ? c.amount : (raw.amount != null ? raw.amount : body.amount)),
+      customerName: str(body.customerName || c.customerName || raw.customerName),
+      customerPhoneMasked: str(c.customerPhoneMasked || raw.customerPhoneMasked),
+      operatorName: str(c.operatorName || raw.operatorName),
+      docHash: str(raw.docHash || c.docHash),
+      expiresAt: str(raw.expiresAt || c.expiresAt),
+      completedAt: str(c.completedAt || raw.completedAt),
+      signedAt: str(c.signedAt || raw.signedAt),
+      signerName: str(c.signerName || raw.signerName),
+      body: body,
+      operator: pickObj(body.operator, raw.operator) || {},
+      payments: payList(raw.payments || c.payments, body),
+      doneUrl: safeUrl(raw.doneUrl || raw.viewUrl || raw.completedUrl || raw.url),
+      viewToken: str(raw.viewToken || raw.doneToken)
+    };
+    return v;
+  }
+  function str(v) { return (v == null) ? '' : String(v); }
+  function num(v) { var n = Number(v); return isFinite(n) && n > 0 ? Math.round(n) : 0; }
+  function pickObj(a, b) {
+    if (a && typeof a === 'object') return a;
+    if (b && typeof b === 'object') return b;
+    return null;
+  }
+  // 대금 3회차. 목록으로 오면 그대로, body.payment 로만 오면 그것으로 만든다.
+  function payList(arr, body) {
+    var out = [];
+    var i;
+    if (Object.prototype.toString.call(arr) === '[object Array]' && arr.length) {
+      for (i = 0; i < arr.length; i++) {
+        var p = arr[i] || {};
+        out.push({ stage: str(p.stage), label: str(p.label) || labelOf(str(p.stage)), amount: num(p.amount) });
+      }
+      return out;
+    }
+    var pay = (body && body.payment) || null;
+    if (pay) {
+      var stages = ['down', 'mid', 'bal'];
+      for (i = 0; i < stages.length; i++) {
+        out.push({ stage: stages[i], label: labelOf(stages[i]), amount: num(pay[stages[i]]) });
+      }
+    }
+    return out;
+  }
+  function labelOf(stage) {
+    if (stage === 'down') return '계약금';
+    if (stage === 'mid') return '중도금';
+    if (stage === 'bal') return '잔금';
+    return '대금';
+  }
+
+  /* ============================================================
+   * 계약 그리기 — 전부 textContent 로만 넣는다
+   * ============================================================ */
+  function render(v) {
+    setText($('ctNo'), v.contractNo ? '계약번호 ' + v.contractNo : '계약서');
+    setText($('ctTitle'), v.title || '공사 도급계약서');
+
+    var who = [];
+    if (v.customerName) who.push(v.customerName + ' 고객님');
+    if (v.operator.co || v.operatorName) who.push((v.operator.co || v.operatorName) + ' 드림');
+    setText($('ctWho'), who.join(' · '));
+
+    setText($('ctAmount'), won(v.amount) + '원');
+    // 부가세 포함 여부는 서버가 말해 준 경우에만 적는다. 모르면서 '포함'이라고 쓰면
+    // 나중에 그 한 줄이 분쟁의 시작이 된다.
+    setText($('ctVat'), v.body.vatIncluded === false ? '(부가세 별도)'
+      : (v.body.vatIncluded === true ? '(부가세 포함)' : ''));
+
+    // 대금 3회차
+    var pays = $('ctPays');
+    pays.textContent = '';
+    for (var i = 0; i < v.payments.length; i++) {
+      kv(pays, v.payments[i].label, won(v.payments[i].amount) + '원');
+    }
+    var r = v.body.paymentRatio;
+    if (r) {
+      setText($('ctRatio'), '계약금 ' + pct(r.down) + '% · 중도금 ' + pct(r.mid) + '% · 잔금 ' + pct(r.bal) + '%');
+    } else {
+      setText($('ctRatio'), '');
+    }
+
+    // 요약 표
+    var f = $('ctFacts');
+    f.textContent = '';
+    kv(f, '도급인(갑)', v.customerName + (v.customerPhoneMasked ? ' · ' + v.customerPhoneMasked : ''));
+    var opLine = (v.operator.co || v.operatorName || '');
+    if (v.operator.rep) opLine += ' (' + v.operator.rep + ')';
+    if (v.operator.bizNo) opLine += ' · 사업자 ' + v.operator.bizNo;
+    kv(f, '수급인(을)', opLine);
+    kv(f, '현장', v.body.site);
+    kv(f, '공사 범위', v.body.scope);
+    kv(f, '공사기간', v.body.period);
+    kv(f, '하자보증', v.body.warranty);
+    if (v.expiresAt) kv(f, '링크 유효기간', when(v.expiresAt) + ' 까지');
+    if (!f.firstChild) f.classList.add('hide');
+
+    // 계약 전문
+    var doc = $('ctDoc');
+    doc.textContent = '';
+    var cl = v.body.clauses;
+    if (Object.prototype.toString.call(cl) === '[object Array]' && cl.length) {
+      for (var j = 0; j < cl.length; j++) {
+        var c = cl[j];
+        if (typeof c === 'string') { doc.appendChild(el('p', null, c)); continue; }
+        var head = '';
+        if (c && c.no != null) head = '제' + c.no + '조';
+        if (c && c.title) head += (head ? ' ' : '') + '(' + c.title + ')';
+        if (head) doc.appendChild(el('h3', null, head));
+        doc.appendChild(el('p', null, (c && c.text) || ''));
+      }
+    } else {
+      doc.appendChild(el('p', null, '계약 조항이 등록되어 있지 않습니다. 서명 전에 담당자에게 확인해 주세요.'));
+    }
+    if (v.body.note) {
+      var n = el('p', null, v.body.note);
+      n.style.color = '#6f655a';
+      doc.appendChild(n);
+    }
+
+    setText($('ctHash'), v.docHash || '(지문 없음)');
+
+    // 성명은 미리 채우지 않는다. 고객이 직접 적은 이름이라야 서명의 뜻이 분명해진다
+    // (계약서상 도급인 이름은 위 요약표에 이미 보인다).
+  }
+  function pct(x) { var n = Number(x); return isFinite(n) ? Math.round(n * 100) : 0; }
+
+  /* ============================================================
+   * 서명판 — 터치와 마우스를 모두 받는다
+   * ============================================================ */
+  /* 획(점 목록)을 그대로 들고 있다가 필요할 때마다 다시 그린다.
+     화면을 돌리거나 크기가 바뀌어도 서명이 사라지지 않고,
+     '다시 그리기'와 '내보내기'가 같은 자료 하나만 보면 되기 때문이다. */
+  function setupPad() {
+    cv = $('sigCanvas');
+    cx = cv.getContext('2d');
+    fitPad();
+
+    if (window.PointerEvent) {
+      // 포인터 이벤트가 있으면 손가락·펜·마우스가 한 경로로 들어온다.
+      cv.addEventListener('pointerdown', function (e) { e.preventDefault(); down(e.clientX, e.clientY); });
+      cv.addEventListener('pointermove', function (e) { if (S.drawing) { e.preventDefault(); move(e.clientX, e.clientY); } });
+      window.addEventListener('pointerup', up);
+      window.addEventListener('pointercancel', up);
+    } else {
+      // 구형 WebView 대비. 마우스와 터치를 따로 받는다.
+      cv.addEventListener('mousedown', function (e) { e.preventDefault(); down(e.clientX, e.clientY); });
+      window.addEventListener('mousemove', function (e) { if (S.drawing) move(e.clientX, e.clientY); });
+      window.addEventListener('mouseup', up);
+      cv.addEventListener('touchstart', function (e) {
+        if (!e.touches.length) return;
+        e.preventDefault();   // 서명 중에 화면이 따라 움직이지 않게 한다
+        down(e.touches[0].clientX, e.touches[0].clientY);
+      }, false);
+      cv.addEventListener('touchmove', function (e) {
+        if (!S.drawing || !e.touches.length) return;
+        e.preventDefault();
+        move(e.touches[0].clientX, e.touches[0].clientY);
+      }, false);
+      cv.addEventListener('touchend', up, false);
+      cv.addEventListener('touchcancel', up, false);
+    }
+
+    window.addEventListener('resize', function () { fitPad(); });
+    window.addEventListener('orientationchange', function () {
+      // 회전 직후에는 크기가 아직 바뀌지 않은 브라우저가 있어 한 박자 뒤에 맞춘다.
+      window.setTimeout(fitPad, 250);
+    });
+  }
+
+  function fitPad() {
+    if (!cv) return;
+    var rect = cv.getBoundingClientRect();
+    // 계약 화면이 아직 숨겨져 있으면 폭이 0으로 나온다. 그대로 잡으면 서명판이 1픽셀이 된다.
+    // 화면을 보여준 뒤(toSign) 다시 부르므로 여기서는 조용히 넘어간다.
+    if (rect.width < 2) return;
+    // 화면 배율이 3배인 폰에서 그대로 키우면 PNG 가 쓸데없이 커진다. 2배에서 끊는다.
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.max(1, Math.round(rect.width * dpr));
+    cv.height = Math.max(1, Math.round(rect.height * dpr));
+    paint(cx, cv.width, cv.height);
+  }
+
+  function at(clientX, clientY) {
+    var r = cv.getBoundingClientRect();
+    return { x: clientX - r.left, y: clientY - r.top };
+  }
+  function down(clientX, clientY) {
+    S.drawing = true;
+    S.cur = [at(clientX, clientY)];
+    S.strokes.push(S.cur);
+    $('padHint').classList.add('hide');
+    paint(cx, cv.width, cv.height);
+  }
+  function move(clientX, clientY) {
+    if (!S.drawing || !S.cur) return;
+    var p = at(clientX, clientY);
+    var last = S.cur[S.cur.length - 1];
+    var dx = p.x - last.x, dy = p.y - last.y;
+    var d = Math.sqrt(dx * dx + dy * dy);
+    if (d < 0.8) return;         // 손 떨림으로 점이 쌓여 PNG 가 커지는 것을 막는다
+    S.inkLen += d;
+    S.cur.push(p);
+    paint(cx, cv.width, cv.height);
+  }
+  function up() {
+    if (!S.drawing) return;
+    S.drawing = false;
+    S.cur = null;
+  }
+
+  // ctx 에 서명을 그린다. 안내선은 화면용이므로 여기서 그리지 않는다
+  // (제출용 이미지에 '여기에 서명해 주세요'가 찍히면 계약서에 그대로 남는다).
+  function paint(ctx2, w, h) {
+    ctx2.setTransform(1, 0, 0, 1, 0, 0);
+    ctx2.fillStyle = '#ffffff';
+    ctx2.fillRect(0, 0, w, h);
+    ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx2.strokeStyle = '#1b1b1b';
+    ctx2.lineWidth = 2.6;
+    ctx2.lineCap = 'round';
+    ctx2.lineJoin = 'round';
+    for (var i = 0; i < S.strokes.length; i++) {
+      var s = S.strokes[i];
+      if (!s.length) continue;
+      ctx2.beginPath();
+      ctx2.moveTo(s[0].x, s[0].y);
+      if (s.length === 1) ctx2.lineTo(s[0].x + 0.1, s[0].y);   // 점 하나도 보이게
+      for (var j = 1; j < s.length; j++) ctx2.lineTo(s[j].x, s[j].y);
+      ctx2.stroke();
+    }
+  }
+
+  function clearPad() {
+    S.strokes = []; S.cur = null; S.drawing = false; S.inkLen = 0; S.sigData = '';
+    $('padHint').classList.remove('hide');
+    paint(cx, cv.width, cv.height);
+  }
+
+  // 제출용 PNG. 화면 캔버스를 그대로 쓰지 않고 같은 크기의 새 캔버스에 다시 그린다.
+  function exportPng() {
+    var off = document.createElement('canvas');
+    off.width = cv.width; off.height = cv.height;
+    paint(off.getContext('2d'), off.width, off.height);
+    return off.toDataURL('image/png');
+  }
+
+  /* ============================================================
+   * 화면 흐름
+   * ============================================================ */
+  function steps(n) {
+    var ids = ['st1', 'st2', 'st3'];
+    for (var i = 0; i < ids.length; i++) {
+      var e = $(ids[i]);
+      e.className = (i + 1 < n) ? 'done' : (i + 1 === n ? 'on' : '');
+    }
+  }
+
+  function toSign(v) {
+    S.view = v;
+    S.docHash = v.docHash;
+    render(v);
+    hide('scLoad'); hide('scStop'); hide('scConfirm'); hide('scDone');
+    show('scSign');
+    fitPad();          // 이제야 서명판의 진짜 폭을 알 수 있다(숨겨져 있을 때는 0이었다)
+    steps(1);
+    if (!S.docHash) {
+      // 지문이 없으면 서버가 위변조 대조를 할 수 없다. 서명을 받지 않는다.
+      setText($('signErr'), '계약 지문을 받지 못해 서명을 진행할 수 없습니다. 아래 번호로 연락해 주세요: ' + S.tel);
+      $('btnNext').disabled = true;
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function checkSign() {
+    var name = String($('fName').value || '').trim();
+    if (!name) return '성명을 입력해 주세요.';
+    if (name.length > 40) return '성명이 너무 깁니다.';
+    if (!S.strokes.length || S.inkLen < 60) return '서명을 그려 주세요. (지금은 너무 짧습니다)';
+    if (!$('fAgree').checked) return '계약 내용 동의에 체크해 주세요.';
+    if (!S.docHash) return '계약 지문이 없어 서명을 진행할 수 없습니다.';
+    return '';
+  }
+
+  function toConfirm() {
+    var bad = checkSign();
+    setText($('signErr'), bad);
+    if (bad) return;
+
+    S.sigData = exportPng();
+    if (S.sigData.length > 2 * 1024 * 1024) {
+      setText($('signErr'), '서명 이미지가 너무 큽니다. 다시 그리기 후 조금 더 간단히 그려 주세요.');
+      return;
+    }
+
+    var v = S.view;
+    var box = $('cfSummary');
+    box.textContent = '';
+    kv(box, '계약번호', v.contractNo);
+    kv(box, '계약 제목', v.title);
+    kv(box, '총 계약금액', won(v.amount) + '원');
+    for (var i = 0; i < v.payments.length; i++) {
+      kv(box, v.payments[i].label, won(v.payments[i].amount) + '원');
+    }
+    kv(box, '서명자 성명', String($('fName').value || '').trim());
+
+    $('cfSig').src = S.sigData;      // 우리 캔버스가 만든 값이라 바깥에서 들어온 주소가 아니다
+    setText($('cfErr'), '');
+    setText($('cfWait'), '');
+    $('btnSubmit').disabled = false;
+    $('btnSubmit').textContent = '제출합니다';
+
+    hide('scSign'); show('scConfirm');
+    steps(2);
+    window.scrollTo(0, 0);
+  }
+
+  function submit() {
+    if (S.submitting) return;          // 두 번 눌러도 한 번만 나간다
+    // 확인 단계를 거치지 않고 이 함수가 불릴 길은 없어야 하지만, 한 번 더 막는다.
+    // 서명이 빈 채로 나가면 서버는 거절하고 고객은 이유를 모른 채 실패만 본다.
+    if (!S.sigData || !S.docHash) {
+      setText($('cfErr'), '서명 정보가 준비되지 않았습니다. 돌아가서 서명을 다시 그려 주세요.');
+      return;
+    }
+    S.submitting = true;
+    var btn = $('btnSubmit');
+    btn.disabled = true;
+    $('btnBack').disabled = true;      // 보내는 중에 뒤로 가면 무엇이 접수됐는지 알 수 없게 된다
+    btn.textContent = '';
+    btn.appendChild(el('span', 'spin'));
+    btn.appendChild(document.createTextNode('제출 중입니다…'));
+    setText($('cfErr'), '');
+    setText($('cfWait'), '완료본(PDF)을 만드는 데 20초 정도 걸릴 수 있습니다. 화면을 닫지 말고 기다려 주세요.');
+
+    // 같은 제출은 같은 열쇠로 보낸다. 신호가 끊겨 다시 보내더라도 계약이 두 번 체결되지 않는다.
+    if (!S.idem) S.idem = idemKey();
+
+    api(ACT.submit, {
+      signerName: String($('fName').value || '').trim(),
+      signatureImage: S.sigData,
+      agreed: true,
+      docHashSeen: S.docHash
+    }, { idem: S.idem, timeout: XHR_TIMEOUT_SUBMIT }, function (err, res) {
+      if (!err) { toDone(res); return; }
+
+      S.submitting = false;
+      btn.disabled = false;
+      $('btnBack').disabled = false;
+      btn.textContent = '다시 제출하기';
+
+      // 이미 접수된 경우는 실패가 아니다. 놀라게 하지 않는다.
+      if (err.code === 'TOKEN_USED') {
+        toDone({ already: true });
+        return;
+      }
+      if (err.code === 'DOC_TAMPERED' || err.code === 'TOKEN_EXPIRED' ||
+          err.code === 'TOKEN_REVOKED' || err.code === 'NOT_FOUND' ||
+          err.code === 'LOCKED' || err.code === 'BAD_STATE') {
+        stop(stopKeyOf(err.code), err.message);
+        return;
+      }
+      if (err.code === 'TIMEOUT' || err.code === 'NETWORK') {
+        setText($('cfWait'), '');
+        setText($('cfErr'), (err.code === 'TIMEOUT'
+          ? '서버가 시간 안에 응답하지 않았습니다. '
+          : '인터넷 연결이 끊겼습니다. ')
+          + '이미 접수되었을 수도 있으니 다시 눌러 보시고(같은 제출로 처리됩니다), 계속 실패하면 '
+          + S.tel + ' 로 연락해 주세요.');
+        return;
+      }
+      setText($('cfWait'), '');
+      setText($('cfErr'), (err.message || '제출하지 못했습니다.') + ' (' + err.code + ')');
+    });
+  }
+
+  function toDone(res) {
+    var d = res || {};
+    S.done = d;
+    var v = S.view || {};
+
+    setText($('doneTitle'), d.already ? '이미 서명이 접수되었습니다' : '서명이 완료되었습니다');
+    setText($('doneLead'), d.already
+      ? '앞서 보내신 서명이 정상적으로 접수되어 있습니다. 다시 서명하실 필요는 없습니다.'
+      : '계약이 정상적으로 체결되었습니다. 감사합니다.');
+
+    var box = $('doneFacts');
+    box.textContent = '';
+    kv(box, '계약번호', str(d.contractNo) || v.contractNo);
+    kv(box, '계약 제목', v.title);
+    kv(box, '서명자', str(d.signerName) || String($('fName').value || '').trim() || v.signerName);
+    var atIso = str(d.completedAt) || str(d.signedAt) || str(d.at);
+    if (atIso) kv(box, '체결 시각', when(atIso));
+    var hash = str(d.docHash) || v.docHash;
+    if (hash) kv(box, '문서 지문', hash.slice(0, 24) + '…');
+    if (!box.firstChild) box.classList.add('hide');
+
+    // 완료본 주소는 서버가 준 것만 쓴다. 없는 주소를 지어내지 않는다
+    // (틀린 링크를 눌러 '권한 없음' 화면을 보는 것이 더 나쁘다).
+    var url = safeUrl(d.doneUrl || d.viewUrl || d.completedUrl || d.url);
+    if (!url) {
+      var vt = str(d.viewToken || d.doneToken);
+      if (vt && CFG.apiUrl) {
+        url = CFG.apiUrl + (CFG.apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'page=done&t=' + encodeURIComponent(vt);
+      }
+    }
+    var a = $('btnDoneOpen');
+    if (url) {
+      a.href = url;
+      a.classList.remove('hide');
+      setText($('doneHelp'), '완료본 열람 링크는 보안을 위해 잠시 뒤 닫힙니다. 필요하시면 지금 저장해 두세요.');
+    } else {
+      a.classList.add('hide');
+      setText($('doneHelp'), '서명하신 완료 계약서는 담당자가 문자로 보내 드립니다. 급하시면 ' + S.tel + ' 로 연락해 주세요.');
+    }
+
+    hide('scLoad'); hide('scStop'); hide('scSign'); hide('scConfirm');
+    show('scDone');
+    steps(3);
+    window.scrollTo(0, 0);
+  }
+
+  /* 완료본 확인 화면(?page=done). 계약 요약과 내려받기 링크만 보여준다. */
+  function toDoneView(v, extra) {
+    S.view = v;
+    var d = extra || {};
+    setText($('doneTitle'), '체결이 끝난 계약서입니다');
+    setText($('doneLead'), '아래에서 완료본을 확인하실 수 있습니다.');
+
+    var box = $('doneFacts');
+    box.textContent = '';
+    kv(box, '계약번호', v.contractNo);
+    kv(box, '계약 제목', v.title);
+    kv(box, '총 계약금액', v.amount ? won(v.amount) + '원' : '');
+    kv(box, '서명자', v.signerName);
+    if (v.completedAt) kv(box, '체결 시각', when(v.completedAt));
+    if (v.docHash) kv(box, '문서 지문', v.docHash.slice(0, 24) + '…');
+
+    var url = v.doneUrl || safeUrl(d.fileUrl || d.downloadUrl);
+    var a = $('btnDoneOpen');
+    if (url) { a.href = url; a.classList.remove('hide'); setText($('doneHelp'), ''); }
+    else {
+      a.classList.add('hide');
+      setText($('doneHelp'), '완료본 파일 주소를 받지 못했습니다. ' + S.tel + ' 로 연락해 주세요.');
+    }
+
+    hide('scLoad'); hide('scStop'); hide('scSign'); hide('scConfirm');
+    show('scDone');
+    $('steps').classList.add('hide');
+    window.scrollTo(0, 0);
+  }
+
+  /* ============================================================
+   * 시작
+   * ============================================================ */
+  function boot() {
+    var raw = '';
+    var holder = $('boot');
+    if (holder) raw = holder.getAttribute('data-boot') || '';
+    var b = {};
+    if (raw) { try { b = JSON.parse(raw) || {}; } catch (e) { b = {}; } }
+
+    CFG.apiUrl = safeUrl(b.apiUrl);
+    CFG.token = String(b.token || '');
+    CFG.mode = (b.mode === 'done') ? 'done' : 'sign';
+
+    // 연락처는 서버가 주면 그것을 쓴다(사업자 정보가 바뀌어도 화면을 고치지 않게).
+    var opTel = b.data && ((b.data.operator && b.data.operator.tel) ||
+      (b.data.body && b.data.body.operator && b.data.body.operator.tel));
+    if (opTel) S.tel = String(opTel);
+
+    wire();
+
+    // 서버가 이미 "이 링크는 못 쓴다"고 알려준 경우 — 왕복 없이 바로 안내한다.
+    var st = String(b.state || '');
+    if (st && st !== 'ok') { stop(mapState(st), b.message || ''); return; }
+
+    if (!CFG.token && !b.data) { stop('config', b.message || ''); return; }
+
+    if (b.data) {
+      var v = normalize(b.data);
+      if (CFG.mode === 'done') { toDoneView(v, b.data); } else { toSign(v); }
+      return;
+    }
+
+    // 서버가 내용을 심어 주지 않았으면 화면이 직접 물어본다.
+    var act = (CFG.mode === 'done') ? ACT.done : ACT.view;
+    api(act, {}, { timeout: XHR_TIMEOUT_VIEW }, function (err, res) {
+      if (err) { stop(stopKeyOf(err.code), err.message); return; }
+      var v2 = normalize(res);
+      if (CFG.mode === 'done') { toDoneView(v2, res); } else { toSign(v2); }
+    });
+  }
+
+  function mapState(s) {
+    switch (String(s)) {
+      case 'expired': return 'expired';
+      case 'used': return 'used';
+      case 'revoked': return 'revoked';
+      case 'void': case 'voided': return 'voided';
+      case 'invalid': return 'invalid';
+      case 'notfound': return 'notfound';
+      case 'completed': return 'used';
+      default: return 'server';
+    }
+  }
+
+  function wire() {
+    setupPad();
+
+    $('btnClear').onclick = function () { clearPad(); setText($('signErr'), ''); };
+    $('btnNext').onclick = toConfirm;
+    $('btnBack').onclick = function () {
+      if (S.submitting) return;        // 제출 중에는 되돌아가지 않는다
+      hide('scConfirm'); show('scSign'); steps(1); window.scrollTo(0, 0);
+    };
+    $('btnSubmit').onclick = submit;
+    $('btnReload').onclick = function () { window.location.reload(); };
+
+    var chk = $('fAgree');
+    function paintAgree() { $('cAgree').className = 'consent' + (chk.checked ? ' on' : ''); }
+    chk.onchange = function () { paintAgree(); setText($('signErr'), ''); };
+    paintAgree();
+
+    var doc = $('ctDoc'), tg = $('btnDoc');
+    tg.onclick = function () {
+      // classList.toggle 의 반환값에 기대지 않는다(구형 브라우저는 값을 주지 않는다).
+      var closed = doc.className.indexOf('hide') >= 0;
+      doc.className = closed ? 'doc' : 'doc hide';
+      tg.textContent = closed ? '전문 접기' : '전문 펼치기';
+    };
+
+    $('fName').oninput = function () { setText($('signErr'), ''); };
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>
