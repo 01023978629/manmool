@@ -39,8 +39,16 @@
 for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; done
 # 종료코드로 판정하라 — 일부 스크립트는 통과해도 표를 길게 출력한다
 ```
-블로그 글 추가는 **3곳 동시**: `posts/*.html` + `blog.html` 카드 + `sitemap.xml`.
-빼먹으면 `ensure-site-integrity.mjs` 가 잡는다. 표현 안전수칙: 최상급·보증
+**블로그 글은 `posts/*.html` 을 손으로 만들지 마라.** 그건 생성물이다.
+정본은 `data/site.json` 의 `insights` 하나뿐이고, 거기에 항목을 넣은 뒤
+`python3 scripts/prerender-posts.py` 를 돌리면 `posts/<slug>.html` 과
+`blog.html` 목록이 함께 만들어진다. `sitemap.xml` 만 따로 챙기면 된다.
+
+손으로 `posts/*.html` 을 만들면 **고아 글**이 된다 — 파일은 있는데 목록·홈
+어디에도 안 떠서 손님이 볼 방법이 없다. 실제로 2026-08-02 관리사무소 대상
+글이 그 상태로 방치됐다(문서에는 "검사가 잡는다"고 적혀 있었지만 그런 검사가
+없었다). 지금은 `ensure-site-integrity.mjs` 가 site.json↔posts↔blog.html
+세 방향을 대조해 잡는다. 표현 안전수칙: 최상급·보증
 과장 금지("최저가"·"100%"·"평생 보증" 금지), 하자보수는 "준공 후 1년"까지만.
 
 **전자계약 서버 변경:**

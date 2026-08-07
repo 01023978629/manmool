@@ -29,6 +29,35 @@ const htmlFiles = [
 
 const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
 
+/* ⓪ 글이 사이트에서 도달 가능한가 (고아 글 방지) ------------------------
+ * posts/<slug>.html 은 data/site.json 의 insights 에서 생성된다(prerender-posts.py).
+ * site.json 에 없는 글은 파일만 존재하고 blog.html 목록·홈 인사이트 어디에도
+ * 안 뜬다 — 손님이 볼 방법이 없다. 실제로 2026-08-02 글이 그 상태로 방치됐다.
+ * 문서에는 "빼먹으면 검사가 잡는다"고 적혀 있었지만 그 검사가 없었다. 이제 있다. */
+{
+  const raw = readIf('data/site.json');
+  if (raw) {
+    let ins = [];
+    try { ins = (JSON.parse(raw).insights || []); } catch (e) { fail.push('data/site.json 을 읽을 수 없다: ' + e.message); }
+    const slugs = new Set(ins.map((x) => x && x.slug).filter(Boolean));
+    const blog = readIf('blog.html') || '';
+    for (const s of slugs) {
+      checked++;
+      if (!fs.existsSync(path.join(ROOT, 'posts', s + '.html')))
+        fail.push(`site.json 에 있는 글 "${s}" 의 posts/${s}.html 이 없다 — prerender-posts.py 를 돌려라`);
+      if (!blog.includes(`posts/${s}.html`))
+        fail.push(`글 "${s}" 이 blog.html 목록에 없다 — 손님이 볼 방법이 없다. prerender-posts.py 를 돌려라`);
+    }
+    for (const f of fs.existsSync(path.join(ROOT, 'posts')) ? fs.readdirSync(path.join(ROOT, 'posts')) : []) {
+      if (!f.endsWith('.html')) continue;
+      const s = f.replace(/\.html$/, '');
+      checked++;
+      if (!slugs.has(s))
+        fail.push(`posts/${f} 이 data/site.json 의 insights 에 없다 — 고아 글이다(목록·홈 어디에도 안 뜬다). site.json 에 넣고 prerender-posts.py 를 돌려라`);
+    }
+  }
+}
+
 /* ① 내부 링크가 실제 파일을 가리키는가 (404 방지) ---------------------- */
 for (const rel of htmlFiles) {
   const src = readIf(rel);
