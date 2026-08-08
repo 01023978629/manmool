@@ -691,6 +691,32 @@ section('6-3) AI 중계 — 키를 서버에 두고 브라우저로 내려보내
   }
   check(blocked && blocked.indexOf('AI_QUOTA') === 0, '분당 한도를 넘기면 막는다', blocked || '안 막혔다');
 
+  // 🔴 한도 신호가 앱까지 그대로 가는가 — 이게 깨지면 돈이 샌다.
+  // gwErrOut_ 은 GW_ERROR_CODES 에 없는 코드를 SERVER_ERROR 로 내린다.
+  // AI_QUOTA 가 SERVER_ERROR 로 뭉개지면 앱(hyeonjang)은 한도를 모른 채
+  // 기기에 저장된 키로 계속 호출한다. 한도를 한 곳에서 세려고 키를 서버로
+  // 옮긴 의미가 사라지고, 그 키에 결제수단이 붙어 있으면 요금이 그대로 나간다.
+  const quotaOut = ctx.gwErrOut_(new Error(blocked || 'AI_QUOTA|한도'));
+  check(quotaOut.error === 'AI_QUOTA',
+    'AI_QUOTA 가 앱까지 그대로 전달된다(SERVER_ERROR 로 뭉개지지 않는다)',
+    '실제로 나간 코드: ' + quotaOut.error);
+
+  // AiService 가 던지는 코드는 **전부** 규약 코드표 안에 있어야 한다.
+  // 하나라도 빠지면 그 코드만 조용히 SERVER_ERROR 가 되어, 앱이 잘못된 판단을 한다.
+  ['AI_NOT_CONFIGURED', 'AI_PAID_BLOCKED', 'AI_QUOTA', 'AI_UPSTREAM'].forEach(function (code) {
+    const out = ctx.gwErrOut_(new Error(code + '|테스트 메시지'));
+    check(out.error === code, 'AI 코드 ' + code + ' 가 코드표에 있다', '나간 코드: ' + out.error);
+  });
+
+  // 규약에 없는 이름을 새로 던지면 조용히 SERVER_ERROR 가 되므로, 소스에서 직접 막는다.
+  const aiSrc = (sources.find(function (x) { return x.name === 'AiService.gs'; }) || {}).code || '';
+  const thrown = (aiSrc.match(/aiFail_\('([A-Z_]+)'/g) || []).map(function (m) { return m.slice(9, -1); });
+  const allowed = ['AI_NOT_CONFIGURED', 'AI_PAID_BLOCKED', 'AI_QUOTA', 'AI_UPSTREAM', 'BAD_REQUEST'];
+  const stray = thrown.filter(function (c) { return allowed.indexOf(c) < 0; });
+  check(stray.length === 0,
+    'AiService 가 규약 코드표 밖의 오류 코드를 던지지 않는다',
+    '코드표에 없는 코드: ' + stray.join(', '));
+
   // 상태 응답에도 키가 없어야 한다.
   const st = JSON.stringify(ctx.aiStatus_());
   check(st.indexOf(GK) < 0 && st.indexOf(OK_) < 0, 'AI 상태 응답에 키가 없다', st.slice(0, 120));

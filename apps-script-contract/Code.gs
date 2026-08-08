@@ -67,7 +67,13 @@ var GW_SETTING_KEY_RE = /^[A-Za-z0-9_.\-]{1,40}$/;
 // PROTOCOL.md 오류 코드표. 여기 없는 코드는 밖으로 내보내지 않는다.
 var GW_ERROR_CODES = ['BAD_REQUEST', 'UNAUTHORIZED', 'NOT_CONFIGURED', 'CLOCK_SKEW', 'NOT_FOUND',
   'TOKEN_EXPIRED', 'TOKEN_USED', 'TOKEN_REVOKED', 'TOKEN_INVALID',
-  'LOCKED', 'BAD_STATE', 'DOC_TAMPERED', 'BUSY', 'SERVER_ERROR'];
+  'LOCKED', 'BAD_STATE', 'DOC_TAMPERED', 'BUSY',
+  // AI 중계 코드 — 빠져 있으면 전부 SERVER_ERROR 로 뭉개진다.
+  // 특히 AI_QUOTA 가 SERVER_ERROR 로 내려가면 앱이 한도를 모른 채 기기 키로 우회해
+  // 계속 호출한다. 한도를 한 곳에서 세려고 키를 서버로 옮긴 의미가 사라지고,
+  // 그 키에 결제수단이 붙어 있으면 요금이 그대로 나간다.
+  'AI_NOT_CONFIGURED', 'AI_PAID_BLOCKED', 'AI_QUOTA', 'AI_UPSTREAM',
+  'SERVER_ERROR'];
 
 // 고객 경로가 계약 id 를 받는 길을 아예 막는다. 조용히 버리지 않고 시끄럽게 거절한다 —
 // 버리기만 하면 "보냈는데 왜 안 되지"로 남고, 언젠가 누가 통하게 만들어 버린다.
