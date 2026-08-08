@@ -105,14 +105,16 @@ function aiAsk_(p, ctx) {
     res = (provider === 'gemini') ? aiCallGemini_(key, model, payload) : aiCallOpenai_(key, model, payload);
   } catch (e) {
     aiRelease_(provider);        // 못 나갔으면 되돌린다 — 한도를 억울하게 깎지 않는다
-    throw aiFail_('AI_CALL_FAILED', aiShort_(e));
+    // 규약(PROTOCOL.md) 코드표에는 제공자 쪽 실패가 AI_UPSTREAM 하나다.
+    // 코드는 앱의 동작을 정하고, 구분은 메시지에 남긴다.
+    throw aiFail_('AI_UPSTREAM', '호출 실패: ' + aiShort_(e));
   }
 
   if (res.status < 200 || res.status >= 300) {
     // 제공자가 거절했다. 4xx 는 우리 잘못이므로 한도를 되돌리지 않는다(같은 요청이 또 나가면 또 막힌다).
     // 5xx·429 는 상대 사정이라 되돌린다.
     if (res.status >= 500 || res.status === 429) aiRelease_(provider);
-    throw aiFail_('AI_REJECTED', AI_CAP[provider].label + ' 가 거절했습니다 (' + res.status + ') ' + res.brief);
+    throw aiFail_('AI_UPSTREAM', AI_CAP[provider].label + ' 가 거절했습니다 (' + res.status + ') ' + res.brief);
   }
 
   aiLog_(provider, model, ctx);

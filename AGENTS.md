@@ -72,6 +72,12 @@ node --test apps-script-contract/test/*.mjs   # pure 118 + wiring 97 + 화면 e2
   인증 통과 후 조회, 고객 캐시는 토큰 해시별 분리.
 - AI 중계(`ai.ask`): 키는 헤더로만, 갈 수 있는 곳은 아는 두 곳뿐, 한도는
   횟수만 막는다(요금 아님), 유료(openai)는 `AI_ALLOW_PAID=1` 없이 거절.
+- **오류 코드는 `GW_ERROR_CODES`(Code.gs) 와 `PROTOCOL.md` 코드표가 같아야 한다.**
+  목록에 없는 코드는 조용히 `SERVER_ERROR` 로 내려간다. 실제로 AI 코드 4개가
+  통째로 빠져 있어 `AI_QUOTA` 가 `SERVER_ERROR` 로 뭉개졌고, 앱은 한도를 모른 채
+  기기 키로 계속 호출했다 — 한도를 한 곳에서 세려고 키를 서버로 옮긴 의미가
+  사라진다. 새 코드를 던지려면 **PROTOCOL.md 코드표부터** 고치고 두 곳을 맞춰라.
+  `wiring.test.mjs` 가 대조한다.
 
 ## 작업 분류 — 누가 할 수 있는 일인가 (2026-08-05)
 
