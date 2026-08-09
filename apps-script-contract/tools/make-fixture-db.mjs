@@ -131,7 +131,7 @@ function makeContract(ctx, o) {
 
   const body = {
     site: o.title, customerName: o.customer.name, amount: o.amount,
-    scope: ['철거', '도배', '전기'], warranty: '방수 2년 · 일반 1년',
+    scope: ['철거', '도배', '전기'], warranty: '방수 3년 · 급배수 등 설비 2년 · 그 밖의 마감 1년',
     note: '본 계약서는 당사자 확인용이며 법률 자문이 아닙니다.'
   };
   // 시트 한 칸(5만 자)에 못 들어가는 본문. 특약을 잔뜩 붙인 계약을 흉내 낸다.

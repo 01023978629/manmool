@@ -82,6 +82,64 @@ const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
   }
 }
 
+/* ⓪-3 하자보증 기간이 법정 이상인가 + FAQ 구조화 데이터가 정본과 같은가 ---
+ * 2026-08-09 에 "방수 2년"을 3년으로 고쳤는데 **표면만 고쳐졌다.** 홈페이지 문구는
+ * 바뀌었지만 곧 설치할 계약서 코드(ContractService.gs), 고객 전용 페이지가 읽는
+ * data/project.json, 검색에 나가는 JSON-LD 는 2년 그대로였다. 광고는 3년인데
+ * 계약서는 2년인 상태 — 분쟁이 나면 "손님에겐 3년이라 해놓고 계약서로 줄였다"가
+ * 되고, 단축 요건(사유·보증수수료 명시, 시행령 제30조②)을 못 갖췄으니 법원은
+ * 어차피 법정기간을 적용한다. 줄여 쓴 대가만 남는다.
+ * 근거: 건설산업기본법 시행령 별표4 — 방수 3년 · 급배수 등 설비 2년 · 실내건축 1년 */
+{
+  const LEGAL = { 방수: 3, 설비: 2 };
+  // (a) 법정보다 짧은 연수가 박힌 곳이 있는가
+  const SCAN = ['index.html', 'office.html', 'bathroom-check.html', 'data/site.json',
+                'data/project.json', 'apps-script-contract/ContractService.gs',
+                'apps-script-contract/수동검증-체크리스트.md', 'README.md'];
+  for (const rel of SCAN) {
+    const src = readIf(rel);
+    if (src == null) continue;
+    checked++;
+    // 설명 주석("예전에는 방수 2년이었다")은 잡지 않는다 — 실제 값 표기만 본다
+    const body = src.split('\n').filter((l) => !/^\s*(\/\/|\*|#|<!--|\s*예전|.*나갔고)/.test(l)).join('\n');
+    if (/방수[^가-힣0-9]{0,12}2년|방수 관련[^0-9]{0,6}2년|"work": *"방수"[^}]*"years": *2/.test(body))
+      fail.push(`${rel}: 방수 보증이 2년으로 적혀 있다 — 법정은 3년이다(건산법 시행령 별표4). 짧게 적어도 책임은 그대로이고 홈페이지 안내와 어긋나는 손해만 남는다`);
+  }
+  // (b) 계약서 코드의 구조화된 정본 값
+  const cs = readIf('apps-script-contract/ContractService.gs');
+  if (cs) {
+    checked++;
+    const m = cs.match(/var CT_WARRANTY = (\[[^\]]*\]);/);
+    if (!m) fail.push('ContractService.gs 의 CT_WARRANTY 를 찾지 못했다 — 형식이 바뀌었으면 이 검사부터 고쳐라');
+    else {
+      const wp = m[1].match(/name: *'방수[^']*', *months: *(\d+)/);
+      const eq = m[1].match(/name: *'[^']*설비[^']*', *months: *(\d+)/);
+      if (!wp || Number(wp[1]) < LEGAL.방수 * 12)
+        fail.push(`ContractService.gs CT_WARRANTY: 방수가 ${wp ? wp[1] : '없음'}개월 — 법정 36개월 이상이어야 한다. 이 값이 계약서 제7조와 고객 서명 화면에 그대로 찍힌다`);
+      if (!eq || Number(eq[1]) < LEGAL.설비 * 12)
+        fail.push(`ContractService.gs CT_WARRANTY: 급배수 등 설비 항목이 ${eq ? eq[1] + '개월' : '없다'} — 법정 24개월 이상이어야 한다`);
+    }
+  }
+  // (c) index.html 의 FAQ 구조화 데이터가 site.json 정본과 글자 그대로 같은가
+  const rawSite = readIf('data/site.json');
+  const idx = readIf('index.html');
+  if (rawSite && idx) {
+    let faq = [];
+    try { faq = JSON.parse(rawSite).faq || []; } catch (e) { /* ⓪ 에서 이미 보고 */ }
+    checked++;
+    const n = idx.split('"@type": "FAQPage"').length - 1;
+    if (n !== 1)
+      fail.push(`index.html 의 FAQPage 가 ${n}개다(1개여야 함) — 둘이면 내용이 갈릴 때 검색엔진이 어느 쪽을 집을지 통제할 수 없다`);
+    for (const f of faq) {
+      checked++;
+      if (!idx.includes(JSON.stringify(f.q).slice(1, -1)))
+        fail.push(`FAQ "${String(f.q).slice(0, 24)}…" 이 index.html 구조화 데이터에 없다 — python3 scripts/sync-faq-jsonld.py 를 돌려라`);
+      else if (!idx.includes(JSON.stringify(f.a).slice(1, -1)))
+        fail.push(`FAQ "${String(f.q).slice(0, 24)}…" 의 답이 site.json 과 다르다 — 화면과 검색 결과가 다른 말을 한다. python3 scripts/sync-faq-jsonld.py`);
+    }
+  }
+}
+
 /* ① 내부 링크가 실제 파일을 가리키는가 (404 방지) ---------------------- */
 for (const rel of htmlFiles) {
   const src = readIf(rel);
