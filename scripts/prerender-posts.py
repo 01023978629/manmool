@@ -194,11 +194,15 @@ def write_blog_list(insights):
     if start < 0:
         print('건너뜀: blog.html 에서 #blogRoot 블록을 찾지 못했습니다')
         return False
-    end = html_src.find('      </div>', start)
+    # 줄 시작에 앵커한다. 그냥 find('      </div>')는 부분문자열 검색이라
+    # 8칸 들여쓴 '        </div>' 안의 6칸 패턴에 먼저 걸린다 — 그 결과
+    # 실행할 때마다 옛 목록 한 벌이 컨테이너 밖에 남아 페이지에 쌓였다
+    # (실제로 4벌까지 쌓인 채 배포돼 있었다).
+    end = html_src.find('\n      </div>', start)
     if end < 0:
         print('건너뜀: #blogRoot 닫는 태그를 찾지 못했습니다')
         return False
-    end += len('      </div>')
+    end += len('\n      </div>')
     new = html_src[:start] + list_markup(insights) + html_src[end:]
     if new == html_src:
         print('blog.html 변경 없음')

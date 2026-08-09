@@ -58,6 +58,30 @@ const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
   }
 }
 
+/* ⓪-2 blog.html 에 목록이 정확히 한 벌인가 (중복 누적 방지) ------------
+ * prerender 의 끝 탐지가 부분문자열 검색이던 시절, 실행할 때마다 옛 목록이
+ * 컨테이너 밖에 한 벌씩 남아 쌓였다 — 실제로 4벌 중복된 채 배포돼 있었다.
+ * 같은 글이 목록에 두 번 보이면 그 자체로 고장이므로 카드 수로 잡는다. */
+{
+  const raw = readIf('data/site.json');
+  const blog = readIf('blog.html') || '';
+  if (raw && blog) {
+    let ins = [];
+    try { ins = (JSON.parse(raw).insights || []); } catch (e) { /* ⓪ 에서 이미 보고 */ }
+    for (const x of ins) {
+      if (!x || !x.slug) continue;
+      checked++;
+      const n = blog.split(`posts/${x.slug}.html`).length - 1;
+      if (n > 1)
+        fail.push(`글 "${x.slug}" 카드가 blog.html 에 ${n}번 나온다 — 목록이 중복 누적됐다. 떠돌이 목록을 지우고 prerender-posts.py 를 돌려라`);
+    }
+    const grids = blog.split('class="insights-grid"').length - 1;
+    checked++;
+    if (grids !== 1)
+      fail.push(`blog.html 의 insights-grid 가 ${grids}개다(1개여야 함) — 옛 목록이 남아 있다`);
+  }
+}
+
 /* ① 내부 링크가 실제 파일을 가리키는가 (404 방지) ---------------------- */
 for (const rel of htmlFiles) {
   const src = readIf(rel);
