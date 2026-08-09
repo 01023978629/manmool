@@ -19,51 +19,202 @@
     "progress": 62
   },
   "schedule": [
-    { "date": "07-02", "phase": "철거", "task": "기존 마감 철거·폐기물 반출", "status": "완료" },
-    { "date": "07-08", "phase": "샷시", "task": "창호 교체 및 실리콘 마감", "status": "완료" },
-    { "date": "07-15", "phase": "목공", "task": "가벽·붙박이 골조 작업", "status": "완료" },
-    { "date": "07-22", "phase": "전기·설비", "task": "배선·조명 위치 작업", "status": "진행" },
-    { "date": "07-29", "phase": "타일·도장", "task": "욕실 타일 및 도장", "status": "예정" },
-    { "date": "08-05", "phase": "마루·도배", "task": "바닥 마루 시공·도배", "status": "예정" },
-    { "date": "08-11", "phase": "준공", "task": "청소·검수·준공 체크", "status": "예정" }
+    {
+      "date": "07-02",
+      "phase": "철거",
+      "task": "기존 마감 철거·폐기물 반출",
+      "status": "완료"
+    },
+    {
+      "date": "07-08",
+      "phase": "샷시",
+      "task": "창호 교체 및 실리콘 마감",
+      "status": "완료"
+    },
+    {
+      "date": "07-15",
+      "phase": "목공",
+      "task": "가벽·붙박이 골조 작업",
+      "status": "완료"
+    },
+    {
+      "date": "07-22",
+      "phase": "전기·설비",
+      "task": "배선·조명 위치 작업",
+      "status": "진행"
+    },
+    {
+      "date": "07-29",
+      "phase": "타일·도장",
+      "task": "욕실 타일 및 도장",
+      "status": "예정"
+    },
+    {
+      "date": "08-05",
+      "phase": "마루·도배",
+      "task": "바닥 마루 시공·도배",
+      "status": "예정"
+    },
+    {
+      "date": "08-11",
+      "phase": "준공",
+      "task": "청소·검수·준공 체크",
+      "status": "예정"
+    }
   ],
   "todayWork": [
-    { "space": "거실", "task": "천장 매입등 배선 및 스위치 위치 확인", "worker": "협력 전기팀", "must": "스위치 높이 고객 확인 필요" },
-    { "space": "주방", "task": "후드·인덕션 전용 배선 작업", "worker": "협력 전기팀", "must": "누전 차단기 용량 점검" },
-    { "space": "안방", "task": "붙박이장 하부 콘센트 위치 작업", "worker": "협력 목공팀", "must": "가구 도면과 대조" }
+    {
+      "space": "거실",
+      "task": "천장 매입등 배선 및 스위치 위치 확인",
+      "worker": "협력 전기팀",
+      "must": "스위치 높이 고객 확인 필요"
+    },
+    {
+      "space": "주방",
+      "task": "후드·인덕션 전용 배선 작업",
+      "worker": "협력 전기팀",
+      "must": "누전 차단기 용량 점검"
+    },
+    {
+      "space": "안방",
+      "task": "붙박이장 하부 콘센트 위치 작업",
+      "worker": "협력 목공팀",
+      "must": "가구 도면과 대조"
+    }
   ],
   "sitePhotos": [
-    { "date": "07-22", "space": "거실", "phase": "전기", "caption": "천장 배선 작업 진행", "color": "#d8c3a5" },
-    { "date": "07-16", "space": "안방", "phase": "목공", "caption": "붙박이장 골조 완료", "color": "#e0cfc0" },
-    { "date": "07-09", "space": "발코니", "phase": "샷시", "caption": "이중창 교체 완료", "color": "#c9d6df" },
-    { "date": "07-03", "space": "전체", "phase": "철거", "caption": "철거 및 폐기물 반출 완료", "color": "#cfcfcf" }
+    {
+      "date": "07-22",
+      "space": "거실",
+      "phase": "전기",
+      "caption": "천장 배선 작업 진행",
+      "color": "#d8c3a5"
+    },
+    {
+      "date": "07-16",
+      "space": "안방",
+      "phase": "목공",
+      "caption": "붙박이장 골조 완료",
+      "color": "#e0cfc0"
+    },
+    {
+      "date": "07-09",
+      "space": "발코니",
+      "phase": "샷시",
+      "caption": "이중창 교체 완료",
+      "color": "#c9d6df"
+    },
+    {
+      "date": "07-03",
+      "space": "전체",
+      "phase": "철거",
+      "caption": "철거 및 폐기물 반출 완료",
+      "color": "#cfcfcf"
+    }
   ],
   "materials": [
-    { "category": "바닥재", "deadline": "07-25", "selected": "강마루 (내추럴 오크)", "options": [
-      { "name": "강마루 (내추럴 오크)", "priceDiff": 0 },
-      { "name": "SPC 마루", "priceDiff": -400000 },
-      { "name": "원목마루 (프리미엄)", "priceDiff": 1200000 }
-    ]},
-    { "category": "주방 상판", "deadline": "07-28", "selected": null, "options": [
-      { "name": "PT 상판", "priceDiff": 0 },
-      { "name": "칸스톤", "priceDiff": 350000 },
-      { "name": "세라믹", "priceDiff": 900000 }
-    ]},
-    { "category": "욕실 타일", "deadline": "07-26", "selected": "무광 화이트 300각", "options": [
-      { "name": "무광 화이트 300각", "priceDiff": 0 },
-      { "name": "포세린 대형 타일", "priceDiff": 600000 }
-    ]}
+    {
+      "category": "바닥재",
+      "deadline": "07-25",
+      "selected": "강마루 (내추럴 오크)",
+      "options": [
+        {
+          "name": "강마루 (내추럴 오크)",
+          "priceDiff": 0
+        },
+        {
+          "name": "SPC 마루",
+          "priceDiff": -400000
+        },
+        {
+          "name": "원목마루 (프리미엄)",
+          "priceDiff": 1200000
+        }
+      ]
+    },
+    {
+      "category": "주방 상판",
+      "deadline": "07-28",
+      "selected": null,
+      "options": [
+        {
+          "name": "PT 상판",
+          "priceDiff": 0
+        },
+        {
+          "name": "칸스톤",
+          "priceDiff": 350000
+        },
+        {
+          "name": "세라믹",
+          "priceDiff": 900000
+        }
+      ]
+    },
+    {
+      "category": "욕실 타일",
+      "deadline": "07-26",
+      "selected": "무광 화이트 300각",
+      "options": [
+        {
+          "name": "무광 화이트 300각",
+          "priceDiff": 0
+        },
+        {
+          "name": "포세린 대형 타일",
+          "priceDiff": 600000
+        }
+      ]
+    }
   ],
   "changes": [
-    { "id": "CH-01", "reason": "주방 확장에 따른 배관 이설", "amount": 450000, "scheduleImpact": "+1일", "status": "승인대기" },
-    { "id": "CH-02", "reason": "거실 아트월 간접조명 추가", "amount": 280000, "scheduleImpact": "영향 없음", "status": "승인대기" },
-    { "id": "CH-03", "reason": "현관 중문 사양 변경(3연동)", "amount": 350000, "scheduleImpact": "+1일", "status": "승인완료" }
+    {
+      "id": "CH-01",
+      "reason": "주방 확장에 따른 배관 이설",
+      "amount": 450000,
+      "scheduleImpact": "+1일",
+      "status": "승인대기"
+    },
+    {
+      "id": "CH-02",
+      "reason": "거실 아트월 간접조명 추가",
+      "amount": 280000,
+      "scheduleImpact": "영향 없음",
+      "status": "승인대기"
+    },
+    {
+      "id": "CH-03",
+      "reason": "현관 중문 사양 변경(3연동)",
+      "amount": 350000,
+      "scheduleImpact": "+1일",
+      "status": "승인완료"
+    }
   ],
   "payments": [
-    { "name": "계약금", "amount": 4000000, "dueDate": "2026-06-20", "status": "완납" },
-    { "name": "중도금 1차", "amount": 15000000, "dueDate": "2026-07-10", "status": "완납" },
-    { "name": "중도금 2차", "amount": 15000000, "dueDate": "2026-07-28", "status": "예정" },
-    { "name": "잔금", "amount": 7300000, "dueDate": "2026-08-13", "status": "예정" }
+    {
+      "name": "계약금",
+      "amount": 4000000,
+      "dueDate": "2026-06-20",
+      "status": "완납"
+    },
+    {
+      "name": "중도금 1차",
+      "amount": 15000000,
+      "dueDate": "2026-07-10",
+      "status": "완납"
+    },
+    {
+      "name": "중도금 2차",
+      "amount": 15000000,
+      "dueDate": "2026-07-28",
+      "status": "예정"
+    },
+    {
+      "name": "잔금",
+      "amount": 7300000,
+      "dueDate": "2026-08-13",
+      "status": "예정"
+    }
   ],
   "paymentInfo": {
     "bank": "국민은행",
@@ -76,10 +227,26 @@
     "reviewReward": "후기 작성 시 청소 서비스 1회 제공"
   },
   "documents": [
-    { "name": "표준 계약서", "type": "계약", "date": "2026-06-20" },
-    { "name": "최종 견적서", "type": "견적", "date": "2026-06-18" },
-    { "name": "평면 도면", "type": "도면", "date": "2026-06-25" },
-    { "name": "자재 확인서", "type": "확인서", "date": "2026-07-01" }
+    {
+      "name": "표준 계약서",
+      "type": "계약",
+      "date": "2026-06-20"
+    },
+    {
+      "name": "최종 견적서",
+      "type": "견적",
+      "date": "2026-06-18"
+    },
+    {
+      "name": "평면 도면",
+      "type": "도면",
+      "date": "2026-06-25"
+    },
+    {
+      "name": "자재 확인서",
+      "type": "확인서",
+      "date": "2026-07-01"
+    }
   ],
   "contract": {
     "title": "인테리어 공사 표준계약서",
@@ -91,7 +258,7 @@
       "공사대금 총액 4,130만원 (부가세 포함)",
       "공사기간 2026-07-02 ~ 2026-08-13 (영업일 기준)",
       "대금 지급: 계약금 → 중도금 2회 → 잔금 (승인·기록 후 처리)",
-      "하자보증: 국가 건설 기준(방수 2년 · 기타 마감 1년) 준공일 기준 자동 발급",
+      "하자보증: 국가 건설 기준(방수 3년 · 급배수 등 설비 2년 · 마감 1년) 인도일 기준 자동 발급",
       "변경·추가 공사는 금액 재산정 후 고객 승인 시에만 진행"
     ]
   },
@@ -100,47 +267,178 @@
     "startNote": "보증 시작일은 준공일 기준으로 자동 확정되며, 준공 시 보증서가 자동 발급됩니다.",
     "issued": false,
     "items": [
-      { "work": "방수", "years": 2, "scope": "욕실·발코니 방수 하자" },
-      { "work": "타일·미장", "years": 1, "scope": "타일 들뜸·크랙·박리" },
-      { "work": "도배·도장", "years": 1, "scope": "들뜸·오염·변색" },
-      { "work": "창호·유리", "years": 1, "scope": "개폐 불량·실링 하자" },
-      { "work": "목공·가구", "years": 1, "scope": "뒤틀림·문 처짐" },
-      { "work": "전기·설비", "years": 1, "scope": "누전·누수·작동 불량" }
+      {
+        "work": "방수",
+        "years": 3,
+        "scope": "욕실·발코니 방수 하자"
+      },
+      {
+        "work": "타일·미장",
+        "years": 1,
+        "scope": "타일 들뜸·크랙·박리"
+      },
+      {
+        "work": "도배·도장",
+        "years": 1,
+        "scope": "들뜸·오염·변색"
+      },
+      {
+        "work": "창호·유리",
+        "years": 1,
+        "scope": "개폐 불량·실링 하자"
+      },
+      {
+        "work": "목공·가구",
+        "years": 1,
+        "scope": "뒤틀림·문 처짐"
+      },
+      {
+        "work": "급배수·전기 설비",
+        "years": 2,
+        "scope": "누전·누수·작동 불량"
+      }
     ]
   },
   "notifications": [
-    { "date": "07-22 14:10", "text": "거실 천장 배선 작업이 완료됐어요. 현장 사진을 확인해 주세요 📷", "kind": "진행", "approved": true, "read": false, "remindAt": "07-23 14:10" },
-    { "date": "07-16 17:30", "text": "붙박이장 골조가 완료됐습니다. 다음은 전기·설비 공정이에요.", "kind": "진행", "approved": true, "read": true },
-    { "date": "07-10 09:20", "text": "중도금 1차 입금이 확인되었습니다. 감사합니다.", "kind": "결제", "approved": true, "read": true },
-    { "date": "07-09 11:05", "text": "발코니 이중창 교체가 끝났습니다.", "kind": "진행", "approved": true, "read": true }
+    {
+      "date": "07-22 14:10",
+      "text": "거실 천장 배선 작업이 완료됐어요. 현장 사진을 확인해 주세요 📷",
+      "kind": "진행",
+      "approved": true,
+      "read": false,
+      "remindAt": "07-23 14:10"
+    },
+    {
+      "date": "07-16 17:30",
+      "text": "붙박이장 골조가 완료됐습니다. 다음은 전기·설비 공정이에요.",
+      "kind": "진행",
+      "approved": true,
+      "read": true
+    },
+    {
+      "date": "07-10 09:20",
+      "text": "중도금 1차 입금이 확인되었습니다. 감사합니다.",
+      "kind": "결제",
+      "approved": true,
+      "read": true
+    },
+    {
+      "date": "07-09 11:05",
+      "text": "발코니 이중창 교체가 끝났습니다.",
+      "kind": "진행",
+      "approved": true,
+      "read": true
+    }
   ],
   "checklist": [
-    { "item": "전 공간 청소 상태", "done": false },
-    { "item": "조명·스위치 정상 작동", "done": false },
-    { "item": "수전·배수 누수 점검", "done": false },
-    { "item": "도배·도장 마감 상태", "done": false },
-    { "item": "가구 문·서랍 개폐 확인", "done": false },
-    { "item": "하자 보수 항목 접수", "done": false }
+    {
+      "item": "전 공간 청소 상태",
+      "done": false
+    },
+    {
+      "item": "조명·스위치 정상 작동",
+      "done": false
+    },
+    {
+      "item": "수전·배수 누수 점검",
+      "done": false
+    },
+    {
+      "item": "도배·도장 마감 상태",
+      "done": false
+    },
+    {
+      "item": "가구 문·서랍 개폐 확인",
+      "done": false
+    },
+    {
+      "item": "하자 보수 항목 접수",
+      "done": false
+    }
   ],
   "fieldExtras": {
     "materialIn": [
-      { "item": "강마루 34평분", "qty": "박스 42", "status": "정상 입고", "date": "07-20" },
-      { "item": "욕실 타일 300각", "qty": "박스 18", "status": "2박스 파손", "date": "07-21" },
-      { "item": "붙박이장 자재", "qty": "세트 1", "status": "정상 입고", "date": "07-14" }
+      {
+        "item": "강마루 34평분",
+        "qty": "박스 42",
+        "status": "정상 입고",
+        "date": "07-20"
+      },
+      {
+        "item": "욕실 타일 300각",
+        "qty": "박스 18",
+        "status": "2박스 파손",
+        "date": "07-21"
+      },
+      {
+        "item": "붙박이장 자재",
+        "qty": "세트 1",
+        "status": "정상 입고",
+        "date": "07-14"
+      }
     ],
     "issues": [
-      { "type": "치수", "space": "주방", "text": "냉장고장 폭이 도면보다 20mm 큼 — 확인 필요", "status": "대표 확인중" },
-      { "type": "고객요청", "space": "거실", "text": "TV 벽 매립 배선 추가 희망", "status": "견적 반영 대기" }
+      {
+        "type": "치수",
+        "space": "주방",
+        "text": "냉장고장 폭이 도면보다 20mm 큼 — 확인 필요",
+        "status": "대표 확인중"
+      },
+      {
+        "type": "고객요청",
+        "space": "거실",
+        "text": "TV 벽 매립 배선 추가 희망",
+        "status": "견적 반영 대기"
+      }
     ],
     "access": [
-      { "time": "08:10", "name": "협력 목공팀", "type": "출근" },
-      { "time": "08:25", "name": "협력 전기팀", "type": "출근" },
-      { "time": "12:40", "name": "자재 배송", "type": "방문" }
+      {
+        "time": "08:10",
+        "name": "협력 목공팀",
+        "type": "출근"
+      },
+      {
+        "time": "08:25",
+        "name": "협력 전기팀",
+        "type": "출근"
+      },
+      {
+        "time": "12:40",
+        "name": "자재 배송",
+        "type": "방문"
+      }
     ]
   },
   "asCases": [
-    { "id": "AS-2025-118", "location": "욕실", "type": "누수", "urgency": "긴급", "status": "방문예정", "date": "2026-07-12", "visitDate": "2026-07-14", "worker": "협력 설비팀" },
-    { "id": "AS-2025-104", "location": "거실 바닥", "type": "들뜸/하자", "urgency": "보통", "status": "처리완료", "date": "2026-06-30", "visitDate": "2026-07-03", "worker": "협력 목공팀" },
-    { "id": "AS-2025-097", "location": "주방", "type": "마감 크랙", "urgency": "낮음", "status": "접수", "date": "2026-07-11", "visitDate": null, "worker": null }
+    {
+      "id": "AS-2025-118",
+      "location": "욕실",
+      "type": "누수",
+      "urgency": "긴급",
+      "status": "방문예정",
+      "date": "2026-07-12",
+      "visitDate": "2026-07-14",
+      "worker": "협력 설비팀"
+    },
+    {
+      "id": "AS-2025-104",
+      "location": "거실 바닥",
+      "type": "들뜸/하자",
+      "urgency": "보통",
+      "status": "처리완료",
+      "date": "2026-06-30",
+      "visitDate": "2026-07-03",
+      "worker": "협력 목공팀"
+    },
+    {
+      "id": "AS-2025-097",
+      "location": "주방",
+      "type": "마감 크랙",
+      "urgency": "낮음",
+      "status": "접수",
+      "date": "2026-07-11",
+      "visitDate": null,
+      "worker": null
+    }
   ]
 }

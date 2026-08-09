@@ -1082,22 +1082,12 @@ function renderFaq(faq) {
     document.getElementById(btn.getAttribute('aria-controls')).hidden = open;
   }));
 
-  // FAQPage 구조화 데이터 주입 (검색 리치 결과)
-  try {
-    const ld = {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: faq.map((f) => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a }
-      }))
-    };
-    const s = document.createElement('script');
-    s.type = 'application/ld+json';
-    s.textContent = JSON.stringify(ld);
-    document.head.appendChild(s);
-  } catch (e) { /* noop */ }
+  // FAQPage 구조화 데이터는 여기서 주입하지 않는다.
+  // index.html 에 이미 정적 FAQPage 가 있어서, 여기서 또 넣으면 한 페이지에
+  // FAQPage 가 둘이 되고 내용이 갈리면 검색엔진이 어느 쪽을 집을지 통제할 수 없다.
+  // 실제로 site.json 이 "방수 3년"으로 바뀐 뒤에도 정적 쪽은 "방수 2년"이었고,
+  // 손님이 화면에서 보는 답과 검색 결과에 뜨는 답이 달랐다.
+  // 정적 블록은 scripts/sync-faq-jsonld.py 가 site.json 에서 생성한다.
 }
 
 /* ---------- 연락처 ---------- */
