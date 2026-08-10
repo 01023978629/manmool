@@ -10,5 +10,6 @@ cfg.rootDir = '.';
 cfg.scriptExtensions = ['.js', '.gs'];
 cfg.htmlExtensions = ['.html'];
 cfg.filePushOrder = [...EXPECTED_GS, ...EXPECTED_HTML, 'appsscript.json'];
+cfg.skipSubdirectories = true;
 writeFileSync(file, JSON.stringify(cfg, null, 2) + '\n');
 console.log('업로드 순서 고정: .gs 11개 → .html 2개 → manifest');

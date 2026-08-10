@@ -55,7 +55,7 @@ export function buildStandardBody(o = {}) {
   const site = String(o.site || '').trim();
   const scope = Array.isArray(o.scope) ? o.scope.filter(Boolean).join(' · ') : String(o.scope || '').trim();
   const amount = Math.round(Number(o.amount) || 0);
-  const vatIncluded = o.vatIncluded !== false;      // 명시 안 하면 '포함'으로 본다(고객이 낼 총액)
+  const vatIncluded = o.vatIncluded === true;       // 대표 결정: 명시 안 하면 '별도'로 본다
   const customerName = String(o.customerName || '').trim();
   const period = String(o.period || '').trim();
   const pay = splitPayment(amount);
@@ -108,7 +108,10 @@ export function buildStandardBody(o = {}) {
       text: `을의 귀책사유로 준공이 지연된 경우 을은 지연 1일당 계약금액의 0.1%를 지체상금으로 갑에게 지급한다. 다만 제4조 단서에 해당하는 기간은 지연일수에서 제외한다.` },
 
     { no: 10, title: '안전 및 민원',
-      text: `을은 공사 중 안전관리와 현장 청결을 유지하고, 해당 건물의 관리규약을 준수하며, 인접 세대의 민원이 발생한 경우 갑과 협의하여 대응한다.` },
+      text: `을은 공사 중 안전관리와 현장 청결을 유지하고, 해당 건물의 관리규약을 준수하며, 인접 세대의 민원이 발생한 경우 갑과 협의하여 대응한다.\n`
+        + `을의 통상 과실로 발생한 재산상 손해배상책임은 사고당 금 15,000,000원을 한도로 한다. `
+        + `다만 을의 고의·중대한 과실, 생명·신체 손해, 법령상 제한할 수 없는 책임은 이 한도에서 제외한다. `
+        + `완성작업위험 등 보험 가입 및 보장 여부는 견적서 또는 특약에 별도로 표시한다.` },
 
     { no: 11, title: '전자계약의 성립',
       text: `본 계약은 전자문서로 작성되며, 갑의 본인확인·전자서명·동의기록 및 문서해시로 그 성립과 내용을 증명한다. 양 당사자는 전자적 방법에 의한 계약 체결에 동의한다.` },
