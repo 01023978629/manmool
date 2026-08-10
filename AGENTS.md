@@ -11,7 +11,8 @@
    루트 전체가 공개로 서빙되므로 **어떤 파일에도 비밀값을 넣으면 안 된다.**
 2. **`apps-script-contract/`** — 전자계약 Google Apps Script 서버의 **소스**.
    여기 커밋해도 배포되지 않는다 — 사장님이 자기 구글 계정에 붙여넣어 배포한다
-   (`SETUP.md` 절차). 코드·테스트는 완성, 실배포는 사장님 대기 중.
+   (`SETUP.md` 절차). 운영 배포·health·selfTest 는 2026-08-10 완료했지만,
+   저장소 커밋이 자동으로 운영 서버에 반영되는 구조는 아니다.
 
 현장 앱은 자매 저장소 `01023978629/hyeonjang`. **사진 중계 서버 소스도
 저쪽(`hyeonjang/apps-script/`)이다 — 여기 것과 혼동 금지.**
@@ -43,6 +44,10 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 정본은 `data/site.json` 의 `insights` 하나뿐이고, 거기에 항목을 넣은 뒤
 `python3 scripts/prerender-posts.py` 를 돌리면 `posts/<slug>.html` 과
 `blog.html` 목록이 함께 만들어진다. `sitemap.xml` 만 따로 챙기면 된다.
+실제 현장 사례는 `scripts/new-case-post.mjs` 에 6항목(동네+단지/증상/탐지 방법/
+원인+전유·공용/공사 내용/소요시간)을 줘 **비공개 초안**부터 만든다. 이 도구는
+동·호수·고객명·연락처를 거부하고 `published:false` 로 저장한다. 실제 자료 없이
+사례를 지어내지 마라.
 
 손으로 `posts/*.html` 을 만들면 **고아 글**이 된다 — 파일은 있는데 목록·홈
 어디에도 안 떠서 손님이 볼 방법이 없다. 실제로 2026-08-02 관리사무소 대상
@@ -58,7 +63,7 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 
 **전자계약 서버 변경:**
 ```bash
-node --test apps-script-contract/test/*.mjs   # pure 118 + wiring 110 + 화면 e2e 12 = 240건
+node --test apps-script-contract/test/*.mjs   # Node 13파일; pure 118 + wiring 117, 화면은 Playwright 환경에서 별도
 ```
 - **`PROTOCOL.md` 가 규약이다. 코드보다 먼저 고쳐라.** 문서와 코드가 어긋나면
   코드가 틀린 것이다.
@@ -99,8 +104,8 @@ node --test apps-script-contract/test/*.mjs   # pure 118 + wiring 110 + 화면 e
 
 | 일 | 어디서 | 지금 상태 |
 |---|---|---|
-| 전자계약 Apps Script 배포 | 본인 구글 계정 | 대기 — `apps-script-contract/SETUP.md` |
-| Script Properties 에 비밀값 입력 | Apps Script | 위와 함께 |
+| 전자계약 Apps Script 배포 | 본인 구글 계정 | 완료 — health·selfTest 통과(2026-08-10) |
+| Script Properties 에 비밀값 입력 | Apps Script | 완료 — 값은 저장소·로그에 기록하지 않음 |
 | Gemini API 키 발급 | `aistudio.google.com/api-keys` | **막힘** — "The request is suspicious" 재시도 필요 |
 | 네이버·구글 소유확인 코드 | 서치어드바이저·서치콘솔 | `index.html` 11~14행이 주석 처리된 자리표시자 |
 | Threads 토큰 재발급 | Meta | 2026-06-19 만료 |
@@ -111,9 +116,17 @@ node --test apps-script-contract/test/*.mjs   # pure 118 + wiring 110 + 화면 e
 
 ## 지금 상태와 남은 일 (2026-08-10)
 
-- 홈페이지: 배포 정상. 누수탐지·누수수리 상담 경로와 보험 안내를 제공하며,
-  블로그 최신 글 = 누수 보험 안내(`leak-insurance-guide`, 2026-08-09).
-- 전자계약 서버: **코드·테스트·설치안내 완성, 사장님 설치 대기(🅱).**
-  설치 후 실환경 검증은 `수동검증-체크리스트.md`.
+- 운영 main 은 `128ac72`; 이전 #96은 main 이 아닌 작업 브랜치에 병합돼 있다.
+  현재 작업은 `codex/install-rehearsal-20260810` → `codex/site-defects-20260810` →
+  `codex/case-post-pipeline-20260810` → `codex/leak-pricing-ready-20260810` 순으로 쌓여
+  있으므로 아래쪽부터 병합해야 한다.
+- 홈페이지 회귀: `scripts/ensure-*.mjs` 8개 전부 통과. 누수 상담 유형은 접수→관리자→
+  현장앱 인계까지 보존되며, 공개 블로그 본문에 숫자 동·호수가 있으면 실패한다.
+- 실제 현장 사례 생성 도구는 준비됐지만 **실제 사례는 추가하지 않았다.** 대표가
+  6항목을 줄 때만 `scripts/new-case-post.mjs` 로 `published:false` 초안을 만든다.
+- 누수탐지 5단계 금액(40/57/65/65/83만원)과 화면 컴포넌트는 준비됐으나
+  `published:false`. 부가세 포함/별도는 대표 확인 전이며, 공개하면 안 된다.
+- 전자계약 서버: 운영 배포·health·selfTest 완료. 설치 리허설 5개 정상 경로와
+  모든 변이 검증 통과, 실제 `clasp` 호출 0. 대표 폰 실기기 서명·완료 PDF 확인은 남음.
 - 서브에이전트 10종: `.codex/agents/` (원칙: single-writer, PII 금지,
   무승인 발송 0, 허위 완료 보고 금지).

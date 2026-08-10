@@ -1042,6 +1042,26 @@ function renderAbout(about) {
   }
 }
 
+/* ---------- 누수탐지 요금표 (대표 확인 전에는 공개 금지) ---------- */
+function renderLeakPricing(config) {
+  const section = document.getElementById('leakPricing');
+  if (!section) return;
+  section.hidden = true;
+  if (!config || config.published !== true || !Array.isArray(config.tiers)) return;
+  const tiers = document.getElementById('leakPricingTiers');
+  const vat = document.getElementById('leakPricingVat');
+  const promise = document.getElementById('leakPricingPromise');
+  if (!tiers || !vat || !promise) return;
+  tiers.innerHTML = config.tiers.map((tier) => `
+    <li class="leak-price-card">
+      <span>${tier.label || `${tier.step}단계`}</span>
+      <b>${Number(tier.amount || 0).toLocaleString('ko-KR')}원</b>
+    </li>`).join('');
+  vat.textContent = config.vatLabel || '';
+  promise.textContent = config.noFindPromise || '';
+  section.hidden = false;
+}
+
 /* ---------- 인사이트 (블로그 미리보기) ---------- */
 function renderInsights(insights) {
   const grid = document.getElementById('insightsGrid');
@@ -1294,6 +1314,7 @@ async function init() {
   renderStats(data.stats);
   renderAbout(data.about);
   renderServices(data.services);
+  renderLeakPricing(data.leakPricing);
   renderAutomation(data.automation);
   renderProcess(data.process);
   renderPortfolio(data.portfolio, data.portfolioFilters);

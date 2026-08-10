@@ -98,6 +98,18 @@
       ]
     }
   ],
+  "leakPricing": {
+    "published": false,
+    "vatLabel": "[대표 확인 필요: 부가세 포함/별도]",
+    "noFindPromise": "못 찾으면 탐지비 0원",
+    "tiers": [
+      { "step": 1, "label": "1단계", "amount": 400000 },
+      { "step": 2, "label": "2단계", "amount": 570000 },
+      { "step": 3, "label": "3단계", "amount": 650000 },
+      { "step": 4, "label": "4단계", "amount": 650000 },
+      { "step": 5, "label": "5단계", "amount": 830000 }
+    ]
+  },
   "trust": {
     "headline": "등록·보증·A/S로 증명합니다",
     "sub": "감성만 강조하지 않습니다. 고액 계약을 안심하고 맡길 수 있도록 자격과 책임을 데이터로 남깁니다.",
