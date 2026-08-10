@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "type": "module",
+  "dependencies": { "qrcode-terminal": "^0.12.0" }
+}
