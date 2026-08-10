@@ -1046,6 +1046,7 @@ function renderAbout(about) {
 function renderInsights(insights) {
   const grid = document.getElementById('insightsGrid');
   if (!grid || !Array.isArray(insights) || !insights.length) return;
+  insights = insights.filter((x) => x && x.published !== false);
   // 최신 글이 홈에 먼저 보이도록 날짜 내림차순 (날짜 없으면 뒤로)
   const latest = insights.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
   grid.innerHTML = latest.slice(0, 3).map((a) => `

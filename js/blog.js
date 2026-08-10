@@ -135,7 +135,7 @@
     let insights = [];
     try {
       const r = await fetch('data/site.json', { cache: 'no-cache' });
-      if (r.ok) insights = (await r.json()).insights || [];
+      if (r.ok) insights = ((await r.json()).insights || []).filter((x) => x && x.published !== false);
     } catch (e) { /* noop */ }
 
     if (!insights.length) {
