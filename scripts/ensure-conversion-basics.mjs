@@ -18,6 +18,7 @@ const index = read('index.html');
 const css = read('css/styles.css');
 const inquiry = read('js/inquiry.js');
 const main = read('js/main.js');
+const blogJs = read('js/blog.js');
 
 /* ① 손님에게 "데모"라고 말하지 않는다 --------------------------------- */
 // 문의를 넣을지 망설이는 사람이 페이지 맨 아래에서 마지막으로 읽는 문장이었다.
@@ -113,6 +114,19 @@ try {
     `blog.html 에 글 링크 ${links}개 정적 노출`);
   check(!/불러오는 중/.test(blogBody), 'blog.html 이 아직 "불러오는 중…" 상태다(프리렌더 미적용)', 'blog.html 로딩 자리표시자 없음');
 } catch (e) { fail.push('blog.html 을 읽지 못했다: ' + e.message); }
+
+// 프리렌더 목록을 JS가 다시 그리면 로드 실패 때 정적 글까지 사라진다.
+check(/if \(!slug && root && root\.querySelector\('\.insights-grid'\)\) return;/.test(blogJs),
+  'blog.js 가 정적 insights-grid 를 먼저 쓰지 않는다 — 목록을 불필요하게 fetch/재렌더한다',
+  '블로그 정적 목록 우선');
+check(/if \(root && root\.children\.length\) return;/.test(blogJs),
+  'blog.js 통신 실패가 프리렌더된 내용을 지운다',
+  '블로그 통신 실패 시 정적 내용 보존');
+
+// 누수 전용 문의도 일반 공사와 같은 works 배열을 타야 저장·전달·관리자 인계가 끊기지 않는다.
+check(/const WORKS = \[[^\]]*'누수탐지·누수수리'/.test(inquiry) && /fd\.getAll\('works'\)/.test(inquiry),
+  '상담 폼의 누수탐지·누수수리 항목이 없거나 공사항목 수집 경로와 분리됐다',
+  '누수탐지·누수수리 상담 항목이 공통 works 경로로 전달');
 
 /* ⑩ 개인정보 보유기간이 손님에게 약속한 것과 같다 ---------------------- */
 // 화면은 "보유기간 1년"이라 동의를 받아 놓고 코드가 90일이면, 약속과 다른 시점에 자료가 사라진다.

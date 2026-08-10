@@ -128,6 +128,10 @@
 
   async function init() {
     setupNav();
+    const slug = new URLSearchParams(location.search).get('post');
+    // blog.html 은 검색엔진·느린 회선에서도 보이도록 목록을 정적으로 품고 있다.
+    // 목록 화면에서는 이미 있는 HTML을 정본으로 쓰고 불필요한 fetch/재렌더를 하지 않는다.
+    if (!slug && root && root.querySelector('.insights-grid')) return;
     let insights = [];
     try {
       const r = await fetch('data/site.json', { cache: 'no-cache' });
@@ -135,10 +139,11 @@
     } catch (e) { /* noop */ }
 
     if (!insights.length) {
+      // 프리렌더된 내용이 있으면 통신 실패 문구로 지우지 않는다.
+      if (root && root.children.length) return;
       root.innerHTML = '<p class="blog-loading">콘텐츠를 일시적으로 불러오지 못했습니다. 새로고침해 주시거나, 급하시면 전화로 문의해 주세요.<br/>📞 <a href="tel:01023978629"><b>010-2397-8629</b></a> (평일 09:00–17:30)</p>';
       return;
     }
-    const slug = new URLSearchParams(location.search).get('post');
     const found = slug && insights.find((x) => x.slug === slug);
     if (found) renderArticle(found, insights);
     else renderList(insights);

@@ -1,7 +1,7 @@
 # 코덱스 인수인계서 — manmool (공개 홈페이지 + 전자계약 서버 소스)
 
 > 이 저장소에서 작업하는 모든 AI 에이전트(Codex·Claude)가 시작 전에 읽는 문서.
-> 2026-08-05 기준. 낡은 내용을 발견하면 **이 문서부터 고쳐라.**
+> 2026-08-10 기준. 낡은 내용을 발견하면 **이 문서부터 고쳐라.**
 
 ## 이 저장소가 무엇인가
 
@@ -58,7 +58,7 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 
 **전자계약 서버 변경:**
 ```bash
-node --test apps-script-contract/test/*.mjs   # pure 118 + wiring 97 + 화면 e2e 12 = 227건
+node --test apps-script-contract/test/*.mjs   # pure 118 + wiring 110 + 화면 e2e 12 = 240건
 ```
 - **`PROTOCOL.md` 가 규약이다. 코드보다 먼저 고쳐라.** 문서와 코드가 어긋나면
   코드가 틀린 것이다.
@@ -73,7 +73,7 @@ node --test apps-script-contract/test/*.mjs   # pure 118 + wiring 97 + 화면 e2
 - 토큰: 32바이트+ 무작위, SHA-256 해시만 저장, sign 72h/view 15m 만료, 1회성.
 - 문서지문 `docHash = SHA-256(정렬JSON({amount, body}))` — 금액 바꿔치기 검출.
 - 대금 분할 50/40/10, 잔금은 나머지 전부. 계약번호 `MM-YYYY-NNNN`.
-- 잠금 동작(`create·lock·sign.submit·void`)은 LockService 안, 멱등키는
+- 잠금 동작(`create·lock·signlink.issue·quickSend·void·payment.update·settings.set·sign.submit`)은 LockService 안, 멱등키는
   인증 통과 후 조회, 고객 캐시는 토큰 해시별 분리.
 - AI 중계(`ai.ask`): 키는 헤더로만, 갈 수 있는 곳은 아는 두 곳뿐, 한도는
   횟수만 막는다(요금 아님), 유료(openai)는 `AI_ALLOW_PAID=1` 없이 거절.
@@ -109,9 +109,10 @@ node --test apps-script-contract/test/*.mjs   # pure 118 + wiring 97 + 화면 e2
 
 고객 후기 섹션 — **실제 후기가 있어야 한다. 지어내면 안 된다.**
 
-## 지금 상태와 남은 일 (2026-08-05)
+## 지금 상태와 남은 일 (2026-08-10)
 
-- 홈페이지: 배포 정상. 블로그 최신 글 = 관리사무소 대상(`apt-office-repair-partner`).
+- 홈페이지: 배포 정상. 누수탐지·누수수리 상담 경로와 보험 안내를 제공하며,
+  블로그 최신 글 = 누수 보험 안내(`leak-insurance-guide`, 2026-08-09).
 - 전자계약 서버: **코드·테스트·설치안내 완성, 사장님 설치 대기(🅱).**
   설치 후 실환경 검증은 `수동검증-체크리스트.md`.
 - 서브에이전트 10종: `.codex/agents/` (원칙: single-writer, PII 금지,

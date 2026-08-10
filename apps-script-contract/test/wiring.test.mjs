@@ -244,6 +244,29 @@ check(onlyGateway.length === 0,
 check(thrownOutside.length === 0,
   '.gs 가 코드표 밖의 오류 코드를 던지지 않는다', thrownOutside.join(', '));
 
+section('0-2) PROTOCOL 동시성 목록과 실제 잠금 동작이 같은가');
+const concurrencyLead = ((protocol.match(/## 동시성([\s\S]*?)`LockService/) || [])[1] || '');
+const protocolLocks = new Set(
+  [...concurrencyLead.matchAll(/`([a-z][A-Za-z.]+)`/g)].map((m) => m[1])
+);
+const codeLocks = new Set();
+for (const line of codeSource.split('\n')) {
+  const def = line.match(/\{\s*names:\s*\[([^\]]+)\][^\n]*lock:\s*true\s*\}/);
+  if (!def) continue;
+  const aliases = [...def[1].matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]);
+  const canonical = aliases.find((name) => name.includes('.'));
+  if (canonical) codeLocks.add(canonical);
+}
+const onlyProtocolLocks = [...protocolLocks].filter((name) => !codeLocks.has(name)).sort();
+const onlyCodeLocks = [...codeLocks].filter((name) => !protocolLocks.has(name)).sort();
+check(protocolLocks.size === 8 && codeLocks.size === 8,
+  '문서와 코드에서 잠금 동작 8개를 실제 원문으로 읽는다',
+  '문서 ' + protocolLocks.size + '개 · 코드 ' + codeLocks.size + '개');
+check(onlyProtocolLocks.length === 0,
+  'PROTOCOL 에만 있고 코드에서 잠그지 않는 동작이 없다', onlyProtocolLocks.join(', '));
+check(onlyCodeLocks.length === 0,
+  '코드에서 잠그는데 PROTOCOL 동시성 목록에 없는 동작이 없다', onlyCodeLocks.join(', '));
+
 section('1) Apps Script 에서 못 쓰는 문법·API');
 const BANNED = [
   { re: /^\s*(import|export)\s/m, why: 'Apps Script 에는 모듈이 없다' },

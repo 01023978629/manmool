@@ -184,6 +184,15 @@ const sm = readIf('sitemap.xml');
 if (!sm) fail.push('sitemap.xml 이 없다');
 else {
   const locs = (sm.match(/<loc>([^<]+)<\/loc>/g) || []).map((m) => m.slice(5, -6));
+  const urlBlocks = sm.match(/<url>[\s\S]*?<\/url>/g) || [];
+  const allowedFreq = new Set(['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never']);
+  for (const block of urlBlocks) {
+    const loc = block.match(/<loc>([^<]+)<\/loc>/)?.[1] || '(주소 없음)';
+    const lastmod = block.match(/<lastmod>([^<]+)<\/lastmod>/)?.[1] || '';
+    const freq = block.match(/<changefreq>([^<]+)<\/changefreq>/)?.[1] || '';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(lastmod)) fail.push(`${loc}: sitemap lastmod 가 없거나 YYYY-MM-DD 형식이 아니다`);
+    if (!allowedFreq.has(freq)) fail.push(`${loc}: sitemap changefreq 가 없거나 허용값이 아니다`);
+  }
   for (const rel of htmlFiles) {
     const src = readIf(rel);
     if (src == null || isInternal(src)) continue;

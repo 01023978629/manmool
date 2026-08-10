@@ -205,7 +205,8 @@ HTTP 상태는 언제나 200 입니다(Apps Script 제약). **`ok` 를 보고 �
 
 ## 동시성
 
-`contract.create` · `contract.lock` · `sign.submit` · `contract.void` 는
+`contract.create` · `contract.lock` · `signlink.issue` · `contract.quickSend` ·
+`contract.void` · `payment.update` · `settings.set` · `sign.submit` 은
 `LockService.getScriptLock()` 안에서 실행합니다. 잠금을 못 잡으면 `BUSY` 로 **실패**합니다 —
 기다렸다가 두 번 쓰지 않습니다.
 
