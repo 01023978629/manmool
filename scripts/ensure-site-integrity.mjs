@@ -154,6 +154,36 @@ const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
   }
 }
 
+/* ⓪-4 공개 저장소에 자격증명이 들어오지 않았는가 -----------------------
+ * 이 저장소는 루트 전체가 GitHub Pages 로 서빙된다 — 커밋되는 순간 인터넷이다.
+ * clasp 설치 도구를 들이면서 위험이 실체가 됐다: .clasprc.json 은 구글 OAuth
+ * 새로고침 토큰을 담고, install/*-scripts.txt 에는 사장님 계정의 **모든**
+ * Apps Script 프로젝트 ID(사진 중계 포함)가 들어간다. .gitignore 로 막지만,
+ * .gitignore 를 지우거나 -f 로 강제 추가하면 그대로 뚫린다 — 여기서 한 번 더 본다. */
+{
+  const BANNED = ['.clasp.json', '.clasprc.json', '.env',
+                  'apps-script-contract/tools/install/before-scripts.txt',
+                  'apps-script-contract/tools/install/after-scripts.txt'];
+  for (const rel of BANNED) {
+    checked++;
+    if (fs.existsSync(path.join(ROOT, rel)))
+      fail.push(`${rel} 이 저장소에 있다 — 루트는 통째로 공개 서빙된다. 지우고 .gitignore 를 확인하라`);
+  }
+  checked++;
+  const gi = readIf('.gitignore');
+  if (!gi) fail.push('.gitignore 가 없다 — clasp 가 만드는 .clasp.json·.clasprc.json 이 그대로 커밋될 수 있다');
+  else {
+    // 주석이 아니라 **규칙 줄**을 본다. 처음엔 includes() 로 짰다가 변이 검증에서
+    // 걸렸다 — "….clasprc.json 은 토큰을 담는다" 라는 설명 주석만 있어도 통과했다.
+    // 파일명을 설명한 것과 실제로 막은 것은 다르다.
+    const rules = gi.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
+    for (const must of ['.clasp.json', '.clasprc.json', '.env']) {
+      checked++;
+      if (!rules.includes(must)) fail.push(`.gitignore 에 ${must} 규칙이 없다 — 공개 저장소에 자격증명이 실린다(주석에 적은 것은 막은 것이 아니다)`);
+    }
+  }
+}
+
 /* ① 내부 링크가 실제 파일을 가리키는가 (404 방지) ---------------------- */
 for (const rel of htmlFiles) {
   const src = readIf(rel);

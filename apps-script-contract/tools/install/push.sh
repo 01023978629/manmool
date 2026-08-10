@@ -12,6 +12,10 @@ fi
 command -v npx >/dev/null || { echo "실패: Node.js(npx)가 없습니다." >&2; exit 1; }
 npm install --ignore-scripts --no-audit --no-fund
 CLASP=(npx --yes @google/clasp@3)
+# before/after-scripts.txt 에는 **사장님 계정의 모든 Apps Script 프로젝트 ID**가 담긴다
+# (사진 중계 프로젝트 포함). set -e 로 중간에 멎으면 마지막 rm 까지 못 가서
+# 그 파일이 공개 저장소 안에 남는다 — 어떤 경로로 끝나든 지우게 trap 을 건다.
+trap 'rm -f "$INSTALL_DIR/before-scripts.txt" "$INSTALL_DIR/after-scripts.txt"' EXIT
 cd ../..
 rm -f .clasp.json
 "${CLASP[@]}" list-scripts > "$INSTALL_DIR/before-scripts.txt"

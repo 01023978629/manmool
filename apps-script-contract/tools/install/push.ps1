@@ -30,4 +30,11 @@ try {
 } catch {
   Write-Error ('설치 중단: ' + $_.Exception.Message)
   exit 1
+} finally {
+  # before/after-scripts.txt 에는 사장님 계정의 **모든** Apps Script 프로젝트 ID가
+  # 담긴다(사진 중계 포함). 중간에 throw 되면 위의 Remove-Item 까지 못 가서
+  # 그 파일이 공개 저장소 안에 남는다 — 어떤 경로로 끝나든 지운다.
+  if ($installDir) {
+    Remove-Item -LiteralPath (Join-Path $installDir 'before-scripts.txt'),(Join-Path $installDir 'after-scripts.txt') -Force -ErrorAction SilentlyContinue
+  }
 }
