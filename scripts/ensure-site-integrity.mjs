@@ -32,6 +32,13 @@ const htmlFiles = [
 
 const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
 
+/* 닫히지 않은 소유확인 주석 때문에 --> 가 화면 맨 위에 글자로 노출된 적이 있다. */
+{
+  const head = (readIf('index.html') || '').split(/<body\b/i)[0];
+  checked++;
+  if (/^\s*-->\s*$/m.test(head)) fail.push('index.html <head>에 단독 주석 닫기(-->): 화면 맨 위에 글자로 노출된다');
+}
+
 /* 검색 소유확인 태그가 "있어 보이기만" 하는 자리표시자면 배포를 막는다. */
 {
   const idx = (readIf('index.html') || '').replace(/<!--[\s\S]*?-->/g, '');
