@@ -124,18 +124,21 @@ function makeFakeGoogle(props) {
     autoResizeColumns() { return this; } setColumnWidth() { return this; }
   }
   class SS {
-    constructor() { this._sheets = []; }
-    getId() { return 'SHEET_ID'; }
+    constructor(id = 'SHEET_ID', name = '전자계약') { this._sheets = []; this._id = id; this._name = name; }
+    getId() { return this._id; }
     getSheets() { return this._sheets; }
     getSheetByName(n) { return this._sheets.find((s) => s.getName() === n) || null; }
     insertSheet(n) { const s = new Sheet(n); this._sheets.push(s); return s; }
-    getName() { return '전자계약'; }
+    getName() { return this._name; }
   }
   const SHEET = new SS();
+  const spreadsheets = { SHEET_ID: SHEET };
+  const driveFiles = [];
 
   const triggers = [];
   const cacheData = {};
   const fetchLog = [];
+  const logs = [];
   const scriptLock = {
     _held: false,
     releaseCount: 0,
@@ -150,9 +153,28 @@ function makeFakeGoogle(props) {
     }
   };
   return {
-    PropertiesService: { getScriptProperties: () => ({ getProperty: (k) => (k in props ? props[k] : null), setProperty: (k, v) => { props[k] = v; } }) },
-    SpreadsheetApp: { openById: (id) => { if (id !== 'SHEET_ID') throw new Error('없는 시트'); return SHEET; } },
-    DriveApp: { getFolderById: (id) => { if (!byId[id]) throw new Error('없는 폴더'); return byId[id]; } },
+    PropertiesService: { getScriptProperties: () => ({
+      getProperty: (k) => (k in props ? props[k] : null),
+      setProperty: (k, v) => { props[k] = String(v); },
+      getProperties: () => ({ ...props }),
+      getKeys: () => Object.keys(props),
+      deleteProperty: (k) => { delete props[k]; }
+    }) },
+    SpreadsheetApp: {
+      openById: (id) => { if (!spreadsheets[id]) throw new Error('없는 시트'); return spreadsheets[id]; },
+      create: (name) => {
+        const id = 'SHEET_' + (Object.keys(spreadsheets).length + 1);
+        const ss = new SS(id, name); spreadsheets[id] = ss;
+        driveFiles.push({ getId: () => id, getName: () => name });
+        return ss;
+      }
+    },
+    DriveApp: {
+      getFolderById: (id) => { if (!byId[id]) throw new Error('없는 폴더'); return byId[id]; },
+      getFoldersByName: (name) => new Iter(Object.values(byId).filter((f) => f.getName() === name)),
+      createFolder: (name) => { const f = new Folder(name); byId[f.getId()] = f; return f; },
+      getFilesByName: (name) => new Iter(driveFiles.filter((f) => f.getName() === name))
+    },
     Utilities: {
       computeDigest: digest,
       computeHmacSha256Signature: (msg, key) => Array.from(createHmac('sha256', String(key)).update(String(msg)).digest()).map((b) => (b > 127 ? b - 256 : b)),
@@ -169,13 +191,24 @@ function makeFakeGoogle(props) {
     ScriptApp: {
       getProjectTriggers: () => triggers,
       deleteTrigger: (t) => { const i = triggers.indexOf(t); if (i >= 0) triggers.splice(i, 1); },
-      newTrigger: (fn) => ({ timeBased: () => ({ atHour: () => ({ everyDays: () => ({ create: () => { const t = { getHandlerFunction: () => fn }; triggers.push(t); return t; } }) }) }) }),
+      newTrigger: (fn) => ({ timeBased: () => {
+        const builder = {
+          everyDays: () => builder,
+          atHour: () => builder,
+          create: () => {
+            const t = { getHandlerFunction: () => fn, getUniqueId: () => 'trigger_' + (triggers.length + 1) };
+            triggers.push(t); return t;
+          }
+        };
+        return builder;
+      } }),
       getService: () => ({ getUrl: () => 'https://script.google.com/macros/s/TEST/exec' })
     },
     // 시간대·사용자 — ctTz_ 등이 쓴다.
     __fetchLog: fetchLog,
+    __logs: logs,
     Session: { getScriptTimeZone: () => 'Asia/Seoul', getActiveUser: () => ({ getEmail: () => '' }), getEffectiveUser: () => ({ getEmail: () => '' }) },
-    Logger: { log: () => {} },
+    Logger: { log: (v) => { logs.push(String(v)); } },
     // 외부 호출은 기본적으로 막는다(발송이 꺼져 있어야 하므로).
     // 다만 AI 중계 검사를 하려면 아는 두 곳은 흉내낼 수 있어야 한다.
     // fetchLog 에 남겨 '무엇을 어디로 보냈는지'를 검사에서 확인한다.
@@ -213,6 +246,60 @@ const sources = GS.map((f) => ({ name: f, code: readFileSync(join(DIR, f), 'utf8
 
 console.log('전자계약 .gs 맞물림 검사 — 파일 ' + GS.length + '개\n' + '─'.repeat(56));
 
+section('0-1) PROTOCOL 오류 코드표와 실제 코드가 같은가');
+const protocol = readFileSync(join(DIR, 'PROTOCOL.md'), 'utf8');
+const errorTable = ((protocol.match(/### 오류 코드([\s\S]*?)(?:\n---|\n## )/) || [])[1] || '');
+const protocolCodes = new Set(
+  errorTable.split('\n').filter((line) => /^\|\s*`/.test(line))
+    .flatMap((line) => [...String(line.split('|')[1] || '').matchAll(/`([A-Z][A-Z_]+)`/g)].map((m) => m[1]))
+);
+const codeSource = (sources.find((x) => x.name === 'Code.gs') || {}).code || '';
+const codeListBody = ((codeSource.match(/var GW_ERROR_CODES\s*=\s*\[([\s\S]*?)\];/) || [])[1] || '');
+const gatewayCodes = new Set(
+  [...codeListBody.matchAll(/['"]([A-Z][A-Z_]+)['"]/g)].map((m) => m[1])
+);
+const onlyProtocol = [...protocolCodes].filter((c) => !gatewayCodes.has(c)).sort();
+const onlyGateway = [...gatewayCodes].filter((c) => !protocolCodes.has(c)).sort();
+const thrownCodes = new Set();
+for (const { code: raw } of sources) {
+  const code = raw.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+  for (const m of code.matchAll(/\b(?:gw|ct|dv|sg|ai)Fail_\(\s*['"]([A-Z][A-Z_]+)['"]/g)) thrownCodes.add(m[1]);
+  for (const m of code.matchAll(/throw\s+new Error\(\s*['"]([A-Z][A-Z_]+)\|/g)) thrownCodes.add(m[1]);
+}
+const thrownOutside = [...thrownCodes].filter((c) => !gatewayCodes.has(c)).sort();
+check(protocolCodes.size > 0 && gatewayCodes.size > 0,
+  'PROTOCOL 오류 코드표와 GW_ERROR_CODES 배열을 실제 원문에서 읽는다',
+  '문서 ' + protocolCodes.size + '개 · 코드 ' + gatewayCodes.size + '개');
+check(onlyProtocol.length === 0,
+  'PROTOCOL 에만 있고 GW_ERROR_CODES 에 없는 코드가 없다', onlyProtocol.join(', '));
+check(onlyGateway.length === 0,
+  'GW_ERROR_CODES 에만 있고 PROTOCOL 에 없는 코드가 없다', onlyGateway.join(', '));
+check(thrownOutside.length === 0,
+  '.gs 가 코드표 밖의 오류 코드를 던지지 않는다', thrownOutside.join(', '));
+
+section('0-2) PROTOCOL 동시성 목록과 실제 잠금 동작이 같은가');
+const concurrencyLead = ((protocol.match(/## 동시성([\s\S]*?)`LockService/) || [])[1] || '');
+const protocolLocks = new Set(
+  [...concurrencyLead.matchAll(/`([a-z][A-Za-z.]+)`/g)].map((m) => m[1])
+);
+const codeLocks = new Set();
+for (const line of codeSource.split('\n')) {
+  const def = line.match(/\{\s*names:\s*\[([^\]]+)\][^\n]*lock:\s*true\s*\}/);
+  if (!def) continue;
+  const aliases = [...def[1].matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]);
+  const canonical = aliases.find((name) => name.includes('.'));
+  if (canonical) codeLocks.add(canonical);
+}
+const onlyProtocolLocks = [...protocolLocks].filter((name) => !codeLocks.has(name)).sort();
+const onlyCodeLocks = [...codeLocks].filter((name) => !protocolLocks.has(name)).sort();
+check(protocolLocks.size === 8 && codeLocks.size === 8,
+  '문서와 코드에서 잠금 동작 8개를 실제 원문으로 읽는다',
+  '문서 ' + protocolLocks.size + '개 · 코드 ' + codeLocks.size + '개');
+check(onlyProtocolLocks.length === 0,
+  'PROTOCOL 에만 있고 코드에서 잠그지 않는 동작이 없다', onlyProtocolLocks.join(', '));
+check(onlyCodeLocks.length === 0,
+  '코드에서 잠그는데 PROTOCOL 동시성 목록에 없는 동작이 없다', onlyCodeLocks.join(', '));
+
 section('1) Apps Script 에서 못 쓰는 문법·API');
 const BANNED = [
   { re: /^\s*(import|export)\s/m, why: 'Apps Script 에는 모듈이 없다' },
@@ -242,6 +329,36 @@ try {
 } catch (e) { loadErr = e; }
 check(!loadErr, '모든 .gs 가 오류 없이 올라간다', loadErr ? String(loadErr.message) : '');
 if (loadErr) { console.log('\n검사 ' + (pass + fail) + '건 · 통과 ' + pass + ' · 실패 ' + fail); process.exit(1); }
+
+section('2-1) bootstrap 은 계획 우선·재실행 안전·비밀 비노출인가');
+const bootProps = {};
+const bootGoogle = makeFakeGoogle(bootProps);
+const bootCtx = createContext(bootGoogle);
+bootGoogle.globalThis = bootCtx;
+let bootErr = null, dry = null, first = null, second = null;
+try {
+  for (const { name, code } of sources) runInContext(code, bootCtx, { filename: name });
+  dry = bootCtx.bootstrap(true);
+  first = bootCtx.bootstrap();
+  const firstPepper = bootProps.PEPPER;
+  const firstAdmin = bootProps.ADMIN_TOKEN;
+  second = bootCtx.bootstrap();
+  bootGoogle.__firstPepper = firstPepper;
+  bootGoogle.__firstAdmin = firstAdmin;
+} catch (e) { bootErr = e; }
+check(!bootErr, '빈 프로젝트에서 bootstrap 두 번이 오류 없이 끝난다', bootErr ? String(bootErr.message) : '');
+check(dry && dry.dryRun === true, 'bootstrap(true)는 계획만 반환한다');
+check(bootProps.PEPPER === bootGoogle.__firstPepper && bootProps.ADMIN_TOKEN === bootGoogle.__firstAdmin,
+  '두 번째 실행이 PEPPER와 ADMIN_TOKEN을 덮어쓰지 않는다');
+check(String(bootProps.PEPPER || '').length >= 40 && String(bootProps.ADMIN_TOKEN || '').length >= 40,
+  '새 비밀값은 각각 40자 이상이다');
+check(!Object.prototype.hasOwnProperty.call(bootProps, 'ALIMTALK_LIVE'),
+  'bootstrap은 ALIMTALK_LIVE를 만들거나 켜지 않는다');
+const bootLog = bootGoogle.__logs.join('\n');
+check(!bootLog.includes(String(bootProps.PEPPER || '')) && !bootLog.includes(String(bootProps.ADMIN_TOKEN || '')),
+  '로그에 PEPPER와 ADMIN_TOKEN 값이 없다');
+check(first && first.selfTest && first.selfTest.checks.allOk === true && second && second.selfTest.checks.allOk === true,
+  '첫 실행과 재실행 모두 selfTest allOk=true다');
 
 section('3) 부르는데 없는 함수');
 // 각 파일에서 호출 형태(이름( )를 뽑아, 전역에도 없고 지역 선언도 아닌 것을 찾는다.
@@ -575,7 +692,7 @@ section('6-2) 부분 실패 뒤 고객에게 하는 말이 사실과 맞는가')
 {
   // 서명 완료는 ① Drive → ② Contracts → ③ SignTokens 순으로 쓴다.
   // ③만 실패하면 계약은 COMPLETED 인데 토큰이 살아 있다. 고객이 다시 누르면
-  // 예전에는 BAD_STATE 가 나갔고, Sign.html 이 그것을 'voided' 로 매핑해
+  // 예전에는 BAD_STATE 가 나갔고, SignPage.html 이 그것을 'voided' 로 매핑해
   // **"🚫 취소된 계약입니다"** 를 띄웠다 — 정상 체결된 계약을 두고 하는 거짓말이다.
   const pctx = { at: new Date().toISOString(), actor: 'admin' };
   const made = ctx.createContract_({
@@ -613,7 +730,7 @@ section('6-2) 부분 실패 뒤 고객에게 하는 말이 사실과 맞는가')
   check(again && again.indexOf('TOKEN_USED') === 0,
     '이미 체결된 계약을 "취소됐다"고 말하지 않는다 — TOKEN_USED 로 답한다', again);
   check(again && again.indexOf('BAD_STATE') !== 0,
-    'BAD_STATE 를 쓰지 않는다 — Sign.html 이 그것을 "취소된 계약" 화면으로 매핑한다', again);
+    'BAD_STATE 를 쓰지 않는다 — SignPage.html 이 그것을 "취소된 계약" 화면으로 매핑한다', again);
 }
 
 section('6-3) AI 중계 — 키를 서버에 두고 브라우저로 내려보내지 않는다');

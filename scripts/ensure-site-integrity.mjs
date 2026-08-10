@@ -25,9 +25,23 @@ const htmlFiles = [
   ...(fs.existsSync(path.join(ROOT, 'posts'))
     ? fs.readdirSync(path.join(ROOT, 'posts')).filter((f) => f.endsWith('.html')).map((f) => 'posts/' + f)
     : []),
+  ...(fs.existsSync(path.join(ROOT, 'designs'))
+    ? fs.readdirSync(path.join(ROOT, 'designs')).filter((f) => f.endsWith('.html')).map((f) => 'designs/' + f)
+    : []),
 ];
 
 const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
+
+/* 검색 소유확인 태그가 "있어 보이기만" 하는 자리표시자면 배포를 막는다. */
+{
+  const idx = (readIf('index.html') || '').replace(/<!--[\s\S]*?-->/g, '');
+  for (const name of ['naver-site-verification', 'google-site-verification']) {
+    const m = idx.match(new RegExp('name="' + name + '"\\s+content="([^"]*)"', 'i'));
+    checked++;
+    if (m && (!m[1] || /발급코드|여기코드|placeholder/i.test(m[1])))
+      fail.push(`${name}: 실제 소유확인 코드가 아니라 자리표시자다 — scripts/set-verification.mjs 로 반영하세요`);
+  }
+}
 
 /* ⓪ 글이 사이트에서 도달 가능한가 (고아 글 방지) ------------------------
  * posts/<slug>.html 은 data/site.json 의 insights 에서 생성된다(prerender-posts.py).
@@ -140,6 +154,36 @@ const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
   }
 }
 
+/* ⓪-4 공개 저장소에 자격증명이 들어오지 않았는가 -----------------------
+ * 이 저장소는 루트 전체가 GitHub Pages 로 서빙된다 — 커밋되는 순간 인터넷이다.
+ * clasp 설치 도구를 들이면서 위험이 실체가 됐다: .clasprc.json 은 구글 OAuth
+ * 새로고침 토큰을 담고, install/*-scripts.txt 에는 사장님 계정의 **모든**
+ * Apps Script 프로젝트 ID(사진 중계 포함)가 들어간다. .gitignore 로 막지만,
+ * .gitignore 를 지우거나 -f 로 강제 추가하면 그대로 뚫린다 — 여기서 한 번 더 본다. */
+{
+  const BANNED = ['.clasp.json', '.clasprc.json', '.env',
+                  'apps-script-contract/tools/install/before-scripts.txt',
+                  'apps-script-contract/tools/install/after-scripts.txt'];
+  for (const rel of BANNED) {
+    checked++;
+    if (fs.existsSync(path.join(ROOT, rel)))
+      fail.push(`${rel} 이 저장소에 있다 — 루트는 통째로 공개 서빙된다. 지우고 .gitignore 를 확인하라`);
+  }
+  checked++;
+  const gi = readIf('.gitignore');
+  if (!gi) fail.push('.gitignore 가 없다 — clasp 가 만드는 .clasp.json·.clasprc.json 이 그대로 커밋될 수 있다');
+  else {
+    // 주석이 아니라 **규칙 줄**을 본다. 처음엔 includes() 로 짰다가 변이 검증에서
+    // 걸렸다 — "….clasprc.json 은 토큰을 담는다" 라는 설명 주석만 있어도 통과했다.
+    // 파일명을 설명한 것과 실제로 막은 것은 다르다.
+    const rules = gi.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
+    for (const must of ['.clasp.json', '.clasprc.json', '.env']) {
+      checked++;
+      if (!rules.includes(must)) fail.push(`.gitignore 에 ${must} 규칙이 없다 — 공개 저장소에 자격증명이 실린다(주석에 적은 것은 막은 것이 아니다)`);
+    }
+  }
+}
+
 /* ① 내부 링크가 실제 파일을 가리키는가 (404 방지) ---------------------- */
 for (const rel of htmlFiles) {
   const src = readIf(rel);
@@ -181,6 +225,15 @@ const sm = readIf('sitemap.xml');
 if (!sm) fail.push('sitemap.xml 이 없다');
 else {
   const locs = (sm.match(/<loc>([^<]+)<\/loc>/g) || []).map((m) => m.slice(5, -6));
+  const urlBlocks = sm.match(/<url>[\s\S]*?<\/url>/g) || [];
+  const allowedFreq = new Set(['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never']);
+  for (const block of urlBlocks) {
+    const loc = block.match(/<loc>([^<]+)<\/loc>/)?.[1] || '(주소 없음)';
+    const lastmod = block.match(/<lastmod>([^<]+)<\/lastmod>/)?.[1] || '';
+    const freq = block.match(/<changefreq>([^<]+)<\/changefreq>/)?.[1] || '';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(lastmod)) fail.push(`${loc}: sitemap lastmod 가 없거나 YYYY-MM-DD 형식이 아니다`);
+    if (!allowedFreq.has(freq)) fail.push(`${loc}: sitemap changefreq 가 없거나 허용값이 아니다`);
+  }
   for (const rel of htmlFiles) {
     const src = readIf(rel);
     if (src == null || isInternal(src)) continue;

@@ -1,0 +1,19 @@
+# 이 저장소는 루트 전체가 GitHub Pages 로 공개 서빙된다.
+# 여기 없는 파일이 실수로 커밋되면 그대로 인터넷에 올라간다.
+
+# clasp(Apps Script 업로드) 가 만드는 것
+# 앞엣것은 스크립트 ID, 뒤엣것은 구글 OAuth 새로고침 토큰을 담는다.
+.clasp.json
+.clasprc.json
+apps-script-contract/tools/install/*-scripts.txt
+apps-script-contract/tools/install/node_modules/
+
+# 자격증명 일반
+*.credentials.json
+*service-account*.json
+.env
+.env.*
+
+# 운영체제·편집기 부스러기
+.DS_Store
+Thumbs.db

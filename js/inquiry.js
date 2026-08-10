@@ -10,7 +10,7 @@
 (function () {
   const SCROLL = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   const STORAGE_KEY = 'manmul_inquiries';
-  const WORKS = ['철거', '샷시', '확장', '바닥', '도배·페인트', '주방', '욕실', '조명·전기', '가구·붙박이', '스마트홈'];
+  const WORKS = ['철거', '샷시', '확장', '바닥', '도배·페인트', '주방', '욕실', '누수탐지·누수수리', '조명·전기', '가구·붙박이', '스마트홈'];
 
   const TOTAL_STEPS = 4;
   let step = 1;

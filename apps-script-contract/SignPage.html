@@ -19,7 +19,7 @@
       화면에 없는 보증을 문서에 적지 않는다.
 
   ★ Code.gs 와의 약속 (이 화면이 서버에서 받는 것)
-      var t = HtmlService.createTemplateFromFile('Sign');
+      var t = HtmlService.createTemplateFromFile('SignPage');
       t.BOOT_JSON = JSON.stringify({
         apiUrl : '<웹앱 exec 주소>',     // 없으면 제출을 못 한다(아래 참조)
         token  : '<원문 서명 토큰>',      // ?t= 로 들어온 값

@@ -8,3 +8,11 @@ out/
 
 # 가짜 검증용 DB(make-fixture-db.mjs 산출물)도 굳이 올리지 않는다 — 언제든 다시 만들 수 있다.
 tools/fixture/
+
+# Apps Script 대상·로그인 정보와 설치 중 임시 파일
+.clasp.json
+.clasprc.json
+*.credentials.json
+tools/install/node_modules/
+tools/install/before-scripts.txt
+tools/install/after-scripts.txt
