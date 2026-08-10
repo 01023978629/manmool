@@ -216,6 +216,9 @@ def write_blog_list(insights):
 def main():
     with open(os.path.join(ROOT, 'data', 'site.json'), encoding='utf-8') as f:
         insights = json.load(f).get('insights', [])
+    # 초안은 공개 data/site.json 안에 있어도 목록·정적 글로 만들지 않는다.
+    # published 가 없던 기존 글은 하위 호환으로 공개 상태다.
+    insights = [a for a in insights if a.get('published', True) is not False]
     insights = sorted(insights, key=lambda a: str(a.get('date') or ''), reverse=True)
     outdir = os.path.join(ROOT, 'posts')
     os.makedirs(outdir, exist_ok=True)
