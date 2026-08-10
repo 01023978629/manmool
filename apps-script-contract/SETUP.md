@@ -95,7 +95,7 @@ function myFunction() {
 
 | 파일 이름 (`.html` 은 빼고 입력) | 이 저장소의 파일 |
 | --- | --- |
-| `Sign` | `Sign.html` |
+| `SignPage` | `SignPage.html` |
 | `Admin` | `Admin.html` |
 
 만드는 법: **`+`** → **`HTML`** → 이름 입력.

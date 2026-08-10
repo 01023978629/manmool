@@ -14,6 +14,12 @@ test('precheck accepts exactly 11 gs, 2 html and a valid manifest', () => {
   assert.equal(precheck(dir).ok, true);
 });
 
+test('Apps Script upload names are unique even without extensions', () => {
+  const baseNames = [...EXPECTED_GS, ...EXPECTED_HTML].map((name) => name.replace(/\.(?:gs|html)$/, ''));
+  assert.equal(new Set(baseNames).size, baseNames.length,
+    'Apps Script forbids Sign.gs and Sign.html style duplicate base names');
+});
+
 test('precheck rejects an extra gs file (mutation)', () => {
   const dir = mkdtempSync(join(tmpdir(), 'contract-precheck-mut-'));
   for (const f of [...EXPECTED_GS, ...EXPECTED_HTML, 'Accidental.gs']) writeFileSync(join(dir, f), '');

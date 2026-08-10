@@ -170,7 +170,7 @@ function signSubmit_(signToken, payload, ctx) {
     //
     // 실제로 겪은 경로: 서명 완료 처리 중 Contracts 는 써졌는데 SignTokens 쓰기만 실패하면
     // 계약은 COMPLETED 인데 토큰이 살아 있다. 고객이 다시 누르면 여기 걸리는데,
-    // BAD_STATE 를 Sign.html 이 'voided' 로 매핑해 **"🚫 취소된 계약입니다"** 를 띄웠다.
+    // BAD_STATE 를 SignPage.html 이 'voided' 로 매핑해 **"🚫 취소된 계약입니다"** 를 띄웠다.
     // 정상 체결된 계약을 취소됐다고 말하는 것이라, 고객은 완료본도 못 받고 사장님께
     // "계약이 취소됐다는데요" 로 전화가 온다.
     if (String(c.status) === STATUS.COMPLETED) {

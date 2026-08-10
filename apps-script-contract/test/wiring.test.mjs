@@ -692,7 +692,7 @@ section('6-2) 부분 실패 뒤 고객에게 하는 말이 사실과 맞는가')
 {
   // 서명 완료는 ① Drive → ② Contracts → ③ SignTokens 순으로 쓴다.
   // ③만 실패하면 계약은 COMPLETED 인데 토큰이 살아 있다. 고객이 다시 누르면
-  // 예전에는 BAD_STATE 가 나갔고, Sign.html 이 그것을 'voided' 로 매핑해
+  // 예전에는 BAD_STATE 가 나갔고, SignPage.html 이 그것을 'voided' 로 매핑해
   // **"🚫 취소된 계약입니다"** 를 띄웠다 — 정상 체결된 계약을 두고 하는 거짓말이다.
   const pctx = { at: new Date().toISOString(), actor: 'admin' };
   const made = ctx.createContract_({
@@ -730,7 +730,7 @@ section('6-2) 부분 실패 뒤 고객에게 하는 말이 사실과 맞는가')
   check(again && again.indexOf('TOKEN_USED') === 0,
     '이미 체결된 계약을 "취소됐다"고 말하지 않는다 — TOKEN_USED 로 답한다', again);
   check(again && again.indexOf('BAD_STATE') !== 0,
-    'BAD_STATE 를 쓰지 않는다 — Sign.html 이 그것을 "취소된 계약" 화면으로 매핑한다', again);
+    'BAD_STATE 를 쓰지 않는다 — SignPage.html 이 그것을 "취소된 계약" 화면으로 매핑한다', again);
 }
 
 section('6-3) AI 중계 — 키를 서버에 두고 브라우저로 내려보내지 않는다');

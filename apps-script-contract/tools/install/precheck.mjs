@@ -7,7 +7,7 @@ export const EXPECTED_GS = [
   'ContractService.gs', 'Sign.gs', 'Notify.gs', 'AiService.gs',
   'MigrationService.gs', 'Code.gs'
 ];
-export const EXPECTED_HTML = ['Sign.html', 'Admin.html'];
+export const EXPECTED_HTML = ['SignPage.html', 'Admin.html'];
 
 export function precheck(root) {
   const names = readdirSync(root);

@@ -1,7 +1,7 @@
 /* screens.e2e.mjs — 고객 서명 화면과 관리자 화면을 실제 브라우저에서 연다
 
    왜 필요한가.
-   Sign.html(자바스크립트 41KB)과 Admin.html(35KB)은 이 검사를 만들기 전까지
+   SignPage.html(자바스크립트 41KB)과 Admin.html(35KB)은 이 검사를 만들기 전까지
    **한 번도 실행된 적이 없었다.** wiring.test.mjs 가 두 파일 이름을 언급하지만
    전부 주석이고, .gs 만 검사한다. 즉 77KB 짜리 코드의 첫 실행자가 고객이었다.
    서명 화면에서 하얀 화면이 뜨면 고객은 "안 열린다"고만 말할 수 있고,
@@ -116,7 +116,7 @@ const CONTRACT = {
 let routeHandler = null;   // 각 검사가 갈아 끼운다
 
 async function openSign(page, bootObj, handler) {
-  current = renderTemplate('Sign.html', bootObj);
+  current = renderTemplate('SignPage.html', bootObj);
   routeHandler = handler || null;
   await page.goto(PAGE, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(400);

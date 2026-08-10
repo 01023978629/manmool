@@ -4,7 +4,7 @@
  * 이 파일이 하는 일
  *   · doPost 하나로 모든 동작을 받는다 — 본문 해석 · 요청시각(±10분) · 동작 허용목록 ·
  *     관리자 토큰 대조 · 고객 경로 분리 · 중복요청(idem) · 동시성 잠금 · 오류 → 규약 응답
- *   · doGet 으로 상태(JSON)와 화면(고객 서명 Sign.html · 관리자 Admin.html)을 낸다
+ *   · doGet 으로 상태(JSON)와 화면(고객 서명 SignPage.html · 관리자 Admin.html)을 낸다
  *   · selfTest — 배포 직후 "지금 계약을 받아도 되는가"를 한 번에 확인한다
  *   · quickSend(생성→잠금→링크) · exportCsv(목록 → CSV) 처럼 현장에서 실제로 쓰는 묶음
  *
@@ -1073,7 +1073,7 @@ function doGet(e) {
 }
 
 /**
- * 고객 화면. Sign.html 이 기다리는 BOOT_JSON 을 심어 준다.
+ * 고객 화면. SignPage.html 이 기다리는 BOOT_JSON 을 심어 준다.
  * 토큰 판정은 하지 않는다 — signBoot_(Sign.gs)이 있으면 미리 물어 왕복 한 번을 줄이고,
  * 없으면 state:'ok' 로 두어 화면이 직접 묻게 한다. 화면이 물으면 진짜 사유
  * (만료·사용됨·취소)를 그때 정확히 듣는다. 여기서 지어내지 않는다.
@@ -1104,16 +1104,16 @@ function gwSignPage_(t, mode) {
 
   var page;
   try {
-    var tpl = HtmlService.createTemplateFromFile('Sign');
+    var tpl = HtmlService.createTemplateFromFile('SignPage');
     tpl.BOOT_JSON = JSON.stringify(boot);
     page = tpl.evaluate();
   } catch (e) {
-    return gwGuidePage_('서명 화면 파일(Sign.html)을 열지 못했습니다.');
+    return gwGuidePage_('서명 화면 파일(SignPage.html)을 열지 못했습니다.');
   }
 
   // ★ addMetaTag 가 없으면 폰에서 글자가 개미만 하게 나온다.
   //   HtmlService 는 이 문서를 iframe 에 넣고 바깥 문서를 따로 만드는데,
-  //   바깥 문서의 viewport 는 이 방법으로만 붙는다(Sign.html 머리말 참고).
+  //   바깥 문서의 viewport 는 이 방법으로만 붙는다(SignPage.html 머리말 참고).
   return page
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setTitle(boot.mode === 'done' ? '계약 완료본 · 만물인테리어' : '계약서 서명 · 만물인테리어');

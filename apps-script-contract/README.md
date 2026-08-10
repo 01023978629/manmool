@@ -39,7 +39,7 @@
 | `AiService.gs` | AI 통과창구 — 키를 기기에서 서버로 옮김. 한도·유료잠금 | UrlFetch · Properties |
 | `MigrationService.gs` | 옛 자료 CSV 를 시트에 **덧붙이기**(덮어쓰지 않음) | Drive · Sheets |
 | `Code.gs` | 창구. `doPost`/`doGet`·동작표·자격증명·잠금·멱등·health·selfTest | 전부 |
-| `Sign.html` | 고객 서명 화면(폰) | — |
+| `SignPage.html` | 고객 서명 화면(폰) | — |
 | `Admin.html` | 관리자 화면(`?page=admin`) | — |
 | `appsscript.json` | 매니페스트(권한 범위·웹앱 설정) | — |
 | `test/run.mjs` · `test/pure.test.mjs` | `Pure.gs`·`Schema.gs` 자동 검사 (Node) | — |
