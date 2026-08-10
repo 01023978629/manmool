@@ -1042,7 +1042,7 @@ function renderAbout(about) {
   }
 }
 
-/* ---------- 누수탐지 요금표 (대표 확인 전에는 공개 금지) ---------- */
+/* ---------- 누수탐지 요금표 ---------- */
 function renderLeakPricing(config) {
   const section = document.getElementById('leakPricing');
   if (!section) return;
@@ -1052,11 +1052,20 @@ function renderLeakPricing(config) {
   const vat = document.getElementById('leakPricingVat');
   const promise = document.getElementById('leakPricingPromise');
   if (!tiers || !vat || !promise) return;
-  tiers.innerHTML = config.tiers.map((tier) => `
+  const vatRate = Number.isFinite(Number(config.vatRate)) ? Number(config.vatRate) : 0.1;
+  const won = (value) => `${Number(value || 0).toLocaleString('ko-KR')}원`;
+  tiers.innerHTML = config.tiers.map((tier) => {
+    const supply = Number(tier.amount || 0);
+    const vatAmount = Math.round(supply * vatRate);
+    const total = supply + vatAmount;
+    return `
     <li class="leak-price-card">
-      <span>${tier.label || `${tier.step}단계`}</span>
-      <b>${Number(tier.amount || 0).toLocaleString('ko-KR')}원</b>
-    </li>`).join('');
+      <b class="leak-price-step">${tier.label || `${tier.step}단계`}</b>
+      <span><em>공급가</em><strong>${won(supply)}</strong></span>
+      <span><em>VAT 10%</em><strong>${won(vatAmount)}</strong></span>
+      <span class="leak-price-total"><em>합계</em><strong>${won(total)}</strong></span>
+    </li>`;
+  }).join('');
   vat.textContent = config.vatLabel || '';
   promise.textContent = config.noFindPromise || '';
   section.hidden = false;

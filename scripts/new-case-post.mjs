@@ -10,7 +10,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const DEFAULT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -92,48 +91,20 @@ function parseArgs(argv) {
   return out;
 }
 
-function runPrerender() {
-  const script = path.join(ROOT, 'scripts', 'prerender-posts.py');
-  const bundledPython = process.platform === 'win32'
-    ? path.resolve(path.dirname(process.execPath), '..', '..', 'python', 'python.exe') : '';
-  const candidates = process.env.PYTHON
-    ? [[process.env.PYTHON, []]]
-    : [
-        ...(bundledPython && fs.existsSync(bundledPython) ? [[bundledPython, []]] : []),
-        ...(process.platform === 'win32' ? [['py', ['-3']], ['python', []]] : [['python3', []], ['python', []]]),
-      ];
-  const errors = [];
-  for (const [cmd, prefix] of candidates) {
-    const result = spawnSync(cmd, [...prefix, script], { cwd: ROOT, encoding: 'utf8' });
-    if (!result.error) {
-      if (result.status === 0) {
-        process.stdout.write(result.stdout || '');
-        return;
-      }
-      errors.push(`${cmd} 종료 ${result.status}: ${result.stderr || result.stdout}`);
-    } else {
-      errors.push(`${cmd}: ${result.error.message}`);
-    }
-  }
-  throw new Error('prerender-posts.py 를 실행하지 못했습니다. PYTHON 환경변수로 정상 Python 경로를 지정하세요.\n' + errors.join('\n'));
-}
-
 function main() {
   const args = parseArgs(process.argv.slice(2));
   let values = { ...args };
   if (args['material-file']) values = { ...parseMaterial(fs.readFileSync(path.resolve(args['material-file']), 'utf8')), ...values };
   else if (!FIELDS.some((key) => values[key]) && !process.stdin.isTTY) values = { ...parseMaterial(fs.readFileSync(0, 'utf8')), ...values };
   const draft = makeDraft(values);
-  const sitePath = path.join(ROOT, 'data', 'site.json');
-  const site = JSON.parse(fs.readFileSync(sitePath, 'utf8'));
-  site.insights = Array.isArray(site.insights) ? site.insights : [];
-  if (site.insights.some((x) => x && x.slug === draft.slug)) throw new Error('같은 현장 기록으로 만든 초안이 이미 있습니다: ' + draft.slug);
-  site.insights.unshift(draft);
-  const temp = sitePath + '.tmp';
-  fs.writeFileSync(temp, JSON.stringify(site, null, 2) + '\n', 'utf8');
-  fs.renameSync(temp, sitePath);
-  runPrerender();
-  console.log(`초안 저장: ${draft.slug} (published:false · 공개 안 됨)`);
+  const draftDir = path.join(ROOT, '.private', 'case-drafts');
+  const draftPath = path.join(draftDir, draft.slug + '.json');
+  if (fs.existsSync(draftPath)) throw new Error('같은 현장 기록으로 만든 초안이 이미 있습니다: ' + draft.slug);
+  fs.mkdirSync(draftDir, { recursive: true });
+  const temp = draftPath + '.tmp';
+  fs.writeFileSync(temp, JSON.stringify(draft, null, 2) + '\n', 'utf8');
+  fs.renameSync(temp, draftPath);
+  console.log(`비공개 초안 저장: ${path.relative(ROOT, draftPath)} (공개 데이터·HTML 변경 없음)`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -99,8 +99,9 @@
     }
   ],
   "leakPricing": {
-    "published": false,
-    "vatLabel": "[대표 확인 필요: 부가세 포함/별도]",
+    "published": true,
+    "vatLabel": "부가세 별도",
+    "vatRate": 0.1,
     "noFindPromise": "못 찾으면 탐지비 0원",
     "tiers": [
       { "step": 1, "label": "1단계", "amount": 400000 },

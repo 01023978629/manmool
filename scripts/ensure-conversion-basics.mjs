@@ -19,6 +19,11 @@ const css = read('css/styles.css');
 const inquiry = read('js/inquiry.js');
 const main = read('js/main.js');
 const blogJs = read('js/blog.js');
+const office = read('office.html');
+
+check(/표준 패키지 500만원 이하/.test(office) && /초과분은 별도 견적과 관리사무소 승인 후 진행/.test(office),
+  '관리사무소 표준 500만원 이하 정책이 office.html에 정확히 안내되지 않는다',
+  '관리사무소 표준 500만원 이하 정책 공개');
 
 /* ① 손님에게 "데모"라고 말하지 않는다 --------------------------------- */
 // 문의를 넣을지 망설이는 사람이 페이지 맨 아래에서 마지막으로 읽는 문장이었다.

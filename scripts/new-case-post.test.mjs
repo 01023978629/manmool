@@ -52,10 +52,14 @@ try {
   const result = spawnSync(NODE, [path.join(ROOT, 'scripts', 'new-case-post.mjs'), ...argv], {
     cwd: ROOT, encoding: 'utf8', env: { ...process.env, MANMOOL_CASE_ROOT: temp },
   });
-  test('CLI가 초안을 저장하고 프리렌더까지 성공한다', () => assert.equal(result.status, 0, result.stderr || result.stdout));
+  test('CLI가 PC 전용 폴더에 초안을 저장한다', () => assert.equal(result.status, 0, result.stderr || result.stdout));
   const site = JSON.parse(fs.readFileSync(path.join(temp, 'data', 'site.json'), 'utf8'));
-  const draft = site.insights.find((x) => x && x.slug && x.slug.startsWith('case-draft-'));
+  const draftDir = path.join(temp, '.private', 'case-drafts');
+  const draftFiles = fs.readdirSync(draftDir).filter((file) => file.endsWith('.json'));
+  const draft = JSON.parse(fs.readFileSync(path.join(draftDir, draftFiles[0]), 'utf8'));
+  test('초안 파일이 하나 생성된다', () => assert.equal(draftFiles.length, 1));
   test('CLI 결과는 published:false 다', () => assert.equal(draft.published, false));
+  test('공개 site.json에는 초안이 들어가지 않는다', () => assert.equal(site.insights.some((x) => x && x.slug === draft.slug), false));
   test('초안 정적 HTML은 생성되지 않는다', () => assert.equal(fs.existsSync(path.join(temp, 'posts', draft.slug + '.html')), false));
   test('초안은 blog.html 목록에 노출되지 않는다', () => assert.equal(fs.readFileSync(path.join(temp, 'blog.html'), 'utf8').includes(draft.slug), false));
 } finally {
