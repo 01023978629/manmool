@@ -25,6 +25,9 @@ const htmlFiles = [
   ...(fs.existsSync(path.join(ROOT, 'posts'))
     ? fs.readdirSync(path.join(ROOT, 'posts')).filter((f) => f.endsWith('.html')).map((f) => 'posts/' + f)
     : []),
+  ...(fs.existsSync(path.join(ROOT, 'designs'))
+    ? fs.readdirSync(path.join(ROOT, 'designs')).filter((f) => f.endsWith('.html')).map((f) => 'designs/' + f)
+    : []),
 ];
 
 const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);

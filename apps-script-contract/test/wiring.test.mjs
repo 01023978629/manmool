@@ -213,6 +213,37 @@ const sources = GS.map((f) => ({ name: f, code: readFileSync(join(DIR, f), 'utf8
 
 console.log('전자계약 .gs 맞물림 검사 — 파일 ' + GS.length + '개\n' + '─'.repeat(56));
 
+section('0-1) PROTOCOL 오류 코드표와 실제 코드가 같은가');
+const protocol = readFileSync(join(DIR, 'PROTOCOL.md'), 'utf8');
+const errorTable = ((protocol.match(/### 오류 코드([\s\S]*?)(?:\n---|\n## )/) || [])[1] || '');
+const protocolCodes = new Set(
+  errorTable.split('\n').filter((line) => /^\|\s*`/.test(line))
+    .flatMap((line) => [...String(line.split('|')[1] || '').matchAll(/`([A-Z][A-Z_]+)`/g)].map((m) => m[1]))
+);
+const codeSource = (sources.find((x) => x.name === 'Code.gs') || {}).code || '';
+const codeListBody = ((codeSource.match(/var GW_ERROR_CODES\s*=\s*\[([\s\S]*?)\];/) || [])[1] || '');
+const gatewayCodes = new Set(
+  [...codeListBody.matchAll(/['"]([A-Z][A-Z_]+)['"]/g)].map((m) => m[1])
+);
+const onlyProtocol = [...protocolCodes].filter((c) => !gatewayCodes.has(c)).sort();
+const onlyGateway = [...gatewayCodes].filter((c) => !protocolCodes.has(c)).sort();
+const thrownCodes = new Set();
+for (const { code: raw } of sources) {
+  const code = raw.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+  for (const m of code.matchAll(/\b(?:gw|ct|dv|sg|ai)Fail_\(\s*['"]([A-Z][A-Z_]+)['"]/g)) thrownCodes.add(m[1]);
+  for (const m of code.matchAll(/throw\s+new Error\(\s*['"]([A-Z][A-Z_]+)\|/g)) thrownCodes.add(m[1]);
+}
+const thrownOutside = [...thrownCodes].filter((c) => !gatewayCodes.has(c)).sort();
+check(protocolCodes.size > 0 && gatewayCodes.size > 0,
+  'PROTOCOL 오류 코드표와 GW_ERROR_CODES 배열을 실제 원문에서 읽는다',
+  '문서 ' + protocolCodes.size + '개 · 코드 ' + gatewayCodes.size + '개');
+check(onlyProtocol.length === 0,
+  'PROTOCOL 에만 있고 GW_ERROR_CODES 에 없는 코드가 없다', onlyProtocol.join(', '));
+check(onlyGateway.length === 0,
+  'GW_ERROR_CODES 에만 있고 PROTOCOL 에 없는 코드가 없다', onlyGateway.join(', '));
+check(thrownOutside.length === 0,
+  '.gs 가 코드표 밖의 오류 코드를 던지지 않는다', thrownOutside.join(', '));
+
 section('1) Apps Script 에서 못 쓰는 문법·API');
 const BANNED = [
   { re: /^\s*(import|export)\s/m, why: 'Apps Script 에는 모듈이 없다' },
