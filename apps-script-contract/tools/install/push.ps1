@@ -1,14 +1,21 @@
 param([switch]$Apply)
 $ErrorActionPreference = 'Stop'
+$installDir = $PSScriptRoot
 Set-Location $PSScriptRoot
 try {
   node precheck.mjs
   Write-Host '계획: 새 독립 프로젝트 「만물 전자계약」 생성 → 대상 재확인 → 14개 파일 업로드 → 웹앱 배포'
   if (-not $Apply) { Write-Host '계획만 확인했습니다. 실제 실행은: .\push.ps1 -Apply'; exit 0 }
+  # 계정 없는 설치 리허설 전용 실패 주입점. clasp·npm 전에 가짜 목록을 만들고
+  # finally가 실제로 지우는지 확인한다. 일반 설치에서는 이 환경변수가 없다.
+  if ($env:MANMOOL_INSTALL_REHEARSAL_FAIL -eq '1') {
+    Set-Content -LiteralPath (Join-Path $installDir 'before-scripts.txt') -Value 'FAKE_BEFORE' -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $installDir 'after-scripts.txt') -Value 'FAKE_AFTER' -Encoding utf8
+    throw '리허설용 강제 실패'
+  }
   if (-not (Get-Command npx -ErrorAction SilentlyContinue)) { throw 'Node.js(npx)가 없습니다.' }
   npm install --ignore-scripts --no-audit --no-fund
   if ($LASTEXITCODE) { throw 'QR 도구 설치에 실패했습니다.' }
-  $installDir = $PSScriptRoot
   Set-Location (Resolve-Path (Join-Path $PSScriptRoot '..\..'))
   Remove-Item -LiteralPath .clasp.json -Force -ErrorAction SilentlyContinue
   $before = Join-Path $installDir 'before-scripts.txt'
