@@ -1348,6 +1348,114 @@ function gwStamp_() {
  * 15) 편집기에서 손으로 돌리는 함수 (웹앱 경로가 아니다)
  * ============================================================ */
 /**
+ * 새 전자계약 프로젝트를 한 번에 준비한다. true 는 계획만 보여 주고 아무 것도 만들지 않는다.
+ * 여러 번 실행해도 기존 속성, 특히 PEPPER 를 절대 덮어쓰지 않는다.
+ */
+function bootstrap(dryRun) {
+  var preview = dryRun === true;
+  var steps = [
+    '스프레드시트 준비', 'Drive 폴더 준비', '관리자 토큰과 PEPPER 준비',
+    '시트 5개 준비', '매일 백업 트리거 준비', '자가진단'
+  ];
+  if (preview) {
+    Logger.log('[계획만] ' + steps.join(' → '));
+    Logger.log('다음: 편집기에서 bootstrap() 을 실행하세요.');
+    return { ok: true, dryRun: true, steps: steps };
+  }
+
+  var p = props_();
+  var made = [];
+  var kept = [];
+  try {
+    var sid = String(p.getProperty('SPREADSHEET_ID') || '');
+    if (!sid) {
+      var existingSs = gwFindSpreadsheet_('만물 전자계약 자료');
+      var ss = existingSs || SpreadsheetApp.create('만물 전자계약 자료');
+      sid = String(ss.getId());
+      p.setProperty('SPREADSHEET_ID', sid);
+      SS_CACHE_ = null;
+      made.push(existingSs ? '기존 스프레드시트 연결' : '스프레드시트 생성');
+    } else {
+      SpreadsheetApp.openById(sid);
+      kept.push('SPREADSHEET_ID 유지');
+    }
+
+    var fid = String(p.getProperty('DRIVE_FOLDER_ID') || '');
+    if (!fid) {
+      var folders = DriveApp.getFoldersByName('만물 전자계약');
+      var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder('만물 전자계약');
+      fid = String(folder.getId());
+      p.setProperty('DRIVE_FOLDER_ID', fid);
+      made.push('Drive 폴더 연결');
+    } else {
+      DriveApp.getFolderById(fid);
+      kept.push('DRIVE_FOLDER_ID 유지');
+    }
+
+    gwEnsureSecret_(p, 'ADMIN_TOKEN', made, kept);
+    gwEnsureSecret_(p, 'PEPPER', made, kept);
+    var sheets = ensureSheets_();
+    made.push('시트 준비');
+    var backup = gwEnsureBackupTrigger_();
+    made.push(backup.created ? '백업 트리거 생성' : '백업 트리거 유지');
+
+    var test = gwSelfTest_();
+    Logger.log('bootstrap: 새로 준비=' + (made.join(', ') || '없음') + ' · 유지=' + (kept.join(', ') || '없음'));
+    for (var i = 0; i < test.checks.items.length; i++) {
+      var it = test.checks.items[i];
+      Logger.log((it.ok ? '[통과] ' : '[실패] ') + it.name + ' — ' + it.detail);
+    }
+    Logger.log(test.checks.allOk
+      ? '완료: 웹앱으로 배포한 뒤 /exec 주소를 현장 앱에 연결하세요.'
+      : '중단: 실패 항목을 고친 뒤 bootstrap() 을 다시 실행하세요.');
+    return {
+      ok: test.checks.allOk,
+      dryRun: false,
+      created: made,
+      preserved: kept,
+      sheets: sheets,
+      backup: { created: backup.created, handler: DV_BACKUP_HANDLER },
+      selfTest: test
+    };
+  } catch (e) {
+    Logger.log('bootstrap 중단: ' + gwBootstrapError_(e));
+    Logger.log('다음: 원인을 고친 뒤 bootstrap() 을 다시 실행하세요. 이미 만든 항목은 재사용합니다.');
+    throw e;
+  }
+}
+
+function gwFindSpreadsheet_(name) {
+  var files = DriveApp.getFilesByName(name);
+  while (files.hasNext()) {
+    var file = files.next();
+    try { return SpreadsheetApp.openById(String(file.getId())); } catch (e) { /* 다음 후보 */ }
+  }
+  return null;
+}
+
+function gwEnsureSecret_(p, key, made, kept) {
+  if (p.getProperty(key)) { kept.push(key + ' 유지'); return; }
+  var value = String(Utilities.getUuid()).replace(/-/g, '') + String(Utilities.getUuid()).replace(/-/g, '');
+  if (value.length < 40) throw new Error(key + ' 생성 길이가 부족합니다');
+  p.setProperty(key, value);
+  made.push(key + ' 설정됨(' + value.length + '자)');
+}
+
+function gwEnsureBackupTrigger_() {
+  var all = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].getHandlerFunction() === DV_BACKUP_HANDLER) return { created: false };
+  }
+  var t = ScriptApp.newTrigger(DV_BACKUP_HANDLER).timeBased().everyDays(1).atHour(DV_BACKUP_HOUR).create();
+  return { created: true, triggerId: t ? String(t.getUniqueId()) : '' };
+}
+
+function gwBootstrapError_(err) {
+  var s = String((err && err.message) || err || '알 수 없는 오류');
+  return s.replace(/[A-Za-z0-9_-]{24,}/g, '[값 숨김]').slice(0, 180);
+}
+
+/**
  * 처음 설치할 때 한 번 실행한다. Schema.gs 정의대로 시트 5장과 머리행을 갖춘다.
  * 이미 있는 시트는 건드리지 않는다(SheetService.gs ensureSheets_ 주석 참고).
  */

@@ -124,18 +124,21 @@ function makeFakeGoogle(props) {
     autoResizeColumns() { return this; } setColumnWidth() { return this; }
   }
   class SS {
-    constructor() { this._sheets = []; }
-    getId() { return 'SHEET_ID'; }
+    constructor(id = 'SHEET_ID', name = '전자계약') { this._sheets = []; this._id = id; this._name = name; }
+    getId() { return this._id; }
     getSheets() { return this._sheets; }
     getSheetByName(n) { return this._sheets.find((s) => s.getName() === n) || null; }
     insertSheet(n) { const s = new Sheet(n); this._sheets.push(s); return s; }
-    getName() { return '전자계약'; }
+    getName() { return this._name; }
   }
   const SHEET = new SS();
+  const spreadsheets = { SHEET_ID: SHEET };
+  const driveFiles = [];
 
   const triggers = [];
   const cacheData = {};
   const fetchLog = [];
+  const logs = [];
   const scriptLock = {
     _held: false,
     releaseCount: 0,
@@ -150,9 +153,28 @@ function makeFakeGoogle(props) {
     }
   };
   return {
-    PropertiesService: { getScriptProperties: () => ({ getProperty: (k) => (k in props ? props[k] : null), setProperty: (k, v) => { props[k] = v; } }) },
-    SpreadsheetApp: { openById: (id) => { if (id !== 'SHEET_ID') throw new Error('없는 시트'); return SHEET; } },
-    DriveApp: { getFolderById: (id) => { if (!byId[id]) throw new Error('없는 폴더'); return byId[id]; } },
+    PropertiesService: { getScriptProperties: () => ({
+      getProperty: (k) => (k in props ? props[k] : null),
+      setProperty: (k, v) => { props[k] = String(v); },
+      getProperties: () => ({ ...props }),
+      getKeys: () => Object.keys(props),
+      deleteProperty: (k) => { delete props[k]; }
+    }) },
+    SpreadsheetApp: {
+      openById: (id) => { if (!spreadsheets[id]) throw new Error('없는 시트'); return spreadsheets[id]; },
+      create: (name) => {
+        const id = 'SHEET_' + (Object.keys(spreadsheets).length + 1);
+        const ss = new SS(id, name); spreadsheets[id] = ss;
+        driveFiles.push({ getId: () => id, getName: () => name });
+        return ss;
+      }
+    },
+    DriveApp: {
+      getFolderById: (id) => { if (!byId[id]) throw new Error('없는 폴더'); return byId[id]; },
+      getFoldersByName: (name) => new Iter(Object.values(byId).filter((f) => f.getName() === name)),
+      createFolder: (name) => { const f = new Folder(name); byId[f.getId()] = f; return f; },
+      getFilesByName: (name) => new Iter(driveFiles.filter((f) => f.getName() === name))
+    },
     Utilities: {
       computeDigest: digest,
       computeHmacSha256Signature: (msg, key) => Array.from(createHmac('sha256', String(key)).update(String(msg)).digest()).map((b) => (b > 127 ? b - 256 : b)),
@@ -169,13 +191,24 @@ function makeFakeGoogle(props) {
     ScriptApp: {
       getProjectTriggers: () => triggers,
       deleteTrigger: (t) => { const i = triggers.indexOf(t); if (i >= 0) triggers.splice(i, 1); },
-      newTrigger: (fn) => ({ timeBased: () => ({ atHour: () => ({ everyDays: () => ({ create: () => { const t = { getHandlerFunction: () => fn }; triggers.push(t); return t; } }) }) }) }),
+      newTrigger: (fn) => ({ timeBased: () => {
+        const builder = {
+          everyDays: () => builder,
+          atHour: () => builder,
+          create: () => {
+            const t = { getHandlerFunction: () => fn, getUniqueId: () => 'trigger_' + (triggers.length + 1) };
+            triggers.push(t); return t;
+          }
+        };
+        return builder;
+      } }),
       getService: () => ({ getUrl: () => 'https://script.google.com/macros/s/TEST/exec' })
     },
     // 시간대·사용자 — ctTz_ 등이 쓴다.
     __fetchLog: fetchLog,
+    __logs: logs,
     Session: { getScriptTimeZone: () => 'Asia/Seoul', getActiveUser: () => ({ getEmail: () => '' }), getEffectiveUser: () => ({ getEmail: () => '' }) },
-    Logger: { log: () => {} },
+    Logger: { log: (v) => { logs.push(String(v)); } },
     // 외부 호출은 기본적으로 막는다(발송이 꺼져 있어야 하므로).
     // 다만 AI 중계 검사를 하려면 아는 두 곳은 흉내낼 수 있어야 한다.
     // fetchLog 에 남겨 '무엇을 어디로 보냈는지'를 검사에서 확인한다.
@@ -296,6 +329,36 @@ try {
 } catch (e) { loadErr = e; }
 check(!loadErr, '모든 .gs 가 오류 없이 올라간다', loadErr ? String(loadErr.message) : '');
 if (loadErr) { console.log('\n검사 ' + (pass + fail) + '건 · 통과 ' + pass + ' · 실패 ' + fail); process.exit(1); }
+
+section('2-1) bootstrap 은 계획 우선·재실행 안전·비밀 비노출인가');
+const bootProps = {};
+const bootGoogle = makeFakeGoogle(bootProps);
+const bootCtx = createContext(bootGoogle);
+bootGoogle.globalThis = bootCtx;
+let bootErr = null, dry = null, first = null, second = null;
+try {
+  for (const { name, code } of sources) runInContext(code, bootCtx, { filename: name });
+  dry = bootCtx.bootstrap(true);
+  first = bootCtx.bootstrap();
+  const firstPepper = bootProps.PEPPER;
+  const firstAdmin = bootProps.ADMIN_TOKEN;
+  second = bootCtx.bootstrap();
+  bootGoogle.__firstPepper = firstPepper;
+  bootGoogle.__firstAdmin = firstAdmin;
+} catch (e) { bootErr = e; }
+check(!bootErr, '빈 프로젝트에서 bootstrap 두 번이 오류 없이 끝난다', bootErr ? String(bootErr.message) : '');
+check(dry && dry.dryRun === true, 'bootstrap(true)는 계획만 반환한다');
+check(bootProps.PEPPER === bootGoogle.__firstPepper && bootProps.ADMIN_TOKEN === bootGoogle.__firstAdmin,
+  '두 번째 실행이 PEPPER와 ADMIN_TOKEN을 덮어쓰지 않는다');
+check(String(bootProps.PEPPER || '').length >= 40 && String(bootProps.ADMIN_TOKEN || '').length >= 40,
+  '새 비밀값은 각각 40자 이상이다');
+check(!Object.prototype.hasOwnProperty.call(bootProps, 'ALIMTALK_LIVE'),
+  'bootstrap은 ALIMTALK_LIVE를 만들거나 켜지 않는다');
+const bootLog = bootGoogle.__logs.join('\n');
+check(!bootLog.includes(String(bootProps.PEPPER || '')) && !bootLog.includes(String(bootProps.ADMIN_TOKEN || '')),
+  '로그에 PEPPER와 ADMIN_TOKEN 값이 없다');
+check(first && first.selfTest && first.selfTest.checks.allOk === true && second && second.selfTest.checks.allOk === true,
+  '첫 실행과 재실행 모두 selfTest allOk=true다');
 
 section('3) 부르는데 없는 함수');
 // 각 파일에서 호출 형태(이름( )를 뽑아, 전역에도 없고 지역 선언도 아닌 것을 찾는다.

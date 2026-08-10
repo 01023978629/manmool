@@ -32,6 +32,17 @@ const htmlFiles = [
 
 const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
 
+/* 검색 소유확인 태그가 "있어 보이기만" 하는 자리표시자면 배포를 막는다. */
+{
+  const idx = (readIf('index.html') || '').replace(/<!--[\s\S]*?-->/g, '');
+  for (const name of ['naver-site-verification', 'google-site-verification']) {
+    const m = idx.match(new RegExp('name="' + name + '"\\s+content="([^"]*)"', 'i'));
+    checked++;
+    if (m && (!m[1] || /발급코드|여기코드|placeholder/i.test(m[1])))
+      fail.push(`${name}: 실제 소유확인 코드가 아니라 자리표시자다 — scripts/set-verification.mjs 로 반영하세요`);
+  }
+}
+
 /* ⓪ 글이 사이트에서 도달 가능한가 (고아 글 방지) ------------------------
  * posts/<slug>.html 은 data/site.json 의 insights 에서 생성된다(prerender-posts.py).
  * site.json 에 없는 글은 파일만 존재하고 blog.html 목록·홈 인사이트 어디에도

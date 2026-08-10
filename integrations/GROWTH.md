@@ -40,6 +40,34 @@
 
 참고: FAQ 구조화 데이터를 넣어 두어, 구글에서 질문·답변이 펼쳐지는 리치 결과 대상이 됩니다.
 
+### Google siteVerification API로 발급·확인하기
+
+브라우저에서 직접 복사하지 않으려면 Google 계정 승인 뒤 API를 쓸 수 있습니다. 기본은 조회·계획만 하고, 마지막 `insert`가 실제 소유확인입니다.
+
+```powershell
+gcloud auth login
+gcloud services enable siteverification.googleapis.com
+$accessToken = gcloud auth print-access-token
+$site = 'https://01023978629.github.io/manmool/'
+$body = @{ site = @{ type = 'SITE'; identifier = $site }; verificationMethod = 'META' } | ConvertTo-Json -Depth 4
+$tokenResult = Invoke-RestMethod -Method Post -Uri 'https://www.googleapis.com/siteVerification/v1/token' -Headers @{ Authorization = "Bearer $accessToken" } -ContentType 'application/json' -Body $body
+node scripts/set-verification.mjs --google=$($tokenResult.token)
+node scripts/ensure-site-integrity.mjs
+# 사이트가 배포된 뒤에만 실행(실제 확인):
+Invoke-RestMethod -Method Post -Uri 'https://www.googleapis.com/siteVerification/v1/webResource?verificationMethod=META' -Headers @{ Authorization = "Bearer $accessToken" } -ContentType 'application/json' -Body (@{ site = @{ type = 'SITE'; identifier = $site } } | ConvertTo-Json -Depth 4)
+```
+
+토큰은 비밀번호가 아니지만 저장소에는 meta 한 곳에만 둡니다. `insert`가 실패하면 먼저 GitHub Pages에 meta가 배포됐는지 확인합니다.
+
+### 네이버 코드를 한 줄로 반영하기
+
+네이버 서치어드바이저에서 HTML 태그의 `content` 값만 받은 뒤 실행합니다.
+
+```powershell
+node scripts/set-verification.mjs --naver=<받은코드>
+node scripts/ensure-site-integrity.mjs
+```
+
 ## 4. 당근 비즈프로필 (동네 직접 홍보)
 
 1. 당근 앱 → 나의 당근 → **비즈프로필 만들기**
