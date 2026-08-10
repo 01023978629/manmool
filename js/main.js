@@ -1042,10 +1042,40 @@ function renderAbout(about) {
   }
 }
 
+/* ---------- 누수탐지 요금표 ---------- */
+function renderLeakPricing(config) {
+  const section = document.getElementById('leakPricing');
+  if (!section) return;
+  section.hidden = true;
+  if (!config || config.published !== true || !Array.isArray(config.tiers)) return;
+  const tiers = document.getElementById('leakPricingTiers');
+  const vat = document.getElementById('leakPricingVat');
+  const promise = document.getElementById('leakPricingPromise');
+  if (!tiers || !vat || !promise) return;
+  const vatRate = Number.isFinite(Number(config.vatRate)) ? Number(config.vatRate) : 0.1;
+  const won = (value) => `${Number(value || 0).toLocaleString('ko-KR')}원`;
+  tiers.innerHTML = config.tiers.map((tier) => {
+    const supply = Number(tier.amount || 0);
+    const vatAmount = Math.round(supply * vatRate);
+    const total = supply + vatAmount;
+    return `
+    <li class="leak-price-card">
+      <b class="leak-price-step">${tier.label || `${tier.step}단계`}</b>
+      <span><em>공급가</em><strong>${won(supply)}</strong></span>
+      <span><em>VAT 10%</em><strong>${won(vatAmount)}</strong></span>
+      <span class="leak-price-total"><em>합계</em><strong>${won(total)}</strong></span>
+    </li>`;
+  }).join('');
+  vat.textContent = config.vatLabel || '';
+  promise.textContent = config.noFindPromise || '';
+  section.hidden = false;
+}
+
 /* ---------- 인사이트 (블로그 미리보기) ---------- */
 function renderInsights(insights) {
   const grid = document.getElementById('insightsGrid');
   if (!grid || !Array.isArray(insights) || !insights.length) return;
+  insights = insights.filter((x) => x && x.published !== false);
   // 최신 글이 홈에 먼저 보이도록 날짜 내림차순 (날짜 없으면 뒤로)
   const latest = insights.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
   grid.innerHTML = latest.slice(0, 3).map((a) => `
@@ -1293,6 +1323,7 @@ async function init() {
   renderStats(data.stats);
   renderAbout(data.about);
   renderServices(data.services);
+  renderLeakPricing(data.leakPricing);
   renderAutomation(data.automation);
   renderProcess(data.process);
   renderPortfolio(data.portfolio, data.portfolioFilters);

@@ -330,7 +330,23 @@ try {
 check(!loadErr, '모든 .gs 가 오류 없이 올라간다', loadErr ? String(loadErr.message) : '');
 if (loadErr) { console.log('\n검사 ' + (pass + fail) + '건 · 통과 ' + pass + ' · 실패 ' + fail); process.exit(1); }
 
-section('2-1) bootstrap 은 계획 우선·재실행 안전·비밀 비노출인가');
+section('2-1) 대표 확정 계약 조건이 바뀌지 않았는가');
+const standard = ctx.ctStandardBody_({ amount: 10000000, customerName: '테스트 고객' });
+const damageClauses = standard.clauses.filter((clause) => clause.title === '손해배상의 범위와 한도');
+const clause10 = standard.clauses.find((clause) => clause.no === 10);
+const clause11 = standard.clauses.find((clause) => clause.no === 11);
+const clause12 = standard.clauses.find((clause) => clause.no === 12);
+check(standard.vatIncluded === false, '기본 부가세 조건은 별도다');
+check(standard.clauses.find((clause) => clause.no === 2).text.includes('부가세 별도'), '제2조에 부가세 별도가 표시된다');
+check(standard.clauses.length === 13, '표준 계약 조항은 13개다');
+check(damageClauses.length === 1, '손해배상 조항은 정확히 하나다');
+check(clause11 && clause11.text.includes('15,000,000원'), '제11조에 사고당 1,500만원 한도가 있다');
+check(clause10 && !clause10.text.includes('15,000,000원'), '제10조 안전 및 민원에 배상 한도가 섞이지 않는다');
+check(clause11 && clause11.text.includes('고의 또는 중대한 과실') && clause11.text.includes('생명·신체') && clause11.text.includes('보험'),
+  '제11조에 한도 예외와 보험 표시가 있다');
+check(clause12 && clause12.title === '전자계약의 성립', '제12조는 전자계약의 성립이다');
+
+section('2-2) bootstrap 은 계획 우선·재실행 안전·비밀 비노출인가');
 const bootProps = {};
 const bootGoogle = makeFakeGoogle(bootProps);
 const bootCtx = createContext(bootGoogle);

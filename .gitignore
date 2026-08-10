@@ -8,6 +8,9 @@
 apps-script-contract/tools/install/*-scripts.txt
 apps-script-contract/tools/install/node_modules/
 
+# 공개 배포 저장소에 포함하면 안 되는 현장 글 초안
+.private/
+
 # 자격증명 일반
 *.credentials.json
 *service-account*.json

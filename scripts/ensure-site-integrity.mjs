@@ -52,7 +52,7 @@ const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
   const raw = readIf('data/site.json');
   if (raw) {
     let ins = [];
-    try { ins = (JSON.parse(raw).insights || []); } catch (e) { fail.push('data/site.json 을 읽을 수 없다: ' + e.message); }
+    try { ins = (JSON.parse(raw).insights || []).filter((x) => x && x.published !== false); } catch (e) { fail.push('data/site.json 을 읽을 수 없다: ' + e.message); }
     const slugs = new Set(ins.map((x) => x && x.slug).filter(Boolean));
     const blog = readIf('blog.html') || '';
     for (const s of slugs) {
@@ -70,6 +70,17 @@ const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
         fail.push(`posts/${f} 이 data/site.json 의 insights 에 없다 — 고아 글이다(목록·홈 어디에도 안 뜬다). site.json 에 넣고 prerender-posts.py 를 돌려라`);
     }
   }
+}
+
+/* ⓪-1 발행 글 본문에 세대 식별자가 없는가 ------------------------------
+ * 현장앱 후기 재료는 동·호수를 빼지만, 사람이 붙여넣는 과정에서 다시 들어올 수 있다.
+ * URL·전화 CTA 같은 공통 껍데기는 제외하고 실제 post-body 만 검사한다. */
+for (const rel of htmlFiles.filter((f) => f.startsWith('posts/'))) {
+  const src = readIf(rel) || '';
+  const body = (src.match(/<div class="post-body">([\s\S]*?)<\/div>/) || [null, ''])[1];
+  checked++;
+  const m = body.match(/\d{1,4}\s*(?:동|호)(?=$|[^가-힣])/);
+  if (m) fail.push(`${rel} 본문에 세대 식별자로 보이는 "${m[0]}"가 있다 — 동·호수는 공개 글에 넣지 마라`);
 }
 
 /* ⓪-2 blog.html 에 목록이 정확히 한 벌인가 (중복 누적 방지) ------------

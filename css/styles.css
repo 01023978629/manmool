@@ -144,6 +144,16 @@ ul, ol { list-style: none; }
 
 /* ===== Service cards ===== */
 .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.leak-pricing[hidden] { display: none !important; }
+.leak-price-grid { list-style: none; padding: 0; margin: 36px 0 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.leak-price-card { display: flex; flex-direction: column; gap: 8px; padding: 22px 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-sm); }
+.leak-price-card .leak-price-step { margin-bottom: 6px; color: var(--brand-dark); font-size: 21px; text-align: center; }
+.leak-price-card span { display: flex; justify-content: space-between; gap: 10px; color: var(--ink-soft); font-size: 13px; }
+.leak-price-card em { font-style: normal; }
+.leak-price-card strong { color: var(--ink); white-space: nowrap; }
+.leak-price-card .leak-price-total { margin-top: 4px; padding-top: 9px; border-top: 1px solid var(--line); font-size: 14px; font-weight: 800; }
+.leak-price-card .leak-price-total strong { color: var(--brand-dark); }
+.leak-price-promise { margin: 20px auto 0; max-width: 560px; padding: 14px 18px; border-radius: 999px; background: var(--ink); color: #fff; text-align: center; font-weight: 800; }
 .card {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 28px; transition: transform .2s ease, box-shadow .25s ease, border-color .25s ease;
@@ -994,7 +1004,7 @@ img.lb-shot, img.lb-cand-shot { object-fit: cover; }
 @media (max-width: 960px) {
   .hero-inner { grid-template-columns: 1fr; }
   .hero-card { order: 1; max-width: 420px; }
-  .cards-grid, .reviews-grid, .insights-grid { grid-template-columns: repeat(2, 1fr); }
+  .cards-grid, .reviews-grid, .insights-grid, .leak-price-grid { grid-template-columns: repeat(2, 1fr); }
   .process-loop { grid-template-columns: repeat(2, 1fr); }
   .process-step::after { display: none; }
   .estimator-wrap, .contact-wrap, .inquiry-wrap, .about-wrap { grid-template-columns: 1fr; }
@@ -1019,7 +1029,7 @@ img.lb-shot, img.lb-cand-shot { object-fit: cover; }
   .main-nav.open a { padding: 10px 0; }
   .nav-toggle { display: flex; }
   .section { padding: 60px 0; }
-  .cards-grid, .reviews-grid, .insights-grid { grid-template-columns: 1fr; }
+  .cards-grid, .reviews-grid, .insights-grid, .leak-price-grid { grid-template-columns: 1fr; }
   .about-values { grid-template-columns: 1fr; }
   .role-grid { grid-template-columns: 1fr; }
   .role-card { padding: 23px 20px; }

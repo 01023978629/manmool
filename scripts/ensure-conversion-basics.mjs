@@ -19,6 +19,11 @@ const css = read('css/styles.css');
 const inquiry = read('js/inquiry.js');
 const main = read('js/main.js');
 const blogJs = read('js/blog.js');
+const office = read('office.html');
+
+check(/표준 패키지 500만원 이하/.test(office) && /초과분은 별도 견적과 관리사무소 승인 후 진행/.test(office),
+  '관리사무소 표준 500만원 이하 정책이 office.html에 정확히 안내되지 않는다',
+  '관리사무소 표준 500만원 이하 정책 공개');
 
 /* ① 손님에게 "데모"라고 말하지 않는다 --------------------------------- */
 // 문의를 넣을지 망설이는 사람이 페이지 맨 아래에서 마지막으로 읽는 문장이었다.
@@ -127,6 +132,27 @@ check(/if \(root && root\.children\.length\) return;/.test(blogJs),
 check(/const WORKS = \[[^\]]*'누수탐지·누수수리'/.test(inquiry) && /fd\.getAll\('works'\)/.test(inquiry),
   '상담 폼의 누수탐지·누수수리 항목이 없거나 공사항목 수집 경로와 분리됐다',
   '누수탐지·누수수리 상담 항목이 공통 works 경로로 전달');
+
+// 공간 유형을 "누수"로 고른 리드가 접수→전송→관리자 표시→현장앱 인계까지 같은 값으로 가야 한다.
+// 항목만 화면에 추가하고 downstream 배선을 놓치면 대표님은 일반 리드와 구분할 수 없다.
+{
+  const admin = read('js/admin.js');
+  check(/<option value="누수">누수탐지·누수수리<\/option>/.test(index),
+    '상담 공간 유형에 누수탐지·누수수리(value="누수")가 없다',
+    '상담 공간 유형에 누수 전용 선택지 존재');
+  check(/type:\s*fd\.get\('type'\)/.test(inquiry) && /const payload = \{[\s\S]{0,300}?\.\.\.data/.test(inquiry),
+    '선택한 누수 유형이 상담 payload 에 보존되지 않는다',
+    '누수 유형이 상담 payload 에 보존');
+  check(/JSON\.stringify\(payload\)/.test(inquiry) && /payload\.type/.test(inquiry),
+    '누수 유형이 자동 접수 본문 또는 대체 안내에 전달되지 않는다',
+    '누수 유형이 자동 접수·대체 안내 경로에 전달');
+  check(/escapeHtml\(d\.type \|\| ''\)/.test(admin),
+    '관리자 문의 카드가 누수 유형을 표시하지 않는다',
+    '관리자 문의 카드에 누수 유형 표시');
+  check(/type:\s*d\.type/.test(admin) && /#lead=/.test(admin),
+    '관리자에서 현장앱으로 넘기는 리드에 누수 유형이 빠졌다',
+    '현장앱 인계 리드에 누수 유형 보존');
+}
 
 /* ⑩ 개인정보 보유기간이 손님에게 약속한 것과 같다 ---------------------- */
 // 화면은 "보유기간 1년"이라 동의를 받아 놓고 코드가 90일이면, 약속과 다른 시점에 자료가 사라진다.
