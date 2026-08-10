@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
+import { spawnSync } from 'node:child_process';
 import { precheck, EXPECTED_GS, EXPECTED_HTML } from '../tools/install/precheck.mjs';
 import { assertNewContractProject } from '../tools/install/project-guard.mjs';
 
@@ -35,4 +36,16 @@ test('project guard stops an existing/photo relay id and wrong title (mutations)
   assert.throws(() => assertNewContractProject(cfg, '만물 전자계약 OLD_PHOTO_RELAY_1234567890123', ['OLD_PHOTO_RELAY_1234567890123']), /기존 프로젝트/);
   writeFileSync(cfg, JSON.stringify({ scriptId: 'NEW_CONTRACT_PROJECT_1234567890' }));
   assert.throws(() => assertNewContractProject(cfg, '사진 중계 NEW_CONTRACT_PROJECT_1234567890', []), /이름/);
+});
+
+test('configure-project keeps clasp root and push order on the same path base', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'contract-config-'));
+  const cfg = join(dir, '.clasp.json');
+  writeFileSync(cfg, JSON.stringify({ scriptId: 'NEW_CONTRACT_PROJECT_1234567890', rootDir: 'wrong' }));
+  const script = resolve('apps-script-contract/tools/install/configure-project.mjs');
+  const r = spawnSync(process.execPath, [script, cfg], { encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  const out = JSON.parse(readFileSync(cfg, 'utf8'));
+  assert.equal(out.rootDir, '.');
+  assert.deepEqual(out.filePushOrder, [...EXPECTED_GS, ...EXPECTED_HTML, 'appsscript.json']);
 });
