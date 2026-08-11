@@ -1189,11 +1189,11 @@ function setupContactCtas(config, company) {
 function playHeroChat() {
   const box = document.getElementById('heroChat');
   const script = [
-    { who: 'bot', text: '안녕하세요! 만물인테리어 루프 에이전트입니다 🤖' },
-    { who: 'user', text: '34평 아파트 리모델링 견적이 궁금해요' },
-    { who: 'bot', text: '표준형 기준 예상 견적을 30초 안에 계산해 드릴게요.' },
-    { who: 'bot', text: '예상 견적: 약 ₩ 41,310,000 (현장 실측 후 확정)' },
-    { who: 'user', text: '바로 상담 신청할게요!' }
+    { who: 'bot', text: '안녕하세요! 만물인테리어입니다 💧' },
+    { who: 'user', text: '아랫집 천장에 물자국이 생겼대요. 어디서 새는지 모르겠어요.' },
+    { who: 'bot', text: '장비로 위치를 특정해 드립니다. 탐지 기본 40만원(부가세 별도), 요금은 착수 전에 확정해 드려요.' },
+    { who: 'bot', text: '위치를 특정하지 못하면 탐지비를 받지 않습니다. 보험 서류 정리도 도와드려요.' },
+    { who: 'user', text: '방문 예약할게요!' }
   ];
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let i = 0;
