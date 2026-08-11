@@ -98,6 +98,35 @@
       ]
     }
   ],
+  "actualWork": [
+    {
+      "image": "assets/cases/case-hanbat-drain.jpg",
+      "imageAlt": "천장 아래 생활하수관을 새 배관으로 교체한 실제 현장",
+      "label": "실제 현장 · 배관 교체",
+      "title": "한밭유성아파트 생활하수관 교체",
+      "desc": "교체 범위와 이음부, 물 테스트 확인 과정을 기록했습니다.",
+      "href": "posts/hanbat-drain-replacement.html",
+      "cta": "사례 보기"
+    },
+    {
+      "image": "assets/cases/case-blue-floor.jpg",
+      "imageAlt": "욕실 벽과 바닥에 방수층을 시공한 실제 공정",
+      "label": "실제 공정 · 욕실 방수",
+      "title": "욕실 방수층 시공",
+      "desc": "타일 뒤에 가려지는 벽·바닥 방수 공정을 사진으로 남깁니다.",
+      "href": "posts/bathroom-waterproof-signs.html",
+      "cta": "점검 기준 보기"
+    },
+    {
+      "image": "assets/cases/case-blue-mesh.jpg",
+      "imageAlt": "욕실 방수 보강망과 배관을 시공한 실제 공정",
+      "label": "실제 공정 · 방수 보강",
+      "title": "방수 보강망·배관 매립 전 확인",
+      "desc": "준공 후 하자 판단의 근거가 되는 숨은 공정을 보관합니다.",
+      "href": "posts/warranty-5-checks.html",
+      "cta": "보증 기준 보기"
+    }
+  ],
   "leakPricing": {
     "published": true,
     "vatLabel": "부가세 별도",

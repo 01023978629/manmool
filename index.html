@@ -168,7 +168,7 @@
   </script>
   <link rel="preload" as="image" href="assets/site/hero-interior.jpg" fetchpriority="high" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23b8895a'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="css/styles.css?v=20260812-promo" />
+  <link rel="stylesheet" href="css/styles.css?v=20260812-tools" />
 </head>
 <body>
   <!-- ===== Utility bar (업무 시스템) ===== -->
@@ -194,7 +194,7 @@
         </span>
       </a>
       <nav class="main-nav" id="mainNav" aria-label="주요 메뉴">
-        <a href="#services">시공 범위</a>
+        <a href="#projectGuide">공사 시작</a>
         <a href="#realWork">실제 현장</a>
         <a href="#portfolio">디자인 참고</a>
         <a href="#estimator">예상견적</a>
@@ -247,6 +247,32 @@
     <!-- ===== Stats ===== -->
     <section class="stats-band">
       <div class="container stats-grid" id="statsGrid"></div>
+    </section>
+
+    <!-- ===== 공사 시작 가이드 ===== -->
+    <section class="section project-guide-section" id="projectGuide">
+      <div class="container">
+        <div class="section-head guide-head">
+          <span class="eyebrow">START GUIDE</span>
+          <h2>무엇부터 알아봐야 할지, 공사 종류부터 골라보세요</h2>
+          <p>지금 상황에 필요한 준비자료와 다음 화면만 골라 안내합니다. 입력 내용은 저장하거나 전송하지 않습니다.</p>
+        </div>
+        <div class="project-guide-layout">
+          <div class="project-guide-tabs" role="tablist" aria-label="공사 종류 선택">
+            <button type="button" class="project-guide-tab active" id="projectGuideFull" role="tab" aria-controls="projectGuideResult" aria-selected="true" data-project-guide="full">🏠 전체 리모델링</button>
+            <button type="button" class="project-guide-tab" id="projectGuidePartial" role="tab" aria-controls="projectGuideResult" aria-selected="false" data-project-guide="partial">🛠️ 부분 공사</button>
+            <button type="button" class="project-guide-tab" id="projectGuideCommercial" role="tab" aria-controls="projectGuideResult" aria-selected="false" data-project-guide="commercial">🏪 상가·사무실</button>
+            <button type="button" class="project-guide-tab" id="projectGuideLeak" role="tab" aria-controls="projectGuideResult" aria-selected="false" data-project-guide="leak">💧 누수·방수</button>
+          </div>
+          <article class="project-guide-result" id="projectGuideResult" role="tabpanel" aria-live="polite">
+            <span class="guide-result-kicker">전체 리모델링 준비</span>
+            <h3>평수·입주일·예산 범위를 먼저 정리하세요</h3>
+            <p>사진이나 도면이 없어도 상담할 수 있습니다. 주소, 공급면적, 희망 입주일, 꼭 바꾸고 싶은 공간만 알려주시면 실측 준비가 빨라집니다.</p>
+            <ul><li>주소 또는 아파트명</li><li>공급면적·전용면적</li><li>입주 예정일</li><li>우선순위 공간과 예산 범위</li></ul>
+            <div class="project-guide-actions"><a class="btn btn-primary" href="#estimator">예상 범위 확인</a><a class="btn btn-ghost" href="index.html?type=주거&amp;scope=전체#inquiry">상담 신청</a></div>
+          </article>
+        </div>
+      </div>
     </section>
 
     <!-- ===== About (회사 소개) ===== -->
@@ -358,7 +384,7 @@
           <h2>마감 뒤에 가려지는 공정도 사진으로</h2>
           <p>아래는 실제 현장 공정 사진입니다. 완공 사례와 AI 참고 시안을 섞어 보이게 하지 않습니다.</p>
         </div>
-        <div class="real-work-grid">
+        <div class="real-work-grid" id="actualWorkGrid">
           <a class="real-work-card" href="posts/hanbat-drain-replacement.html">
             <span class="real-work-photo"><img src="assets/cases/case-hanbat-drain.jpg" loading="lazy" decoding="async" alt="천장 아래 생활하수관을 새 배관으로 교체한 실제 현장" /><em>실제 현장 · 배관 교체</em></span>
             <span class="real-work-copy"><strong>한밭유성아파트 생활하수관 교체</strong><small>교체 범위와 이음부, 물 테스트 확인 과정을 기록했습니다.</small><b>사례 보기 →</b></span>
@@ -727,11 +753,11 @@
   </div>
 
   <script src="js/design-bom.js?v=20260727-sim2"></script>
-  <script src="js/main.js?v=20260812-promo"></script>
+  <script src="js/main.js?v=20260812-tools"></script>
   <script src="js/estimate.js?v=20260719-fixes"></script>
   <script src="js/simulator.js?v=20260727-sim4"></script>
   <script src="js/lookbook.js?v=20260728-lookbook1"></script>
-  <script src="js/inquiry.js?v=20260812-prefill"></script>
+  <script src="js/inquiry.js?v=20260812-tools"></script>
   <script src="js/hj-link.js?v=20260719-fixes"></script>
 </body>
 </html>

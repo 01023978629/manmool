@@ -22,13 +22,40 @@ const ICONS = {
 };
 
 const won = (n) => '₩ ' + Math.round(n).toLocaleString('ko-KR');
+const CONTENT_DRAFT_KEY = 'manmul_site_content_draft_v1';
+
+function escapeContent(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function safeContentUrl(value, fallback) {
+  const url = String(value || '').trim();
+  if (!url || /[\u0000-\u001f]/.test(url) || /^\s*(?:javascript|data):/i.test(url) || /^\/\//.test(url)) return fallback || '#';
+  return url;
+}
+
+function previewRequested() {
+  try { return new URLSearchParams(location.search).get('preview') === '1'; } catch (e) { return false; }
+}
 
 /* ---------- 데이터 로드 ---------- */
 async function loadSite() {
   try {
     const res = await fetch('data/site.json', { cache: 'no-cache' });
     if (!res.ok) throw new Error('데이터 로드 실패');
-    return await res.json();
+    const published = await res.json();
+    if (!previewRequested()) return published;
+    try {
+      const draft = JSON.parse(localStorage.getItem(CONTENT_DRAFT_KEY) || 'null');
+      if (draft && draft.company && Array.isArray(draft.services) && Array.isArray(draft.faq) &&
+          Array.isArray(draft.portfolio) && draft.portfolio.length >= 300) return draft;
+    } catch (e) { console.warn('관리자 미리보기 초안을 읽지 못했습니다.', e); }
+    return published;
   } catch (err) {
     console.error(err);
     return null;
@@ -94,10 +121,98 @@ function renderServices(services) {
   document.getElementById('servicesGrid').innerHTML = services.map((s) => `
     <article class="card reveal">
       <div class="card-icon">${ICONS[s.icon] || ICONS.home}</div>
-      <h3>${s.title}</h3>
-      <p>${s.desc}</p>
-      <div class="card-tags">${s.tags.map((t) => `<span>${t}</span>`).join('')}</div>
+      <h3>${escapeContent(s.title)}</h3>
+      <p>${escapeContent(s.desc)}</p>
+      <div class="card-tags">${(s.tags || []).map((t) => `<span>${escapeContent(t)}</span>`).join('')}</div>
     </article>`).join('');
+}
+
+/* ---------- 실제 현장 카드 (관리자 편집 가능) ---------- */
+function renderActualWork(items) {
+  const grid = document.getElementById('actualWorkGrid');
+  if (!grid || !Array.isArray(items) || !items.length) return;
+  grid.innerHTML = items.slice(0, 6).map((item) => {
+    const href = safeContentUrl(item.href, '#inquiry');
+    const image = safeContentUrl(item.image, '');
+    return `
+      <a class="real-work-card" href="${escapeContent(href)}">
+        <span class="real-work-photo">${image ? `<img src="${escapeContent(image)}" loading="lazy" decoding="async" alt="${escapeContent(item.imageAlt || item.title)}" />` : ''}<em>${escapeContent(item.label || '실제 현장')}</em></span>
+        <span class="real-work-copy"><strong>${escapeContent(item.title)}</strong><small>${escapeContent(item.desc)}</small><b>${escapeContent(item.cta || '사례 보기')} →</b></span>
+      </a>`;
+  }).join('');
+}
+
+/* ---------- 공사 시작 가이드 ---------- */
+const PROJECT_GUIDES = {
+  full: {
+    kicker: '전체 리모델링 준비', title: '평수·입주일·예산 범위를 먼저 정리하세요',
+    desc: '사진이나 도면이 없어도 상담할 수 있습니다. 주소, 공급면적, 희망 입주일, 꼭 바꾸고 싶은 공간만 알려주시면 실측 준비가 빨라집니다.',
+    checks: ['주소 또는 아파트명', '공급면적·전용면적', '입주 예정일', '우선순위 공간과 예산 범위'],
+    primary: ['예상 범위 확인', '#estimator'], secondary: ['상담 신청', 'index.html?type=주거&scope=전체#inquiry']
+  },
+  partial: {
+    kicker: '부분 공사 준비', title: '바꿀 공간과 유지할 공간을 구분하세요',
+    desc: '거주 중 공사는 보양·소음·가구 이동 조건이 중요합니다. 원하는 마감 사진과 현재 공간 사진이 있으면 공사 가능 범위를 더 빨리 판단할 수 있습니다.',
+    checks: ['공사할 공간과 수량', '거주 중 여부', '현재 공간 전체·근접 사진', '원하는 마감 또는 참고 시안'],
+    primary: ['시공 범위 보기', '#services'], secondary: ['부분공사 상담', 'index.html?type=리모델링&scope=부분#inquiry']
+  },
+  commercial: {
+    kicker: '상가·사무실 준비', title: '오픈일과 영업 동선을 먼저 알려주세요',
+    desc: '상업공간은 디자인뿐 아니라 전기 용량, 급배수, 소방, 간판, 공사 가능 시간이 일정에 영향을 줍니다. 임대차 도면이 없어도 현장에서 확인할 수 있습니다.',
+    checks: ['업종과 주소', '전용면적·천장 높이', '희망 오픈일', '전기·급배수·간판 필요 여부'],
+    primary: ['진행 절차 보기', '#process'], secondary: ['상가 상담', 'index.html?type=상업&scope=전체#inquiry']
+  },
+  leak: {
+    kicker: '누수·방수 첫 대응', title: '젖은 위치와 발생 시간을 먼저 남겨주세요',
+    desc: '누수는 원인을 확인하기 전에 넓게 철거하지 않는 것이 중요합니다. 증상 사진과 계량기 상태를 남긴 뒤 누수 전용 안내에서 점검 순서를 확인하세요.',
+    checks: ['젖은 위치의 전체·근접 사진', '처음 발견한 시간', '최근 수도 사용 여부', '아랫집·관리사무소 연락 여부'],
+    primary: ['누수 첫 대응 보기', 'leak.html#firstResponse'], secondary: ['사진 상담', 'index.html?type=누수#inquiry']
+  }
+};
+
+function setupProjectGuide() {
+  const host = document.getElementById('projectGuideResult');
+  const tabs = Array.from(document.querySelectorAll('[data-project-guide]'));
+  if (!host || !tabs.length) return;
+  const show = (key) => {
+    const item = PROJECT_GUIDES[key] || PROJECT_GUIDES.full;
+    const selected = tabs.find((tab) => tab.dataset.projectGuide === key);
+    tabs.forEach((tab) => {
+      const on = tab.dataset.projectGuide === key;
+      tab.classList.toggle('active', on);
+      tab.setAttribute('aria-selected', String(on));
+      tab.tabIndex = on ? 0 : -1;
+    });
+    if (selected && selected.id) host.setAttribute('aria-labelledby', selected.id);
+    host.innerHTML = `<span class="guide-result-kicker">${escapeContent(item.kicker)}</span>
+      <h3>${escapeContent(item.title)}</h3><p>${escapeContent(item.desc)}</p>
+      <ul>${item.checks.map((text) => `<li>${escapeContent(text)}</li>`).join('')}</ul>
+      <div class="project-guide-actions"><a class="btn btn-primary" href="${escapeContent(item.primary[1])}">${escapeContent(item.primary[0])}</a><a class="btn btn-ghost" href="${escapeContent(item.secondary[1])}">${escapeContent(item.secondary[0])}</a></div>`;
+  };
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => show(tab.dataset.projectGuide));
+    tab.addEventListener('keydown', (event) => {
+      if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+      event.preventDefault();
+      const delta = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1;
+      const next = tabs[(index + delta + tabs.length) % tabs.length];
+      show(next.dataset.projectGuide); next.focus();
+    });
+  });
+  show('full');
+}
+
+function setupContentPreviewNotice() {
+  if (!previewRequested()) return;
+  document.body.classList.add('content-preview');
+  document.title = '[미리보기] ' + document.title;
+  const robots = document.querySelector('meta[name="robots"]') || document.head.appendChild(document.createElement('meta'));
+  robots.name = 'robots'; robots.content = 'noindex,nofollow';
+  const banner = document.createElement('div');
+  banner.className = 'content-preview-banner';
+  banner.setAttribute('role', 'status');
+  banner.innerHTML = '<span>관리자 초안 미리보기 · 아직 공개 사이트에는 반영되지 않았습니다.</span><a href="admin.html#contentEditor">관리자로 돌아가기</a>';
+  document.body.prepend(banner);
 }
 
 /* ---------- 운영 프로세스 ---------- */
@@ -1122,10 +1237,10 @@ function renderFaq(faq) {
   host.innerHTML = faq.map((f, i) => `
     <div class="faq-item reveal">
       <button type="button" class="faq-q" aria-expanded="false" aria-controls="faq-a-${i}" id="faq-q-${i}">
-        <span>${f.q}</span><span class="faq-icon" aria-hidden="true">+</span>
+        <span>${escapeContent(f.q)}</span><span class="faq-icon" aria-hidden="true">+</span>
       </button>
       <div class="faq-a" id="faq-a-${i}" role="region" aria-labelledby="faq-q-${i}" hidden>
-        <p>${f.a}</p>
+        <p>${escapeContent(f.a)}</p>
       </div>
     </div>`).join('');
   host.querySelectorAll('.faq-q').forEach((btn) => btn.addEventListener('click', () => {
@@ -1334,6 +1449,8 @@ async function init() {
   setupUI();
   setupPortfolioFabVisibility();
   playHeroChat();
+  setupProjectGuide();
+  setupContentPreviewNotice();
 
   const [data, config, materialCatalog] = await Promise.all([loadSite(), loadConfig(), loadMaterialCatalog()]);
   window.MANMUL = { config: config || {}, data: data || {}, materialCatalog: materialCatalog || { categories: [] } };
@@ -1346,6 +1463,7 @@ async function init() {
   renderStats(data.stats);
   renderAbout(data.about);
   renderServices(data.services);
+  renderActualWork(data.actualWork);
   renderLeakPricing(data.leakPricing);
   renderAutomation(data.automation);
   renderProcess(data.process);

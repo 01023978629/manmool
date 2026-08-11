@@ -344,12 +344,16 @@
     const hj = CONFIG.hyeonjang || {};
     const forms = CONFIG.forms || {};
     const route = leadRoute();
-    const live = route.on && !CONFIG.demoMode;
+    const live = route.on;
     const badge = $('connBadge');
     if (badge) {
-      badge.textContent = live ? '🟢 실서비스 연결됨' : '🟡 데모 모드';
+      badge.textContent = live
+        ? `🟢 ${route.via === 'n8n' ? 'n8n' : '폼 서비스'} 연결됨`
+        : '🔴 상담 접수 경로 없음';
       badge.className = 'conn-badge ' + (live ? 'on' : 'demo');
     }
+    const testButton = $('connTest');
+    if (testButton) testButton.textContent = route.via === 'forms' ? '폼 설정 확인' : '웹훅 연결 테스트';
     const at = kakao.alimtalk || {};
     const atTemplates = at.templates ? Object.keys(at.templates).length : 0;
     const atOn = !!(at.enabled && at.provider && atTemplates);
@@ -367,7 +371,7 @@
         : '(미개설 · ready:false — 개설 후 ready:true로)', !!(kakao.ready && (kakao.chatUrl || kakao.channelAddUrl))],
       ['알림톡 자동발송', atOn ? `${at.provider} · 템플릿 ${atTemplates}종` : '(미설정 · 수동 발송만)', atOn],
       ['현장 앱(hyeonjang)', hj.appUrl || '(미설정)', !!hj.appUrl],
-      ['demoMode', String(!!CONFIG.demoMode), !CONFIG.demoMode]
+      ['브라우저 임시 백업', CONFIG.demoMode ? '사용(전송 실패 대비)' : '사용 안 함', true]
     ];
     const grid = $('connGrid');
     if (grid) grid.innerHTML = rows.map(([k, v, ok]) => `
@@ -382,8 +386,16 @@
     const n8n = CONFIG.n8n || {};
     const res = $('connResult');
     const btn = $('connTest');
+    const route = leadRoute();
+    if (route.via === 'forms') {
+      res.textContent = '✓ 무료 폼 서비스의 endpoint와 사용 설정이 준비돼 있습니다. 실제 시험 전송은 대표 이메일로 문의 1건을 보내므로 여기서는 설정값만 확인했습니다.';
+      res.className = 'conn-result ok';
+      return;
+    }
     if (!n8n.inquiryWebhookUrl) {
-      res.textContent = '웹훅 URL이 설정되지 않았습니다. data/config.json의 n8n.inquiryWebhookUrl을 먼저 입력하세요.';
+      res.textContent = route.on
+        ? '상담 접수 경로는 연결돼 있지만 n8n 웹훅은 사용하지 않습니다.'
+        : '상담 접수 경로가 없습니다. data/config.json에서 n8n 또는 폼 서비스를 먼저 설정하세요.';
       res.className = 'conn-result err';
       return;
     }

@@ -509,13 +509,19 @@
     renderStepper();
     showStep(1);
 
-    // 누수 전용 페이지의 온라인 상담 버튼처럼 서비스가 명시된 링크는
-    // ?type=누수#inquiry 로 들어온다. 허용된 선택값만 폼에 반영한다.
+    // 공사 시작 가이드·누수 전용 페이지처럼 서비스가 명시된 링크는
+    // ?type=주거&scope=전체#inquiry 형태로 들어온다. 허용된 선택값만 폼에 반영한다.
     try {
-      const requestedType = new URLSearchParams(location.search).get('type');
+      const params = new URLSearchParams(location.search);
+      const requestedType = params.get('type');
+      const requestedScope = params.get('scope');
       const typeSel = $('iType');
       if (typeSel && ['주거', '상업', '리모델링', '누수'].includes(requestedType)) {
         typeSel.value = requestedType;
+      }
+      if (['전체', '부분'].includes(requestedScope)) {
+        const scopeInput = document.querySelector(`input[name="scope"][value="${requestedScope}"]`);
+        if (scopeInput) scopeInput.checked = true;
       }
     } catch (e) { /* 오래된 브라우저에서는 기본값을 유지 */ }
 

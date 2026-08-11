@@ -43,7 +43,7 @@ check((leak.match(/class="case-card registered-case"/g) || []).length === 3,
 check((leak.match(/assets\/cases\/case-(?:hanbat-drain|blue-floor|blue-mesh)\.jpg/g) || []).length >= 4,
   'leak.html 사례 카드가 검증한 실제 공정 사진을 사용하지 않는다');
 check(/index\.html\?type=누수#inquiry/.test(leak), '누수 페이지에서 온라인 상담으로 이어지는 링크가 없다');
-check(/new URLSearchParams\(location\.search\)\.get\('type'\)/.test(inquiry),
+check(/(?:new URLSearchParams\(location\.search\)\.get|params\.get)\('type'\)/.test(inquiry),
   '누수 온라인 상담 링크의 유형을 폼에 자동 반영하지 않는다');
 check(!/무조건|최저가|100%/.test(leak), '누수 홍보 문구에 과장 표현이 남아 있다');
 

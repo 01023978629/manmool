@@ -142,6 +142,27 @@ ul, ol { list-style: none; }
 .section-head p { margin-top: 12px; color: var(--ink-soft); font-size: 17px; }
 .section-dark .section-head p { color: #c9bdae; }
 
+/* ===== 공사 시작 가이드 ===== */
+.project-guide-section { background: linear-gradient(180deg, #fff 0%, #f7f2eb 100%); }
+.guide-head { max-width: 760px; margin-bottom: 32px; }
+.project-guide-layout { display: grid; grid-template-columns: minmax(230px, .72fr) minmax(0, 1.28fr); gap: 24px; align-items: stretch; }
+.project-guide-tabs { display: grid; gap: 10px; }
+.project-guide-tab { min-height: 58px; padding: 13px 17px; border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--ink); background: #fff; font: 700 15px/1.35 inherit; text-align: left; cursor: pointer; transition: border-color .16s ease, background .16s ease, transform .16s ease; }
+.project-guide-tab:hover { transform: translateX(3px); border-color: var(--brand); }
+.project-guide-tab.active { border-color: var(--brand); color: #fff; background: linear-gradient(135deg, var(--brand), var(--brand-dark)); box-shadow: var(--shadow-sm); }
+.project-guide-result { min-height: 300px; padding: 29px 31px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; box-shadow: var(--shadow-sm); }
+.guide-result-kicker { color: var(--brand-dark); font-size: 12px; font-weight: 850; letter-spacing: .08em; }
+.project-guide-result h3 { margin-top: 7px; font-size: clamp(22px, 3vw, 29px); line-height: 1.35; }
+.project-guide-result > p { margin-top: 10px; color: var(--ink-soft); font-size: 15px; line-height: 1.7; }
+.project-guide-result ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 20px; margin: 18px 0 22px; padding: 0; list-style: none; }
+.project-guide-result li { position: relative; padding-left: 22px; font-size: 14px; }
+.project-guide-result li::before { content: '✓'; position: absolute; left: 0; color: var(--brand-dark); font-weight: 900; }
+.project-guide-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.content-preview-banner { position: sticky; top: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; gap: 16px; min-height: 46px; padding: 8px 18px; color: #fff; background: #7a4d0b; font-size: 14px; font-weight: 800; text-align: center; }
+.content-preview-banner a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+body.content-preview .site-header { top: 46px; }
+
 /* ===== Service cards ===== */
 .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
 .leak-pricing[hidden] { display: none !important; }
@@ -1066,6 +1087,15 @@ img.lb-shot, img.lb-cand-shot { object-fit: cover; }
   .cards-grid, .reviews-grid, .insights-grid, .leak-price-grid { grid-template-columns: 1fr; }
   .real-work-grid { grid-template-columns: 1fr; }
   .real-work-note { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .project-guide-layout { grid-template-columns: 1fr; }
+  .project-guide-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .project-guide-tab { min-height: 52px; padding: 11px 12px; font-size: 14px; text-align: center; }
+  .project-guide-tab:hover { transform: none; }
+  .project-guide-result { min-height: 0; padding: 23px 20px; }
+  .project-guide-result ul { grid-template-columns: 1fr; }
+  .project-guide-actions .btn { width: 100%; }
+  .content-preview-banner { position: relative; flex-direction: column; gap: 2px; min-height: 0; padding: 9px 12px; }
+  body.content-preview .site-header { top: 0; }
   .service-switch { padding: 34px 0; }
   .service-switch .btn { width: 100%; }
   .about-values { grid-template-columns: 1fr; }
