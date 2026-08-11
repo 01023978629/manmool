@@ -509,6 +509,16 @@
     renderStepper();
     showStep(1);
 
+    // 누수 전용 페이지의 온라인 상담 버튼처럼 서비스가 명시된 링크는
+    // ?type=누수#inquiry 로 들어온다. 허용된 선택값만 폼에 반영한다.
+    try {
+      const requestedType = new URLSearchParams(location.search).get('type');
+      const typeSel = $('iType');
+      if (typeSel && ['주거', '상업', '리모델링', '누수'].includes(requestedType)) {
+        typeSel.value = requestedType;
+      }
+    } catch (e) { /* 오래된 브라우저에서는 기본값을 유지 */ }
+
     // 선택한 디자인 반영(초기값 + 이후 선택 이벤트)
     if (ctx && typeof ctx.getDesign === 'function') SELECTED_DESIGN = ctx.getDesign();
     renderSelectedDesign();
@@ -532,9 +542,7 @@
       SELECTED_DESIGN = e.detail || null;
       renderSelectedDesign();
       if (SELECTED_DESIGN) {
-        // 대문이 누수 중심이 되면서 공사 종류의 첫 옵션(기본값)이 '누수'다.
-        // 추천 디자인에서 넘어온 손님은 인테리어 상담인데 그대로 두면
-        // '누수탐지'로 접수된다 — 리드 분류가 틀리면 응대가 꼬인다.
+        // 누수 전용 링크에서 들어온 뒤 디자인을 선택했다면 인테리어 상담으로 전환한다.
         const typeSel = document.querySelector('#inquiry select[name="type"]');
         if (typeSel && typeSel.value === '누수') typeSel.value = '주거';
         if (SELECTED_DESIGN.area) setAreaValue(SELECTED_DESIGN.area);
