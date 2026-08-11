@@ -15,7 +15,10 @@ const ICONS = {
   badge: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg>',
   shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/></svg>',
   wrench: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.2l-6 6 2.2 2.2 6-6a4 4 0 0 0 5.2-5.4l-2.4 2.4-2-2 2.4-2.4Z"/></svg>',
-  doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/><path d="M9 13h6M9 17h6"/></svg>'
+  doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/><path d="M9 13h6M9 17h6"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/><path d="M9 12h6M9 16h4"/></svg>',
+  building: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18"/><path d="M9 21v-4h6v4"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2"/></svg>'
 };
 
 const won = (n) => '₩ ' + Math.round(n).toLocaleString('ko-KR');
@@ -1058,16 +1061,20 @@ function renderLeakPricing(config) {
     const supply = Number(tier.amount || 0);
     const vatAmount = Math.round(supply * vatRate);
     const total = supply + vatAmount;
+    const vatPct = Math.round(vatRate * 100);
     return `
     <li class="leak-price-card">
       <b class="leak-price-step">${tier.label || `${tier.step}단계`}</b>
+      ${tier.desc ? `<span class="leak-price-desc">${tier.desc}</span>` : ''}
       <span><em>공급가</em><strong>${won(supply)}</strong></span>
-      <span><em>VAT 10%</em><strong>${won(vatAmount)}</strong></span>
+      <span><em>VAT ${vatPct}%</em><strong>${won(vatAmount)}</strong></span>
       <span class="leak-price-total"><em>합계</em><strong>${won(total)}</strong></span>
     </li>`;
   }).join('');
   vat.textContent = config.vatLabel || '';
-  promise.textContent = config.noFindPromise || '';
+  // 총액인지 가산인지, 언제 확정되는지 — 금액이 원 단위로 노출되는 유일한
+  // 자리에 이 두 줄이 없으면 고객은 표를 확정가로 캡처해 오고 분쟁이 된다.
+  promise.textContent = [config.noFindPromise, config.note].filter(Boolean).join(' · ');
   section.hidden = false;
 }
 
@@ -1189,11 +1196,11 @@ function setupContactCtas(config, company) {
 function playHeroChat() {
   const box = document.getElementById('heroChat');
   const script = [
-    { who: 'bot', text: '안녕하세요! 만물인테리어 루프 에이전트입니다 🤖' },
-    { who: 'user', text: '34평 아파트 리모델링 견적이 궁금해요' },
-    { who: 'bot', text: '표준형 기준 예상 견적을 30초 안에 계산해 드릴게요.' },
-    { who: 'bot', text: '예상 견적: 약 ₩ 41,310,000 (현장 실측 후 확정)' },
-    { who: 'user', text: '바로 상담 신청할게요!' }
+    { who: 'bot', text: '안녕하세요! 만물인테리어입니다 💧' },
+    { who: 'user', text: '아랫집 천장에 물자국이 생겼대요. 어디서 새는지 모르겠어요.' },
+    { who: 'bot', text: '장비로 위치를 특정해 드립니다. 탐지 기본 40만원(부가세 별도), 요금은 착수 전에 확정해 드려요.' },
+    { who: 'bot', text: '위치를 특정하지 못하면 탐지비를 받지 않습니다. 보험 서류 정리도 도와드려요.' },
+    { who: 'user', text: '방문 예약할게요!' }
   ];
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let i = 0;

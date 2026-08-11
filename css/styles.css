@@ -148,6 +148,7 @@ ul, ol { list-style: none; }
 .leak-price-grid { list-style: none; padding: 0; margin: 36px 0 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
 .leak-price-card { display: flex; flex-direction: column; gap: 8px; padding: 22px 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-sm); }
 .leak-price-card .leak-price-step { margin-bottom: 6px; color: var(--brand-dark); font-size: 21px; text-align: center; }
+.leak-price-desc { display: block; font-size: 13px; color: var(--ink-soft); margin: 2px 0 8px; line-height: 1.45; min-height: 38px; }
 .leak-price-card span { display: flex; justify-content: space-between; gap: 10px; color: var(--ink-soft); font-size: 13px; }
 .leak-price-card em { font-style: normal; }
 .leak-price-card strong { color: var(--ink); white-space: nowrap; }
@@ -1015,12 +1016,11 @@ img.lb-shot, img.lb-cand-shot { object-fit: cover; }
   .fm-similar-grid { grid-template-columns: repeat(3, 1fr); }
   .trust-grid { grid-template-columns: repeat(2, 1fr); }
 }
-@media (max-width: 640px) {
-  .hero { min-height: auto; padding: 58px 0 64px; background-position: 64% center; }
-  .hero-bg { background: rgba(25,22,19,.72); }
-  .hero-card { width: 100%; }
-  .hero-trust { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; }
-  .hero-trust span:last-child { grid-column: 1 / -1; }
+/* 내비가 9개가 되면서 640~1080px(태블릿·소형 노트북)에서 헤더를 넘쳤다 —
+   뒤쪽 항목("상담 신청")과 CTA가 잘리는 건 상담 진입점 유실이라, 인라인 내비는
+   넓은 데스크톱에서만 쓰고 그 아래는 햄버거로 통일한다. 히어로 등 나머지
+   모바일 규칙은 원래대로 640px 에 남긴다(섞으면 태블릿 히어로가 무너진다). */
+@media (max-width: 1080px) {
   .main-nav, .header-cta { display: none; }
   .main-nav.open {
     display: flex; position: absolute; top: 68px; left: 0; right: 0; flex-direction: column;
@@ -1028,6 +1028,14 @@ img.lb-shot, img.lb-cand-shot { object-fit: cover; }
   }
   .main-nav.open a { padding: 10px 0; }
   .nav-toggle { display: flex; }
+}
+
+@media (max-width: 640px) {
+  .hero { min-height: auto; padding: 58px 0 64px; background-position: 64% center; }
+  .hero-bg { background: rgba(25,22,19,.72); }
+  .hero-card { width: 100%; }
+  .hero-trust { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; }
+  .hero-trust span:last-child { grid-column: 1 / -1; }
   .section { padding: 60px 0; }
   .cards-grid, .reviews-grid, .insights-grid, .leak-price-grid { grid-template-columns: 1fr; }
   .about-values { grid-template-columns: 1fr; }
