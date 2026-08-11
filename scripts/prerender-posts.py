@@ -12,6 +12,8 @@
 import html
 import json
 import os
+from datetime import datetime, timezone, timedelta
+from email.utils import format_datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE = 'https://01023978629.github.io/manmool'
@@ -24,6 +26,48 @@ def esc(s):
 
 def shade_cover(hexv):
     return hexv or '#d8c3a5'
+
+
+def rss_date(value):
+    """site.json 날짜를 RSS 2.0이 요구하는 RFC 2822 날짜로 바꾼다."""
+    try:
+        day = datetime.strptime(str(value or ''), '%Y-%m-%d')
+    except ValueError:
+        day = datetime.now(timezone(timedelta(hours=9))).replace(tzinfo=None)
+    return format_datetime(day.replace(tzinfo=timezone(timedelta(hours=9))))
+
+
+def write_rss(insights):
+    """네이버가 새 인사이트 글을 발견할 수 있도록 RSS 2.0 피드를 만든다."""
+    items = []
+    for a in insights[:30]:
+        url = f'{BASE}/posts/{a["slug"]}.html'
+        items.append(
+            '    <item>\n'
+            f'      <title>{esc(a.get("title"))}</title>\n'
+            f'      <link>{url}</link>\n'
+            f'      <guid isPermaLink="true">{url}</guid>\n'
+            f'      <description>{esc(a.get("excerpt"))}</description>\n'
+            f'      <pubDate>{rss_date(a.get("date"))}</pubDate>\n'
+            '    </item>')
+    built = rss_date(insights[0].get('date')) if insights else format_datetime(datetime.now(timezone(timedelta(hours=9))))
+    feed = f'''<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>만물인테리어 인사이트</title>
+    <link>{BASE}/blog.html</link>
+    <description>대전 만물인테리어의 시공 사례와 견적·계약·보증 안내</description>
+    <language>ko-KR</language>
+    <lastBuildDate>{built}</lastBuildDate>
+    <atom:link href="{BASE}/rss.xml" rel="self" type="application/rss+xml" />
+{chr(10).join(items)}
+  </channel>
+</rss>
+'''
+    path = os.path.join(ROOT, 'rss.xml')
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(feed)
+    print('생성: rss.xml(%d건)' % min(len(insights), 30))
 
 
 def article_html(a, insights):
@@ -235,6 +279,7 @@ def main():
             os.remove(os.path.join(outdir, fn))
             print('삭제(글 없음):', 'posts/' + fn)
     write_blog_list(insights)
+    write_rss(insights)
     print(f'완료 · {len(insights)}건')
 
 

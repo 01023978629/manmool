@@ -32,6 +32,23 @@ const htmlFiles = [
 
 const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
 
+/* 네이버에 제출한 RSS가 글 생성 때마다 함께 갱신되는가. */
+{
+  const rss = readIf('rss.xml');
+  const site = JSON.parse(readIf('data/site.json') || '{}');
+  const published = (site.insights || []).filter((x) => x && x.published !== false);
+  checked++;
+  if (!rss) fail.push('rss.xml 이 없다 — scripts/prerender-posts.py 를 실행하세요');
+  else {
+    const items = rss.match(/<item>/g) || [];
+    if (items.length !== Math.min(published.length, 30)) fail.push(`rss.xml 글 수(${items.length})가 공개 인사이트(${published.length})와 다르다`);
+    if (!/xmlns:atom="http:\/\/www\.w3\.org\/2005\/Atom"/.test(rss) || !/<atom:link[^>]+rel="self"/.test(rss)) fail.push('rss.xml self 링크가 없다');
+    if (/<link>https:\/\/01023978629\.github\.io\/(?!manmool\/)/.test(rss)) fail.push('rss.xml에 manmool 밖의 글 링크가 있다');
+  }
+  const idx = readIf('index.html') || '';
+  if (!/rel="alternate"[^>]+application\/rss\+xml[^>]+rss\.xml/.test(idx)) fail.push('index.html에 RSS 발견 링크가 없다');
+}
+
 /* 닫히지 않은 소유확인 주석 때문에 --> 가 화면 맨 위에 글자로 노출된 적이 있다. */
 {
   const head = (readIf('index.html') || '').split(/<body\b/i)[0];
