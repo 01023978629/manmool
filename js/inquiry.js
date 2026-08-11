@@ -532,6 +532,11 @@
       SELECTED_DESIGN = e.detail || null;
       renderSelectedDesign();
       if (SELECTED_DESIGN) {
+        // 대문이 누수 중심이 되면서 공사 종류의 첫 옵션(기본값)이 '누수'다.
+        // 추천 디자인에서 넘어온 손님은 인테리어 상담인데 그대로 두면
+        // '누수탐지'로 접수된다 — 리드 분류가 틀리면 응대가 꼬인다.
+        const typeSel = document.querySelector('#inquiry select[name="type"]');
+        if (typeSel && typeSel.value === '누수') typeSel.value = '주거';
         if (SELECTED_DESIGN.area) setAreaValue(SELECTED_DESIGN.area);
         if (SELECTED_DESIGN.budget) setBudgetValue(SELECTED_DESIGN.budget);
         const sec = $('inquiry');

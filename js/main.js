@@ -15,7 +15,10 @@ const ICONS = {
   badge: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg>',
   shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/></svg>',
   wrench: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.2l-6 6 2.2 2.2 6-6a4 4 0 0 0 5.2-5.4l-2.4 2.4-2-2 2.4-2.4Z"/></svg>',
-  doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/><path d="M9 13h6M9 17h6"/></svg>'
+  doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/><path d="M9 13h6M9 17h6"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/><path d="M9 12h6M9 16h4"/></svg>',
+  building: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18"/><path d="M9 21v-4h6v4"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2"/></svg>'
 };
 
 const won = (n) => '₩ ' + Math.round(n).toLocaleString('ko-KR');
@@ -1058,16 +1061,20 @@ function renderLeakPricing(config) {
     const supply = Number(tier.amount || 0);
     const vatAmount = Math.round(supply * vatRate);
     const total = supply + vatAmount;
+    const vatPct = Math.round(vatRate * 100);
     return `
     <li class="leak-price-card">
       <b class="leak-price-step">${tier.label || `${tier.step}단계`}</b>
+      ${tier.desc ? `<span class="leak-price-desc">${tier.desc}</span>` : ''}
       <span><em>공급가</em><strong>${won(supply)}</strong></span>
-      <span><em>VAT 10%</em><strong>${won(vatAmount)}</strong></span>
+      <span><em>VAT ${vatPct}%</em><strong>${won(vatAmount)}</strong></span>
       <span class="leak-price-total"><em>합계</em><strong>${won(total)}</strong></span>
     </li>`;
   }).join('');
   vat.textContent = config.vatLabel || '';
-  promise.textContent = config.noFindPromise || '';
+  // 총액인지 가산인지, 언제 확정되는지 — 금액이 원 단위로 노출되는 유일한
+  // 자리에 이 두 줄이 없으면 고객은 표를 확정가로 캡처해 오고 분쟁이 된다.
+  promise.textContent = [config.noFindPromise, config.note].filter(Boolean).join(' · ');
   section.hidden = false;
 }
 
