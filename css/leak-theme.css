@@ -164,6 +164,33 @@ svg { width: 1.25rem; height: 1.25rem; flex: 0 0 auto; }
 .symptom-grid strong { margin-top: 14px; color: #17354a; font-size: 16px; line-height: 1.45; }
 .symptom-grid small { margin-top: 9px; color: #70828d; font-size: 11px; line-height: 1.65; }
 
+/* 첫 대응 체크리스트 */
+.first-response-section { background: linear-gradient(135deg, #ecf7f8 0%, #f8fbfc 55%, #edf3f6 100%); }
+.first-response-inner { padding-top: 86px; padding-bottom: 92px; }
+.first-response-heading { margin-bottom: 38px; }
+.first-response-layout { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(330px, .88fr); gap: 22px; align-items: stretch; }
+.response-checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.response-checks label { position: relative; display: flex; min-height: 148px; padding: 22px 20px; border: 1px solid #cfe0e6; border-radius: 11px; background: #fff; cursor: pointer; transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease; }
+.response-checks label:hover { transform: translateY(-2px); border-color: #55bdcb; box-shadow: 0 12px 28px rgba(18,78,94,.08); }
+.response-checks input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.response-checks span { position: relative; display: block; padding-left: 36px; }
+.response-checks span::before { content: ''; position: absolute; left: 0; top: 1px; width: 23px; height: 23px; border: 2px solid #91aeb7; border-radius: 6px; background: #fff; }
+.response-checks span::after { content: '✓'; position: absolute; left: 5px; top: 0; color: transparent; font-size: 17px; font-weight: 900; }
+.response-checks input:checked + span::before { border-color: #079fb8; background: #079fb8; }
+.response-checks input:checked + span::after { color: #fff; }
+.response-checks input:focus-visible + span::before { outline: 3px solid rgba(7,159,184,.25); outline-offset: 3px; }
+.response-checks b { display: block; color: #18394c; font-size: 16px; }
+.response-checks small { display: block; margin-top: 9px; color: #697e89; font-size: 12px; line-height: 1.65; }
+.response-summary { display: flex; flex-direction: column; padding: 29px 27px; border-radius: 12px; color: #eaf8fa; background: #15394a; box-shadow: 0 18px 42px rgba(14,53,70,.16); }
+.response-count { align-self: flex-start; padding: 6px 11px; border-radius: 999px; color: #9ee4e9; background: rgba(255,255,255,.09); font-size: 11px; font-weight: 850; }
+.response-count.complete { color: #15394a; background: #9ee4e9; }
+.response-summary h3 { margin-top: 20px; font-size: 24px; }
+.response-summary > p { margin-top: 10px; color: #c7dce2; font-size: 13px; line-height: 1.7; }
+.response-actions { display: grid; gap: 9px; margin-top: 22px; }
+.response-actions button, .response-actions a { width: 100%; min-height: 48px; justify-content: center; font: 800 12px/1.2 inherit; cursor: pointer; }
+.response-status { min-height: 22px; color: #9ee4e9 !important; font-weight: 750; }
+.response-safety { display: block; margin-top: auto; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.13); color: #acc5cc; font-size: 10px; line-height: 1.65; }
+
 .section { width: min(1192px, calc(100% - 48px)); margin: 0 auto; }
 .section-heading { margin-bottom: 54px; }
 .heading-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 50px; }
@@ -430,6 +457,7 @@ footer { padding: 49px 24px 54px; background: #071a29; color: #76909f; }
   .hero-visual { max-width: 620px; width: 100%; margin: 0 auto; }
   .heading-row { align-items: flex-start; flex-direction: column; gap: 20px; }
   .symptom-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .first-response-layout { grid-template-columns: 1fr; }
   .service-grid { grid-template-columns: repeat(2, 1fr); }
   .service-area-inner { grid-template-columns: 330px 1fr; gap: 45px; }
   .area-radar { width: 290px; height: 290px; }
@@ -472,6 +500,10 @@ footer { padding: 49px 24px 54px; background: #071a29; color: #76909f; }
   .symptom-section { padding-top: 65px; padding-bottom: 8px; }
   .symptom-grid { grid-template-columns: 1fr; }
   .symptom-grid a { min-height: 0; }
+  .first-response-inner { padding-top: 72px; padding-bottom: 76px; }
+  .response-checks { grid-template-columns: 1fr; }
+  .response-checks label { min-height: 0; padding: 20px 17px; }
+  .response-summary { padding: 25px 21px; }
   .section { width: min(100% - 36px, 1192px); }
   .section-heading { margin-bottom: 38px; }
   .section-heading h2 { font-size: 32px; }

@@ -68,7 +68,7 @@
   ]
 }
 </script>
-<link rel="stylesheet" href="css/leak-theme.css?v=20260812-promo" />
+<link rel="stylesheet" href="css/leak-theme.css?v=20260812-tools" />
 <link rel="alternate" type="application/rss+xml" title="만물인테리어 현장 기록" href="rss.xml" />
 </head>
 <body>
@@ -144,6 +144,34 @@
       <a href="#services"><span>02</span><strong>물을 안 써도 계량기 움직임</strong><small>수압·급수 배관 가능성을 먼저 구분</small></a>
       <a href="bathroom-check.html"><span>03</span><strong>욕실 곰팡이·백화·들뜸</strong><small>1분 셀프 체크로 방수 징후 확인</small></a>
       <a href="#contact"><span>04</span><strong>배수 냄새·역류·물 빠짐 지연</strong><small>배수관 상태와 막힘·이음부를 현장에서 확인</small></a>
+    </div>
+  </section>
+
+  <section class="first-response-section" id="firstResponse" aria-labelledby="first-response-title">
+    <div class="section first-response-inner">
+      <div class="section-heading heading-row first-response-heading">
+        <div><div class="section-kicker">FIRST RESPONSE</div><h2 id="first-response-title">전화하기 전 3분,<br /><em>이 네 가지만 남겨주세요.</em></h2></div>
+        <p>확인한 항목을 누르면 상담 준비 메모가 만들어집니다. 체크 내용은 이 기기에 저장되거나 자동 전송되지 않습니다.</p>
+      </div>
+      <div class="first-response-layout">
+        <div class="response-checks" id="responseChecks">
+          <label><input type="checkbox" value="수도 사용을 줄이고 세대 메인밸브 위치를 확인함" /><span><b>수도 사용 줄이기</b><small>물이 계속 번지면 세대 메인밸브 위치를 확인하고, 안전하게 잠글 수 있을 때 잠급니다.</small></span></label>
+          <label><input type="checkbox" value="모든 수도 사용을 멈춘 뒤 계량기 움직임을 영상으로 남김" /><span><b>계량기 영상 10초</b><small>수도 사용을 모두 멈춘 상태에서 계량기 숫자나 별표가 움직이는지 촬영합니다.</small></span></label>
+          <label><input type="checkbox" value="젖은 곳의 전체 사진과 가까운 사진을 촬영함" /><span><b>전체·근접 사진</b><small>물자국만 확대하지 말고 천장·벽·바닥의 위치가 보이는 전체 사진도 함께 남깁니다.</small></span></label>
+          <label><input type="checkbox" value="발견 시각과 아랫집 또는 관리사무소 연락 여부를 기록함" /><span><b>시간·연락 기록</b><small>처음 발견한 시각, 최근 수도 사용, 아랫집·관리사무소에 알린 시간을 적어 둡니다.</small></span></label>
+        </div>
+        <aside class="response-summary">
+          <span class="response-count" id="responseCount">0 / 4 준비</span>
+          <h3>누수 상담 준비 메모</h3>
+          <p id="responseGuide">항목을 하나씩 확인하면 전화나 온라인 상담 때 전달할 메모를 복사할 수 있습니다.</p>
+          <div class="response-actions">
+            <button type="button" class="primary-case-button" id="responseCopy">준비 메모 복사</button>
+            <a class="outline-case-button" href="index.html?type=누수#inquiry">사진 상담 열기</a>
+          </div>
+          <p class="response-status" id="responseStatus" role="status" aria-live="polite"></p>
+          <small class="response-safety">물이 콘센트·조명 등 전기 설비와 닿았으면 젖은 손으로 만지거나 분전반을 조작하지 말고, 관리사무소나 긴급 안전기관에 먼저 도움을 요청하세요.</small>
+        </aside>
+      </div>
     </div>
   </section>
 
@@ -306,5 +334,6 @@
 
   <a class="mobile-call-bar" href="tel:01023978629"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M6.7 3.5 9 7.8 7.4 9.4c1.1 2.4 2.8 4.1 5.2 5.2l1.6-1.6 4.3 2.3-.5 3.4c-.1.8-.8 1.4-1.6 1.4C9.5 20.1 3.9 14.5 3.9 7.6c0-.8.6-1.5 1.4-1.6l1.4-2.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span><small>누수 긴급 상담</small><strong>지금 전화하기</strong></span></a>
 </main>
+<script src="js/leak.js?v=20260812-response"></script>
 </body>
 </html>
