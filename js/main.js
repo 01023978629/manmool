@@ -1051,6 +1051,9 @@ function renderLeakPricing(config) {
   if (!section) return;
   section.hidden = true;
   if (!config || config.published !== true || !Array.isArray(config.tiers)) return;
+  // index.html 은 인테리어 전용 대문이다. 누수 요금 데이터는 계약·검사용으로
+  // 보존하되, 누수 전용 페이지로 분리한 뒤에는 대문에서 다시 열지 않는다.
+  if (section.dataset.surface === 'leak-only') return;
   const tiers = document.getElementById('leakPricingTiers');
   const vat = document.getElementById('leakPricingVat');
   const promise = document.getElementById('leakPricingPromise');
@@ -1083,8 +1086,13 @@ function renderInsights(insights) {
   const grid = document.getElementById('insightsGrid');
   if (!grid || !Array.isArray(insights) || !insights.length) return;
   insights = insights.filter((x) => x && x.published !== false);
-  // 최신 글이 홈에 먼저 보이도록 날짜 내림차순 (날짜 없으면 뒤로)
-  const latest = insights.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+  const featured = String(grid.dataset.featuredSlugs || '').split(',').map((x) => x.trim()).filter(Boolean);
+  const bySlug = new Map(insights.map((x) => [x.slug, x]));
+  // 인테리어 대문은 지정한 실측·견적·계약 글을 먼저 보여 준다.
+  // 지정이 없는 다른 화면에서는 기존처럼 최신순으로 동작한다.
+  const latest = featured.length
+    ? featured.map((slug) => bySlug.get(slug)).filter(Boolean)
+    : insights.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
   grid.innerHTML = latest.slice(0, 3).map((a) => `
     <a class="insight-card reveal" href="posts/${encodeURIComponent(a.slug)}.html">
       <span class="ic-cover" style="background:linear-gradient(150deg, ${a.cover || '#d8c3a5'}, ${shade(a.cover || '#d8c3a5', -16)})">
@@ -1103,6 +1111,14 @@ function renderInsights(insights) {
 function renderFaq(faq) {
   const host = document.getElementById('faqList');
   if (!host || !Array.isArray(faq) || !faq.length) return;
+  // 인테리어 대문에서는 실측·견적·공사 질문을 먼저 보여 주고,
+  // 누수 질문은 전용 페이지로 가는 고객을 위해 뒤에 남긴다.
+  if (document.getElementById('realWork')) {
+    faq = faq.slice().sort((a, b) => {
+      const leak = (x) => /누수|아랫집/.test(String(x && x.q || '')) ? 1 : 0;
+      return leak(a) - leak(b);
+    });
+  }
   host.innerHTML = faq.map((f, i) => `
     <div class="faq-item reveal">
       <button type="button" class="faq-q" aria-expanded="false" aria-controls="faq-a-${i}" id="faq-q-${i}">
@@ -1196,11 +1212,11 @@ function setupContactCtas(config, company) {
 function playHeroChat() {
   const box = document.getElementById('heroChat');
   const script = [
-    { who: 'bot', text: '안녕하세요! 만물인테리어입니다 💧' },
-    { who: 'user', text: '아랫집 천장에 물자국이 생겼대요. 어디서 새는지 모르겠어요.' },
-    { who: 'bot', text: '장비로 위치를 특정해 드립니다. 탐지 기본 40만원(부가세 별도), 요금은 착수 전에 확정해 드려요.' },
-    { who: 'bot', text: '위치를 특정하지 못하면 탐지비를 받지 않습니다. 보험 서류 정리도 도와드려요.' },
-    { who: 'user', text: '방문 예약할게요!' }
+    { who: 'bot', text: '안녕하세요. 만물인테리어입니다 🏠' },
+    { who: 'user', text: '대전 34평 아파트 전체 리모델링을 알아보고 있어요.' },
+    { who: 'bot', text: '입주 시기와 주방·욕실·창호 포함 여부를 알려주시면 예상 범위를 먼저 정리해 드릴게요.' },
+    { who: 'bot', text: '정확한 금액은 방문 실측 후 자재·수량·포함·제외사항을 나눈 서면 견적으로 확정합니다.' },
+    { who: 'user', text: '사진과 원하는 스타일을 보내고 실측 신청할게요.' }
   ];
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let i = 0;
