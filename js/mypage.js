@@ -1,6 +1,6 @@
 /* ============================================================
    고객 전용 링크 페이지 — 본인확인 → 동의 → 진행/사진/계약(전자서명)/
-   결제(승인·기록)/보증서(국가 기준)/카톡 알림
+   보증서(국가 기준)/카톡 알림
    데이터: data/project.json (실서비스: n8n→DB에서 프로젝트ID로 조회)
    원칙: 유실 0 · 무승인 발송 0 · 개발 0 운영 · 돈은 승인·기록을 거친다
    ============================================================ */
@@ -255,67 +255,6 @@
     render();
   }
 
-  /* ---------- 결제 (돈은 승인·기록을 거친다) ---------- */
-  function payments(list, info) {
-    const el = $('payments');
-    if (el && el.tagName === 'TABLE') { // 최초 1회 table→div 교체
-      const host = document.createElement('div');
-      host.id = 'payHost';
-      el.replaceWith(host);
-    }
-    const mount = document.getElementById('payHost');
-    if (!mount) return;
-
-    const render = () => {
-      const total = list.reduce((s, x) => s + x.amount, 0);
-      const paid = list.filter((x) => x.status === '완납').reduce((s, x) => s + x.amount, 0);
-      const nextIdx = list.findIndex((x) => x.status !== '완납');
-      mount.innerHTML = `
-        <div class="pay-progress">
-          <div class="bar light"><i style="width:${Math.round(paid / total * 100)}%"></i></div>
-          <span>납부 ${won(paid)} / ${won(total)} · ${Math.round(paid / total * 100)}%</span>
-        </div>
-        <div class="pay-rows">
-          ${list.map((p, i) => `
-            <div class="pay-row ${i === nextIdx ? 'next' : ''}">
-              <div class="pr-main"><b>${p.name}</b><span>${p.dueDate}</span></div>
-              <span class="pr-amt">${won(p.amount)}</span>
-              <span class="${stCls(p.status)}">${p.status === '완납' ? '완납 · 확인됨' : (p.status === '확인대기' ? '입금 확인중' : p.status)}</span>
-            </div>
-            ${i === nextIdx && p.status !== '완납' ? nextCard(p, i, info) : ''}
-          `).join('')}
-        </div>`;
-      const btn = mount.querySelector('[data-pay]');
-      if (btn) btn.addEventListener('click', () => {
-        const p = list[+btn.dataset.pay];
-        p.status = '확인대기';
-        p.notifiedAt = new Date().toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' });
-        alert('입금 완료를 담당자에게 알렸습니다. 확인 후 완납으로 처리되며, 내역이 기록됩니다. (데모)');
-        render();
-      });
-    };
-
-    const nextCard = (p, i, info) => {
-      if (!info) return '';
-      if (p.status === '확인대기') {
-        return `<div class="pay-next wait">
-          <p><b>입금 확인중</b> — ${p.notifiedAt || ''}에 입금 완료를 알렸습니다. 담당자 확인 후 완납 처리됩니다.</p>
-        </div>`;
-      }
-      return `<div class="pay-next">
-        <div class="pn-acct">
-          <span class="pn-label">다음 납부 안내</span>
-          <b>${info.bank} ${info.account}</b>
-          <span>예금주 ${info.holder} · ${won(p.amount)}</span>
-        </div>
-        <p class="pn-guide">${info.guide}</p>
-        <button class="mini ok" data-pay="${i}">입금 완료 알림 보내기</button>
-      </div>`;
-    };
-
-    render();
-  }
-
   /* ---------- 하자 보증 (국가 기준 자동) ---------- */
   function warranty(w) {
     if (!w) { $('warranty').innerHTML = '<p class="form-note">보증 정보가 없습니다.</p>'; return; }
@@ -423,7 +362,6 @@
     contract(DATA.contract, DATA.project);
     materials(DATA.materials);
     changes(DATA.changes);
-    payments(DATA.payments, DATA.paymentInfo);
     warranty(DATA.warranty);
     documents(DATA.documents);
     notifs(DATA.notifications);
