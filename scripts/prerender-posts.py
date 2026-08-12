@@ -76,8 +76,17 @@ def article_html(a, insights):
     cover_img = (
         f'<img class="post-cover-image" src="../{esc(a["image"])}" alt="{esc(a.get("imageAlt") or a["title"])}" fetchpriority="high" decoding="async">'
         if a.get('image') else '')
-    body = '\n'.join(
-        f'<h2>{esc(s.get("h"))}</h2><p>{esc(s.get("p"))}</p>' for s in (a.get('body') or []))
+    # 문단마다 사진을 한 장 붙일 수 있다(선택). 표지 한 장만으로는 '무엇을 갈았는지'가
+    # 안 보이는 현장 기록이 있어서, 해당 문단 바로 아래에 근거 사진을 둔다.
+    def section_html(s):
+        out = f'<h2>{esc(s.get("h"))}</h2><p>{esc(s.get("p"))}</p>'
+        if s.get('img'):
+            cap = f'<figcaption>{esc(s["imgCaption"])}</figcaption>' if s.get('imgCaption') else ''
+            out += (f'<figure class="post-figure"><img src="../{esc(s["img"])}" '
+                    f'alt="{esc(s.get("imgAlt") or s.get("h"))}" loading="lazy" decoding="async">{cap}</figure>')
+        return out
+
+    body = '\n'.join(section_html(s) for s in (a.get('body') or []))
     related = [x for x in insights if x['slug'] != a['slug']][:3]
     related_html = '\n'.join(f'''          <a class="insight-card" href="{esc(x['slug'])}.html">
             <span class="ic-cover" style="background:{shade_cover(x.get('cover'))}">{f'<img class="ic-image" src="../{esc(x["image"])}" alt="{esc(x.get("imageAlt") or x["title"])}" loading="lazy" decoding="async">' if x.get('image') else ''}<span class="ic-cat">{esc(x.get('category'))}</span></span>
