@@ -383,6 +383,107 @@
     qsay(`${pending.length}건과 사진 ${n}장을 내려받습니다.`, 'ok');
   });
 
+  /* ---------- 다른 기기로 옮기기 ----------
+     휴대폰 브라우저와 PC 브라우저는 저장소를 공유하지 않는다(같은 주소여도
+     기기마다 따로다). 서버가 없으니 사장님이 파일 하나를 옮기는 방식으로 잇는다.
+     사진까지 한 파일에 담아 카톡 '나에게 보내기'·메일로 넘길 수 있게 한다. */
+  const TRANSFER_VERSION = 1;
+
+  function blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = () => reject(r.error || new Error('사진을 읽지 못했습니다'));
+      r.readAsDataURL(blob);
+    });
+  }
+
+  async function dataUrlToBlob(url) {
+    // fetch 를 쓰지 않는다 — 이 화면은 바깥으로 아무것도 보내지 않아야 하고,
+    // data: 주소라도 fetch 를 쓰면 그 약속을 코드로 보증하기 어려워진다.
+    const [head, b64] = String(url).split(',');
+    const type = (/data:([^;]+)/.exec(head) || [])[1] || 'image/jpeg';
+    const bin = atob(b64 || '');
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type });
+  }
+
+  async function buildTransfer(records) {
+    const cases = [];
+    for (const rec of records) {
+      const photos = [];
+      for (const p of rec.photos) photos.push({ data: await blobToDataUrl(p.blob), hadExif: !!p.hadExif });
+      cases.push({ id: rec.id, savedAt: rec.savedAt, status: rec.status || 'pending', fields: rec.fields, photos });
+    }
+    return { app: 'manmul-case-new', version: TRANSFER_VERSION, exportedAt: new Date().toISOString(), cases };
+  }
+
+  $('cfQueueExport').addEventListener('click', async () => {
+    if (!queue.length) { qsay('넘길 현장이 없습니다.', 'err'); return; }
+    qsay('사진을 담는 중입니다…');
+    let blob;
+    try {
+      const bundle = await buildTransfer(queue);
+      blob = new Blob([JSON.stringify(bundle)], { type: 'application/json' });
+    } catch (e) { qsay('파일을 만들지 못했습니다: ' + ((e && e.message) || e), 'err'); return; }
+    // 파일명은 영문·숫자로 짓는다. 한글 이름을 주면 브라우저가 이름을 통째로 버리고
+    // 확장자 없는 'download' 로 저장해 버려서, PC 에서 파일 고르기에 아예 안 뜬다.
+    const name = `manmul-cases-${new Date().toISOString().slice(0, 10)}.json`;
+    const file = new File([blob], name, { type: 'application/json' });
+    const mb = (blob.size / 1048576).toFixed(1);
+    // 휴대폰이면 공유창을 띄운다 — 카톡 '나에게 보내기'로 PC 까지 한 번에 간다.
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: '만물 저장한 현장' });
+          qsay(`${queue.length}건(${mb}MB)을 보냈습니다. PC 에서 ${name} 파일을 "다른 기기에서 받기" 로 여세요.`, 'ok');
+        return;
+      } catch (e) { /* 사장님이 공유를 취소하면 아래 내려받기로 이어간다 */ }
+    }
+    download(blob, name);
+    qsay(`${queue.length}건(${mb}MB)을 ${name} 으로 저장했습니다. 이 파일을 PC 로 옮긴 뒤 "다른 기기에서 받기" 로 여세요.`, 'ok');
+  });
+
+  $('cfQueueImport').addEventListener('click', () => $('cfQueueFile').click());
+
+  $('cfQueueFile').addEventListener('change', async (e) => {
+    const file = (e.target.files || [])[0];
+    e.target.value = '';
+    if (!file) return;
+    qsay('파일을 읽는 중입니다…');
+    let bundle;
+    try { bundle = JSON.parse(await file.text()); }
+    catch (err) { qsay('이 파일은 읽을 수 없습니다. "다른 기기로 넘기기" 로 만든 파일이 맞는지 확인해 주세요.', 'err'); return; }
+    if (!bundle || bundle.app !== 'manmul-case-new' || !Array.isArray(bundle.cases)) {
+      qsay('만물 사례 파일이 아닙니다.', 'err'); return;
+    }
+    if (Number(bundle.version) > TRANSFER_VERSION) {
+      qsay('이 파일은 더 새로운 화면에서 만들어졌습니다. 이 기기의 페이지를 새로고침한 뒤 다시 시도해 주세요.', 'err'); return;
+    }
+
+    const have = new Set(queue.map((r) => r.id));
+    let added = 0, skipped = 0, refused = 0;
+    for (const c of bundle.cases) {
+      if (!c || !c.id || !c.fields) { refused++; continue; }
+      if (have.has(c.id)) { skipped++; continue; }
+      // 받는 쪽에서도 개인정보를 다시 본다. 보낸 기기가 옛 화면이었을 수도 있고,
+      // 파일이 중간에 손으로 고쳐졌을 수도 있다.
+      if (piiFindings(Object.values(c.fields).join('\n')).length) { refused++; continue; }
+      try {
+        const photos = [];
+        for (const p of (c.photos || [])) photos.push({ blob: await dataUrlToBlob(p.data), hadExif: !!p.hadExif });
+        await STORE.put({ id: c.id, savedAt: c.savedAt || new Date().toISOString(),
+          status: c.status === 'done' ? 'done' : 'pending', fields: c.fields, photos });
+        added++;
+      } catch (err) { refused++; }
+    }
+    await loadQueue();
+    const parts = [`${added}건을 받았습니다`];
+    if (skipped) parts.push(`이미 있던 ${skipped}건은 그대로 두었습니다`);
+    if (refused) parts.push(`${refused}건은 개인정보가 보이거나 형식이 맞지 않아 받지 않았습니다`);
+    qsay(parts.join(' · '), refused ? 'err' : 'ok');
+  });
+
   $('cfQueueClearDone').addEventListener('click', async () => {
     const done = queue.filter((r) => r.status === 'done').length;
     if (!done) { qsay('올림 표시한 현장이 없습니다.', 'err'); return; }
