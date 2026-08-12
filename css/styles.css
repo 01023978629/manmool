@@ -358,6 +358,11 @@ body.content-preview .site-header { top: 46px; }
 .post-body .post-excerpt { font-size: 18px; line-height: 1.7; color: var(--ink); font-weight: 500; margin: 20px 0; }
 .post-body h2 { font-size: 21px; margin: 30px 0 10px; }
 .post-body p { font-size: 16px; line-height: 1.85; color: var(--ink-soft); }
+/* 문단 아래 근거 사진. 표지 한 장만으로는 '무엇을 갈았는지'가 안 보이는
+   현장 기록이 있어서, 해당 문단 바로 밑에 사진을 둔다. */
+.post-figure { margin: 18px 0 4px; }
+.post-figure img { width: 100%; height: auto; display: block; border-radius: var(--radius); background: var(--bg-alt); }
+.post-figure figcaption { font-size: 13px; color: var(--ink-soft); margin-top: 8px; text-align: center; }
 .post-cta { margin: 40px 0 8px; padding: 28px; background: var(--brand-soft); border-radius: var(--radius); text-align: center; }
 .post-cta p { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
 .post-cta .btn { margin: 0 6px; }
