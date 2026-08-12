@@ -1,7 +1,7 @@
 /* ensure-lead-route-parity.mjs — 상담 접수 경로 판정 일치 검사
  *
  * 왜 필요한가:
- *   손님이 상담 폼을 쓰면 js/inquiry.js 의 deliver() 가 실제 전송을 맡고,
+ *   손님이 상담 폼(인테리어·누수)을 쓰면 js/lead-transport.js 의 deliver() 가 실제 전송을 맡고,
  *   대표님은 admin 화면(js/admin.js)의 상태 표시를 보고 "지금 문의가 오고 있는가"를 판단한다.
  *   이 둘의 판정 기준이 어긋나면 가장 나쁜 실패가 난다 —
  *   실제로는 전달되는데 "데모 모드"라 표시되거나(불필요한 재설정),
@@ -19,7 +19,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const INQUIRY = path.join(ROOT, 'js', 'inquiry.js');
+// 전송(deliver)·안내 판정(backendConfigured)은 인테리어 폼과 누수 폼이 함께 쓰는
+// js/lead-transport.js 로 옮겼다. 두 폼이 같은 함수를 쓰므로 여기 한 곳만 보면 된다.
+const TRANSPORT = path.join(ROOT, 'js', 'lead-transport.js');
 const ADMIN = path.join(ROOT, 'js', 'admin.js');
 const CONFIG = path.join(ROOT, 'data', 'config.json');
 
@@ -53,15 +55,15 @@ function routeKeys(body) {
   return keys;
 }
 
-const inquirySrc = read(INQUIRY);
+const inquirySrc = read(TRANSPORT);
 const adminSrc = read(ADMIN);
 
 const deliverBody = funcBody(inquirySrc, 'async function deliver(');
 const backendBody = funcBody(inquirySrc, 'function backendConfigured(');
 const routeBody = funcBody(adminSrc, 'function leadRoute(');
 
-if (!deliverBody) fail.push('js/inquiry.js 에서 deliver() 본문을 찾지 못했습니다 (함수명이 바뀌었나요?)');
-if (!backendBody) fail.push('js/inquiry.js 에서 backendConfigured() 본문을 찾지 못했습니다');
+if (!deliverBody) fail.push('js/lead-transport.js 에서 deliver() 본문을 찾지 못했습니다 (함수명이 바뀌었나요?)');
+if (!backendBody) fail.push('js/lead-transport.js 에서 backendConfigured() 본문을 찾지 못했습니다');
 if (!routeBody) fail.push('js/admin.js 에서 leadRoute() 본문을 찾지 못했습니다 — admin 이 접수 경로 판정을 잃었습니다');
 
 if (deliverBody && backendBody && routeBody) {

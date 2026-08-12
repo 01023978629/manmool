@@ -477,9 +477,15 @@ footer { padding: 49px 24px 54px; background: #071a29; color: #76909f; }
   .brand-mark { width: 27px; height: 32px; }
   .brand-mark span { width: 10px; height: 15px; left: 7px; top: 7px; border-width: 2px; }
   .brand-name { font-size: 18px; }
+  /* 좁은 화면에서는 번호 글자를 숨기고 아이콘만 남긴다. 다만 아이콘 크기를
+     그대로 두면 누를 수 있는 면적이 24px 밖에 안 된다 — 손가락 기준 권장치는
+     44px 이다. 급해서 들어온 사람이 헤더 전화를 눌렀는데 안 눌리면 안 되므로,
+     보이는 아이콘은 24px 로 두고 패딩으로 눌리는 면적만 44px 로 넓힌다. */
   .header-call small { display: none; }
-  .header-call { font-size: 0; gap: 0; }
+  .header-call { font-size: 0; gap: 0; min-width: 44px; min-height: 44px;
+    justify-content: center; margin-right: -10px; border-radius: 12px; }
   .header-call svg { width: 24px; height: 24px; }
+  .header-call:active { background: rgba(7,159,184,.12); }
   .hero { min-height: auto; padding: 58px 20px 76px; gap: 70px; }
   .hero h1 { font-size: clamp(39px, 11vw, 52px); }
   .hero-description { font-size: 15px; line-height: 1.75; }
@@ -579,3 +585,72 @@ footer { padding: 49px 24px 54px; background: #071a29; color: #76909f; }
   * { transition-duration: .01ms !important; }
 }
 
+
+
+/* ------------------------------------------------------------
+   누수 전용 상담 폼 (#leakInquiry)
+   누수로 급한 사람에게 묻는 항목은 연락처·증상뿐이다. 평수·예산·
+   공사범위 칸을 세우면 절반은 채우다 만다.
+   ------------------------------------------------------------ */
+.leak-form-section { background: #f6fafc; }
+/* display 를 지정한 요소는 hidden 속성만으로 사라지지 않는다. UA 의
+   [hidden]{display:none} 보다 클래스 규칙이 세서, 접수 뒤에도 폼이 남아
+   손님이 같은 내용을 두 번 보낼 수 있었다. */
+.leak-form[hidden], .leak-done[hidden] { display: none; }
+.leak-form { max-width: 760px; margin: 0 auto; display: grid; gap: 26px;
+  background: #fff; border: 1px solid #e2ebf0; border-radius: 22px; padding: 34px 32px;
+  box-shadow: 0 18px 44px rgba(19,44,63,.07); }
+.leak-field { display: grid; gap: 9px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.leak-field > label, .leak-field > legend { font-size: 15px; font-weight: 800; color: var(--navy); padding: 0; }
+.leak-field > label small, .leak-field > legend small { font-weight: 650; color: #8c9aa5; font-size: 13px; margin-left: 6px; }
+.leak-field .req { font-style: normal; font-size: 12px; font-weight: 800; color: #0d7f93;
+  background: rgba(7,159,184,.12); border-radius: 999px; padding: 3px 9px; margin-left: 7px; }
+.leak-field input[type="text"], .leak-field input[type="tel"], .leak-field textarea {
+  width: 100%; font: inherit; font-size: 16px; color: var(--navy);
+  border: 1px solid #d5e1e8; border-radius: 13px; padding: 14px 15px; background: #fff;
+  min-height: 52px; }
+.leak-field textarea { min-height: 116px; resize: vertical; line-height: 1.6; }
+.leak-field input:focus-visible, .leak-field textarea:focus-visible {
+  outline: 3px solid rgba(7,159,184,.25); outline-offset: 2px; border-color: #079fb8; }
+.leak-hint { font-size: 13px; color: #7d8b96; line-height: 1.6; }
+.leak-row { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+
+.leak-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.leak-chip { position: relative; }
+.leak-chip input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.leak-chip span { display: block; border: 1px solid #d5e1e8; border-radius: 999px;
+  padding: 11px 17px; font-size: 14px; font-weight: 700; color: #4a5c69;
+  background: #fff; cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+.leak-chip input:checked + span { border-color: #079fb8; background: rgba(7,159,184,.1); color: #0a6b7c; }
+.leak-chip input:focus-visible + span { outline: 3px solid rgba(7,159,184,.25); outline-offset: 3px; }
+
+.leak-memo-fill { justify-self: start; font: inherit; font-size: 13px; font-weight: 750;
+  color: #0d7f93; background: rgba(7,159,184,.1); border: 0; border-radius: 999px;
+  padding: 10px 15px; min-height: 40px; cursor: pointer; }
+
+.leak-consent { display: flex; gap: 11px; align-items: flex-start; font-size: 14px;
+  color: #4a5c69; line-height: 1.6; }
+.leak-consent input { width: 22px; height: 22px; margin-top: 1px; flex: none; accent-color: #079fb8; }
+.leak-consent a { color: #0d7f93; text-decoration: underline; }
+
+.leak-submit-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.leak-submit-row .primary-button { flex: 1 1 240px; justify-content: center; }
+.leak-status { font-size: 14px; color: #4a5c69; margin: 0; min-height: 1.2em; }
+.leak-status.err { color: #c0392b; font-weight: 750; }
+
+.leak-done { max-width: 760px; margin: 0 auto; background: #fff; border: 1px solid #e2ebf0;
+  border-radius: 22px; padding: 34px 32px; box-shadow: 0 18px 44px rgba(19,44,63,.07); }
+.leak-done h3 { font-size: 22px; color: var(--navy); margin: 0 0 10px; }
+.leak-done p { color: #566876; line-height: 1.75; margin: 0 0 20px; }
+.leak-done-text { white-space: pre-wrap; word-break: break-word; font: inherit; font-size: 14px;
+  color: #45565f; background: #f4f8fa; border: 1px solid #e2ebf0; border-radius: 14px;
+  padding: 17px 18px; margin: 0 0 20px; line-height: 1.7; }
+.leak-done-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.leak-done-actions button { font: inherit; cursor: pointer; }
+
+@media (max-width: 640px) {
+  .leak-form, .leak-done { padding: 26px 20px; border-radius: 18px; }
+  .leak-row { grid-template-columns: 1fr; gap: 22px; }
+  .leak-submit-row .primary-button, .leak-submit-row .outline-case-button { width: 100%; justify-content: center; }
+  .leak-done-actions > * { width: 100%; justify-content: center; text-align: center; }
+}

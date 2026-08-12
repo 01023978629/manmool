@@ -17,6 +17,7 @@ function check(cond, bad, good) { if (cond) ok.push(good); else fail.push(bad); 
 const index = read('index.html');
 const css = read('css/styles.css');
 const inquiry = read('js/inquiry.js');
+const transport = read('js/lead-transport.js');
 const main = read('js/main.js');
 const blogJs = read('js/blog.js');
 const office = read('office.html');
@@ -143,9 +144,15 @@ check(/const WORKS = \[[^\]]*'누수탐지·누수수리'/.test(inquiry) && /fd\
   check(/type:\s*fd\.get\('type'\)/.test(inquiry) && /const payload = \{[\s\S]{0,300}?\.\.\.data/.test(inquiry),
     '선택한 누수 유형이 상담 payload 에 보존되지 않는다',
     '누수 유형이 상담 payload 에 보존');
-  check(/JSON\.stringify\(payload\)/.test(inquiry) && /payload\.type/.test(inquiry),
+  // 전송 본문 조립은 누수 폼과 공용인 js/lead-transport.js 가 맡는다.
+  // 폼이 type 을 담고(inquiry), 전송·문자 본문이 그걸 싣는지(transport) 둘 다 본다.
+  check(/JSON\.stringify\(payload\)/.test(transport) && /payload\.type/.test(transport) && /\bd\.type\b/.test(transport),
     '누수 유형이 자동 접수 본문 또는 대체 안내에 전달되지 않는다',
     '누수 유형이 자동 접수·대체 안내 경로에 전달');
+  // 누수 페이지 전용 폼도 같은 유형으로 접수돼야 대표 화면에서 섞이지 않는다.
+  check(/type:\s*'누수'/.test(read('js/leak-inquiry.js')),
+    '누수 페이지 전용 폼이 유형을 누수로 접수하지 않는다',
+    '누수 전용 폼이 누수 유형으로 접수');
   check(/escapeHtml\(d\.type \|\| ''\)/.test(admin),
     '관리자 문의 카드가 누수 유형을 표시하지 않는다',
     '관리자 문의 카드에 누수 유형 표시');
@@ -160,19 +167,24 @@ check(/const WORKS = \[[^\]]*'누수탐지·누수수리'/.test(inquiry) && /fd\
 {
   const admin = read('js/admin.js');
   const promise = index.match(/보유기간\s*(\d+)\s*년/);
+  const leakPromise = read('leak.html').match(/보유기간\s*(\d+)\s*년/);
   const days = (src, f) => { const m = src.match(/RETENTION_DAYS\s*=\s*(\d+)/); return m ? +m[1] : null; };
-  const dInq = days(inquiry), dAdm = days(admin);
+  // 상수의 정본은 공용 전송 모듈이다(두 폼이 같은 값을 쓰게 하려고 옮겼다).
+  const dInq = days(transport), dAdm = days(admin);
   const wantDays = promise ? +promise[1] * 365 : null;
   check(promise, '상담 폼 동의 문구에서 보유기간을 찾지 못했다 — 손님이 무엇에 동의하는지 알 수 없다',
     `동의 문구에 보유기간 ${promise ? promise[1] + '년' : '?'} 명시`);
-  check(dInq != null && dAdm != null, 'RETENTION_DAYS 가 js/inquiry.js 또는 js/admin.js 에 없다 — 보관기간이 코드에 없다',
+  check(dInq != null && dAdm != null, 'RETENTION_DAYS 가 js/lead-transport.js 또는 js/admin.js 에 없다 — 보관기간이 코드에 없다',
     '보유기간이 코드에 상수로 있다');
   check(dInq === dAdm, `보유기간이 파일마다 다르다 — inquiry ${dInq}일 vs admin ${dAdm}일`,
     '문의 저장·관리 화면의 보유기간이 같다');
+  check(leakPromise && promise && leakPromise[1] === promise[1],
+    `두 상담 폼의 보유기간 안내가 다르다 — 인테리어 ${promise ? promise[1] : '?'}년 vs 누수 ${leakPromise ? leakPromise[1] : '없음'}년`,
+    '인테리어·누수 폼의 보유기간 안내가 같다');
   check(wantDays == null || dInq === wantDays,
     `코드 보유기간(${dInq}일)이 손님에게 약속한 기간(${wantDays}일)과 다르다 — 안내와 다른 시점에 지워진다`,
     `보유기간이 약속(${wantDays}일)과 일치`);
-  check(/function pruneExpired/.test(inquiry) && /pruneExpired\(list\)/.test(inquiry.split('function loadLocal')[1] || ''),
+  check(/function pruneExpired/.test(transport) && /pruneExpired\(list\)/.test(inquiry.split('function loadLocal')[1] || ''),
     '만료 문의 정리가 읽는 경로에서 안 돈다 — 전송이 잘 되는 동안 만료 항목이 영원히 남는다',
     '만료 문의가 읽을 때마다 실제로 삭제됨');
   // 동의 체크박스 옆에서 처리방침을 읽을 수 있어야 '무엇에 동의하는지'가 성립한다.
