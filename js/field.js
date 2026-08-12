@@ -12,7 +12,9 @@
   let DATA = null;
   const photos = [];
 
-  async function load() { try { const r = await fetch('data/project.json', { cache: 'no-cache' }); if (r.ok) return await r.json(); } catch (e) {} return null; }
+  // 준공 처리 같은 변경분은 js/project-state.js 가 원본 위에 덮어씌운다.
+  const PSTATE = window.ManmulProjectState;
+  async function load() { return PSTATE ? PSTATE.load('data/project.json') : null; }
   const stCls = (s) => 'st st-' + s;
   const chips = (arr, sel) => arr.map((v, i) => `<button type="button" class="opt-chip ${i === 0 && sel ? 'active' : ''}" data-v="${v}">${v}</button>`).join('');
 
@@ -58,7 +60,7 @@
     $('phSave').addEventListener('click', () => {
       photos.unshift({ space: selected($('phSpace')), phase: selected($('phPhase')), date: '오늘', caption: files ? files + '장 촬영' : '현장 촬영', color: '#d8c3a5' });
       $('phStatus').textContent = '사진 보고가 등록되었습니다. AI가 일일보고 문장으로 정리합니다. ✓';
-      $('phStatus').className = 'app-status ok'; files = 0; $('phFile').value = ''; renderPhotos();
+      $('phStatus').className = 'app-status ok'; files = 0; $('phFile').value = ''; renderPhotos(); renderDone();
     });
   }
 
@@ -119,15 +121,88 @@
       : '<p class="form-note">등록된 고객 요청이 없습니다.</p>';
   }
 
+  const CHECK_ITEMS = ['금일 작업 사진 등록', '자재 입고/파손 확인', '문제사항 보고', '고객 요청 반영', '현장 정리·청소'];
+  const checkState = CHECK_ITEMS.map(() => false);
+
   function checklist() {
-    const items = ['금일 작업 사진 등록', '자재 입고/파손 확인', '문제사항 보고', '고객 요청 반영', '현장 정리·청소'];
-    const state = items.map(() => false);
     const render = () => {
-      $('checklist').innerHTML = items.map((it, i) => `
-        <label class="check-item ${state[i] ? 'done' : ''}"><input type="checkbox" data-i="${i}" ${state[i] ? 'checked' : ''} /><span>${it}</span></label>`).join('');
-      $('checklist').querySelectorAll('input').forEach((el) => el.addEventListener('change', () => { state[el.dataset.i] = el.checked; render(); }));
+      $('checklist').innerHTML = CHECK_ITEMS.map((it, i) => `
+        <label class="check-item ${checkState[i] ? 'done' : ''}"><input type="checkbox" data-i="${i}" ${checkState[i] ? 'checked' : ''} /><span>${it}</span></label>`).join('');
+      $('checklist').querySelectorAll('input').forEach((el) => el.addEventListener('change', () => {
+        checkState[el.dataset.i] = el.checked; render(); renderDone();
+      }));
     };
     render();
+  }
+
+  /* ---------- 준공 처리 ----------
+     체크리스트를 다 채우고 사진이 한 장이라도 있어야 누를 수 있다.
+     화면에 "체크리스트와 사진이 모두 있어야 완료 처리됩니다"라고 적어 놓고
+     아무 때나 눌리면, 그 문장이 거짓말이 된다. */
+  function doneGateReasons() {
+    const left = CHECK_ITEMS.filter((_, i) => !checkState[i]);
+    const reasons = [];
+    if (left.length) reasons.push(`작업 완료 체크가 남았습니다 — ${left.join(', ')}`);
+    if (!photos.length) reasons.push('오늘 작업 사진이 한 장도 등록되지 않았습니다.');
+    return reasons;
+  }
+
+  function renderDone() {
+    if (!$('donePanel') || !DATA) return;
+    const doneAt = PSTATE.completedAt();
+    const badge = $('doneBadge');
+    badge.textContent = doneAt ? `준공 ${doneAt}` : '시공 중';
+    badge.className = 'done-badge' + (doneAt ? ' is-done' : '');
+
+    // 보증 기간은 준공일에서 세므로, 준공 전에는 '준공일 기준' 이라고만 적는다.
+    const w = DATA.warranty || {};
+    $('doneWarranty').innerHTML = (w.items || []).map((it) => {
+      const end = doneAt ? PSTATE.expiry(doneAt, it.years) : '';
+      return `<div class="dw-item"><b>${it.work}</b><span>${it.years}년</span>` +
+        `<small>${end ? end + ' 까지' : '준공일 기준'}</small></div>`;
+    }).join('');
+
+    const reasons = doneGateReasons();
+    $('doneGate').innerHTML = doneAt
+      ? `<p class="done-ok">✓ ${doneAt} 준공 처리됨 · 하자보증서 발급 · A/S 접수 열림</p>`
+      : (reasons.length
+        ? '<ul class="done-block">' + reasons.map((r) => `<li>${r}</li>`).join('') + '</ul>'
+        : '<p class="done-ok">✓ 준공 처리할 수 있습니다.</p>');
+
+    $('doneBtn').disabled = !!doneAt || reasons.length > 0;
+    $('doneBtn').hidden = !!doneAt;
+    $('reopenBtn').hidden = !doneAt;
+    $('doneDate').disabled = !!doneAt;
+  }
+
+  function doneActions() {
+    if (!$('donePanel')) return;
+    const today = new Date().toISOString().slice(0, 10);
+    $('doneDate').value = PSTATE.completedAt() || today;
+    $('doneDate').max = today;   // 아직 오지 않은 날짜로 보증을 시작시키지 않는다
+
+    $('doneBtn').addEventListener('click', async () => {
+      const day = $('doneDate').value || today;
+      if (day > today) { $('doneStatus').textContent = '준공일은 오늘보다 뒤일 수 없습니다.'; $('doneStatus').className = 'app-status err'; return; }
+      if (!window.confirm(`${day} 로 준공 처리합니다.\n하자보증이 이 날짜부터 시작됩니다. 계속할까요?`)) return;
+      PSTATE.complete(day);
+      DATA = await load();
+      $('projPill').textContent = `${DATA.project.complex} ${DATA.project.area}평 · ${DATA.project.status}`;
+      renderDone();
+      $('doneStatus').className = 'app-status ok';
+      $('doneStatus').textContent = `${day} 준공으로 바꿨습니다. 고객 마이페이지에서도 준공으로 보입니다(이 브라우저 기준).`;
+    });
+
+    $('reopenBtn').addEventListener('click', async () => {
+      if (!window.confirm('준공을 취소하고 시공 중으로 되돌립니다. 보증서 발급도 취소됩니다. 계속할까요?')) return;
+      PSTATE.reopen();
+      DATA = await load();
+      $('projPill').textContent = `${DATA.project.complex} ${DATA.project.area}평 · ${DATA.project.status}`;
+      $('doneDate').value = new Date().toISOString().slice(0, 10);
+      renderDone();
+      $('doneStatus').className = 'app-status';
+      $('doneStatus').textContent = '시공 중으로 되돌렸습니다.';
+    });
   }
 
   async function init() {
@@ -142,6 +217,8 @@
     access(DATA.fieldExtras.access);
     custReq(DATA.fieldExtras.issues);
     checklist();
+    doneActions();
+    renderDone();
   }
 
   document.addEventListener('DOMContentLoaded', init);
