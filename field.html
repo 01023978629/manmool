@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%233f5a52'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="css/styles.css?v=20260719-fixes" />
-  <link rel="stylesheet" href="css/app.css?v=20260719-fixes" />
+  <link rel="stylesheet" href="css/app.css?v=20260812-done" />
 </head>
 <body class="app-body">
   <header class="app-header">
@@ -74,10 +74,24 @@
       <section class="panel"><h2>출입 기록</h2><div class="row-list" id="access"></div></section>
       <section class="panel"><h2>고객 요청사항</h2><div class="row-list" id="custReq"></div></section>
       <section class="panel span-2"><h2>작업 완료 체크</h2><p class="form-note" style="margin-bottom:10px">체크리스트와 사진이 모두 있어야 완료 처리됩니다.</p><div class="check-list" id="checklist"></div></section>
+      <section class="panel span-2 done-panel" id="donePanel">
+        <h2>준공 처리 <span class="done-badge" id="doneBadge">시공 중</span></h2>
+        <p class="form-note">준공으로 바꾸면 <b>진행률이 100%</b>가 되고, 그날을 시작일로 <b>하자보증서가 발급</b>됩니다. 고객 마이페이지에도 준공으로 보이고 A/S 접수가 열립니다.</p>
+        <div class="done-warranty" id="doneWarranty"></div>
+        <div class="done-gate" id="doneGate"></div>
+        <div class="actions-row done-actions">
+          <label class="done-date"><span>준공일</span><input type="date" id="doneDate" /></label>
+          <button type="button" class="btn btn-primary" id="doneBtn" disabled>준공 처리</button>
+          <button type="button" class="btn btn-ghost" id="reopenBtn" hidden>준공 취소</button>
+        </div>
+        <p class="app-status" id="doneStatus" role="status" aria-live="polite"></p>
+        <p class="form-note done-scope-note">이 처리는 <b>이 브라우저에만</b> 기록됩니다. 서버가 없어 고객 휴대폰에는 반영되지 않습니다. 실제 준공 통보는 현장 운영 앱에서 하세요.</p>
+      </section>
     </div>
   </main>
 
-  <script src="js/field.js?v=20260719-fixes"></script>
+  <script src="js/project-state.js?v=20260812-done"></script>
+  <script src="js/field.js?v=20260812-done"></script>
   <script src="js/hj-link.js?v=20260719-fixes"></script>
 </body>
 </html>

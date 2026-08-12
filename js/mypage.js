@@ -10,7 +10,10 @@
   const ROOM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg>';
   let DATA = null, PID = null;
 
+  // 현장관리에서 준공 처리한 내용을 같은 덮어쓰기로 받는다(js/project-state.js).
+  const PSTATE = window.ManmulProjectState;
   async function load() {
+    try { if (PSTATE) { const d = await PSTATE.load('data/project.json'); if (d) return d; } } catch (e) {}
     try { const r = await fetch('data/project.json', { cache: 'no-cache' }); if (r.ok) return await r.json(); } catch (e) {}
     return null;
   }
@@ -321,13 +324,19 @@
         <span class="auto-badge">${w.issued ? '보증서 발급 완료' : '준공 시 자동 발급 예정'}</span>
         <span class="warr-basis">${w.basis}</span>
       </div>
-      <p class="form-note" style="margin:8px 0 14px">${w.startNote}</p>
+      <p class="form-note" style="margin:8px 0 14px">${w.issued && w.startDate
+        ? `보증 시작일 ${w.startDate} (준공일 기준). 공종별 만료일은 아래와 같습니다.`
+        : w.startNote}</p>
       <div class="warr-grid">
-        ${w.items.map((it) => `
+        ${w.items.map((it) => {
+          const end = w.issued && w.startDate && PSTATE ? PSTATE.expiry(w.startDate, it.years) : '';
+          return `
           <div class="warr-item">
             <div class="wi-top"><b>${it.work}</b><span class="wi-year">${it.years}년</span></div>
             <p>${it.scope}</p>
-          </div>`).join('')}
+            ${end ? `<p class="wi-end">${end} 까지</p>` : ''}
+          </div>`;
+        }).join('')}
       </div>
       <div class="actions-row" style="margin-top:16px">
         <span class="approve-guide">준공 검수 완료 시 보증 시작일이 확정되고, 보증서가 이 페이지에 영구 보관됩니다</span>
