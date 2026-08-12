@@ -81,3 +81,31 @@
   .case-form, .case-panel { padding: 22px 18px; border-radius: 16px; }
   .case-toolbar > * { width: 100%; justify-content: center; text-align: center; }
 }
+
+/* 저장한 현장 목록 — 여러 건 쌓아 두었다가 한 번에 넘긴다 */
+.case-queue-panel { max-width: 1180px; margin: 26px auto 0; }
+.case-queue-head { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: flex-start; }
+.case-queue-head h2 { margin-bottom: 6px; }
+.case-queue-head p { font-size: 14px; color: #7d8b96; margin: 0; line-height: 1.6; }
+.case-queue-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.case-queue-actions > * { min-height: 44px; }
+.case-queue-list { display: grid; gap: 12px; margin-top: 18px; }
+
+.case-queue-item { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 16px;
+  align-items: center; border: 1px solid #e2ebf0; border-radius: 14px; padding: 15px 17px; background: #fbfdfe; }
+.case-queue-item.is-done { opacity: .55; background: #f2f5f7; }
+.cq-main { display: grid; gap: 4px; min-width: 0; }
+.cq-main b { font-size: 15px; }
+.cq-meta { font-size: 12px; color: #8c9aa5; font-weight: 700; }
+.cq-sym { font-size: 13px; color: #6a7987; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cq-thumbs { display: flex; gap: 5px; }
+.cq-thumbs img { width: 46px; height: 46px; object-fit: cover; border-radius: 8px; display: block; background: #e8eef2; }
+.cq-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+.cq-btn { font: inherit; font-size: 13px; font-weight: 750; color: #45606f; background: #fff;
+  border: 1px solid #dbe6ec; border-radius: 999px; padding: 0 14px; min-height: 40px; cursor: pointer; }
+.cq-btn.cq-del { color: #b23b2c; border-color: #eccec8; }
+
+@media (max-width: 760px) {
+  .case-queue-item { grid-template-columns: 1fr; }
+  .cq-actions > * { flex: 1 1 auto; }
+}

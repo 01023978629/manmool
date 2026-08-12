@@ -5,14 +5,16 @@
      · 현장 6항목을 받아 실제 글이 어떻게 나올지 미리 보여준다
      · 동·호수·연락처·고객명이 섞이면 등록을 막는다(규칙은 js/pii-rules.js 공용)
      · 사진의 촬영 위치정보(EXIF)를 이 브라우저에서 지운 사본을 만든다
+     · 여러 현장을 저장해 두었다가 한 번에 꺼낼 수 있게 보관한다(js/case-store.js)
    하지 않는 일:
      · 사이트를 바꾸지 않는다. 어디로도 전송하지 않는다.
        (정적 사이트라 서버가 없다 — 있는 척하면 사장님이 올라간 줄 안다)
    ============================================================ */
 (function () {
   const RULES = window.MANMUL_PII_RULES;
+  const STORE = window.ManmulCaseStore;
   const form = document.getElementById('caseForm');
-  if (!RULES || !form) return;
+  if (!RULES || !STORE || !form) return;
 
   const $ = (id) => document.getElementById(id);
   const DRAFT_KEY = 'manmul_case_draft';
@@ -242,15 +244,152 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   }
 
-  $('cfDownload').addEventListener('click', () => {
+  /* ---------- 저장한 현장 목록 ---------- */
+  const QSTATUS = $('cfQueueStatus');
+  let queue = [];
+  const shortId = (id) => String(id).slice(-4);
+
+  function qsay(text, kind) {
+    QSTATUS.className = 'case-status' + (kind ? ' ' + kind : '');
+    QSTATUS.textContent = text;
+  }
+
+  function photoNames(rec) {
+    // 여러 현장을 한 번에 내려받으면 파일명이 겹친다. 현장별 꼬리표를 붙여 구분한다.
+    return rec.photos.map((p, i) =>
+      `case-${String(rec.savedAt).slice(0, 10).replaceAll('-', '')}-${shortId(rec.id)}-${String(i + 1).padStart(2, '0')}.jpg`);
+  }
+
+  function recMaterial(rec, index, total) {
+    const names = photoNames(rec);
+    return [
+      `[현장 ${index + 1} / 총 ${total}건 · 저장 ${String(rec.savedAt).slice(0, 10)}]`,
+      materialText(rec.fields),
+      names.length ? `사진 ${names.length}장: ${names.join(', ')}` : '사진 없음',
+    ].join('\n');
+  }
+
+  async function loadQueue() {
+    try { queue = await STORE.all(); }
+    catch (e) { queue = []; qsay('보관소를 열지 못했습니다. 브라우저의 사생활 보호 모드에서는 저장이 안 됩니다.', 'err'); }
+    renderQueue();
+  }
+
+  function renderQueue() {
+    const pending = queue.filter((r) => r.status !== 'done');
+    $('cfQueueCount').textContent = `${pending.length}건`;
+    $('cfQueueCount').className = 'case-badge' + (pending.length ? ' ok' : '');
+    if (!queue.length) {
+      $('cfQueueList').innerHTML = '<p class="case-empty">저장한 현장이 없습니다. 위에서 적고 <b>이 현장 저장</b>을 누르세요.</p>';
+      return;
+    }
+    $('cfQueueList').innerHTML = queue.map((rec) => {
+      const done = rec.status === 'done';
+      const thumbs = rec.photos.slice(0, 4).map((p) =>
+        `<img src="${URL.createObjectURL(p.blob)}" alt="" loading="lazy" />`).join('');
+      return `<article class="case-queue-item${done ? ' is-done' : ''}">
+        <div class="cq-main">
+          <b>${esc(rec.fields.place || '(동네·단지 없음)')}</b>
+          <span class="cq-meta">${esc(String(rec.savedAt).slice(0, 10))} · 사진 ${rec.photos.length}장${done ? ' · 올림' : ''}</span>
+          <span class="cq-sym">${esc(rec.fields.symptom || '')}</span>
+        </div>
+        ${thumbs ? `<div class="cq-thumbs">${thumbs}</div>` : ''}
+        <div class="cq-actions">
+          <button type="button" class="cq-btn" data-act="load" data-id="${esc(rec.id)}">불러오기</button>
+          <button type="button" class="cq-btn" data-act="toggle" data-id="${esc(rec.id)}">${done ? '되돌리기' : '올림 표시'}</button>
+          <button type="button" class="cq-btn cq-del" data-act="del" data-id="${esc(rec.id)}">삭제</button>
+        </div>
+      </article>`;
+    }).join('');
+  }
+
+  $('cfSave').addEventListener('click', async () => {
     const g = refresh();
     if (blocked(g)) return;
-    download(new Blob([materialText(g.v)], { type: 'text/plain;charset=utf-8' }), 'case-material.txt');
-    // 사진은 한 장씩 내려받는다. 압축 라이브러리를 쓰려면 외부 스크립트를 불러야 하는데,
-    // 이 화면은 인터넷 없이도 돌아가야 해서 그러지 않는다.
-    photos.forEach((p, i) => setTimeout(() => download(p.blob, p.name), 250 * (i + 1)));
+    const rec = {
+      id: 'case-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6),
+      savedAt: new Date().toISOString(),
+      status: 'pending',
+      fields: g.v,
+      photos: photos.map((p) => ({ blob: p.blob, hadExif: p.hadExif })),
+    };
+    try {
+      await STORE.put(rec);
+    } catch (e) {
+      // 공간이 찼을 때 '저장됐다'고 하면 사장님은 지우고 다음 현장을 적는다 — 그러면 사라진다.
+      qsay('저장하지 못했습니다: ' + ((e && e.message) || e) + ' · 먼저 올린 현장을 지우고 다시 시도해 주세요.', 'err');
+      return;
+    }
+    // 저장이 끝난 뒤에만 입력을 비운다
+    for (const [, id] of FIELDS) $(id).value = '';
+    photos.forEach((p) => URL.revokeObjectURL(p.url));
+    photos = [];
+    try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+    renderPhotos(); refresh();
+    await loadQueue();
     status.className = 'case-status ok';
-    status.textContent = `재료 1개와 사진 ${photos.length}장을 내려받았습니다. 그대로 전달해 주세요.`;
+    status.textContent = `저장했습니다. 아래 목록에 쌓입니다. 다음 현장을 이어서 적으셔도 됩니다.`;
+  });
+
+  $('cfQueueList').addEventListener('click', async (e) => {
+    const btn = e.target.closest('.cq-btn');
+    if (!btn) return;
+    const rec = queue.find((r) => r.id === btn.dataset.id);
+    if (!rec) return;
+    if (btn.dataset.act === 'load') {
+      for (const [key, id] of FIELDS) $(id).value = rec.fields[key] || '';
+      photos.forEach((p) => URL.revokeObjectURL(p.url));
+      photos = rec.photos.map((p, i) => ({
+        name: photoNames(rec)[i], blob: p.blob, url: URL.createObjectURL(p.blob),
+        hadExif: p.hadExif, bytes: p.blob.size,
+      }));
+      renderPhotos(); refresh();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      qsay('불러왔습니다. 고친 뒤 다시 저장하면 새 건으로 쌓이니, 원래 건은 삭제해 주세요.');
+      return;
+    }
+    if (btn.dataset.act === 'toggle') {
+      rec.status = rec.status === 'done' ? 'pending' : 'done';
+      await STORE.put(rec); await loadQueue();
+      return;
+    }
+    if (btn.dataset.act === 'del') {
+      if (!window.confirm(`"${rec.fields.place || '이 현장'}" 을(를) 삭제합니다. 되돌릴 수 없습니다.`)) return;
+      await STORE.remove(rec.id); await loadQueue();
+      qsay('삭제했습니다.');
+    }
+  });
+
+  $('cfQueueCopy').addEventListener('click', async () => {
+    const pending = queue.filter((r) => r.status !== 'done');
+    if (!pending.length) { qsay('넘길 현장이 없습니다.', 'err'); return; }
+    const text = pending.map((r, i) => recMaterial(r, i, pending.length)).join('\n\n────────\n\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      qsay(`✓ ${pending.length}건을 복사했습니다. 대화창에 붙여넣고 사진도 함께 올려 주세요.`, 'ok');
+    } catch (err) { qsay('복사하지 못했습니다. 전부 내려받기를 쓰세요.', 'err'); }
+  });
+
+  $('cfQueueDownload').addEventListener('click', () => {
+    const pending = queue.filter((r) => r.status !== 'done');
+    if (!pending.length) { qsay('넘길 현장이 없습니다.', 'err'); return; }
+    const text = pending.map((r, i) => recMaterial(r, i, pending.length)).join('\n\n────────\n\n');
+    download(new Blob([text], { type: 'text/plain;charset=utf-8' }), 'cases-material.txt');
+    let n = 0;
+    for (const rec of pending) {
+      const names = photoNames(rec);
+      rec.photos.forEach((p, i) => { n++; setTimeout(() => download(p.blob, names[i]), 250 * n); });
+    }
+    qsay(`${pending.length}건과 사진 ${n}장을 내려받습니다.`, 'ok');
+  });
+
+  $('cfQueueClearDone').addEventListener('click', async () => {
+    const done = queue.filter((r) => r.status === 'done').length;
+    if (!done) { qsay('올림 표시한 현장이 없습니다.', 'err'); return; }
+    if (!window.confirm(`올림 표시한 ${done}건을 지웁니다. 되돌릴 수 없습니다.`)) return;
+    const gone = await STORE.removeDone();
+    await loadQueue();
+    qsay(`${gone}건을 지웠습니다.`, 'ok');
   });
 
   $('cfImport').addEventListener('click', async () => {
@@ -279,4 +418,5 @@
   loadDraft();
   renderPhotos();
   refresh();
+  loadQueue();
 })();
