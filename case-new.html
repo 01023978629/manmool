@@ -25,7 +25,7 @@
       동·호수·연락처·고객명이 들어가면 등록을 막습니다.</p>
     <div class="case-notice" role="note">
       <b>이 화면은 사이트를 바꾸지 않습니다.</b>
-      <span>정리한 재료와 사진을 내려받아 전달하면 글·블로그 목록·RSS까지 만들어 올립니다.
+      <span>여러 현장을 저장해 두었다가, 한 번에 넘기시면 글·블로그 목록·RSS까지 만들어 올립니다.
         입력 중인 내용은 이 브라우저에만 남고 어디로도 전송되지 않습니다.</span>
     </div>
   </div>
@@ -66,8 +66,8 @@
       </div>
 
       <div class="case-toolbar">
-        <button type="button" class="primary-button" id="cfCopy">재료 복사</button>
-        <button type="button" class="outline-case-button" id="cfDownload">재료·사진 내려받기</button>
+        <button type="button" class="primary-button" id="cfSave">이 현장 저장</button>
+        <button type="button" class="outline-case-button" id="cfCopy">재료만 복사</button>
         <button type="button" class="outline-case-button" id="cfImport">현장앱 재료 붙여넣기</button>
         <button type="button" class="outline-case-button danger-soft" id="cfClear">입력 지우기</button>
       </div>
@@ -85,9 +85,26 @@
       </section>
     </aside>
   </div>
+
+  <section class="case-panel case-queue-panel" id="cfQueuePanel">
+    <div class="case-queue-head">
+      <div>
+        <h2>저장한 현장 <span class="case-badge" id="cfQueueCount">0건</span></h2>
+        <p>이 브라우저에 사진까지 함께 보관됩니다. 여러 건 쌓아 두었다가 한 번에 넘기시면 됩니다.</p>
+      </div>
+      <div class="case-queue-actions">
+        <button type="button" class="primary-button" id="cfQueueCopy">밀린 것 전부 복사</button>
+        <button type="button" class="outline-case-button" id="cfQueueDownload">전부 내려받기</button>
+        <button type="button" class="outline-case-button danger-soft" id="cfQueueClearDone">올린 것 지우기</button>
+      </div>
+    </div>
+    <p class="case-status" id="cfQueueStatus" role="status" aria-live="polite"></p>
+    <div class="case-queue-list" id="cfQueueList"></div>
+  </section>
 </main>
 
-<script src="js/pii-rules.js?v=20260812-casenew"></script>
-<script src="js/case-new.js?v=20260812-casenew"></script>
+<script src="js/pii-rules.js?v=20260812-queue"></script>
+<script src="js/case-store.js?v=20260812-queue"></script>
+<script src="js/case-new.js?v=20260812-queue"></script>
 </body>
 </html>

@@ -17,6 +17,7 @@ const read = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
 
 const html = read('case-new.html');
 const js = read('js/case-new.js');
+const store = read('js/case-store.js');
 const rules = read('js/pii-rules.js');
 const maker = read('scripts/new-case-post.mjs');
 const admin = read('admin.html');
@@ -68,9 +69,62 @@ if (!/<meta name="robots" content="noindex,nofollow"/.test(html)) fail.push('cas
 if (!/^Disallow: \/case-new\.html$/m.test(robots)) fail.push('robots.txt 가 /case-new.html 을 막지 않는다.');
 if (!/href="case-new\.html"/.test(admin)) fail.push('admin.html 에서 사례 등록 화면으로 가는 길이 없다.');
 
-/* ⑥ 이 화면은 아무것도 전송하지 않는다 */
-for (const banned of ['fetch(', 'XMLHttpRequest', 'sendBeacon', 'WebSocket']) {
-  if (js.includes(banned)) fail.push(`js/case-new.js 가 ${banned} 를 쓴다 — 이 화면은 어디로도 전송하지 않아야 한다.`);
+/* ⑥ 이 화면은 아무것도 전송하지 않는다 (보관소도 마찬가지) */
+for (const [file, src] of [['js/case-new.js', js], ['js/case-store.js', store]]) {
+  for (const banned of ['fetch(', 'XMLHttpRequest', 'sendBeacon', 'WebSocket']) {
+    if (src.includes(banned)) fail.push(`${file} 이 ${banned} 를 쓴다 — 이 화면은 어디로도 전송하지 않아야 한다.`);
+  }
+}
+
+/* ⑧ 저장한 현장이 사라지지 않는다 --------------------------------------
+   사진까지 담아야 하므로 localStorage 로는 안 된다(문자열만 담기고 한도가 작다).
+   그리고 저장이 실패했는데 입력을 비우면 사장님이 적어둔 현장이 그냥 없어진다. */
+if (!/indexedDB\.open/.test(store)) {
+  fail.push('js/case-store.js 가 IndexedDB 를 쓰지 않는다 — 사진을 담으면 저장이 통째로 실패한다.');
+}
+if (!/window\.ManmulCaseStore\b(?![A-Za-z0-9_$])/.test(store) ||
+    !/\bwindow\.ManmulCaseStore\b(?![A-Za-z0-9_$])/.test(js)) {
+  fail.push('사례 등록 화면과 보관소가 연결돼 있지 않다(window.ManmulCaseStore).');
+}
+{
+  // 저장이 실패했는데 입력을 비우면 사장님이 적어둔 현장이 그냥 사라진다.
+  // 그래서 두 가지를 본다 — 실패를 받는 catch 안에 return 이 있는지,
+  // 그리고 입력 비우기가 그 catch 블록 '뒤'에 오는지.
+  //
+  // 처음엔 handler 안의 첫 return 위치만 봤다가 변이 검증에서 두 건을 놓쳤다:
+  // 맨 앞의 `if (blocked(g)) return;` 이 먼저 걸려서, catch 안의 return 을
+  // 통째로 지워도 통과했다.
+  const save = /\$\('cfSave'\)\.addEventListener\(([\s\S]*?)\n  \}\);/.exec(js);
+  if (!save) fail.push("js/case-new.js 에서 저장 버튼 처리를 찾지 못했다.");
+  else {
+    const body = save[1];
+    const catchAt = body.indexOf('catch (');
+    if (catchAt < 0) fail.push('저장에 실패를 받는 곳(catch)이 없다 — 공간이 차면 적어둔 현장이 조용히 사라진다.');
+    else {
+      // catch 블록의 끝을 중괄호 균형으로 찾는다(정규식만으로는 중첩 때문에 부정확).
+      let i = body.indexOf('{', catchAt), depth = 0, end = -1;
+      for (; i < body.length; i++) {
+        if (body[i] === '{') depth++;
+        else if (body[i] === '}') { depth--; if (!depth) { end = i; break; } }
+      }
+      const inCatch = end > 0 ? body.slice(catchAt, end) : '';
+      if (!/\breturn;/.test(inCatch)) {
+        fail.push('저장 실패(catch) 안에서 되돌아가지 않는다 — 실패해도 저장된 것처럼 진행된다.');
+      }
+      const clear = body.indexOf("$(id).value = ''");
+      if (clear >= 0 && end > 0 && clear < end) {
+        fail.push('입력 비우기가 저장 실패 처리보다 앞에 있다 — 저장이 안 됐는데 적은 내용이 지워진다.');
+      }
+    }
+  }
+}
+const orderStore = html.indexOf('js/case-store.js');
+if (orderStore < 0) fail.push('case-new.html 이 js/case-store.js 를 읽지 않는다.');
+else if (orderStore > b) fail.push('case-new.html 에서 case-store.js 가 case-new.js 보다 뒤에 있다 — 목록이 뜨지 않는다.');
+
+/* ⑨ 여러 현장을 한 번에 내려받아도 사진 이름이 겹치지 않는다 */
+if (!/photoNames/.test(js) || !/shortId\(rec\.id\)/.test(js)) {
+  fail.push('현장별 사진 이름에 구분 꼬리표가 없다 — 여러 건을 내려받으면 파일이 서로 덮어쓴다.');
 }
 if (/<form[^>]+action=/.test(html)) fail.push('case-new.html 의 폼에 action 이 있다 — 눌리면 내용이 전송된다.');
 
