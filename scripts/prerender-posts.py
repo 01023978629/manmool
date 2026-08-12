@@ -11,13 +11,14 @@
 """
 import html
 import json
+from urllib.parse import quote
 import os
 from datetime import datetime, timezone, timedelta
 from email.utils import format_datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE = 'https://01023978629.github.io/manmool'
-V = '20260719-fixes'  # css 캐시버스터 — 루트 html들과 동일하게 유지
+V = '20260813-place'  # css 캐시버스터 — 루트 html들과 동일하게 유지
 
 
 def esc(s):
@@ -87,12 +88,32 @@ def article_html(a, insights):
         return out
 
     body = '\n'.join(section_html(s) for s in (a.get('body') or []))
+
+    # 현장 위치 — 단지 단위까지만 적는다. 동·호수는 고객 집을 특정하므로 넣지 않는다.
+    # 지도 링크는 대표가 넣은 값을 그대로 쓰고, 없으면 단지명으로 네이버 지도 검색을
+    # 걸어 준다(좌표를 지어내지 않는다).
+    place = a.get('place') or {}
+    place_html = ''
+    if place.get('name'):
+        map_url = place.get('mapUrl') or (
+            'https://map.naver.com/p/search/' + quote(place['name'] if place.get('address')
+                                                      else place['name']))
+        place_html = (
+            '<aside class="post-place">'
+            f'<div class="pp-body"><span class="pp-label">현장 위치</span>'
+            f'<b>{esc(place["name"])}</b>'
+            + (f'<span class="pp-addr">{esc(place["address"])}</span>' if place.get('address') else '')
+            + '<span class="pp-note">단지 위치까지만 표기합니다. 동·호수와 고객 정보는 공개하지 않습니다.</span>'
+            '</div>'
+            f'<a class="pp-map" href="{esc(map_url)}" target="_blank" rel="noopener">네이버 지도에서 보기</a>'
+            '</aside>')
+        body = place_html + body
     related = [x for x in insights if x['slug'] != a['slug']][:3]
     related_html = '\n'.join(f'''          <a class="insight-card" href="{esc(x['slug'])}.html">
             <span class="ic-cover" style="background:{shade_cover(x.get('cover'))}">{f'<img class="ic-image" src="../{esc(x["image"])}" alt="{esc(x.get("imageAlt") or x["title"])}" loading="lazy" decoding="async">' if x.get('image') else ''}<span class="ic-cat">{esc(x.get('category'))}</span></span>
             <span class="ic-body"><b>{esc(x['title'])}</b><span class="ic-meta">{esc(x.get('date'))} · {esc(x.get('readMin'))}분 읽기</span></span>
           </a>''' for x in related)
-    ld = json.dumps({
+    ld_obj = {
         '@context': 'https://schema.org',
         '@type': 'BlogPosting',
         'headline': a['title'],
@@ -103,7 +124,15 @@ def article_html(a, insights):
         'author': {'@type': 'Organization', 'name': '만물인테리어'},
         'publisher': {'@type': 'Organization', 'name': '만물인테리어'},
         'mainEntityOfPage': url,
-    }, ensure_ascii=False)
+    }
+    if place.get('name'):
+        # 좌표는 확인된 값이 있을 때만 넣는다. 지어낸 좌표는 엉뚱한 곳으로 안내한다.
+        loc = {'@type': 'Place', 'name': place['name']}
+        if place.get('address'):
+            loc['address'] = {'@type': 'PostalAddress', 'streetAddress': place['address'],
+                              'addressCountry': 'KR'}
+        ld_obj['contentLocation'] = loc
+    ld = json.dumps(ld_obj, ensure_ascii=False)
 
     return f'''<!DOCTYPE html>
 <html lang="ko">
