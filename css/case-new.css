@@ -1,0 +1,83 @@
+/* 사례 등록 화면 — 내부 업무용. leak-theme.css 의 색·헤더를 그대로 쓴다. */
+.case-new-body { background: #f4f8fa; color: var(--navy); }
+.case-head-actions { display: flex; gap: 8px; }
+.btn-ghost-sm { font-size: 13px; font-weight: 750; color: #45606f; border: 1px solid #dbe6ec;
+  border-radius: 999px; padding: 9px 15px; min-height: 40px; display: inline-flex; align-items: center; }
+
+.case-main { max-width: 1180px; margin: 0 auto; padding: 40px 24px 90px; }
+.case-intro { max-width: 760px; margin-bottom: 34px; }
+.case-intro h1 { font-size: clamp(30px, 5vw, 42px); margin: 8px 0 14px; }
+.case-intro p { color: #566876; line-height: 1.75; margin: 0 0 20px; }
+.case-notice { display: grid; gap: 6px; background: #fff7e8; border: 1px solid #f0dcb4;
+  border-radius: 16px; padding: 17px 19px; font-size: 14px; line-height: 1.7; color: #6b5320; }
+.case-notice b { color: #8a6410; }
+
+.case-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 26px; align-items: start; }
+.case-form, .case-panel { background: #fff; border: 1px solid #e2ebf0; border-radius: 20px;
+  padding: 28px 26px; box-shadow: 0 14px 36px rgba(19,44,63,.06); }
+.case-form { display: grid; gap: 22px; }
+.case-side { display: grid; gap: 22px; position: sticky; top: 90px; }
+
+.case-field { display: grid; gap: 8px; }
+.case-field > label { font-size: 15px; font-weight: 800; }
+.case-field > label small { font-weight: 650; color: #8c9aa5; font-size: 13px; margin-left: 6px; }
+.case-field .req { font-style: normal; font-size: 12px; font-weight: 800; color: #0d7f93;
+  background: rgba(7,159,184,.12); border-radius: 999px; padding: 3px 9px; margin-left: 7px; }
+.case-field input[type="text"], .case-field textarea {
+  width: 100%; font: inherit; font-size: 16px; color: var(--navy); background: #fff;
+  border: 1px solid #d5e1e8; border-radius: 12px; padding: 13px 14px; min-height: 50px; }
+.case-field textarea { resize: vertical; line-height: 1.65; }
+.case-field input:focus-visible, .case-field textarea:focus-visible, .case-field input[type=file]:focus-visible {
+  outline: 3px solid rgba(7,159,184,.25); outline-offset: 2px; border-color: #079fb8; }
+.case-field input[type="file"] { font: inherit; font-size: 14px; padding: 12px; border: 1px dashed #c2d5df;
+  border-radius: 12px; background: #f8fbfc; min-height: 50px; }
+.case-hint { font-size: 13px; color: #7d8b96; line-height: 1.6; }
+
+.case-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 13px; }
+.case-photo { margin: 0; border: 1px solid #e2ebf0; border-radius: 13px; overflow: hidden; background: #f8fbfc; }
+.case-photo img { display: block; width: 100%; height: 112px; object-fit: cover; }
+.case-photo figcaption { display: grid; gap: 3px; padding: 10px 11px 11px; position: relative; }
+.case-photo figcaption b { font-size: 12px; font-weight: 800; word-break: break-all; }
+.case-photo figcaption span { font-size: 11px; color: #7d8b96; }
+.case-photo-del { position: absolute; top: -84px; right: 7px; width: 32px; height: 32px; border: 0;
+  border-radius: 50%; background: rgba(14,32,45,.62); color: #fff; font-size: 15px; cursor: pointer; line-height: 1; }
+
+.case-toolbar { display: flex; flex-wrap: wrap; gap: 11px; }
+.case-toolbar .primary-button, .case-toolbar .outline-case-button { min-height: 46px; }
+.danger-soft { color: #b23b2c; border-color: #eccec8; }
+.case-status { font-size: 14px; margin: 0; min-height: 1.3em; color: #566876; line-height: 1.6; }
+.case-status.err { color: #c0392b; font-weight: 750; }
+.case-status.ok { color: #0a6b7c; font-weight: 750; }
+
+.case-panel h2 { font-size: 17px; margin: 0 0 15px; display: flex; align-items: center; gap: 10px; }
+.case-badge { font-size: 12px; font-weight: 800; border-radius: 999px; padding: 5px 11px;
+  background: #eef3f6; color: #62727e; }
+.case-badge.ok { background: rgba(7,159,184,.13); color: #0a6b7c; }
+.case-badge.bad { background: rgba(192,57,43,.1); color: #b23b2c; }
+
+.case-guard { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.case-guard li { position: relative; padding-left: 27px; font-size: 14px; line-height: 1.65; color: #4a5c69; }
+.case-guard li::before { position: absolute; left: 0; top: 0; font-weight: 800; }
+.case-guard li.ok::before { content: '✓'; color: #0a9c60; }
+.case-guard li.bad::before { content: '✕'; color: #c0392b; }
+.case-guard li.warn::before { content: '·'; color: #9aa8b2; font-size: 20px; line-height: 1.1; }
+.case-guard li.bad { color: #b23b2c; font-weight: 700; }
+
+.case-preview h3 { font-size: 19px; line-height: 1.45; margin: 7px 0 11px; }
+.case-preview h4 { font-size: 14px; margin: 17px 0 6px; color: #0a6b7c; }
+.case-preview p { font-size: 14px; line-height: 1.75; color: #566876; margin: 0; }
+.case-pv-meta { font-size: 12px; color: #8c9aa5; font-weight: 700; }
+.case-pv-excerpt { color: #45565f; }
+.case-pv-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 15px 0 4px; }
+.case-pv-photos img { width: 100%; height: 74px; object-fit: cover; border-radius: 9px; display: block; }
+.case-empty { font-size: 14px; color: #8c9aa5; margin: 0; }
+
+@media (max-width: 900px) {
+  .case-layout { grid-template-columns: 1fr; }
+  .case-side { position: static; }
+}
+@media (max-width: 640px) {
+  .case-main { padding: 28px 18px 70px; }
+  .case-form, .case-panel { padding: 22px 18px; border-radius: 16px; }
+  .case-toolbar > * { width: 100%; justify-content: center; text-align: center; }
+}

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<title>사례 등록 · 만물인테리어</title>
+<link rel="stylesheet" href="css/leak-theme.css?v=20260812-casenew" />
+<link rel="stylesheet" href="css/case-new.css?v=20260812-casenew" />
+</head>
+<body class="case-new-body">
+<header class="site-header">
+  <a class="brand" href="admin.html"><span class="brand-mark"><span></span></span><span class="brand-name">만물<span>인테리어</span></span></a>
+  <div class="case-head-actions">
+    <a class="btn-ghost-sm" href="admin.html">관리자</a>
+    <a class="btn-ghost-sm" href="leak.html">누수 사이트</a>
+  </div>
+</header>
+
+<main class="case-main">
+  <div class="case-intro">
+    <div class="section-kicker">FIELD RECORD</div>
+    <h1>사례 등록</h1>
+    <p>현장에서 확인한 내용 6가지와 사진을 정리합니다. 사진의 촬영 위치정보는 이 화면에서 지워지고,
+      동·호수·연락처·고객명이 들어가면 등록을 막습니다.</p>
+    <div class="case-notice" role="note">
+      <b>이 화면은 사이트를 바꾸지 않습니다.</b>
+      <span>정리한 재료와 사진을 내려받아 전달하면 글·블로그 목록·RSS까지 만들어 올립니다.
+        입력 중인 내용은 이 브라우저에만 남고 어디로도 전송되지 않습니다.</span>
+    </div>
+  </div>
+
+  <div class="case-layout">
+    <form class="case-form" id="caseForm" novalidate>
+      <div class="case-field">
+        <label for="cfPlace">1. 동네 + 단지 <em class="req">필수</em></label>
+        <input type="text" id="cfPlace" placeholder="예: 유성구 한밭유성아파트" autocomplete="off" />
+        <small class="case-hint">동·호수는 적지 마세요. 단지 이름까지만 씁니다.</small>
+      </div>
+      <div class="case-field">
+        <label for="cfSymptom">2. 어떤 연락 · 증상 <em class="req">필수</em></label>
+        <textarea id="cfSymptom" rows="2" placeholder="예: 아랫집 천장에 물자국이 번진다는 연락"></textarea>
+      </div>
+      <div class="case-field">
+        <label for="cfMethod">3. 탐지 방법 <em class="req">필수</em></label>
+        <textarea id="cfMethod" rows="2" placeholder="예: 계량기 확인 후 열화상·청음으로 배관 경로 확인"></textarea>
+      </div>
+      <div class="case-field">
+        <label for="cfCause">4. 원인 + 전유/공용 <em class="req">필수</em></label>
+        <textarea id="cfCause" rows="2" placeholder="예: 생활하수관 이음부 노후 — 전유부"></textarea>
+      </div>
+      <div class="case-field">
+        <label for="cfWork">5. 공사 내용 <em class="req">필수</em></label>
+        <textarea id="cfWork" rows="3" placeholder="예: 노후 구간 배관 교체, 물 테스트 후 마감 복원"></textarea>
+      </div>
+      <div class="case-field">
+        <label for="cfDuration">6. 걸린 시간 <em class="req">필수</em></label>
+        <input type="text" id="cfDuration" placeholder="예: 반나절 (약 4시간)" autocomplete="off" />
+      </div>
+
+      <div class="case-field">
+        <label for="cfPhotos">현장 사진 <small>선택 · 여러 장 가능</small></label>
+        <input type="file" id="cfPhotos" accept="image/*" multiple />
+        <small class="case-hint">사진을 고르면 촬영 위치정보(EXIF)를 지운 사본을 만듭니다. 원본 파일은 건드리지 않습니다.</small>
+        <div class="case-photos" id="cfPhotoList"></div>
+      </div>
+
+      <div class="case-toolbar">
+        <button type="button" class="primary-button" id="cfCopy">재료 복사</button>
+        <button type="button" class="outline-case-button" id="cfDownload">재료·사진 내려받기</button>
+        <button type="button" class="outline-case-button" id="cfImport">현장앱 재료 붙여넣기</button>
+        <button type="button" class="outline-case-button danger-soft" id="cfClear">입력 지우기</button>
+      </div>
+      <p class="case-status" id="cfStatus" role="status" aria-live="polite"></p>
+    </form>
+
+    <aside class="case-side">
+      <section class="case-panel" id="cfGuardPanel">
+        <h2>등록 전 확인 <span class="case-badge" id="cfGuardBadge">확인 중</span></h2>
+        <ul class="case-guard" id="cfGuard"></ul>
+      </section>
+      <section class="case-panel">
+        <h2>이렇게 올라갑니다</h2>
+        <div class="case-preview" id="cfPreview"></div>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<script src="js/pii-rules.js?v=20260812-casenew"></script>
+<script src="js/case-new.js?v=20260812-casenew"></script>
+</body>
+</html>

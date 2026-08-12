@@ -10,6 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const DEFAULT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -20,17 +21,24 @@ const LABELS = {
   cause: '원인+전유/공용', work: '공사 내용', duration: '걸린 시간',
 };
 
+/* 개인정보 판별 규칙은 js/pii-rules.js 하나만 쓴다(브라우저 등록 화면과 공용).
+   여기에 규칙을 다시 적으면 언젠가 한쪽만 고쳐져서, 화면은 통과시킨 글에
+   동·호수가 남는다. 파일을 읽어 그대로 평가하므로 사본이 생기지 않는다. */
+const PII_RULES = (() => {
+  const src = fs.readFileSync(path.join(DEFAULT_ROOT, 'js', 'pii-rules.js'), 'utf8');
+  const sandbox = { window: undefined };
+  vm.createContext(sandbox);
+  vm.runInContext(src + '\n;MANMUL_PII_RULES;', sandbox, { filename: 'js/pii-rules.js' });
+  const rules = sandbox.MANMUL_PII_RULES;
+  if (!Array.isArray(rules) || !rules.length) throw new Error('js/pii-rules.js 에서 규칙을 읽지 못했습니다');
+  // 샌드박스가 만든 배열을 그대로 돌려주면 프로토타입이 이쪽 realm 과 달라서
+  // assert.deepEqual 같은 비교가 '구조는 같은데 다르다'로 실패한다. 여기서 옮겨 담는다.
+  return Array.from(rules, (r) => [String(r[0]), r[1]]);   // rules.map 은 샌드박스 배열을 그대로 낸다
+})();
+
 export function piiFindings(text) {
   const src = String(text || '');
-  const checks = [
-    ['동·호수', /(?:^|[^가-힣0-9])\d{1,4}\s*(?:동|호)(?=$|[^가-힣])/m],
-    ['휴대전화', /(?:^|\D)01[016789][\s.-]?\d{3,4}[\s.-]?\d{4}(?!\d)/],
-    ['일반전화', /(?:^|\D)0(?:2|[3-6][1-5])[-.\s]?\d{3,4}[-.\s]?\d{4}(?!\d)/],
-    ['이메일', /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i],
-    ['고객명', /(?:고객명|고객\s*이름|성명|연락자|의뢰인)\s*[:=]\s*[가-힣A-Za-z]{2,30}/],
-    ['고객명', /[가-힣]{2,5}\s*고객(?:님)?/],
-  ];
-  return checks.filter(([, pattern]) => pattern.test(src)).map(([name]) => name);
+  return PII_RULES.filter(([, pattern]) => pattern.test(src)).map(([name]) => name);
 }
 
 export function parseMaterial(text) {
