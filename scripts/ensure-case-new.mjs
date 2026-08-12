@@ -133,6 +133,34 @@ if (!/사이트를 바꾸지 않습니다/.test(html)) {
   fail.push('case-new.html 이 "여기서 등록해도 사이트는 바뀌지 않는다"는 사실을 밝히지 않는다.');
 }
 
+/* ⑩ 기기 사이 옮기기 ----------------------------------------------------
+   서버가 없으니 파일 하나로 잇는다. 여기서 틀어지면 옮긴 게 안 열린다. */
+if (!/id="cfQueueExport"/.test(html) || !/id="cfQueueImport"/.test(html)) {
+  fail.push('case-new.html 에 기기 사이 옮기기 버튼이 없다.');
+}
+// 내려받는 파일 이름에 한글을 쓰면 브라우저가 이름을 통째로 버리고 확장자 없는
+// 'download' 로 저장한다 — PC 에서 파일 고르기에 아예 안 뜬다.
+// 호출 모양을 따라가지 않고 '파일 이름처럼 생긴 문자열'을 전부 본다.
+// 처음엔 download(...) 인자를 정규식으로 집었다가 변이 검증에서 놓쳤다 —
+// 첫 인자 안에 쉼표가 있으면(new Blob([text], {...})) 매칭이 끊겼다.
+for (const lit of js.match(/(`[^`\n]*\.(?:jpg|png|json|txt)`|'[^'\n]*\.(?:jpg|png|json|txt)')/g) || []) {
+  if (/[가-힣]/.test(lit)) {
+    fail.push(`내려받는 파일 이름에 한글이 있다 (${lit}) — 브라우저가 이름을 통째로 버려 PC 에서 열 수 없다.`);
+  }
+}
+
+// 받는 쪽에서도 개인정보를 다시 본다. 보낸 기기가 옛 화면이었거나 파일이
+// 손으로 고쳐졌을 수 있다.
+{
+  const imp = /cfQueueFile'\)\.addEventListener\(([\s\S]*?)\n  \}\);/.exec(js);
+  if (!imp) fail.push('js/case-new.js 에서 받기 처리를 찾지 못했다.');
+  else {
+    if (!/piiFindings\(/.test(imp[1])) fail.push('받을 때 개인정보를 다시 보지 않는다 — 옛 기기에서 온 자료가 그대로 들어온다.');
+    if (!/app !== 'manmul-case-new'/.test(imp[1])) fail.push('받을 때 만물 사례 파일인지 확인하지 않는다.');
+    if (!/have\.has\(/.test(imp[1])) fail.push('같은 파일을 두 번 받으면 현장이 중복으로 쌓인다.');
+  }
+}
+
 if (fail.length) {
   console.error('사례 등록 화면 검사 실패:');
   for (const f of fail) console.error('  - ' + f);

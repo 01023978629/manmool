@@ -90,11 +90,14 @@
     <div class="case-queue-head">
       <div>
         <h2>저장한 현장 <span class="case-badge" id="cfQueueCount">0건</span></h2>
-        <p>이 브라우저에 사진까지 함께 보관됩니다. 여러 건 쌓아 두었다가 한 번에 넘기시면 됩니다.</p>
+        <p>이 브라우저에 사진까지 함께 보관됩니다. 휴대폰에서 적은 것을 PC 로 옮기려면 <b>다른 기기로 넘기기</b> 로 파일을 만들어 옮긴 뒤, PC 에서 <b>다른 기기에서 받기</b> 를 누르세요.</p>
       </div>
       <div class="case-queue-actions">
         <button type="button" class="primary-button" id="cfQueueCopy">밀린 것 전부 복사</button>
         <button type="button" class="outline-case-button" id="cfQueueDownload">전부 내려받기</button>
+        <button type="button" class="outline-case-button" id="cfQueueExport">다른 기기로 넘기기</button>
+        <button type="button" class="outline-case-button" id="cfQueueImport">다른 기기에서 받기</button>
+        <input type="file" id="cfQueueFile" accept="application/json,.json" hidden />
         <button type="button" class="outline-case-button danger-soft" id="cfQueueClearDone">올린 것 지우기</button>
       </div>
     </div>
@@ -103,8 +106,8 @@
   </section>
 </main>
 
-<script src="js/pii-rules.js?v=20260812-queue"></script>
-<script src="js/case-store.js?v=20260812-queue"></script>
-<script src="js/case-new.js?v=20260812-queue"></script>
+<script src="js/pii-rules.js?v=20260812-transfer"></script>
+<script src="js/case-store.js?v=20260812-transfer"></script>
+<script src="js/case-new.js?v=20260812-transfer"></script>
 </body>
 </html>
