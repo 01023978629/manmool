@@ -85,6 +85,7 @@
       <a href="#insurance">보험 처리</a>
       <a href="#cases">현장 기록</a>
       <a href="#faq">자주 묻는 질문</a>
+      <a href="#leakInquiry">상담 신청</a>
       <a href="index.html">인테리어</a>
     </nav>
     <a class="header-call" href="tel:01023978629"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M6.7 3.5 9 7.8 7.4 9.4c1.1 2.4 2.8 4.1 5.2 5.2l1.6-1.6 4.3 2.3-.5 3.4c-.1.8-.8 1.4-1.6 1.4C9.5 20.1 3.9 14.5 3.9 7.6c0-.8.6-1.5 1.4-1.6l1.4-2.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span><small>전화 상담</small>010-2397-8629</span></a>
@@ -166,7 +167,7 @@
           <p id="responseGuide">항목을 하나씩 확인하면 전화나 온라인 상담 때 전달할 메모를 복사할 수 있습니다.</p>
           <div class="response-actions">
             <button type="button" class="primary-case-button" id="responseCopy">준비 메모 복사</button>
-            <a class="outline-case-button" href="index.html?type=누수#inquiry">사진 상담 열기</a>
+            <a class="outline-case-button" href="#leakInquiry">이 내용으로 상담 신청하기</a>
           </div>
           <p class="response-status" id="responseStatus" role="status" aria-live="polite"></p>
           <small class="response-safety">물이 콘센트·조명 등 전기 설비와 닿았으면 젖은 손으로 만지거나 분전반을 조작하지 말고, 관리사무소나 긴급 안전기관에 먼저 도움을 요청하세요.</small>
@@ -282,7 +283,7 @@
             </div>
           </article>
     </div>
-    <div class="case-actions"><a class="outline-case-button" href="blog.html">현장 기록·점검 글 전체 보기</a><a class="primary-case-button" href="index.html?type=누수#inquiry">사진과 증상으로 온라인 상담</a></div>
+    <div class="case-actions"><a class="outline-case-button" href="blog.html">현장 기록·점검 글 전체 보기</a><a class="primary-case-button" href="#leakInquiry">증상 남기고 상담 신청</a></div>
   </section>
 
   <section class="section faq-section" id="faq">
@@ -307,6 +308,67 @@
     </div>
   </section>
 
+  <section class="section leak-form-section" id="leakInquiry">
+    <div class="section-heading heading-row">
+      <div><div class="section-kicker">ONLINE INTAKE</div><h2>전화가 어려우시면<br /><em>증상만 남겨 주세요.</em></h2></div>
+      <p>연락처와 증상만 있으면 접수됩니다. 평수·예산은 묻지 않습니다.<br />평일 09:00–17:30에 확인하며, 그 외 시간에 남기신 내용도 다음 영업일에 회신드립니다.</p>
+    </div>
+
+    <form class="leak-form" id="leakForm" novalidate>
+      <!-- 봇 방어(허니팟): 사람에겐 안 보이고 스크린리더도 건너뜀. 채워지면 실제 전송·저장을 하지 않는다. -->
+      <input type="text" id="lkCompanyUrl" name="company_url" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute!important;left:-9999px!important;top:auto;width:1px;height:1px;opacity:0;pointer-events:none" />
+
+      <fieldset class="leak-field">
+        <legend>지금 보이는 증상 <small>해당하는 것을 모두 선택 (선택 사항)</small></legend>
+        <div class="leak-chips" id="lkSymptoms">
+          <label class="leak-chip"><input type="checkbox" name="symptoms" value="아랫집 천장에 물자국" /><span>아랫집 천장에 물자국</span></label>
+          <label class="leak-chip"><input type="checkbox" name="symptoms" value="물을 안 쓰는데 계량기가 돎" /><span>물을 안 쓰는데 계량기가 돎</span></label>
+          <label class="leak-chip"><input type="checkbox" name="symptoms" value="욕실 곰팡이·백화·들뜸" /><span>욕실 곰팡이·백화·들뜸</span></label>
+          <label class="leak-chip"><input type="checkbox" name="symptoms" value="배수 냄새·역류·물 빠짐 지연" /><span>배수 냄새·역류·물 빠짐 지연</span></label>
+          <label class="leak-chip"><input type="checkbox" name="symptoms" value="벽·바닥이 젖거나 축축함" /><span>벽·바닥이 젖거나 축축함</span></label>
+          <label class="leak-chip"><input type="checkbox" name="symptoms" value="원인을 잘 모르겠음" /><span>원인을 잘 모르겠음</span></label>
+        </div>
+      </fieldset>
+
+      <div class="leak-row">
+        <div class="leak-field">
+          <label for="lkRegion">지역·건물 <small>선택</small></label>
+          <input type="text" id="lkRegion" name="region" placeholder="예: 대전 유성구 아파트" autocomplete="off" />
+        </div>
+        <div class="leak-field">
+          <label for="lkName">이름 <small>선택</small></label>
+          <input type="text" id="lkName" name="name" placeholder="성함" autocomplete="name" />
+        </div>
+      </div>
+
+      <div class="leak-field">
+        <label for="lkPhone">연락처 <em class="req" aria-hidden="true">필수</em></label>
+        <input type="tel" id="lkPhone" name="phone" inputmode="numeric" placeholder="010-0000-0000" autocomplete="tel" required aria-describedby="lkPhoneHelp" />
+        <small class="leak-hint" id="lkPhoneHelp">회신드릴 번호입니다. 이 번호로만 연락드리고 광고 문자는 보내지 않습니다.</small>
+      </div>
+
+      <div class="leak-field">
+        <label for="lkMemo">자세한 내용 <small>선택</small></label>
+        <textarea id="lkMemo" name="memo" rows="4" placeholder="언제부터 어떤 증상이 있었는지, 아랫집·관리사무소에 알리셨는지 등을 적어주세요."></textarea>
+        <button type="button" class="leak-memo-fill" id="lkFillFromChecklist" hidden>↑ 위에서 체크한 준비 메모 넣기</button>
+        <small class="leak-hint">사진은 접수 후 회신드릴 때 문자로 받겠습니다. 급하시면 010-2397-8629로 바로 보내주셔도 됩니다.</small>
+      </div>
+
+      <label class="leak-consent">
+        <input type="checkbox" id="lkConsent" name="consent" />
+        <span>개인정보 수집·이용에 동의합니다. (상담 목적, 보유기간 1년 · <a href="privacy.html" target="_blank" rel="noopener">처리방침</a>)</span>
+      </label>
+
+      <div class="leak-submit-row">
+        <button type="submit" class="primary-button" id="lkSubmit">상담 신청 보내기</button>
+        <a class="outline-case-button" href="tel:01023978629">전화가 더 빠릅니다 · 010-2397-8629</a>
+      </div>
+      <p class="leak-status" id="lkStatus" role="status" aria-live="polite"></p>
+    </form>
+
+    <div class="leak-done" id="lkDone" hidden></div>
+  </section>
+
   <section class="contact-section" id="contact">
     <div class="contact-rings ring-one"></div><div class="contact-rings ring-two"></div>
     <div class="contact-content">
@@ -314,7 +376,7 @@
       <div><small>누수는 빠르게 확인할수록 피해를 줄일 수 있습니다.</small><h2>지금 증상을 알려주세요.<br /><em>정확한 첫 대응부터 안내해 드립니다.</em></h2></div>
       <div class="contact-action-list">
         <a class="contact-phone" href="tel:01023978629"><small>전화 상담</small><strong>010-2397-8629</strong><svg aria-hidden="true" viewBox="0 0 20 20" fill="none"><path d="m7.5 4.5 5 5.5-5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-        <a class="contact-online" href="index.html?type=누수#inquiry">온라인 상담 접수</a>
+        <a class="contact-online" href="#leakInquiry">온라인 상담 접수</a>
       </div>
     </div>
   </section>
@@ -334,6 +396,8 @@
 
   <a class="mobile-call-bar" href="tel:01023978629"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M6.7 3.5 9 7.8 7.4 9.4c1.1 2.4 2.8 4.1 5.2 5.2l1.6-1.6 4.3 2.3-.5 3.4c-.1.8-.8 1.4-1.6 1.4C9.5 20.1 3.9 14.5 3.9 7.6c0-.8.6-1.5 1.4-1.6l1.4-2.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span><small>누수 긴급 상담</small><strong>지금 전화하기</strong></span></a>
 </main>
-<script src="js/leak.js?v=20260812-response"></script>
+<script src="js/lead-transport.js?v=20260812-leakform"></script>
+<script src="js/leak.js?v=20260812-leakform"></script>
+<script src="js/leak-inquiry.js?v=20260812-leakform"></script>
 </body>
 </html>

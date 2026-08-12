@@ -42,7 +42,11 @@ check((leak.match(/class="case-card registered-case"/g) || []).length === 3,
   'leak.html 실제 사례·공정 카드가 3개가 아니다');
 check((leak.match(/assets\/cases\/case-(?:hanbat-drain|blue-floor|blue-mesh)\.jpg/g) || []).length >= 4,
   'leak.html 사례 카드가 검증한 실제 공정 사진을 사용하지 않는다');
-check(/index\.html\?type=누수#inquiry/.test(leak), '누수 페이지에서 온라인 상담으로 이어지는 링크가 없다');
+// 예전에는 인테리어 폼(index.html?type=누수#inquiry)으로 넘겼다. 지금은 누수 페이지
+// 안에서 바로 접수한다 — 급한 손님을 다른 페이지로 한 번 더 보내지 않기 위해서다.
+// 검사하는 것은 '어느 주소로 가느냐'가 아니라 '접수까지 이어지느냐'이다.
+check(/id="leakForm"/.test(leak) && /href="#leakInquiry"/.test(leak),
+  '누수 페이지에서 온라인 상담으로 이어지는 길이 없다 (#leakInquiry 폼과 그리로 가는 링크)');
 check(/(?:new URLSearchParams\(location\.search\)\.get|params\.get)\('type'\)/.test(inquiry),
   '누수 온라인 상담 링크의 유형을 폼에 자동 반영하지 않는다');
 check(!/무조건|최저가|100%/.test(leak), '누수 홍보 문구에 과장 표현이 남아 있다');

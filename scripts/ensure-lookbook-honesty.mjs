@@ -139,7 +139,11 @@ check(!/id:\s*['"]lookbook/.test(look),
 check(/manmul:lookbook/.test(look) && /manmul:lookbook/.test(inquiry),
   '조합이 상담 폼으로 넘어가지 않는다(manmul:lookbook 끊김)',
   '조합 → 상담 폼 연동됨');
-check(/lookSpec/.test(inquiry) && /d\.lookSpec/.test(inquiry),
+// 리드 본문을 만드는 buildLeadText 는 누수 폼과 공용인 js/lead-transport.js 로 옮겼다.
+// 그래서 두 곳을 같이 본다 — 폼이 lookSpec 을 담고(inquiry), 본문이 그걸 싣는지(transport).
+// 한쪽만 보면, 담기만 하고 안 실리거나 실을 준비만 하고 안 담는 상태를 놓친다.
+const transport = read('js/lead-transport.js');
+check(/lookSpec/.test(inquiry) && /d\.lookSpec/.test(transport),
   '문의 본문(buildLeadText)에 lookSpec 이 실리지 않는다 — 대표가 방문 전에 구성을 모른다',
   '문의 본문에 구성 요약 포함');
 
