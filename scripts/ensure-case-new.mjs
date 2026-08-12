@@ -161,6 +161,50 @@ for (const lit of js.match(/(`[^`\n]*\.(?:jpg|png|json|txt)`|'[^'\n]*\.(?:jpg|pn
   }
 }
 
+/* ⑪ 현장 위치 — 단지까지만, 동·호수는 절대 안 된다 ------------------------
+   위치를 붙이는 것은 지역 검색에 도움이 되지만, 여기서 선을 넘으면 고객 집이
+   공개된다. 그래서 주소 칸도 6항목과 똑같은 개인정보 검사를 받아야 한다. */
+if (!/id="cfAddress"/.test(html) || !/id="cfMapUrl"/.test(html)) {
+  fail.push('case-new.html 에 단지 주소·지도 링크 칸이 없다.');
+}
+{
+  const g = /function guard\(\)([\s\S]*?)\n  \}/.exec(js);
+  if (!g) fail.push('js/case-new.js 에서 확인 목록(guard)을 찾지 못했다.');
+  // 주소를 개인정보 검사에 함께 넣는지. 6항목만 보면 주소로 동·호수가 새어 나간다.
+  else if (!/piiFindings\([^;]*opt\.address/.test(g[1])) {
+    fail.push('단지 주소가 개인정보 검사를 받지 않는다 — 주소 칸으로 동·호수가 공개된다.');
+  }
+}
+// 초안 생성기에서도 같다. 화면을 거치지 않고 재료만 넣는 길이 있기 때문이다.
+if (!/piiFindings\([^;]*values\.address/.test(maker)) {
+  fail.push('scripts/new-case-post.mjs 가 단지 주소를 개인정보 검사에 넣지 않는다.');
+}
+// 지도 링크는 네이버 지도만. 아무 주소나 받으면 사례 글에서 엉뚱한 데로 넘어간다.
+{
+  const mp = /function mapUrlProblem\(([\s\S]*?)\n  \}/.exec(js);
+  if (!mp) fail.push('js/case-new.js 에 지도 링크 검사(mapUrlProblem)가 없다.');
+  else {
+    if (!/map\.naver\.com/.test(mp[1]) || !/naver\.me/.test(mp[1])) {
+      fail.push('지도 링크 검사가 네이버 지도 주소를 확인하지 않는다.');
+    }
+    if (!/hostname/.test(mp[1])) {
+      fail.push('지도 링크를 문자열로만 본다 — https://evil.example/map.naver.com 같은 주소가 통과한다.');
+    }
+  }
+}
+// 글에 붙는 위치 안내가 '단지까지만'이라는 사실을 밝힌다.
+{
+  const gen = read('scripts/prerender-posts.py');
+  // 클래스 이름을 그대로 본다. /post-place/ 로 짰다가 변이 검증에서 걸렸다 —
+  // post-placeX 로 바꿔도 부분문자열이라 통과했다.
+  if (!/class="post-place"/.test(gen)) fail.push('scripts/prerender-posts.py 가 위치 블록을 만들지 않는다.');
+  // 낱말이 아니라 손님에게 보이는 '문장'을 본다. /동·호수/ 만 보면 소스 주석에도
+  // 그 낱말이 있어서, 화면에 나가는 고지를 지워도 통과했다.
+  if (!gen.includes('단지 위치까지만 표기합니다') || !gen.includes('공개하지 않습니다')) {
+    fail.push('사례 글의 위치 안내에서 "단지까지만 · 동·호수는 공개하지 않는다" 고지가 빠졌다.');
+  }
+}
+
 if (fail.length) {
   console.error('사례 등록 화면 검사 실패:');
   for (const f of fail) console.error('  - ' + f);

@@ -59,6 +59,17 @@
       </div>
 
       <div class="case-field">
+        <label for="cfAddress">단지 주소 <small>선택 · 네이버 지도 연계용</small></label>
+        <input type="text" id="cfAddress" placeholder="예: 대전 유성구 OO로 12" autocomplete="off" />
+        <small class="case-hint"><b>동·호수는 넣지 마세요.</b> 단지 주소까지만 적습니다. 넣으면 등록이 막힙니다.</small>
+      </div>
+      <div class="case-field">
+        <label for="cfMapUrl">네이버 지도 링크 <small>선택</small></label>
+        <input type="url" id="cfMapUrl" placeholder="https://map.naver.com/... 또는 https://naver.me/..." autocomplete="off" />
+        <small class="case-hint">네이버 지도 앱에서 단지를 찾아 [공유]로 복사한 주소를 넣으세요. 비워두면 단지 이름으로 검색되게 걸어둡니다.</small>
+      </div>
+
+      <div class="case-field">
         <label for="cfPhotos">현장 사진 <small>선택 · 여러 장 가능</small></label>
         <input type="file" id="cfPhotos" accept="image/*" multiple />
         <small class="case-hint">사진을 고르면 촬영 위치정보(EXIF)를 지운 사본을 만듭니다. 원본 파일은 건드리지 않습니다.</small>
@@ -106,8 +117,8 @@
   </section>
 </main>
 
-<script src="js/pii-rules.js?v=20260812-transfer"></script>
-<script src="js/case-store.js?v=20260812-transfer"></script>
-<script src="js/case-new.js?v=20260812-transfer"></script>
+<script src="js/pii-rules.js?v=20260813-place"></script>
+<script src="js/case-store.js?v=20260813-place"></script>
+<script src="js/case-new.js?v=20260813-place"></script>
 </body>
 </html>

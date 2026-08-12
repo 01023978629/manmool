@@ -50,6 +50,9 @@ export function parseMaterial(text) {
     ['cause', /^(?:4\.\s*)?원인\+전유\/공용\s*:\s*(.+)$/m],
     ['work', /^(?:5\.\s*)?공사 내용\s*:\s*(.+)$/m],
     ['duration', /^(?:6\.\s*)?걸린 시간\s*:\s*(.+)$/m],
+    // 7·8번은 선택이다. 단지 위치와 네이버 지도 링크 — 동·호수는 넣지 않는다.
+    ['address', /^(?:7\.\s*)?단지 주소\s*:\s*(.+)$/m],
+    ['mapUrl', /^(?:8\.\s*)?지도 링크\s*:\s*(.+)$/m],
   ];
   for (const [key, pattern] of map) {
     const m = String(text || '').match(pattern);
@@ -62,7 +65,8 @@ export function makeDraft(values, now = new Date()) {
   const missing = FIELDS.filter((key) => !String(values[key] || '').trim());
   if (missing.length) throw new Error('필수 항목 누락: ' + missing.map((k) => LABELS[k]).join(', '));
   const normalized = Object.fromEntries(FIELDS.map((key) => [key, String(values[key]).trim()]));
-  const findings = piiFindings(Object.values(normalized).join('\n'));
+  // 주소도 같은 검사를 받는다 — 6항목만 보면 주소로 동·호수가 새어 나간다.
+  const findings = piiFindings(Object.values(normalized).concat(String(values.address || '')).join('\n'));
   if (findings.length) throw new Error('개인정보로 보이는 값이 있어 거부했습니다: ' + [...new Set(findings)].join(', '));
   const date = now.toISOString().slice(0, 10);
   const hash = crypto.createHash('sha256').update(JSON.stringify(normalized)).digest('hex').slice(0, 10);
@@ -82,6 +86,9 @@ export function makeDraft(values, now = new Date()) {
       { h: '걸린 시간', p: normalized.duration },
     ],
     sourcePlace: normalized.place,
+    place: Object.assign({ name: normalized.place },
+      values.address ? { address: String(values.address).trim() } : {},
+      values.mapUrl ? { mapUrl: String(values.mapUrl).trim() } : {}),
     published: false,
   };
 }
@@ -92,7 +99,7 @@ function parseArgs(argv) {
     const arg = argv[i];
     if (!arg.startsWith('--')) throw new Error('알 수 없는 인자: ' + arg);
     const key = arg.slice(2);
-    if (!FIELDS.includes(key) && key !== 'material-file') throw new Error('알 수 없는 옵션: --' + key);
+    if (!FIELDS.includes(key) && !['material-file', 'address', 'mapUrl'].includes(key)) throw new Error('알 수 없는 옵션: --' + key);
     if (!argv[i + 1] || argv[i + 1].startsWith('--')) throw new Error('--' + key + ' 값이 비었습니다');
     out[key] = argv[++i];
   }

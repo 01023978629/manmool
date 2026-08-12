@@ -26,6 +26,9 @@
     ['work', 'cfWork', '공사 내용'],
     ['duration', 'cfDuration', '걸린 시간'],
   ];
+  // 위치는 선택 항목이라 6항목(FIELDS)과 따로 다룬다. 다만 개인정보 검사는 똑같이 받는다 —
+  // 주소 칸에 '101동 202호' 를 적으면 결국 고객 집이 공개된다.
+  const OPT_FIELDS = [['address', 'cfAddress', '단지 주소'], ['mapUrl', 'cfMapUrl', '지도 링크']];
   const status = $('cfStatus');
   let photos = [];   // { name, blob, url, hadExif, bytes }
 
@@ -38,6 +41,24 @@
     return out;
   }
 
+  function optValues() {
+    const out = {};
+    for (const [key, id] of OPT_FIELDS) out[key] = ($(id).value || '').trim();
+    return out;
+  }
+
+  /* 지도 링크는 네이버 지도만 받는다. 아무 주소나 받으면 사례 글에서 엉뚱한 데로
+     넘어가고, 나중에 그 주소가 무엇이 될지 알 수 없다. */
+  function mapUrlProblem(url) {
+    if (!url) return '';
+    let u;
+    try { u = new URL(url); } catch (e) { return '지도 링크가 주소 형태가 아닙니다.'; }
+    if (u.protocol !== 'https:') return '지도 링크는 https 로 시작해야 합니다.';
+    const ok = ['map.naver.com', 'naver.me', 'm.map.naver.com'];
+    if (!ok.includes(u.hostname)) return `지도 링크는 네이버 지도만 넣을 수 있습니다 (지금: ${u.hostname}).`;
+    return '';
+  }
+
   function piiFindings(text) {
     const src = String(text || '');
     return RULES.filter(([, pattern]) => pattern.test(src)).map(([name]) => name);
@@ -45,15 +66,19 @@
 
   /* 현장앱 [후기 재료 복사] 결과와 같은 형식. scripts/new-case-post.mjs 가
      이 형식을 그대로 읽으므로, 사장님이 붙여넣기만 하면 초안이 만들어진다. */
-  function materialText(v) {
-    return [
+  function materialText(v, opt) {
+    opt = opt || {};
+    const lines = [
       '1. 동네+단지: ' + v.place,
       '2. 증상: ' + v.symptom,
       '3. 탐지 방법: ' + v.method,
       '4. 원인+전유/공용: ' + v.cause,
       '5. 공사 내용: ' + v.work,
       '6. 걸린 시간: ' + v.duration,
-    ].join('\n');
+    ];
+    if (opt.address) lines.push('7. 단지 주소: ' + opt.address);
+    if (opt.mapUrl) lines.push('8. 지도 링크: ' + opt.mapUrl);
+    return lines.join('\n');
   }
 
   /* 같은 형식을 되읽는다 — 현장앱에서 복사해 온 재료를 칸에 나눠 넣을 때 쓴다 */
@@ -65,6 +90,8 @@
       ['cfCause', /^(?:4\.\s*)?원인\+전유\/공용\s*:\s*(.+)$/m],
       ['cfWork', /^(?:5\.\s*)?공사 내용\s*:\s*(.+)$/m],
       ['cfDuration', /^(?:6\.\s*)?걸린 시간\s*:\s*(.+)$/m],
+      ['cfAddress', /^(?:7\.\s*)?단지 주소\s*:\s*(.+)$/m],
+      ['cfMapUrl', /^(?:8\.\s*)?지도 링크\s*:\s*(.+)$/m],
     ];
     let filled = 0;
     for (const [id, pattern] of map) {
@@ -77,8 +104,11 @@
   /* ---------- 확인 목록 ---------- */
   function guard() {
     const v = values();
+    const opt = optValues();
     const missing = FIELDS.filter(([key]) => !v[key]).map(([, , label]) => label);
-    const found = [...new Set(piiFindings(Object.values(v).join('\n')))];
+    // 주소 칸도 같은 검사를 받는다. 6항목만 보면 주소로 동·호수가 새어 나간다.
+    const found = [...new Set(piiFindings(Object.values(v).concat(opt.address || '').join('\n')))];
+    const mapErr = mapUrlProblem(opt.mapUrl);
     const rows = [];
     rows.push(missing.length
       ? { ok: false, text: '아직 안 적은 항목: ' + missing.join(', ') }
@@ -86,6 +116,9 @@
     rows.push(found.length
       ? { ok: false, text: '개인정보로 보이는 값: ' + found.join(', ') + ' — 이대로는 등록할 수 없습니다' }
       : { ok: true, text: '동·호수·연락처·고객명 없음' });
+    if (mapErr) rows.push({ ok: false, text: mapErr });
+    else if (opt.mapUrl) rows.push({ ok: true, text: '네이버 지도 링크 확인됨' });
+    else if (opt.address) rows.push({ ok: null, text: '지도 링크 없음 — 단지 이름으로 검색되게 걸어둡니다' });
     const withExif = photos.filter((p) => p.hadExif).length;
     rows.push(photos.length
       ? { ok: true, text: `사진 ${photos.length}장 준비됨` + (withExif ? ` · 위치정보 있던 ${withExif}장은 지운 사본을 씁니다` : ' · 위치정보 없음') }
@@ -95,11 +128,11 @@
     list.innerHTML = rows.map((r) =>
       `<li class="${r.ok === true ? 'ok' : r.ok === false ? 'bad' : 'warn'}">${esc(r.text)}</li>`).join('');
 
-    const blocked = missing.length || found.length;
+    const blocked = missing.length || found.length || mapErr;
     const badge = $('cfGuardBadge');
     badge.textContent = blocked ? '아직 안 됩니다' : '등록 가능';
     badge.className = 'case-badge ' + (blocked ? 'bad' : 'ok');
-    return { blocked: !!blocked, missing, found, v };
+    return { blocked: !!blocked, missing, found, mapErr, v, opt };
   }
 
   /* ---------- 미리보기 ---------- */
@@ -135,12 +168,12 @@
 
   /* ---------- 초안 보관 (이 브라우저에만) ---------- */
   function saveDraft(v) {
-    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(v)); } catch (e) {}
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(Object.assign({}, v, optValues()))); } catch (e) {}
   }
   function loadDraft() {
     try {
       const v = JSON.parse(localStorage.getItem(DRAFT_KEY)) || {};
-      for (const [key, id] of FIELDS) if (v[key]) $(id).value = v[key];
+      for (const [key, id] of FIELDS.concat(OPT_FIELDS)) if (v[key]) $(id).value = v[key];
     } catch (e) {}
   }
 
@@ -218,14 +251,15 @@
     status.className = 'case-status err';
     status.textContent = g.found.length
       ? '개인정보로 보이는 값이 있어 막았습니다: ' + g.found.join(', ')
-      : '아직 안 적은 항목이 있습니다: ' + g.missing.join(', ');
+      : g.mapErr ? g.mapErr
+        : '아직 안 적은 항목이 있습니다: ' + g.missing.join(', ');
     return true;
   }
 
   $('cfCopy').addEventListener('click', async () => {
     const g = refresh();
     if (blocked(g)) return;
-    const text = materialText(g.v);
+    const text = materialText(g.v, g.opt);
     try {
       await navigator.clipboard.writeText(text);
       status.className = 'case-status ok';
@@ -264,7 +298,7 @@
     const names = photoNames(rec);
     return [
       `[현장 ${index + 1} / 총 ${total}건 · 저장 ${String(rec.savedAt).slice(0, 10)}]`,
-      materialText(rec.fields),
+      materialText(rec.fields, rec.place || {}),
       names.length ? `사진 ${names.length}장: ${names.join(', ')}` : '사진 없음',
     ].join('\n');
   }
@@ -310,7 +344,7 @@
       id: 'case-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6),
       savedAt: new Date().toISOString(),
       status: 'pending',
-      fields: g.v,
+      fields: g.v, place: g.opt,
       photos: photos.map((p) => ({ blob: p.blob, hadExif: p.hadExif })),
     };
     try {
@@ -321,7 +355,7 @@
       return;
     }
     // 저장이 끝난 뒤에만 입력을 비운다
-    for (const [, id] of FIELDS) $(id).value = '';
+    for (const [, id] of FIELDS.concat(OPT_FIELDS)) $(id).value = '';
     photos.forEach((p) => URL.revokeObjectURL(p.url));
     photos = [];
     try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
@@ -338,6 +372,7 @@
     if (!rec) return;
     if (btn.dataset.act === 'load') {
       for (const [key, id] of FIELDS) $(id).value = rec.fields[key] || '';
+      for (const [key, id] of OPT_FIELDS) $(id).value = (rec.place || {})[key] || '';
       photos.forEach((p) => URL.revokeObjectURL(p.url));
       photos = rec.photos.map((p, i) => ({
         name: photoNames(rec)[i], blob: p.blob, url: URL.createObjectURL(p.blob),
@@ -414,7 +449,7 @@
     for (const rec of records) {
       const photos = [];
       for (const p of rec.photos) photos.push({ data: await blobToDataUrl(p.blob), hadExif: !!p.hadExif });
-      cases.push({ id: rec.id, savedAt: rec.savedAt, status: rec.status || 'pending', fields: rec.fields, photos });
+      cases.push({ id: rec.id, savedAt: rec.savedAt, status: rec.status || 'pending', fields: rec.fields, place: rec.place || {}, photos });
     }
     return { app: 'manmul-case-new', version: TRANSFER_VERSION, exportedAt: new Date().toISOString(), cases };
   }
@@ -468,12 +503,14 @@
       if (have.has(c.id)) { skipped++; continue; }
       // 받는 쪽에서도 개인정보를 다시 본다. 보낸 기기가 옛 화면이었을 수도 있고,
       // 파일이 중간에 손으로 고쳐졌을 수도 있다.
-      if (piiFindings(Object.values(c.fields).join('\n')).length) { refused++; continue; }
+      const addr = (c.place || {}).address || '';
+      if (piiFindings(Object.values(c.fields).concat(addr).join('\n')).length) { refused++; continue; }
       try {
         const photos = [];
         for (const p of (c.photos || [])) photos.push({ blob: await dataUrlToBlob(p.data), hadExif: !!p.hadExif });
         await STORE.put({ id: c.id, savedAt: c.savedAt || new Date().toISOString(),
-          status: c.status === 'done' ? 'done' : 'pending', fields: c.fields, photos });
+          status: c.status === 'done' ? 'done' : 'pending', fields: c.fields,
+          place: c.place || {}, photos });
         added++;
       } catch (err) { refused++; }
     }
@@ -505,7 +542,7 @@
 
   $('cfClear').addEventListener('click', () => {
     if (!window.confirm('적은 내용과 사진을 모두 지웁니다. 계속할까요?')) return;
-    for (const [, id] of FIELDS) $(id).value = '';
+    for (const [, id] of FIELDS.concat(OPT_FIELDS)) $(id).value = '';
     photos.forEach((p) => URL.revokeObjectURL(p.url));
     photos = [];
     try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
