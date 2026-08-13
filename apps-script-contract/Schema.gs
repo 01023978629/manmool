@@ -74,9 +74,8 @@ var COLS_PAYMENTS = [
   'label',        // 계약금 | 중도금 | 잔금
   'seq',          // 0 | 1 | 2
   'amount',
-  'status',       // PENDING | INVOICED | PAID
-  'invoicedAt',
-  'paidAt',
+  // 입금 상태·시각 칸은 두지 않는다(2026-08-13 대표 결정). 계약서 제3조의
+  // 회차·금액은 계약 내용이라 남기되, 입금 여부와 미수금은 서버가 다루지 않는다.
   'memo',
   'updatedAt'
 ];
@@ -121,6 +120,8 @@ var EVENTS = {
   SIGN_SUBMITTED: 'SIGN_SUBMITTED',
   CONTRACT_COMPLETED: 'CONTRACT_COMPLETED',
   CONTRACT_VOIDED: 'CONTRACT_VOIDED',
+  // 아래 둘은 더 이상 새로 기록되지 않는다(입금 표시 기능 제거).
+  // 옛 기록을 읽기 위해 이름만 남긴다 — 지우면 지난 사건이 정체불명으로 보인다.
   PAYMENT_INVOICED: 'PAYMENT_INVOICED',
   PAYMENT_PAID: 'PAYMENT_PAID',
   MESSAGE_QUEUED: 'MESSAGE_QUEUED',

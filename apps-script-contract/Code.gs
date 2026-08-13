@@ -255,7 +255,6 @@ function gwActions_() {
     { names: ['issueSignLink', 'signlink.issue'], handler: gwIssueLink_, admin: true, lock: true },
     { names: ['quickSend', 'contract.quickSend'], handler: gwQuickSend_, admin: true, lock: true },
     { names: ['voidContract', 'contract.void'], handler: gwVoid_, admin: true, lock: true },
-    { names: ['recordPayment', 'payment.update'], handler: gwPayment_, admin: true, lock: true },
     { names: ['backup', 'backup.export'], handler: gwBackup_, admin: true, lock: false },
     { names: ['exportCsv', 'contract.exportCsv', 'export.csv'], handler: gwExportCsv_, admin: true, lock: false },
     { names: ['notify.send', 'notifySend'], handler: gwNotify_, admin: true, lock: false },
@@ -585,7 +584,6 @@ function gwGetAdmin_(rq) { return getContract_(gwId_(rq.payload)); }
 function gwList_(rq) { return listContracts_(rq.payload); }
 function gwLock_(rq) { return lockContract_(gwId_(rq.payload), rq.ctx); }
 function gwVoid_(rq) { return voidContract_(gwId_(rq.payload), (rq.payload || {}).reason, rq.ctx); }
-function gwPayment_(rq) { return updatePayment_(rq.payload, rq.ctx); }
 function gwBackup_(rq) { return exportBackup_(rq.ctx); }
 function gwIssueLink_(rq) {
   var p = rq.payload || {};
@@ -950,7 +948,8 @@ function gwExportCsv_(rq) {
 
   var head = ['계약번호', '상태', '제목', '계약금액', '고객명', '연락처(마스킹)', '담당',
     '생성', '잠금', '발송', '열람', '서명', '완료', '취소',
-    '대금합계', '입금액', '미수금', '계약ID'];
+    // 입금액·미수금 칸은 없앴다(2026-08-13). 계약서 회차 합계만 낸다.
+    '대금합계', '계약ID'];
 
   var lines = [gwCsvRow_(head)];
   for (var r = 0; r < rows.length; r++) {
@@ -960,7 +959,7 @@ function gwExportCsv_(rq) {
       c.contractNo, c.status, c.title, c.amount, c.customerName, c.customerPhoneMasked, c.operatorName,
       gwWhen_(c.createdAt), gwWhen_(c.lockedAt), gwWhen_(c.sentAt), gwWhen_(c.viewedAt),
       gwWhen_(c.signedAt), gwWhen_(c.completedAt), gwWhen_(c.voidedAt),
-      pay.total || 0, pay.paid || 0, pay.receivable || 0, c.id
+      pay.total || 0, c.id
     ]));
   }
 

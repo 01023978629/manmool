@@ -292,8 +292,10 @@ for (const line of codeSource.split('\n')) {
 }
 const onlyProtocolLocks = [...protocolLocks].filter((name) => !codeLocks.has(name)).sort();
 const onlyCodeLocks = [...codeLocks].filter((name) => !protocolLocks.has(name)).sort();
-check(protocolLocks.size === 8 && codeLocks.size === 8,
-  '문서와 코드에서 잠금 동작 8개를 실제 원문으로 읽는다',
+// payment.update 를 없애 7개가 됐다(2026-08-13). 숫자를 못박는 이유는 아래 두 검사가
+// 양쪽 목록이 통째로 비어도 '차이 없음'으로 통과하기 때문이다 — 빈 목록끼리는 늘 같다.
+check(protocolLocks.size === 7 && codeLocks.size === 7,
+  '문서와 코드에서 잠금 동작 7개를 실제 원문으로 읽는다',
   '문서 ' + protocolLocks.size + '개 · 코드 ' + codeLocks.size + '개');
 check(onlyProtocolLocks.length === 0,
   'PROTOCOL 에만 있고 코드에서 잠그지 않는 동작이 없다', onlyProtocolLocks.join(', '));
@@ -416,7 +418,7 @@ check(uniq.length === 0, '없는 함수를 부르는 곳이 없다', uniq.slice(
 
 section('4) 규약이 요구하는 이름이 실제로 있는가');
 for (const fn of ['doGet', 'doPost', 'createContract_', 'getContract_', 'listContracts_', 'lockContract_',
-  'issueSignLink_', 'voidContract_', 'updatePayment_', 'exportBackup_',
+  'issueSignLink_', 'voidContract_', 'exportBackup_',
   'signView_', 'signSubmit_', 'doneView_', 'signBoot_', 'notifySend_',
   'contractFolder_', 'saveOriginal_', 'saveSignature_', 'saveCompletedPdf_', 'saveEvidenceJson_',
   'sha256Hex', 'hmacHex', 'randomToken', 'constantTimeEq',

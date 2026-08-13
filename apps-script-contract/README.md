@@ -255,7 +255,6 @@ node apps-script-contract/test/run.mjs
 | `issueSignLink` | `signlink.issue` | 관리자 | **원문 토큰을 이때 한 번만** 돌려줍니다 |
 | `quickSend` | `contract.quickSend` | 관리자 | 생성→잠금→링크발급을 한 번에(현장에서 실제로 쓰는 것) |
 | `voidContract` | `contract.void` | 관리자 | 취소 + 미사용 토큰 전부 무효화 |
-| `recordPayment` | `payment.update` | 관리자 | 청구·입금 표시 |
 | `backup` | `backup.export` | 관리자 | 전체를 JSON 으로 Drive 백업 폴더에 |
 | `exportCsv` | `contract.exportCsv` `export.csv` | 관리자 | 목록을 CSV 로 |
 | `signContract` | `sign.submit` | 고객 | 서명 저장 → 완료 PDF → 토큰 소진 |
