@@ -88,7 +88,6 @@ HTTP 상태는 언제나 200 입니다(Apps Script 제약). **`ok` 를 보고 �
 | `notify.send` | `{to, text, kind}` | 임의 문자 발송 시도. 발송이 꺼져 있으면 `sent:false` |
 | `ai.ask` | `{provider, model, body}` | **AI 중계.** 아래 참조 |
 | `ai.status` | — | 어떤 AI 가 준비됐는지·오늘 몇 건 썼는지. 키 값은 안 준다 |
-| `payment.update` | `{id, stage, status, memo?}` | 청구·입금 표시 |
 | `backup.export` | `{}` | 전체를 JSON 으로 Drive 백업 폴더에 저장 |
 | `settings.get` / `settings.set` | `{key,value}` | 비밀이 아닌 운영값만. 금지어 포함 키는 거부 |
 
@@ -206,7 +205,7 @@ HTTP 상태는 언제나 200 입니다(Apps Script 제약). **`ok` 를 보고 �
 ## 동시성
 
 `contract.create` · `contract.lock` · `signlink.issue` · `contract.quickSend` ·
-`contract.void` · `payment.update` · `settings.set` · `sign.submit` 은
+`contract.void` · `settings.set` · `sign.submit` 은
 `LockService.getScriptLock()` 안에서 실행합니다. 잠금을 못 잡으면 `BUSY` 로 **실패**합니다 —
 기다렸다가 두 번 쓰지 않습니다.
 

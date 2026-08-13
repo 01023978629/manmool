@@ -72,16 +72,6 @@ function normalizeAmount(v) {
   return Math.round(n);
 }
 
-// 미수금 = 아직 PAID 가 아닌 회차의 합.
-function outstanding(payments) {
-  var sum = 0;
-  for (var i = 0; i < (payments || []).length; i++) {
-    var p = payments[i] || {};
-    if (String(p.status || '').toUpperCase() !== 'PAID') sum += normalizeAmount(p.amount);
-  }
-  return sum;
-}
-
 function sumPayments(payments) {
   var sum = 0;
   for (var i = 0; i < (payments || []).length; i++) sum += normalizeAmount((payments[i] || {}).amount);
@@ -286,7 +276,7 @@ function formatWon(n) {
 var PURE_EXPORTS = {
   PURE_VERSION: PURE_VERSION, STATUS: STATUS, ALL_STATUS: ALL_STATUS,
   TERMINAL_STATUS: TERMINAL_STATUS, PAYMENT_RATIO: PAYMENT_RATIO, TRANSITIONS: TRANSITIONS,
-  paymentPlan: paymentPlan, normalizeAmount: normalizeAmount, outstanding: outstanding,
+  paymentPlan: paymentPlan, normalizeAmount: normalizeAmount,
   sumPayments: sumPayments, normPhone: normPhone, isValidMobile: isValidMobile,
   maskPhone: maskPhone, sheetSafe: sheetSafe, sheetUnsafeStrip: sheetUnsafeStrip,
   escHtml: escHtml, canonicalJson: canonicalJson, docHashSource: docHashSource,

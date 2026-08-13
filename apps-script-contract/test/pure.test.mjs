@@ -184,31 +184,18 @@ export default function register(T) {
    * ============================================================ */
   group('3) 금액 — 미수금과 표기');
 
-  test('미수금은 PAID 가 아닌 회차의 합이다', () => {
-    const ps = [
-      { amount: 500000, status: 'PAID' },
-      { amount: 400000, status: 'INVOICED' },
-      { amount: 100000, status: 'PENDING' }
-    ];
-    eq(P.outstanding(ps), 500000, '청구·미청구 합');
+  // 미수금 계산은 없앴다(2026-08-13 대표 결정 — 입금 여부는 통장을 본다).
+  // 회차 금액의 합계는 계약서 제3조를 확인하는 데 쓰이므로 남는다.
+  test('회차 합계는 회차 금액을 그대로 더한다', () => {
+    const ps = [{ amount: 500000 }, { amount: 400000 }, { amount: 100000 }];
     eq(P.sumPayments(ps), 1000000, '전체 합');
-  });
-
-  test('상태 글자가 소문자로 들어와도 PAID 로 본다', () => {
-    eq(P.outstanding([{ amount: 100, status: 'paid' }]), 0, '소문자 paid');
-    eq(P.outstanding([{ amount: 100, status: ' PAID' }]), 100, '앞에 공백이 붙으면 PAID 가 아니다');
-  });
-
-  test('빈 목록·null 은 0이다', () => {
-    eq(P.outstanding(null), 0, 'null');
-    eq(P.outstanding([]), 0, '빈 배열');
     eq(P.sumPayments(undefined), 0, 'undefined');
-    eq(P.outstanding([null, undefined]), 0, '빈 칸이 섞인 목록');
+    eq(P.sumPayments([]), 0, '빈 배열');
   });
 
-  test('상태가 없으면 미수로 본다 — 안 받은 돈을 받은 것으로 세지 않는다', () => {
-    eq(P.outstanding([{ amount: 100 }]), 100, '상태 없음');
-    eq(P.outstanding([{ amount: 100, status: '' }]), 100, '빈 상태');
+  test('미수금 계산은 더 이상 제공하지 않는다', () => {
+    // 되살아나면 대표 결정과 어긋난 채로 화면·CSV 가 다시 붙는다.
+    eq(typeof P.outstanding, 'undefined', 'outstanding 이 없어야 한다');
   });
 
   test('금액 표기에 세 자리마다 쉼표가 들어간다', () => {
@@ -995,8 +982,15 @@ export default function register(T) {
   });
 
   test('대금 시트에 세 회차를 구분할 열이 있다', () => {
-    for (const c of ['contractId', 'stage', 'seq', 'amount', 'status']) {
+    for (const c of ['contractId', 'stage', 'seq', 'amount']) {
       ok(S.COLS_PAYMENTS.indexOf(c) >= 0, `대금 시트에 ${c} 열이 없습니다`);
+    }
+  });
+
+  test('대금 시트에 입금 상태 열을 두지 않는다', () => {
+    // 열이 살아 있으면 어딘가에서 다시 채우기 시작하고, 그 값이 맞는지 아무도 확인하지 않는다.
+    for (const c of ['status', 'invoicedAt', 'paidAt']) {
+      ok(S.COLS_PAYMENTS.indexOf(c) < 0, `대금 시트에 ${c} 열이 남아 있습니다`);
     }
   });
 

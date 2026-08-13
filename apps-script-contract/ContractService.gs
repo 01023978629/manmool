@@ -56,9 +56,6 @@ var CT_BODY_JSON_MAX = 45000;             // 시트 한 칸은 5만자가 한계
 var CT_NO_RETRY = 5;                      // 계약번호 중복 시 다시 뽑아 볼 횟수
 
 var CT_PAYMENT_STAGES = ['down', 'mid', 'bal'];
-var CT_PAYMENT_STATUS = ['PENDING', 'INVOICED', 'PAID'];
-// 되돌리는 전이(PAID → PENDING 등)를 알아보기 위한 순서값. 되돌림도 허용하되 사건으로 남긴다.
-var CT_PAYMENT_RANK = { PENDING: 0, INVOICED: 1, PAID: 2 };
 
 // 서명 링크를 새로 낼 수 있는 상태. DRAFT(미잠금)와 종료상태(COMPLETED/VOID)는 제외한다.
 // SIGNING 을 넣어 둔 이유: 고객이 서명 화면까지 갔다가 링크를 잃어버리는 일이 실제로 있다.
@@ -136,8 +133,7 @@ function createContract_(p, ctx) {
       label: plan[i].label,
       seq: plan[i].seq,
       amount: plan[i].amount,
-      status: 'PENDING',
-      invoicedAt: '', paidAt: '', memo: '',
+      memo: '',
       updatedAt: now
     });
   }
@@ -175,9 +171,8 @@ function getContract_(id) {
   return {
     ok: true,
     contract: ctContractView_(c, true),
+    // 회차·금액은 계약서 제3조의 내용이라 그대로 준다. 입금 여부·미수금은 다루지 않는다.
     payments: payView,
-    // 미수금 = 아직 PAID 가 아닌 회차의 합. 계산 규칙은 Pure.gs 한 곳에만 둔다.
-    outstanding: outstanding(payView),
     events: events.items,
     eventsTruncated: events.truncated
   };
@@ -463,100 +458,12 @@ function voidContract_(id, reason, ctx) {
 }
 
 /* ============================================================
- * 7) 대금 청구·입금 표시
+ * 7) (비움) 대금 청구·입금 표시 — 제거됨
+ * ------------------------------------------------------------
+ * 대표 결정(2026-08-13): 1인 사업장에서 입금 여부는 통장을 보면 되는 일이라,
+ * 계약 서버가 회차별 입금 상태와 미수금을 따로 들고 있지 않는다.
+ * 계약서 제3조(대금의 지급)의 회차·금액·시점은 계약 내용이므로 그대로 둔다.
  * ============================================================ */
-/**
- * p = { id, stage, status, memo? }
- * PENDING / INVOICED / PAID 만 허용한다.
- * 되돌리는 전이(잘못 눌러 PAID 로 표시한 경우)도 허용하되, 반드시 사건으로 남긴다 —
- * 돈에 관한 표시가 소리 없이 바뀌면 나중에 무엇이 맞는지 아무도 모른다.
- */
-function updatePayment_(p, ctx) {
-  var q = p || {};
-  var contractId = String(q.id || '').trim();
-  var stage = String(q.stage || '').trim().toLowerCase();
-  var next = String(q.status || '').trim().toUpperCase();
-
-  if (!contractId) throw ctFail_('BAD_REQUEST', '계약 id 가 없습니다');
-  // 목록으로 확인한다. PAYMENT_LABEL[stage] 로 확인하면 stage 가 'toString' 처럼
-  // 모든 객체가 물려받는 이름일 때 통과해 버리고, 그 뒤 오류 문구에 자바스크립트 내부가 새어 나온다.
-  if (CT_PAYMENT_STAGES.indexOf(stage) < 0) {
-    throw ctFail_('BAD_REQUEST', '대금 회차는 down·mid·bal 중 하나여야 합니다');
-  }
-  if (CT_PAYMENT_STATUS.indexOf(next) < 0) {
-    throw ctFail_('BAD_REQUEST', '대금 상태는 PENDING·INVOICED·PAID 중 하나여야 합니다');
-  }
-
-  var hit = ctFindContract_(contractId);
-  var c = hit.obj;
-
-  var found = null;
-  var pays = ctPaymentsOf_(ctText_(c.id));
-  for (var i = 0; i < pays.length; i++) {
-    if (ctText_(pays[i].obj.stage).toLowerCase() === stage) { found = pays[i]; break; }
-  }
-  if (!found) throw ctFail_('NOT_FOUND', '그 계약에 ' + PAYMENT_LABEL[stage] + ' 항목이 없습니다');
-
-  var row = found.obj;
-  var cur = ctText_(row.status).toUpperCase() || 'PENDING';
-  var memo = String(q.memo == null ? '' : q.memo).slice(0, CT_TEXT_MAX).trim();
-  var now = ctNow_(ctx);
-
-  if (cur === next && !memo) {
-    return { ok: true, id: ctText_(c.id), stage: stage, label: ctText_(row.label),
-             amount: normalizeAmount(row.amount), status: cur, already: true };
-  }
-
-  var patch = { status: next, updatedAt: now };
-  if (memo) patch.memo = sheetSafe(memo);
-
-  // 시각 칸을 상태와 함께 맞춘다. 상태는 PENDING 인데 paidAt 이 남아 있으면
-  // 나중에 어느 쪽이 사실인지 판단할 수 없다.
-  if (next === 'PAID') {
-    patch.paidAt = ctText_(row.paidAt) || now;
-  } else if (next === 'INVOICED') {
-    patch.invoicedAt = ctText_(row.invoicedAt) || now;
-    patch.paidAt = '';
-  } else {
-    patch.invoicedAt = '';
-    patch.paidAt = '';
-  }
-
-  updateRow_(SHEETS.PAYMENTS, found.rowIndex, patch);
-
-  var reverted = CT_PAYMENT_RANK[next] < CT_PAYMENT_RANK[cur];
-  var amount = normalizeAmount(row.amount);
-  var label = ctText_(row.label) || PAYMENT_LABEL[stage];
-  var detail = ctText_(c.contractNo) + ' ' + label + ' ' + formatWon(amount) + '원 · '
-    + cur + ' → ' + next + (reverted ? ' (되돌림)' : '')
-    + (ctText_(c.status) === STATUS.VOID ? ' · 취소된 계약' : '')
-    + (memo ? ' · ' + sheetSafe(memo) : '');
-
-  logEvent_(ctText_(c.id), ctPaymentEvent_(next, reverted), detail, ctx);
-
-  // 바뀐 뒤의 미수금을 함께 준다. 앱이 다시 물어보지 않아도 되게.
-  var after = [];
-  for (var j = 0; j < pays.length; j++) {
-    var view = ctPaymentView_(pays[j].obj);
-    if (pays[j].rowIndex === found.rowIndex) view.status = next;
-    after.push(view);
-  }
-
-  return {
-    ok: true,
-    id: ctText_(c.id),
-    contractNo: ctText_(c.contractNo),
-    stage: stage,
-    label: label,
-    amount: amount,
-    from: cur,
-    status: next,
-    reverted: reverted,
-    memo: memo,
-    outstanding: outstanding(after),
-    updatedAt: now
-  };
-}
 
 /* ============================================================
  * 8) 전체 백업 내보내기
@@ -831,32 +738,24 @@ function ctPaymentView_(p) {
     label: ctText_(p.label),
     seq: parseInt(p.seq, 10) || 0,
     amount: normalizeAmount(p.amount),
-    status: ctText_(p.status).toUpperCase() || 'PENDING',
-    invoicedAt: ctIso_(p.invoicedAt),
-    paidAt: ctIso_(p.paidAt),
     memo: ctText_(p.memo),
     updatedAt: ctIso_(p.updatedAt)
   };
 }
+// 회차 금액의 합계만 낸다. 입금 여부는 이 서버가 다루지 않는다.
 function ctPaymentSummary_(rows) {
-  var sum = { total: 0, paid: 0, invoiced: 0, pending: 0, receivable: 0, stages: 0 };
+  var sum = { total: 0, stages: 0 };
   for (var i = 0; i < (rows || []).length; i++) {
-    var amount = normalizeAmount(rows[i].amount);
-    var st = ctText_(rows[i].status).toUpperCase() || 'PENDING';
-    sum.total += amount;
+    sum.total += normalizeAmount(rows[i].amount);
     sum.stages++;
-    if (st === 'PAID') sum.paid += amount;
-    else if (st === 'INVOICED') sum.invoiced += amount;
-    else sum.pending += amount;
   }
-  sum.receivable = sum.total - sum.paid;
   return sum;
 }
 function ctPlanView_(plan) {
   var out = [];
   for (var i = 0; i < plan.length; i++) {
     out.push({ stage: plan[i].stage, label: plan[i].label, seq: plan[i].seq,
-               amount: plan[i].amount, status: 'PENDING' });
+               amount: plan[i].amount });
   }
   return out;
 }
@@ -888,15 +787,6 @@ function ctReserveContractNo_(nowIso) {
     if (!findRow_(SHEETS.CONTRACTS, 'contractNo', no)) return no;
   }
   throw ctFail_('SERVER_ERROR', '계약번호를 발급하지 못했습니다 — 잠시 후 다시 시도해 주세요');
-}
-
-/* ---------- 대금 사건 이름 ---------- */
-// Schema.gs 의 EVENTS 에는 '되돌림' 전용 이름이 없다. 여기서 새 이름을 지어내면
-// Schema.gs 와 어긋나므로, 가장 가까운 이름으로 남기고 detail 에 '(되돌림)'을 분명히 적는다.
-// 집계할 때는 detail 을 함께 보아야 한다는 뜻이다.
-function ctPaymentEvent_(next) {
-  if (next === 'PAID') return EVENTS.PAYMENT_PAID;
-  return EVENTS.PAYMENT_INVOICED;
 }
 
 /* ---------- 본문 ---------- */
@@ -1112,17 +1002,10 @@ function ctBackupSummary_(dump) {
     if (st !== STATUS.VOID) amountLive += a;   // 취소분을 뺀 합계도 함께 둔다
   }
 
+  // 회차 수와 금액 합계만 센다. 입금 여부·미수금은 이 서버가 다루지 않는다.
   var ps = dump[SHEETS.PAYMENTS] || [];
-  var pay = { count: ps.length, total: 0, paid: 0, invoiced: 0, pending: 0, receivable: 0 };
-  for (var j = 0; j < ps.length; j++) {
-    var amount = normalizeAmount(ps[j].amount);
-    var status = ctText_(ps[j].status).toUpperCase() || 'PENDING';
-    pay.total += amount;
-    if (status === 'PAID') pay.paid += amount;
-    else if (status === 'INVOICED') pay.invoiced += amount;
-    else pay.pending += amount;
-  }
-  pay.receivable = pay.total - pay.paid;
+  var pay = { count: ps.length, total: 0 };
+  for (var j = 0; j < ps.length; j++) pay.total += normalizeAmount(ps[j].amount);
 
   var toks = dump[SHEETS.TOKENS] || [];
   var live = 0;

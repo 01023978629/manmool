@@ -5,7 +5,7 @@
   이 화면이 하는 일 (사장님이 PC·폰에서 계약을 살펴보는 창)
     · 관리자 토큰으로 들어가기 — 토큰은 **이 탭에만**(sessionStorage) 잠깐 둔다
     · 계약 목록: 번호·제목·고객·금액·상태·날짜 / 상태 필터 / 번호·고객명 검색
-    · 계약 상세: 대금 3회차 청구·입금 표시, 서명 링크 재발급, 계약 취소, 사건 이력
+    · 계약 상세: 대금 3회차(계약서 회차·금액), 서명 링크 재발급, 계약 취소, 사건 이력
     · CSV 내보내기 · 백업 실행 · 자가진단(selfTest) · 상태 점검(health)
 
   이 화면이 하지 않는 일
@@ -36,7 +36,7 @@
     통로가 둘이면 토큰 검사·시각 검사·중복요청 처리를 두 곳에 짜야 하고,
     언젠가 한쪽만 고쳐진다.
 
-  ★ 동작 이름은 사장님이 지정한 이름이 정본이다(listContracts·recordPayment…).
+  ★ 동작 이름은 사장님이 지정한 이름이 정본이다(listContracts·voidContract…).
     PROTOCOL.md 의 점 표기(contract.list…)는 별칭으로 함께 보내 본다. 아래 ACT 한 곳에만 있다.
 
   ★ 자바스크립트는 ES5 로만(var·function). 사장님이 쓰시는 폰·PC 브라우저를 가리지 않게 한다.
@@ -250,7 +250,7 @@ footer{max-width:1080px;margin:0 auto;padding:20px 14px 48px;color:var(--ink-fai
         <table>
           <thead><tr>
             <th>계약번호</th><th>제목</th><th>고객</th><th class="r">금액</th>
-            <th>상태</th><th>등록일</th><th class="r">미수금</th>
+            <th>상태</th><th>등록일</th>
           </tr></thead>
           <tbody id="listBody"></tbody>
         </table>
@@ -291,7 +291,6 @@ footer{max-width:1080px;margin:0 auto;padding:20px 14px 48px;color:var(--ink-fai
   var ACT = {
     list:   { name: 'listContracts', alias: 'contract.list' },
     get:    { name: 'getContract',   alias: 'contract.get' },
-    pay:    { name: 'recordPayment', alias: 'payment.update' },
     link:   { name: 'issueSignLink', alias: 'signlink.issue' },
     voidC:  { name: 'voidContract',  alias: 'contract.void' },
     backup: { name: 'backup',        alias: 'backup.export' },
@@ -313,7 +312,6 @@ footer{max-width:1080px;margin:0 auto;padding:20px 14px 48px;color:var(--ink-fai
     DRAFT: '작성중', LOCKED: '잠금(확정)', SENT: '발송됨', VIEWED: '열람함',
     SIGNING: '서명중', COMPLETED: '체결완료', VOID: '취소됨'
   };
-  var PAY_KO = { PENDING: '대기', INVOICED: '청구함', PAID: '입금확인' };
   var EV_KO = {
     CONTRACT_CREATED: '계약 생성', CONTRACT_LOCKED: '본문 확정(잠금)',
     SIGN_LINK_ISSUED: '서명 링크 발급', SIGN_LINK_OPENED: '고객이 링크 열람',
@@ -541,9 +539,6 @@ footer{max-width:1080px;margin:0 auto;padding:20px 14px 48px;color:var(--ink-fai
 
     tr.appendChild(el('td', 'num', when(c.createdAt, false)));
 
-    var recv = (c.payment && c.payment.receivable != null) ? c.payment.receivable : null;
-    tr.appendChild(el('td', 'r num', recv == null ? '—' : won(recv) + '원'));
-
     tr.onclick = function () { openDetail(str(c.id)); };
     return tr;
   }
@@ -600,7 +595,6 @@ footer{max-width:1080px;margin:0 auto;padding:20px 14px 48px;color:var(--ink-fai
     kv(card, '계약금액', won(c.amount) + '원');
     kv(card, '고객(갑)', str(c.customerName) + (c.customerPhoneMasked ? ' · ' + c.customerPhoneMasked : ''));
     kv(card, '수급인(을)', str(c.operatorName));
-    kv(card, '미수금', res.outstanding != null ? won(res.outstanding) + '원' : '');
     kv(card, '등록', when(c.createdAt));
     kv(card, '잠금(본문 확정)', when(c.lockedAt));
     kv(card, '링크 발송', when(c.sentAt));
@@ -617,7 +611,8 @@ footer{max-width:1080px;margin:0 auto;padding:20px 14px 48px;color:var(--ink-fai
     var tb = el('table', 'pay');
     var thead = el('thead');
     var htr = el('tr');
-    var hs = ['회차', '금액', '상태', '표시 시각', '표시하기'];
+    // 입금 표시 기능을 없앴다(2026-08-13). 계약서 제3조의 회차·금액만 보여준다.
+    var hs = ['회차', '금액'];
     for (var h = 0; h < hs.length; h++) {
       var th = el('th', h === 1 ? 'r' : null, hs[h]);
       htr.appendChild(th);
@@ -734,46 +729,7 @@ footer{max-width:1080px;margin:0 auto;padding:20px 14px 48px;color:var(--ink-fai
     var tr = el('tr');
     tr.appendChild(el('td', null, str(p.label) || str(p.stage)));
     tr.appendChild(el('td', 'r num', won(p.amount) + '원'));
-
-    var st = str(p.status).toUpperCase() || 'PENDING';
-    tr.appendChild(el('td', null, PAY_KO[st] || st));
-    tr.appendChild(el('td', 'num', when(p.paidAt) || when(p.invoicedAt) || '—'));
-
-    var td = el('td');
-    var row = el('div', 'btnrow');
-    row.appendChild(payBtn(c, p, 'INVOICED', '청구 표시', st === 'INVOICED'));
-    row.appendChild(payBtn(c, p, 'PAID', '입금 표시', st === 'PAID'));
-    row.appendChild(payBtn(c, p, 'PENDING', '대기로 되돌리기', st === 'PENDING'));
-    td.appendChild(row);
-    if (p.memo) td.appendChild(el('div', 'note', '메모: ' + str(p.memo)));
-    tr.appendChild(td);
     return tr;
-  }
-
-  function payBtn(c, p, next, label, isNow) {
-    var b = el('button', 'btn btn-sm ' + (next === 'PAID' ? 'btn-main' : 'btn-sub'), label);
-    b.type = 'button';
-    b.disabled = !!isNow;
-    b.onclick = function () {
-      // 돈에 관한 표시는 한 번 더 묻는다. 잘못 눌러도 기록에는 남는다.
-      ask(str(c.contractNo) + ' ' + (str(p.label) || str(p.stage)) + ' ' + won(p.amount) + '원을 “'
-        + (PAY_KO[next] || next) + '”로 표시합니다. 진행할까요?', function () {
-        setPay(str(c.id), str(p.stage), next);
-      });
-    };
-    return b;
-  }
-
-  function setPay(id, stage, next) {
-    api(ACT.pay, { id: id, stage: stage, status: next }, { timeout: TIMEOUT }, function (err, res) {
-      if (err) { log('bad', '대금 표시를 바꾸지 못했습니다 — ' + why(err)); return; }
-      S.dirty = true;      // 목록의 미수금이 옛것이 되었다
-      log('good', str(res.contractNo) + ' ' + str(res.label) + ' ' + won(res.amount) + '원 → '
-        + (PAY_KO[str(res.status)] || str(res.status))
-        + (res.reverted ? ' (되돌림)' : '')
-        + ' · 미수금 ' + won(res.outstanding) + '원');
-      openDetail(id);      // 서버가 확정한 값으로 화면을 다시 그린다
-    });
   }
 
   function issueLink(id, ttl, card) {
@@ -926,15 +882,14 @@ footer{max-width:1080px;margin:0 auto;padding:20px 14px 48px;color:var(--ink-fai
 
   // 화면에 불러온 목록으로 만드는 CSV(서버가 못 줄 때의 대비).
   function localCsv() {
-    var cols = ['계약번호', '제목', '고객', '연락처(마스킹)', '금액', '상태', '등록일', '체결일', '미수금'];
+    var cols = ['계약번호', '제목', '고객', '연락처(마스킹)', '금액', '상태', '등록일', '체결일'];
     var lines = [cols.join(',')];
     for (var i = 0; i < S.items.length; i++) {
       var c = S.items[i] || {};
-      var recv = (c.payment && c.payment.receivable != null) ? c.payment.receivable : '';
       lines.push([
         csvCell(c.contractNo), csvCell(c.title), csvCell(c.customerName), csvCell(c.customerPhoneMasked),
         csvCell(c.amount), csvCell(ST_KO[str(c.status)] || str(c.status)),
-        csvCell(when(c.createdAt, false)), csvCell(when(c.completedAt, false)), csvCell(recv)
+        csvCell(when(c.createdAt, false)), csvCell(when(c.completedAt, false))
       ].join(','));
     }
     return lines.join('\r\n');
