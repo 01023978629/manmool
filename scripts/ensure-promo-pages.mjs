@@ -40,8 +40,12 @@ check(/"@type": "FAQPage"/.test(leakHead), 'leak.html FAQ 구조화 데이터가
 check(/og:image/.test(leakHead) && /case-hanbat-drain\.jpg/.test(leakHead), 'leak.html 공유용 실제 현장 이미지가 없다');
 check((leak.match(/class="case-card registered-case"/g) || []).length === 3,
   'leak.html 실제 사례·공정 카드가 3개가 아니다');
-check((leak.match(/assets\/cases\/case-(?:hanbat-drain|blue-floor|blue-mesh)\.jpg/g) || []).length >= 4,
+check((leak.match(/assets\/cases\/(?:case-(?:hanbat-drain|blue-floor)|samsung-apartment-drain-(?:before|after-wide))\.jpg/g) || []).length >= 4,
   'leak.html 사례 카드가 검증한 실제 공정 사진을 사용하지 않는다');
+check(/case-photo-pair two-photos/.test(leak)
+  && /samsung-apartment-drain-before\.jpg/.test(leak)
+  && /samsung-apartment-drain-after-wide\.jpg/.test(leak),
+  '삼성아파트 사례의 작업 전후 사진이 누수 페이지에 함께 연결되지 않았다');
 // 예전에는 인테리어 폼(index.html?type=누수#inquiry)으로 넘겼다. 지금은 누수 페이지
 // 안에서 바로 접수한다 — 급한 손님을 다른 페이지로 한 번 더 보내지 않기 위해서다.
 // 검사하는 것은 '어느 주소로 가느냐'가 아니라 '접수까지 이어지느냐'이다.
