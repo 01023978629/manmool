@@ -100,6 +100,17 @@
   ],
   "actualWork": [
     {
+      "image": "assets/cases/samsung-apartment-drain-after-wide.jpg",
+      "beforeImage": "assets/cases/samsung-apartment-drain-before.jpg",
+      "afterImage": "assets/cases/samsung-apartment-drain-after-wide.jpg",
+      "imageAlt": "대전 삼성아파트 욕실 천장 내부의 오수관과 생활하수 배관을 교체한 실제 현장",
+      "label": "실제 현장 · 배관 교체",
+      "title": "삼성아파트 오수관·생활하수 배관 교체",
+      "desc": "기존 배관 상태, 일부 벽 철거, 새 배관과 연결부 정리 과정을 전후 사진으로 기록했습니다.",
+      "href": "posts/samsung-apartment-drain-pipe-replacement.html",
+      "cta": "전후 사례 보기"
+    },
+    {
       "image": "assets/cases/case-hanbat-drain.jpg",
       "imageAlt": "천장 아래 생활하수관을 새 배관으로 교체한 실제 현장",
       "label": "실제 현장 · 배관 교체",
@@ -116,15 +127,6 @@
       "desc": "타일 뒤에 가려지는 벽·바닥 방수 공정을 사진으로 남깁니다.",
       "href": "posts/bathroom-waterproof-signs.html",
       "cta": "점검 기준 보기"
-    },
-    {
-      "image": "assets/cases/case-blue-mesh.jpg",
-      "imageAlt": "욕실 방수 보강망과 배관을 시공한 실제 공정",
-      "label": "실제 공정 · 방수 보강",
-      "title": "방수 보강망·배관 매립 전 확인",
-      "desc": "준공 후 하자 판단의 근거가 되는 숨은 공정을 보관합니다.",
-      "href": "posts/warranty-5-checks.html",
-      "cta": "보증 기준 보기"
     }
   ],
   "leakPricing": {
@@ -11467,6 +11469,75 @@
     ]
   },
   "insights": [
+    {
+      "slug": "samsung-apartment-drain-pipe-replacement",
+      "title": "대전 삼성아파트 오수관·생활하수 배관 교체 — 일부 벽 철거부터 연결부 정리까지",
+      "category": "방수·설비",
+      "date": "2026-08-13",
+      "readMin": 4,
+      "cover": "#657683",
+      "image": "assets/cases/samsung-apartment-drain-after-wide.jpg",
+      "imageAlt": "대전 삼성아파트 욕실 천장 내부에 새로 교체한 생활하수 배관과 연결부 전체 모습",
+      "excerpt": "대전 삼성아파트 욕실 천장 내부에서 기존 오수관과 생활하수 배관을 철거하고 새 배관으로 교체한 현장입니다. 일부 벽 철거부터 연결부·점검구 정리까지 실제 사진 7장으로 남겼습니다.",
+      "body": [
+        {
+          "h": "어떤 공사였나요",
+          "p": "욕실 천장 내부의 기존 오수관과 생활하수 배관을 교체한 현장입니다. 배관이 벽체를 통과하는 구간은 작업 공간을 확보하기 위해 일부 벽을 철거했고, 교체 전 상태와 새 배관 설치 상태를 순서대로 촬영했습니다.",
+          "img": "assets/cases/samsung-apartment-drain-before.jpg",
+          "imgAlt": "교체 전 욕실 천장 내부의 기존 생활하수 배관과 연결부",
+          "imgCaption": "교체 전 기존 생활하수 배관"
+        },
+        {
+          "h": "벽체 관통부 작업 공간 확보",
+          "p": "배관이 벽 안쪽으로 이어지는 구간을 확인하고 교체 작업을 할 수 있도록 필요한 범위만 벽을 열었습니다. 사진에는 기존 배관이 벽체를 통과하는 지점과 철거 범위가 함께 보입니다.",
+          "img": "assets/cases/samsung-apartment-wall-opening.jpg",
+          "imgAlt": "오수관이 벽체를 통과하는 지점을 확인하기 위해 일부 벽을 철거한 모습",
+          "imgCaption": "배관 관통부 확인을 위한 일부 벽 철거"
+        },
+        {
+          "h": "오수관 교체",
+          "p": "천장과 벽체를 지나는 오수관 구간을 새 배관으로 교체했습니다. 배관 방향과 점검이 가능한 위치를 확인할 수 있도록 전체 구간과 연결부를 사진으로 남겼습니다.",
+          "img": "assets/cases/samsung-apartment-soil-pipe-after-01.jpg",
+          "imgAlt": "욕실 천장과 벽체 사이에 새로 교체한 오수관과 점검구",
+          "imgCaption": "새로 교체한 오수관 구간"
+        },
+        {
+          "h": "다른 각도에서 확인한 오수관 연결",
+          "p": "한 장의 사진만으로는 벽체 관통부와 연결 방향을 확인하기 어려워 반대쪽 각도에서도 기록했습니다. 추후 점검이 필요할 때 배관 경로를 다시 확인할 수 있는 현장 자료입니다.",
+          "img": "assets/cases/samsung-apartment-soil-pipe-after-02.jpg",
+          "imgAlt": "다른 각도에서 촬영한 교체 완료 오수관과 벽체 관통부",
+          "imgCaption": "벽체 관통부와 오수관 연결 방향"
+        },
+        {
+          "h": "생활하수 배관 교체 완료",
+          "p": "기존의 어두운색 생활하수 배관 구간은 새 배관으로 교체했습니다. 천장 내부 전체 배관 흐름과 양쪽 연결 위치가 한눈에 보이도록 넓게 촬영했습니다.",
+          "img": "assets/cases/samsung-apartment-drain-after-wide.jpg",
+          "imgAlt": "욕실 천장 내부의 생활하수 배관을 새 배관으로 교체한 전체 모습",
+          "imgCaption": "생활하수 배관 교체 후 전체 모습"
+        },
+        {
+          "h": "연결부와 점검구 기록",
+          "p": "배관 공사는 천장을 닫으면 연결부가 보이지 않기 때문에, 이음부와 아래쪽 점검 구간을 가까이서 촬영해 두었습니다. 이번 사례에는 사진으로 확인되는 시공 범위만 기록했으며, 통수시험 결과처럼 사진으로 확인되지 않는 내용은 임의로 적지 않았습니다.",
+          "img": "assets/cases/samsung-apartment-drain-after-detail.jpg",
+          "imgAlt": "새 생활하수 배관의 이음부와 아래쪽 점검 구간 근접 사진",
+          "imgCaption": "배관 이음부와 점검 구간"
+        },
+        {
+          "h": "천장 내부 전체 정리 상태",
+          "p": "오수관과 생활하수 배관을 함께 확인할 수 있도록 천장 내부 전경도 남겼습니다. 만물인테리어는 마감 뒤 가려지는 배관 작업도 공정 사진으로 보관해 추후 확인 자료로 활용합니다.",
+          "img": "assets/cases/samsung-apartment-drain-after-overview.jpg",
+          "imgAlt": "오수관과 생활하수 배관 교체 후 욕실 천장 내부 전체 모습",
+          "imgCaption": "교체 작업 후 천장 내부 전경"
+        },
+        {
+          "h": "대전 배관 교체·누수 점검 상담",
+          "p": "욕실 천장에서 배수 냄새, 물 떨어지는 소리, 천장 얼룩이 확인되거나 오래된 배관 상태가 걱정된다면 천장을 모두 철거하기 전에 현장 상태부터 확인하는 것이 좋습니다. 만물인테리어는 확인한 범위와 필요한 공사를 먼저 설명하고, 동의받은 범위 안에서 작업합니다."
+        }
+      ],
+      "place": {
+        "name": "대전 삼성아파트"
+      }
+    },
     {
       "slug": "hanbat-drain-replacement",
       "title": "한밭유성아파트 생활하수관 교체 — 물 테스트까지 확인하고 마무리했습니다",

@@ -134,9 +134,14 @@ function renderActualWork(items) {
   grid.innerHTML = items.slice(0, 6).map((item) => {
     const href = safeContentUrl(item.href, '#inquiry');
     const image = safeContentUrl(item.image, '');
+    const beforeImage = item.beforeImage ? safeContentUrl(item.beforeImage, '') : '';
+    const afterImage = item.afterImage ? safeContentUrl(item.afterImage, '') : '';
+    const photo = beforeImage && afterImage
+      ? `<span class="real-work-before-after"><span><img src="${escapeContent(beforeImage)}" loading="lazy" decoding="async" alt="${escapeContent(`${item.title} 작업 전`)}" /><i>작업 전</i></span><span><img src="${escapeContent(afterImage)}" loading="lazy" decoding="async" alt="${escapeContent(`${item.title} 교체 완료`)}" /><i>교체 완료</i></span></span>`
+      : (image ? `<img src="${escapeContent(image)}" loading="lazy" decoding="async" alt="${escapeContent(item.imageAlt || item.title)}" />` : '');
     return `
       <a class="real-work-card" href="${escapeContent(href)}">
-        <span class="real-work-photo">${image ? `<img src="${escapeContent(image)}" loading="lazy" decoding="async" alt="${escapeContent(item.imageAlt || item.title)}" />` : ''}<em>${escapeContent(item.label || '실제 현장')}</em></span>
+        <span class="real-work-photo">${photo}<em>${escapeContent(item.label || '실제 현장')}</em></span>
         <span class="real-work-copy"><strong>${escapeContent(item.title)}</strong><small>${escapeContent(item.desc)}</small><b>${escapeContent(item.cta || '사례 보기')} →</b></span>
       </a>`;
   }).join('');
