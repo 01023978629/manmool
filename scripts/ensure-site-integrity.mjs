@@ -11,6 +11,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import vm from 'node:vm';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const fail = [];
@@ -96,15 +97,44 @@ const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
   }
 }
 
+/* 동·호수 판별 규칙은 js/pii-rules.js 가 정본이다. 여기에 사본을 두면
+ * 등록 화면은 막는데 배포 검사는 통과시키는(또는 그 반대) 일이 생긴다. */
+const UNIT_RULES = (() => {
+  const src = readIf('js/pii-rules.js');
+  if (!src) { fail.push('js/pii-rules.js 를 읽지 못했다 — 개인정보 규칙 없이 검사할 수 없다'); return []; }
+  const sandbox = { window: undefined };
+  vm.createContext(sandbox);
+  vm.runInContext(src + '\n;MANMUL_PII_RULES;', sandbox, { filename: 'js/pii-rules.js' });
+  const rules = sandbox.MANMUL_PII_RULES;
+  if (!Array.isArray(rules) || !rules.length) { fail.push('js/pii-rules.js 에서 규칙을 읽지 못했다'); return []; }
+  // 샌드박스 배열은 realm 이 달라 그대로 쓰면 안 된다 — 값만 옮긴다
+  const out = Array.from(rules, (r) => [String(r[0]), r[1]]).filter((r) => r[0] === '동·호수').map((r) => r[1]);
+  if (!out.length) { fail.push('js/pii-rules.js 에 동·호수 규칙이 없다 — 규칙 이름이 바뀌었는지 확인하라'); return []; }
+  return out;
+})();
+
 /* ⓪-1 발행 글 본문에 세대 식별자가 없는가 ------------------------------
  * 현장앱 후기 재료는 동·호수를 빼지만, 사람이 붙여넣는 과정에서 다시 들어올 수 있다.
- * URL·전화 CTA 같은 공통 껍데기는 제외하고 실제 post-body 만 검사한다. */
+ * URL·전화 CTA 같은 공통 껍데기는 제외하고 실제 post-body 만 검사한다.
+ *
+ * 끝을 <div class="post-cta"> 로 잡는다. 예전에는 첫 </div> 까지만 봤는데,
+ * 위치 블록(<aside class="post-place"><div class="pp-body">…</div>)이 본문 맨
+ * 앞에 붙는 사례 글에서는 그 </div> 에서 검사가 끊겼다. 그 결과 **단지 이름을
+ * 실제로 밝히는 글에서만** 본문의 86% 가 무검사로 나갔다(한밭유성 13.5%,
+ * 삼성아파트 13.8% / 나머지 12개 글 96~99%). 동·호수가 샐 위험이 가장 큰
+ * 바로 그 글에서 초록불이 거짓말을 하고 있었다. */
 for (const rel of htmlFiles.filter((f) => f.startsWith('posts/'))) {
   const src = readIf(rel) || '';
-  const body = (src.match(/<div class="post-body">([\s\S]*?)<\/div>/) || [null, ''])[1];
+  const after = src.split('<div class="post-body">')[1];
+  if (after === undefined) { fail.push(`${rel} 에 post-body 가 없다 — 검사가 본문을 못 찾으면 통과시키지 않는다`); continue; }
+  const body = after.split('<div class="post-cta">')[0];
+  if (body === after) { fail.push(`${rel} 에 post-cta 가 없다 — 본문 끝을 못 찾으면 통과시키지 않는다`); continue; }
   checked++;
-  const m = body.match(/\d{1,4}\s*(?:동|호)(?=$|[^가-힣])/);
-  if (m) fail.push(`${rel} 본문에 세대 식별자로 보이는 "${m[0]}"가 있다 — 동·호수는 공개 글에 넣지 마라`);
+  const text = body.replace(/<[^>]+>/g, ' ');   // 태그 안 경로(assets/…-09/호텔식)에 걸리지 않게
+  for (const re of UNIT_RULES) {
+    const m = text.match(re);
+    if (m) { fail.push(`${rel} 본문에 세대 식별자로 보이는 "${m[0].trim()}"가 있다 — 동·호수는 공개 글에 넣지 마라`); break; }
+  }
 }
 
 /* ⓪-2 blog.html 에 목록이 정확히 한 벌인가 (중복 누적 방지) ------------

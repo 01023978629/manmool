@@ -36,6 +36,22 @@ for (const [indexNo, item] of (site.actualWork || []).entries()) {
   check(fs.existsSync(path.join(ROOT, item.image || 'missing')), `실제 현장 ${indexNo + 1}번 사진 파일이 없습니다: ${item.image}`);
 }
 check(/id="actualWorkGrid"/.test(index) && /renderActualWork\(data\.actualWork\)/.test(main), '실제 현장 데이터가 공개 대문에 연결되지 않았습니다.');
+
+/* 대문의 정적 카드가 site.json 과 같은 사례를 가리키는가 --------------------
+ * renderActualWork 가 실행되면 innerHTML 을 통째로 갈아끼우므로, JS 를 켠
+ * 손님은 항상 site.json 대로 본다. 문제는 그 앞뒤다 — JS 를 안 돌리는 크롤러,
+ * 스크립트 로드 실패, 로드 직전 한순간에는 index.html 에 박아 둔 카드가 그대로
+ * 보인다. 실제로 #118 병합 뒤 대문 정적 카드는 내린 사례를 계속 보여 주고
+ * 새 사례로 가는 링크는 하나도 없는 상태였다. 두 벌이 존재하는 한 조용히
+ * 갈라지므로, 최소한 "어느 글을 가리키는가"만은 맞춰 둔다. */
+{
+  const grid = (index.split('id="actualWorkGrid">')[1] || '').split('<div class="real-work-note"')[0];
+  const staticHrefs = [...grid.matchAll(/class="real-work-card" href="([^"]+)"/g)].map((m) => m[1]);
+  const dataHrefs = (site.actualWork || []).slice(0, 6).map((x) => x.href);
+  check(staticHrefs.length > 0, '대문에서 정적 실제 현장 카드를 찾지 못했습니다.');
+  check(JSON.stringify(staticHrefs) === JSON.stringify(dataHrefs),
+    `대문 정적 실제 현장 카드가 data/site.json 과 다릅니다.\n      대문: ${JSON.stringify(staticHrefs)}\n      정본: ${JSON.stringify(dataHrefs)}`);
+}
 check(!/href="admin\.html"/.test(index), '공개 대문에 관리자 링크가 다시 노출됐습니다.');
 
 check(/id="projectGuide"/.test(index), '공사 시작 가이드가 없습니다.');

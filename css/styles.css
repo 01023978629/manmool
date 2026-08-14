@@ -211,6 +211,10 @@ body.content-preview .site-header { top: 46px; }
 .real-work-before-after i { position: absolute; left: 10px; bottom: 10px; padding: 4px 7px; border-radius: 4px; background: rgba(28,24,20,.78); color: #fff; font-size: 10px; font-style: normal; font-weight: 800; letter-spacing: .05em; }
 .real-work-card:hover .real-work-photo img { transform: scale(1.025); }
 .real-work-photo em { position: absolute; left: 13px; bottom: 13px; padding: 6px 11px; border-radius: 999px; color: #fff; background: rgba(25,27,27,.72); font-size: 12px; font-style: normal; font-weight: 800; }
+/* 2분할 카드에서는 '실제 현장 · …' 배지를 위로 올린다. 아래에 두면 왼쪽 사진의
+   '작업 전' 칩과 같은 좌하단을 차지해 그 칩을 덮어버린다 — 손님 눈에는 전/후
+   구분이 사라지고 낡은 배관 사진이 시공 결과처럼 읽힌다. */
+.real-work-before-after + em { top: 13px; bottom: auto; }
 .real-work-copy { display: flex; flex: 1; flex-direction: column; padding: 20px; }
 .real-work-copy strong { font-size: 18px; line-height: 1.45; }
 .real-work-copy small { margin-top: 9px; color: var(--ink-soft); font-size: 13.5px; line-height: 1.65; }
