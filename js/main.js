@@ -137,7 +137,9 @@ function renderActualWork(items) {
     const beforeImage = item.beforeImage ? safeContentUrl(item.beforeImage, '') : '';
     const afterImage = item.afterImage ? safeContentUrl(item.afterImage, '') : '';
     const photo = beforeImage && afterImage
-      ? `<span class="real-work-before-after"><span><img src="${escapeContent(beforeImage)}" loading="lazy" decoding="async" alt="${escapeContent(`${item.title} 작업 전`)}" /><i>작업 전</i></span><span><img src="${escapeContent(afterImage)}" loading="lazy" decoding="async" alt="${escapeContent(`${item.title} 교체 완료`)}" /><i>교체 완료</i></span></span>`
+      // 뒷사진 alt 는 imageAlt(그 사진을 실제로 설명하는 문장)를 쓴다. 제목에 이어
+      // 붙이면 "…배관 교체 교체 완료" 처럼 읽혀 화면 낭독이 이상해진다.
+      ? `<span class="real-work-before-after"><span><img src="${escapeContent(beforeImage)}" loading="lazy" decoding="async" alt="${escapeContent(`${item.title} 작업 전`)}" /><i>작업 전</i></span><span><img src="${escapeContent(afterImage)}" loading="lazy" decoding="async" alt="${escapeContent(item.imageAlt || `${item.title} 작업 후`)}" /><i>교체 완료</i></span></span>`
       : (image ? `<img src="${escapeContent(image)}" loading="lazy" decoding="async" alt="${escapeContent(item.imageAlt || item.title)}" />` : '');
     return `
       <a class="real-work-card" href="${escapeContent(href)}">
