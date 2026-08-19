@@ -8,6 +8,7 @@ const index = read('index.html');
 const leak = read('leak.html');
 const main = read('js/main.js');
 const inquiry = read('js/inquiry.js');
+const leakTheme = read('css/leak-theme.css');
 const site = JSON.parse(read('data/site.json'));
 const fail = [];
 const check = (condition, message) => { if (!condition) fail.push(message); };
@@ -38,10 +39,18 @@ check(/data-surface="leak-only"/.test(index) && /section\.dataset\.surface === '
 check(/"@type": "HomeAndConstructionBusiness"/.test(leakHead), 'leak.html 지역 업체 구조화 데이터가 없다');
 check(/"@type": "FAQPage"/.test(leakHead), 'leak.html FAQ 구조화 데이터가 없다');
 check(/og:image/.test(leakHead) && /case-hanbat-drain\.jpg/.test(leakHead), 'leak.html 공유용 실제 현장 이미지가 없다');
-check((leak.match(/class="case-card registered-case"/g) || []).length === 3,
-  'leak.html 실제 사례·공정 카드가 3개가 아니다');
-check((leak.match(/assets\/cases\/(?:case-(?:hanbat-drain|blue-floor)|samsung-apartment-drain-(?:before|after-wide))\.jpg/g) || []).length >= 4,
+check((leak.match(/class="case-card registered-case"/g) || []).length === 4,
+  'leak.html 실제 사례·공정 카드가 4개가 아니다');
+check((leak.match(/assets\/cases\/(?:case-(?:hanbat-drain|blue-floor)|samsung-apartment-drain-(?:before|after-wide)|geumseong-basement-pipe-valve-cover)\.jpg/g) || []).length >= 5,
   'leak.html 사례 카드가 검증한 실제 공정 사진을 사용하지 않는다');
+// 금성백조 사례는 카드에서 글로 이어져야 한다. 사진만 있고 링크가 끊기면
+// 누수 페이지에서 본 손님이 현장 기록을 못 읽는다.
+check(/href="posts\/geumseong-basement-pipe-valve\.html"/.test(leak)
+  && /geumseong-basement-pipe-valve-cover\.jpg/.test(leak),
+  '금성백조 지하배관 사례가 누수 페이지 카드에서 글로 이어지지 않는다');
+// 카드가 몇 개든 한 줄에 눕게 — repeat(3,1fr) 로 못 박으면 넷째 카드만 둘째 줄에 혼자 남는다
+check(/\.case-grid \{[^}]*repeat\(auto-fit/.test(leakTheme),
+  'leak.html 사례 격자가 카드 수에 맞춰 눕지 않는다(repeat(auto-fit) 아님)');
 check(/case-photo-pair two-photos/.test(leak)
   && /samsung-apartment-drain-before\.jpg/.test(leak)
   && /samsung-apartment-drain-after-wide\.jpg/.test(leak),

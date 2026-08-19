@@ -269,7 +269,9 @@ svg { width: 1.25rem; height: 1.25rem; flex: 0 0 auto; }
 .insurance-note { margin: 18px 0 0; color: #84939b; font-size: 10px; line-height: 1.65; }
 
 .cases-section { padding-top: 118px; padding-bottom: 128px; }
-.case-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+/* 카드가 3개일 땐 3열, 4개면 4열로 알아서 눕는다. 예전처럼 repeat(3,1fr) 로 못 박아 두면
+   사례를 하나 더 올리는 순간 넷째 카드만 둘째 줄에 홀로 남는다. */
+.case-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 22px; }
 .case-card { overflow: hidden; border: 1px solid #dce6ea; border-radius: 12px; background: #fff; transition: transform .25s ease, box-shadow .25s ease; }
 .case-card:hover { transform: translateY(-5px); box-shadow: 0 22px 48px rgba(14,55,76,.10); }
 .case-visual { position: relative; height: 220px; overflow: hidden; color: #d8eff2; background-color: #082c43; }
