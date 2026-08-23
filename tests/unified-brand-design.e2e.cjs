@@ -201,3 +201,19 @@ test('390px 화면에서 가로 넘침 없이 핵심 행동영역을 누를 수 
     await page.close();
   }
 });
+
+test('공통 버튼은 플랫폼 글꼴 줄높이와 무관하게 44px을 유지한다', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+  await page.goto(`${origin}/index.html`, { waitUntil: 'networkidle' });
+
+  // Linux와 Windows의 `line-height: normal` 계산 차이를 작은 줄높이로 재현한다.
+  await page.addStyleTag({ content: '.btn { line-height: 15px !important; }' });
+  const shortButtons = await page.locator('.sim-next, #nextStep').evaluateAll((buttons) => (
+    buttons
+      .filter((button) => button.getBoundingClientRect().height < 44)
+      .map((button) => `${button.textContent.trim()}:${button.getBoundingClientRect().height}`)
+  ));
+
+  assert.deepEqual(shortButtons, [], `글꼴에 따라 44px 미만이 되는 버튼: ${shortButtons.join(', ')}`);
+  await page.close();
+});
