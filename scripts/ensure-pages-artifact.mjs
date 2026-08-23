@@ -9,10 +9,11 @@ const fail = [];
 const requiredDirs = ['assets', 'css', 'data', 'designs', 'js', 'posts'];
 const forbiddenTop = ['.git', '.github', '.claude', '.codex', 'apps-script-contract',
   'contract-backend', 'docs', 'integrations', 'scripts'];
+const googleVerificationFile = 'google11dc37fbc3ab6e98.html';
 const requiredRoot = [
   'admin.html', 'as.html', 'bathroom-check.html', 'blog.html', 'case-new.html',
   'field.html', 'index.html', 'leak.html', 'mypage.html', 'office.html', 'privacy.html',
-  'og-image.png', 'robots.txt', 'rss.xml', 'sitemap.xml'
+  googleVerificationFile, 'og-image.png', 'robots.txt', 'rss.xml', 'sitemap.xml'
 ];
 const buildSource = fs.readFileSync(path.join(ROOT, 'scripts', 'build-pages-artifact.mjs'), 'utf8');
 if (/readdirSync\(ROOT[\s\S]*?endsWith\(['"]\.html['"]\)/.test(buildSource)) {
@@ -75,6 +76,15 @@ const requiredData = ['config.json', 'material-catalog.json', 'project.json', 's
 const actualData = fs.readdirSync(path.join(SITE, 'data')).sort();
 if (JSON.stringify(actualData) !== JSON.stringify(requiredData)) {
   fail.push(`data 공개 파일이 고정 허용목록과 다름: ${actualData.join(', ')}`);
+}
+
+const googleVerificationPath = path.join(SITE, googleVerificationFile);
+if (fs.existsSync(googleVerificationPath)) {
+  const actualVerification = fs.readFileSync(googleVerificationPath, 'utf8').trim();
+  const expectedVerification = `google-site-verification: ${googleVerificationFile}`;
+  if (actualVerification !== expectedVerification) {
+    fail.push('Google Search Console 소유권 확인 파일 내용이 발급값과 다름');
+  }
 }
 
 function checkRef(owner, raw) {

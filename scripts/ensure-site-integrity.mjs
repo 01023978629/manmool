@@ -21,8 +21,10 @@ const readIf = (rel) => {
   const p = path.join(ROOT, rel);
   return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null;
 };
+// Search Console HTML 파일은 사람이 보는 웹페이지가 아니라 Google이 읽는 한 줄짜리 소유권 증명이다.
+const machineVerificationFiles = new Set(['google11dc37fbc3ab6e98.html']);
 const htmlFiles = [
-  ...fs.readdirSync(ROOT).filter((f) => f.endsWith('.html')),
+  ...fs.readdirSync(ROOT).filter((f) => f.endsWith('.html') && !machineVerificationFiles.has(f)),
   ...(fs.existsSync(path.join(ROOT, 'posts'))
     ? fs.readdirSync(path.join(ROOT, 'posts')).filter((f) => f.endsWith('.html')).map((f) => 'posts/' + f)
     : []),
