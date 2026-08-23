@@ -141,8 +141,8 @@ check(/function totalsFrom\(/.test(bom) && /totalsFrom/.test(sim),
 
 /* ⑫ 기존 사례 카탈로그를 지우지 않았다 --------------------------------- */
 // 사장님 지시: "AI 인테리어 사례는 두고" — 시뮬레이터가 그것을 대체하면 안 된다.
-check(/id="portfolio"/.test(index) && /AI 추천 인테리어 디자인/.test(index),
-  '기존 "AI 추천 인테리어 디자인"(240 사례) 섹션이 사라졌다 — 시뮬레이터는 그것을 대체하지 않는다',
+check(/id="portfolio"/.test(index) && /인테리어 디자인 참고 시안/.test(index),
+  '기존 디자인 참고 시안 섹션이 사라졌다 — 공사 범위 도구는 그것을 대체하지 않는다',
   '기존 사례 카탈로그 유지됨');
 
 console.log('\n===== AI 시뮬레이터 정직성 검증 =====');

@@ -23,7 +23,7 @@
   <meta property="og:image" content="https://01023978629.github.io/manmool/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="만물인테리어 · AI가 빠르게 정리하고 대표가 책임지는 인테리어 회사" />
+  <meta property="og:image:alt" content="대전 만물인테리어 · 실측과 기록으로 확인하는 인테리어" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -37,7 +37,7 @@
     "@context": "https://schema.org",
     "@type": "HomeAndConstructionBusiness",
     "name": "만물인테리어",
-    "alternateName": "Manmool Interior · Loop Agent",
+    "alternateName": "만물인테리어 · 인테리어·누수 전문",
     "description": "대전의 아파트·주택·상가 전체 및 부분 리모델링을 상담하고, 실측 견적·공정 사진·변경 승인·하자보증을 기록으로 관리하는 인테리어 회사입니다.",
     "url": "https://01023978629.github.io/manmool/",
     "image": "https://01023978629.github.io/manmool/og-image.png",
@@ -88,7 +88,7 @@
       "name": "상담하면 바로 견적이 나오나요?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "AI 예상견적으로 30초 만에 대략적인 범위를 먼저 확인하실 수 있습니다. 정확한 금액은 무료 방문 실측 후 정식 견적서로 확정됩니다. 예상견적 → 방문 실측 → 정식 견적서 → 계약 순으로 진행됩니다."
+        "text": "간편 예상견적으로 대략적인 범위를 먼저 확인하실 수 있습니다. 정확한 금액은 무료 방문 실측 후 정식 견적서로 확정됩니다. 예상 범위 확인 → 방문 실측 → 정식 견적서 → 계약 순으로 진행됩니다."
       }
     },
     {
@@ -133,14 +133,6 @@
     },
     {
       "@type": "Question",
-      "name": "AI가 운영한다는데, 사람은 언제 개입하나요?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "AI는 문의 요약·분류·초안·예상견적까지 돕고, 돈·계약·고객 발송은 반드시 대표가 승인한 뒤에 진행됩니다. 빠른 응대는 AI가, 중요한 결정은 사람이 맡는 구조입니다."
-      }
-    },
-    {
-      "@type": "Question",
       "name": "시공 사진은 볼 수 있나요?",
       "acceptedAnswer": {
         "@type": "Answer",
@@ -168,18 +160,14 @@
   </script>
   <link rel="preload" as="image" href="assets/site/hero-interior.jpg" fetchpriority="high" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23b8895a'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="css/styles.css?v=20260823-leak" />
+  <link rel="stylesheet" href="css/styles.css?v=20260823-brand1" />
+  <link rel="stylesheet" href="css/brand-system.css?v=20260823-brand1" />
 </head>
-<body>
+<body class="interior-page">
   <!-- ===== Utility bar (업무 시스템) ===== -->
   <div class="utility-bar">
     <div class="container utility-inner">
       <span class="utility-contact">📞 <a id="utilPhone" href="tel:01023978629" data-bind="company.phone">010-2397-8629</a><span class="util-sep"> · 대전 · 평일 09:00–17:30</span></span>
-      <nav class="utility-nav" aria-label="바로가기">
-        <a href="#estimator">예상견적</a>
-        <a href="#inquiry">상담 신청</a>
-        <a href="leak.html">누수 전용</a>
-      </nav>
     </div>
   </div>
 
@@ -190,18 +178,15 @@
         <span class="logo-mark">萬</span>
         <span class="logo-text">
           <strong data-bind="company.name">만물인테리어</strong>
-          <em data-bind="company.brandEn">Loop Agent</em>
+          <em data-bind="company.brandEn">인테리어·누수 전문</em>
         </span>
       </a>
       <nav class="main-nav" id="mainNav" aria-label="주요 메뉴">
-        <a href="#projectGuide">공사 시작</a>
-        <a href="#realWork">실제 현장</a>
-        <a href="#portfolio">디자인 참고</a>
-        <a href="#estimator">예상견적</a>
-        <a href="#simulator">시뮬레이터</a>
-        <a href="#process">진행 절차</a>
-        <a href="#trust">보증·A/S</a>
-        <a href="#inquiry">상담 신청</a>
+        <a href="index.html" aria-current="page">인테리어</a>
+        <a href="leak.html">누수·배관</a>
+        <a href="blog.html">실제 사례</a>
+        <a href="#process">진행 순서</a>
+        <a href="#inquiry">상담</a>
       </nav>
       <a href="#inquiry" class="btn btn-primary btn-sm header-cta">인테리어 상담</a>
       <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기" aria-expanded="false">
@@ -217,14 +202,12 @@
       <div class="container hero-inner">
         <div class="hero-text">
           <span class="badge">🏠 대전 아파트·주택·상가 인테리어 · 대표 최종 확인</span>
-          <h1 class="hero-title" data-bind="company.tagline">견적부터 보증까지, 기록으로 확인하세요</h1>
-          <p class="hero-desc" data-bind="company.description">AI는 상담 내용과 예상견적을 빠르게 정리하고, 대표가 현장 실측부터 최종 금액·계약·시공·A/S까지 직접 확인합니다.</p>
+          <h1 class="hero-title" data-bind="company.tagline">견적부터 보증까지,
+기록으로 확인하세요</h1>
+          <p class="hero-desc" data-bind="company.description">대전 아파트·주택·상가의 공사 범위를 현장에서 확인하고, 자재·수량·제외사항을 나눈 서면 견적으로 안내합니다.</p>
           <div class="hero-actions">
             <a href="#inquiry" class="btn btn-primary btn-lg">무료 1차 상담 신청</a>
             <a class="btn btn-ghost btn-lg" id="heroCall" href="tel:01023978629">📞 전화 상담</a>
-            <a class="btn btn-ghost btn-lg" href="#realWork">📷 실제 공정 사진</a>
-            <a class="btn btn-ghost btn-lg" href="#portfolio">🎨 디자인 참고</a>
-            <a href="#" class="btn btn-kakao btn-lg" id="heroKakao" hidden>💬 카카오톡 상담</a>
           </div>
           <div class="hero-trust">
             <span>✔ 실측 후 항목별 견적</span>
@@ -232,13 +215,14 @@
             <span>✔ 공정 사진·보증 기록 보관</span>
           </div>
         </div>
-        <div class="hero-card" aria-hidden="true">
-          <div class="chat-window">
-            <div class="chat-head">
-              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-              <em>만물인테리어 · 상담 예시</em>
-            </div>
-            <div class="chat-body" id="heroChat"></div>
+        <div class="hero-card">
+          <div class="consultation-proof">
+            <div class="consultation-proof-head"><span>萬</span><div><strong>공사 전 확인할 내용</strong><small>말보다 항목과 기록으로 안내합니다</small></div></div>
+            <ol class="consultation-proof-list">
+              <li><b>01</b><div><strong>무료 1차 상담</strong><small>지역·평수·희망 공사와 일정을 먼저 확인합니다.</small></div></li>
+              <li><b>02</b><div><strong>방문 실측·항목별 견적</strong><small>현장 상태와 치수를 보고 포함·제외 범위를 나눕니다.</small></div></li>
+              <li><b>03</b><div><strong>시공 기록·준공 보증</strong><small>숨은 공정과 변경 내용을 남기고 공종별 보증을 안내합니다.</small></div></li>
+            </ol>
           </div>
         </div>
       </div>
@@ -280,47 +264,11 @@
       <div class="container about-wrap">
         <div class="about-lead">
           <span class="eyebrow" data-bind="about.eyebrow">ABOUT</span>
-          <h2 data-bind="about.headline">사람의 감각, AI의 성실함</h2>
+          <h2 data-bind="about.headline">공사 전·중·후가 같은 기록으로 이어집니다</h2>
           <p class="about-lead-text" data-bind="about.lead"></p>
           <div class="about-body" id="aboutBody"></div>
         </div>
         <div class="about-values" id="aboutValues"></div>
-      </div>
-    </section>
-
-    <!-- ===== 기록 시스템과 대표 책임 ===== -->
-    <section class="section role-section" id="roles">
-      <div class="container">
-        <div class="section-head">
-          <span class="eyebrow">RECORD + RESPONSIBILITY</span>
-          <h2>정리는 빠르게, 시공 결정은 대표가</h2>
-          <p>도구는 자료를 정리하고, 최종 범위·금액·자재·일정·시공 품질은 대표가 확인합니다.</p>
-        </div>
-        <div class="role-grid">
-          <article class="role-card role-card-ai">
-            <span class="role-badge">🗂️ 시스템이 돕는 일</span>
-            <h3>누락 없이 기록</h3>
-            <ul>
-              <li><b>24시간</b> 상담 접수와 예상 범위 안내</li>
-              <li>희망 공간·예산·공사 항목 정리</li>
-              <li>디자인 참고안·자재 후보 비교</li>
-              <li>공정 사진과 변경 요청 보관</li>
-              <li>일정·A/S 확인사항 알림</li>
-            </ul>
-          </article>
-          <article class="role-card role-card-human">
-            <span class="role-badge">👷 대표가 책임지는 일</span>
-            <h3>실측·확정·시공 책임</h3>
-            <ul>
-              <li>방문 실측과 실제 공사 범위 확인</li>
-              <li><b>최종 금액·일정·계약</b> 확정</li>
-              <li>고객에게 보낼 내용 최종 승인</li>
-              <li>시공 품질·변경공사 확인</li>
-              <li>준공 검사와 하자보증·A/S 처리</li>
-            </ul>
-          </article>
-        </div>
-        <p class="role-rule"><b>운영 원칙</b> — 예상 화면은 참고 자료입니다. 최종 금액·자재·일정·변경공사는 현장 확인과 고객 승인 뒤 서면으로 확정합니다.</p>
       </div>
     </section>
 
@@ -357,21 +305,14 @@
       </div>
     </aside>
 
-    <!-- ===== Process = n8n · 카카오톡 자동화 ===== -->
+    <!-- ===== 공사 진행 순서 ===== -->
     <section class="section section-alt" id="process">
       <div class="container">
         <div class="section-head">
-          <span class="eyebrow">HOW IT WORKS</span>
-          <h2 id="automationHeadline">체계적이고 효율적인 운영 프로세스</h2>
-          <p id="automationSub">홈페이지와 현장 앱이 자료를 정리하고, 대표가 확인한 내용만 고객 안내와 실제 업무에 반영합니다.</p>
+          <span class="eyebrow">PROCESS</span>
+          <h2>상담부터 준공까지 4단계</h2>
+          <p>현장을 확인한 범위와 금액을 먼저 확정하고, 시공 기록과 보증 안내까지 한 흐름으로 진행합니다.</p>
         </div>
-
-        <!-- 견적부터 준공까지의 기록 흐름 -->
-        <div class="pipeline-flow" id="automationPipeline"></div>
-        <ul class="automation-stats" id="automationStats"></ul>
-
-        <!-- 공사 진행 5단계 -->
-        <h3 class="subhead">상담부터 A/S까지 5단계</h3>
         <ol class="process-loop" id="processList"></ol>
       </div>
     </section>
@@ -382,7 +323,7 @@
         <div class="section-head">
           <span class="eyebrow">REAL WORK</span>
           <h2>마감 뒤에 가려지는 공정도 사진으로</h2>
-          <p>아래는 실제 현장 공정 사진입니다. 완공 사례와 AI 참고 시안을 섞어 보이게 하지 않습니다.</p>
+          <p>아래는 실제 현장에서 촬영한 공정 사진입니다. 작업 내용과 확인 과정을 사례별로 정리했습니다.</p>
         </div>
         <div class="real-work-grid" id="actualWorkGrid">
           <a class="real-work-card" href="posts/samsung-apartment-drain-pipe-replacement.html">
@@ -398,16 +339,18 @@
             <span class="real-work-copy"><strong>욕실 방수층 시공</strong><small>타일 뒤에 가려지는 벽·바닥 방수 공정을 사진으로 남깁니다.</small><b>점검 기준 보기 →</b></span>
           </a>
         </div>
-        <div class="real-work-note"><strong>사진 구분 원칙</strong><span>실제 현장 사진은 ‘실제 현장·공정’, 아래 디자인 카탈로그는 ‘AI 참고 시안’으로 명확히 표시합니다.</span></div>
+        <div class="real-work-note"><strong>사진 구분 원칙</strong><span>실제 현장 사진은 ‘실제 현장·공정’, 디자인 카탈로그는 ‘디지털 참고 시안’으로 구분합니다.</span></div>
       </div>
     </section>
-    <!-- ===== Portfolio (AI 참고 시안 탐색) ===== -->
+    <!-- ===== 인테리어 디자인 참고 시안 ===== -->
     <section class="section" id="portfolio">
       <div class="container">
         <div class="section-head">
-          <span class="eyebrow">AI DESIGN</span>
-          <h2>AI 추천 인테리어 디자인 참고 시안</h2>
-          <p>완공 사례가 아닌 <b>자체 제작 AI 참고 시안</b>입니다. 거실·침실·주방·욕실·현관·서재·아이방·드레스룸 총 300가지를 비교한 뒤, 마음에 드는 방향을 상담 폼에 함께 보낼 수 있습니다.</p>
+          <span class="eyebrow">DESIGN REFERENCE</span>
+          <h2>인테리어 디자인 참고 시안</h2>
+          <p>거실·침실·주방·욕실 등 공간별 참고 시안을 비교하고, 마음에 드는 방향을 상담 내용에 함께 보낼 수 있습니다.</p>
+          <p class="digital-reference-note" role="note"><b>디지털 참고 시안 · 실제 완공 사진 아님</b><br />우리집 구조·창 위치·천장 높이와 실제 자재에 따라 결과가 달라집니다.</p>
+          <p class="section-action"><a class="btn btn-ghost" href="#simulator">우리집 공사 범위 확인</a></p>
         </div>
         <!-- 보기 전환: 한 장씩 ↔ 우리집 한 채. 새 섹션·새 메뉴를 만들지 않고 여기서 갈라진다 -->
         <div class="lb-switch" role="tablist" aria-label="디자인 보기 방식">
@@ -428,10 +371,10 @@
              금액은 여기서 계산하지 않는다(시뮬레이터 담당). 고지는 정적 HTML 에 둔다. -->
         <div class="lb-wrap" id="lbBoard" role="tabpanel" aria-labelledby="lbTabHome" hidden>
           <p class="lb-notice lb-notice-top" role="note">
-            ⚠️ 참고용 구성안입니다. 이 화면은 저희가 만든 <b>AI 추천 시안</b>을 공간별로 나란히 놓아 본 것이며,
+            참고용 구성안입니다. 이 화면은 <b>디지털 참고 시안</b>을 공간별로 나란히 놓아 본 것이며,
             고객님 댁을 촬영하거나 합성한 것이 아닙니다. 실제 모습은 우리집 구조·창 위치·천장 높이에 따라 달라집니다.
           </p>
-          <p class="lb-notice">이 화면에서는 금액을 계산하지 않습니다. 예상 금액은 아래 <b>AI 인테리어 시뮬레이터</b>에서 확인하시고,
+          <p class="lb-notice">이 화면에서는 금액을 계산하지 않습니다. 예상 금액은 아래 <b>우리집 공사 범위 확인</b>에서 확인하시고,
             최종 금액은 방문 실측 후 서면 견적서로만 확정됩니다.</p>
           <div class="lb-head">
             <div class="lb-steps" id="lbProgress" aria-label="진행 단계"></div>
@@ -452,12 +395,12 @@
       </div>
     </div>
 
-    <!-- ===== AI 예상견적 (대화식) ===== -->
+    <!-- ===== 간편 예상견적 ===== -->
     <section class="section section-dark" id="estimator">
       <div class="container estimator-wrap">
         <div class="estimator-intro">
-          <span class="eyebrow light">AI ESTIMATOR</span>
-          <h2>30초로 확인하는 예상 범위</h2>
+          <span class="eyebrow light">QUICK ESTIMATE</span>
+          <h2>간편 예상견적</h2>
           <p>공간·평수·공사 범위를 고르면 예상금액·필요공사·자재등급·공사기간을 비교할 수 있습니다. 최종 견적은 방문 실측 후 항목별 서면 견적으로 확정합니다.</p>
           <p class="estimator-note" id="estimatorNote"></p>
         </div>
@@ -466,7 +409,7 @@
           <div class="ce-window">
             <div class="ce-head">
               <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-              <em>AI 견적 상담</em>
+              <em>예상 범위 확인</em>
               <button type="button" class="ce-restart" id="ceRestart" hidden>처음부터</button>
             </div>
             <div class="ce-body" id="ceBody" aria-live="polite"></div>
@@ -476,13 +419,13 @@
       </div>
     </section>
 
-    <!-- ===== AI 인테리어 시뮬레이터 (우리집 사양서) ===== -->
+    <!-- ===== 우리집 공사 범위 확인 ===== -->
     <section class="section section-alt" id="simulator">
       <div class="container">
         <div class="section-head">
-          <span class="eyebrow">AI SIMULATOR</span>
-          <h2>AI 인테리어 시뮬레이터</h2>
-          <p>추천 디자인이 <b>남의 집을 고르는 것</b>이라면, 시뮬레이터는 <b>우리집에서 무엇까지 되는지</b> 직접 맞춰 보는 도구입니다. 공간을 고르고 등급을 올리내리면 예상 금액이 바로 바뀌고, 예산을 넘으면 무엇을 빼면 되는지 알려드립니다.</p>
+          <span class="eyebrow">MY HOME SCOPE</span>
+          <h2>우리집 공사 범위 확인</h2>
+          <p>평형과 공사할 공간, 자재 등급을 고르면 예상 범위와 금액이 바로 바뀝니다. 예산에 맞춰 포함할 공정을 비교해 보세요.</p>
           <p class="sim-ai-disclaimer">이 도구는 사진을 합성하지 않습니다. 입력하신 평형·공간·등급으로 자재 수량과 금액을 계산해 보여줍니다.</p>
         </div>
         <div class="sim-wrap">
@@ -546,7 +489,7 @@
       </div>
     </section>
 
-    <!-- ===== AI 단계형 상담 문의 (n8n 연동) ===== -->
+    <!-- ===== 단계형 상담 문의 ===== -->
     <section class="section section-alt" id="inquiry">
       <div class="container inquiry-wrap">
         <div class="inquiry-info">
@@ -729,11 +672,11 @@
         <span class="logo-mark">萬</span>
         <div>
           <strong data-bind="company.name">만물인테리어</strong>
-          <p data-bind="company.brandEn">Loop Agent</p>
+          <p data-bind="company.brandEn">인테리어·누수 전문</p>
         </div>
       </div>
       <p class="footer-note">만물인테리어 · 대표 <span data-bind="company.rep">전병덕</span> · 사업자등록번호 895-48-01132<br />대전광역시 중구 돌다리로19번길 9, 1층(석교동) · <a href="tel:01023978629">010-2397-8629</a></p>
-      <p class="footer-note">AI 안내와 예상견적은 참고용입니다. 최종 공사 범위·금액·일정·계약은 현장 실측과 대표 확인 후 확정됩니다.</p>
+      <p class="footer-note">온라인 예상 범위는 참고용입니다. 최종 공사 범위·금액·일정·계약은 현장 실측과 대표 확인 후 확정됩니다.</p>
       <p class="footer-links"><a href="#portfolio">디자인 참고</a> · <a href="#estimator">예상견적</a> · <a href="#inquiry">상담 신청</a> · <a href="mypage.html">고객 전용 조회</a> · <a href="leak.html">누수탐지 전용</a> · <a href="office.html">관리사무소 협력</a> · <a href="privacy.html">개인정보처리방침</a></p>
       <p class="footer-copy">© <span id="year"></span> <span data-bind="company.name">만물인테리어</span>. All rights reserved.</p>
     </div>
@@ -756,8 +699,8 @@
   </div>
 
   <script src="js/design-bom.js?v=20260727-sim2"></script>
-  <script src="js/main.js?v=20260823-leak"></script>
-  <script src="js/estimate.js?v=20260719-fixes"></script>
+  <script src="js/main.js?v=20260823-brand1"></script>
+  <script src="js/estimate.js?v=20260823-brand1"></script>
   <script src="js/simulator.js?v=20260727-sim4"></script>
   <script src="js/lookbook.js?v=20260728-lookbook1"></script>
   <script src="js/lead-transport.js?v=20260812-leakform"></script>

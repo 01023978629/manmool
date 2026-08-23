@@ -91,7 +91,9 @@ for (const item of published) {
 // 4. 목록 첫 핵심 이미지만 우선 로딩하고 나머지는 스크롤 시점에 받는다.
 const blogRoot = elementBlock(blog, '<div class="container" id="blogRoot"', 'div');
 const listImages = [...blogRoot.matchAll(/<img class="ic-image"[^>]*>/g)].map((m) => m[0]);
-check(/<title>누수·배관 사례와 인테리어 기록/.test(blog) && /<h1>누수·배관 사례부터 인테리어까지<\/h1>/.test(blogRoot),
+check(/<title>누수·배관 사례와 인테리어 기록/.test(blog)
+    && /<h1>현장에서 한 일을 사진과 함께 기록합니다<\/h1>/.test(blogRoot)
+    && /누수·배관 실제 현장과 인테리어 공정/.test(blogRoot),
   '블로그 제목이 누수 우선 서비스와 인테리어 보조 범위를 함께 설명하지 않는다',
   '블로그 제목이 누수 우선·인테리어 보조 범위를 설명');
 check(listImages.length === published.filter((item) => item.image).length,
@@ -123,10 +125,13 @@ for (const item of published) {
     `${item.slug}: 본문 사진 lazy/async`);
 }
 
-// 5. 장식 화면은 실제 실시간 진단 결과로 오인되지 않게 명시한다.
-check(/누수 탐지 진단 화면 예시/.test(leak) && /진단 화면 예시/.test(leak) && !/실시간 진단 중/.test(leak),
-  '누수 히어로의 장식 화면이 실시간 진단처럼 보인다 — 화면 예시임을 명시해야 한다',
-  '누수 진단 장식 화면을 예시로 명시');
+// 5. 가상 진단 화면 대신 실제 현장 사진을 보여 준다.
+check(/class="leak-actual-card"/.test(leak)
+    && /case-hanbat-drain\.jpg/.test(leak)
+    && /실제 배관 교체 현장/.test(leak)
+    && !/class="scan-card"/.test(leak),
+  '누수 히어로가 실제 현장 사진 대신 가상 진단 화면을 보여 준다',
+  '누수 히어로에 실제 배관 교체 현장 표시');
 check(/누수 지점 미확인 시 탐지비/.test(leak),
   '탐지비 0원 조건이 "누수 지점 미확인 시"로 함께 표시되지 않는다',
   '탐지비 안내가 조건형으로 표시됨');
@@ -175,11 +180,14 @@ check(/"datePublished":\s*"2026-08-09"/.test(insurancePost)
     && /<loc>https:\/\/01023978629\.github\.io\/manmool\/posts\/leak-insurance-guide\.html<\/loc>\s*<lastmod>2026-08-23<\/lastmod>/.test(sitemap),
   '누수 보험 글의 구조화 수정일 또는 sitemap lastmod가 2026-08-23으로 갱신되지 않았다',
   '누수 보험 글의 구조화 수정일·sitemap 갱신일 일치');
-check(/styles\.css\?v=20260823-leak/.test(index)
-    && /main\.js\?v=20260823-leak/.test(index)
-    && /styles\.css\?v=20260823-leak/.test(blog)
-    && /blog\.js\?v=20260823-leak/.test(blog)
-    && /styles\.css\?v=20260823-leak/.test(insurancePost),
+check(/styles\.css\?v=20260823-brand1/.test(index)
+    && /brand-system\.css\?v=20260823-brand1/.test(index)
+    && /main\.js\?v=20260823-brand1/.test(index)
+    && /styles\.css\?v=20260823-brand1/.test(blog)
+    && /brand-system\.css\?v=20260823-brand1/.test(blog)
+    && /blog\.js\?v=20260823-brand1/.test(blog)
+    && /styles\.css\?v=20260823-brand1/.test(insurancePost)
+    && /brand-system\.css\?v=20260823-brand1/.test(insurancePost),
   '변경된 CSS/JS의 캐시 버전이 갱신되지 않아 기존 방문자에게 이전 화면이 남을 수 있다',
   '누수 우선 CSS/JS 캐시 버전 갱신');
 

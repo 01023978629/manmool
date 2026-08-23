@@ -132,6 +132,34 @@
     } catch (e) { /* noop */ }
   }
 
+  function setupCaseFilters() {
+    const buttons = Array.from(document.querySelectorAll('[data-case-filter]'));
+    const cards = Array.from(document.querySelectorAll('.insights-grid .insight-card[data-group]'));
+    const featured = document.querySelector('.insight-featured[data-group]');
+    const status = document.getElementById('caseFilterStatus');
+    if (!buttons.length || !cards.length || !status) return;
+
+    const apply = (group) => {
+      let visible = 0;
+      cards.forEach((card) => {
+        const show = group === 'all' || card.dataset.group === group;
+        card.hidden = !show;
+        if (show) visible += 1;
+      });
+      if (featured) {
+        const showFeatured = group === 'all' || featured.dataset.group === group;
+        featured.hidden = !showFeatured;
+        if (showFeatured) visible += 1;
+      }
+      buttons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.caseFilter === group)));
+      const active = buttons.find((button) => button.dataset.caseFilter === group);
+      status.textContent = `${active ? active.textContent.trim() : '전체'} ${visible}건`;
+    };
+
+    buttons.forEach((button) => button.addEventListener('click', () => apply(button.dataset.caseFilter)));
+    apply('all');
+  }
+
   // 헤더 내비 토글 — main.js는 이 페이지에 로드되지 않으므로 여기서 배선한다
   function setupNav() {
     const toggle = document.getElementById('navToggle');
@@ -148,6 +176,7 @@
 
   async function init() {
     setupNav();
+    setupCaseFilters();
     const slug = new URLSearchParams(location.search).get('post');
     // blog.html 은 검색엔진·느린 회선에서도 보이도록 목록을 정적으로 품고 있다.
     // 목록 화면에서는 이미 있는 HTML을 정본으로 쓰고 불필요한 fetch/재렌더를 하지 않는다.
@@ -166,7 +195,7 @@
     }
     const found = slug && insights.find((x) => x.slug === slug);
     if (found) renderArticle(found, insights);
-    else renderList(insights);
+    else { renderList(insights); setupCaseFilters(); }
   }
 
   document.addEventListener('DOMContentLoaded', init);

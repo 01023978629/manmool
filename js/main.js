@@ -1,6 +1,6 @@
 /* ============================================================
-   만물인테리어 · Loop Agent — 프론트엔드 스크립트
-   콘텐츠는 data/site.json 에서 로드됩니다. AI/운영자는 이 JSON만
+   만물인테리어 — 프론트엔드 스크립트
+   콘텐츠는 data/site.json 에서 로드됩니다. 운영자는 이 JSON만
    수정하면 사이트 전체 콘텐츠가 자동으로 갱신됩니다.
    ============================================================ */
 
@@ -31,6 +31,14 @@ function escapeContent(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function publicDesignText(value) {
+  return String(value == null ? '' : value)
+    .replace(/신규\s*AI\s*시안/g, '신규 디지털 시안')
+    .replace(/AI\s*추천\s*(디자인|참고)?/g, '디자인 참고')
+    .replace(/AI\s*시안/g, '디지털 시안')
+    .replace(/AI\s*스타일/g, '디지털 스타일');
 }
 
 function safeContentUrl(value, fallback) {
@@ -230,30 +238,6 @@ function renderProcess(steps) {
       <h3>${s.title}</h3>
       <p>${s.desc}</p>
     </li>`).join('');
-}
-
-/* ---------- 자동화 파이프라인 (n8n · 카카오톡) ---------- */
-function renderAutomation(auto) {
-  if (!auto) return;
-  const head = document.getElementById('automationHeadline');
-  const sub = document.getElementById('automationSub');
-  if (head && auto.headline) head.textContent = auto.headline;
-  if (sub && auto.sub) sub.textContent = auto.sub;
-
-  const pipe = document.getElementById('automationPipeline');
-  if (pipe && auto.pipeline) {
-    pipe.innerHTML = auto.pipeline.map((n, i) => `
-      <div class="pipe-step reveal">
-        <span class="pipe-tag pipe-tag-${n.tag === '카카오' ? 'kakao' : n.tag === 'n8n' ? 'n8n' : n.tag === '승인' ? 'approve' : 'default'}">${n.tag}</span>
-        <b>${n.node}</b>
-        <span class="pipe-desc">${n.desc}</span>
-      </div>${i < auto.pipeline.length - 1 ? '<i class="pipe-arrow" aria-hidden="true">→</i>' : ''}`).join('');
-  }
-  const stats = document.getElementById('automationStats');
-  if (stats && auto.stats) {
-    stats.innerHTML = auto.stats.map((s) => `
-      <li><b>${s.value}<em>${s.suffix}</em></b><span>${s.label}</span></li>`).join('');
-  }
 }
 
 /* ---------- 포트폴리오 (아파트멘터리형 사례 탐색) ---------- */
@@ -719,8 +703,8 @@ function renderPortfolio(items, filterConfig) {
           ['스타일', i.style],
           ['예산', i.cost || i.budget || null]
         ].filter(([, v]) => v);
-      const badge = i.aiDesign ? `<span class="ai-badge">${i.trendLabel || '✨ AI 추천 디자인'}</span>`
-        : (i.photo ? '' : '<span class="ai-badge">AI 스타일 참고 이미지</span>');
+      const badge = i.aiDesign ? `<span class="ai-badge">${publicDesignText(i.trendLabel || '디자인 참고 시안')}</span>`
+        : (i.photo ? '' : '<span class="ai-badge">디지털 스타일 참고 이미지</span>');
       const styleTag = i.style ? `<span class="folio-style-tag">${i.style}</span>` : '';
       return `
       <article class="folio reveal" data-id="${i.id}" tabindex="0" role="button" aria-label="${i.title} 상세보기">
@@ -972,7 +956,7 @@ function openFolioModal(item, all) {
       : `<span class="fm-sim-thumb" style="background:linear-gradient(150deg, ${s.afterColor || '#cdb8a0'}, ${shade(s.afterColor || '#cdb8a0', -14)})"></span>`;
   const simSub = (s) => [s.spaceType, s.process || s.style].filter(Boolean).join(' · ') || '추천 디자인';
 
-  const mediaCap = item.aiDesign ? 'AI 추천 디자인 시안' : '시공 현장';
+  const mediaCap = item.aiDesign ? '디지털 디자인 참고 시안' : '시공 현장';
   const hasSingleMedia = !!(item.__designSheet || item.photo);
   const singleMedia = item.__designSheet
     ? portfolioSpriteMarkup(item, 'scene', true)       // 모달: 즉시
@@ -1023,8 +1007,8 @@ function openFolioModal(item, all) {
       ${(item.tilePlan || []).length ? `<div class="fm-block fm-tile-plan"><h4>실시공 타일 규격</h4><dl>${item.tilePlan.map((row) => `<div><dt>${row.label}</dt><dd>${row.value}</dd></div>`).join('')}</dl><p>${tileNote}</p></div>` : ''}
       ${constructionSteps.length ? `<div class="fm-block"><h4>권장 시공 순서</h4><ol>${constructionSteps.map((step) => `<li>${step}</li>`).join('')}</ol></div>` : ''}
       ${(item.palette || []).length ? `<div class="fm-block"><h4>컬러 팔레트</h4><div class="fm-palette">${item.palette.map((c) => `<span style="background:${c}" title="${c}"></span>`).join('')}</div></div>` : ''}
-      ${item.tip ? `<div class="fm-block"><h4>💡 AI 추천 포인트</h4><p>${item.tip}</p></div>` : ''}
-      ${item.trendNote ? `<div class="fm-block fm-trend-note"><h4>트렌드 리서치</h4><p>${item.trendNote}</p></div>` : ''}
+      ${item.tip ? `<div class="fm-block"><h4>추천 포인트</h4><p>${item.tip}</p></div>` : ''}
+      ${item.trendNote ? `<div class="fm-block fm-trend-note"><h4>트렌드 리서치</h4><p>${publicDesignText(item.trendNote)}</p></div>` : ''}
       ${item.problem ? `<div class="fm-block"><h4>핵심 문제</h4><p>${item.problem}</p></div>` : ''}
       ${item.solution ? `<div class="fm-block"><h4>해결 방법</h4><p>${item.solution}</p></div>` : ''}
       ${(item.materials || []).length ? `<div class="fm-block"><h4>${matLabel}</h4><div class="fm-tags">${item.materials.map((m) => `<span>${m}</span>`).join('')}</div></div>` : ''}
@@ -1288,7 +1272,7 @@ function renderContact(company) {
     <li><span class="ic">${i.ic}</span><div><b>${i.label}</b>${i.value}</div></li>`).join('');
 }
 
-/* AI 예상견적은 js/estimate.js(대화식)에서 처리합니다. */
+/* 간편 예상견적은 js/estimate.js에서 처리합니다. */
 
 /* ---------- 연동 설정 로드 + 카카오톡 버튼 연결 ---------- */
 async function loadConfig() {
@@ -1328,32 +1312,6 @@ function setupContactCtas(config, company) {
       el.hidden = true;
     }
   });
-}
-
-/* ---------- 히어로 챗봇 애니메이션 ---------- */
-function playHeroChat() {
-  const box = document.getElementById('heroChat');
-  const script = [
-    { who: 'bot', text: '안녕하세요. 만물인테리어입니다 🏠' },
-    { who: 'user', text: '대전 34평 아파트 전체 리모델링을 알아보고 있어요.' },
-    { who: 'bot', text: '입주 시기와 주방·욕실·창호 포함 여부를 알려주시면 예상 범위를 먼저 정리해 드릴게요.' },
-    { who: 'bot', text: '정확한 금액은 방문 실측 후 자재·수량·포함·제외사항을 나눈 서면 견적으로 확정합니다.' },
-    { who: 'user', text: '사진과 원하는 스타일을 보내고 실측 신청할게요.' }
-  ];
-  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let i = 0;
-  const next = () => {
-    if (i >= script.length) return;
-    const m = script[i++];
-    const b = document.createElement('div');
-    b.className = 'bubble ' + m.who;
-    b.textContent = m.text;
-    box.appendChild(b);
-    box.scrollTop = box.scrollHeight;
-    if (reduce) next();          // 모션 최소화: 순차 등장 없이 즉시 전체 표시
-    else setTimeout(next, 1100);
-  };
-  next();
 }
 
 /* ---------- 스크롤 리빌 ---------- */
@@ -1426,13 +1384,13 @@ function renderFallbackNotice() {
       <li><span class="ic">🕐</span><div><b>운영 시간</b>${FALLBACK_CONTACT.hours}</div></li>`;
   }
 
-  // 데이터 없이는 AI 견적·상담 폼이 초기화되지 않으므로,
+  // 데이터 없이는 예상견적·상담 폼이 초기화되지 않으므로,
   // 입력해도 반응 없는 "죽은 UI" 대신 연락 경로를 안내한다
   const tel = 'tel:' + FALLBACK_CONTACT.phone.replace(/[^0-9]/g, '');
   const sms = 'sms:' + FALLBACK_CONTACT.phone.replace(/[^0-9]/g, '');
   const ceBody = document.getElementById('ceBody');
   if (ceBody && !ceBody.children.length) {
-    ceBody.innerHTML = `<p style="padding:18px 4px;line-height:1.7">⚠ 콘텐츠를 일시적으로 불러오지 못해 AI 예상견적을 시작할 수 없습니다.<br/>
+    ceBody.innerHTML = `<p style="padding:18px 4px;line-height:1.7">⚠ 콘텐츠를 일시적으로 불러오지 못해 간편 예상견적을 시작할 수 없습니다.<br/>
       새로고침하시거나, 전화로 바로 문의해 주세요. 📞 <a href="${tel}" style="color:inherit"><b>${FALLBACK_CONTACT.phone}</b></a></p>`;
   }
   const form = document.getElementById('inquiryForm');
@@ -1455,7 +1413,6 @@ function renderFallbackNotice() {
 async function init() {
   setupUI();
   setupPortfolioFabVisibility();
-  playHeroChat();
   setupProjectGuide();
   setupContentPreviewNotice();
 
@@ -1472,7 +1429,6 @@ async function init() {
   renderServices(data.services);
   renderActualWork(data.actualWork);
   renderLeakPricing(data.leakPricing);
-  renderAutomation(data.automation);
   renderProcess(data.process);
   renderPortfolio(data.portfolio, data.portfolioFilters);
   setupFolioModal();
@@ -1502,7 +1458,7 @@ async function init() {
   window.MANMUL.lastEstimate = '';
   window.MANMUL.getEstimate = () => window.MANMUL.lastEstimate || '';
 
-  // 선택한 AI 추천 디자인을 상담 폼으로 전달
+  // 선택한 디자인 참고 시안을 상담 폼으로 전달
   window.MANMUL.selectedDesign = null;
   window.MANMUL.selectDesign = (d) => {
     window.MANMUL.selectedDesign = d || null;

@@ -95,6 +95,12 @@ svg { width: 1.25rem; height: 1.25rem; flex: 0 0 auto; }
 .hero-glow-one { width: 420px; height: 420px; right: -180px; bottom: -240px; background: rgba(41, 210, 219, .13); }
 .hero-glow-two { width: 250px; height: 250px; left: 43%; top: -180px; background: rgba(19, 151, 209, .16); }
 .hero-copy, .hero-visual { position: relative; z-index: 1; }
+.leak-actual-card { margin: 0; overflow: hidden; border: 1px solid rgba(126, 209, 219, .28); border-radius: 22px; background: rgba(7, 27, 45, .86); box-shadow: 0 30px 70px rgba(0,0,0,.32); }
+.leak-actual-card img { width: 100%; aspect-ratio: 3 / 2; display: block; object-fit: cover; }
+.leak-actual-card figcaption { display: grid; gap: 4px; padding: 20px 22px; color: #fff; }
+.leak-actual-card figcaption span { color: #83dce5; font-size: 11px; font-weight: 800; letter-spacing: .08em; }
+.leak-actual-card figcaption strong { font-size: 18px; }
+.leak-actual-card figcaption small { color: #a9bdc9; font-size: 13px; }
 .eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; font-size: 13px; font-weight: 700; color: #84dce7; letter-spacing: .06em; }
 .eyebrow span { width: 7px; height: 7px; border-radius: 50%; background: #45dae4; box-shadow: 0 0 0 5px rgba(69,218,228,.12); }
 .hero h1 { margin: 0; font-size: clamp(44px, 4.25vw, 65px); line-height: 1.16; letter-spacing: -.06em; font-weight: 850; }

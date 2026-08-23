@@ -18,7 +18,7 @@ from email.utils import format_datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE = 'https://01023978629.github.io/manmool'
-V = '20260823-leak'  # css 캐시버스터 — 루트 html들과 동일하게 유지
+V = '20260823-brand1'  # css 캐시버스터 — 루트 html들과 동일하게 유지
 
 
 def esc(s):
@@ -39,6 +39,16 @@ def article_service(a):
     if explicit in ('leak', 'interior'):
         return explicit
     return 'leak' if a.get('category') in ('방수·설비', '누수탐지·수리') else 'interior'
+
+
+def case_group(a):
+    """사례 목록의 고객용 필터 그룹. 원문 category는 그대로 보존한다."""
+    if article_service(a) == 'leak':
+        return 'leak'
+    category = str(a.get('category') or '')
+    if any(word in category for word in ('견적', '계약', '보증', '관리', '브랜드')):
+        return 'info'
+    return 'interior'
 
 
 def rss_date(value):
@@ -191,24 +201,24 @@ def article_html(a, insights):
   <meta property="og:image" content="{img_abs}" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23b8895a'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="../css/styles.css?v={V}" />
+  <link rel="stylesheet" href="../css/brand-system.css?v={V}" />
   <script type="application/ld+json">{ld}</script>
 </head>
-<body>
+<body class="story-page">
   <header class="site-header" id="siteHeader">
     <div class="container header-inner">
       <a href="../index.html#top" class="logo" aria-label="만물인테리어 홈">
         <span class="logo-mark">萬</span>
-        <span class="logo-text"><strong>만물인테리어</strong><em>Loop Agent</em></span>
+        <span class="logo-text"><strong>만물인테리어</strong><em>인테리어·누수 전문</em></span>
       </a>
       <nav class="main-nav" id="mainNav" aria-label="주요 메뉴">
-        <a href="../index.html#about">회사 소개</a>
-        <a href="../index.html#portfolio">추천 디자인</a>
-        <a href="../index.html#estimator">AI 예상견적</a>
-        <a href="../blog.html">인사이트</a>
-        <a href="../leak.html">누수 전용</a>
-        <a href="../index.html#inquiry">상담 신청</a>
+        <a href="../index.html">인테리어</a>
+        <a href="../leak.html">누수·배관</a>
+        <a href="../blog.html" aria-current="page">실제 사례</a>
+        <a href="../index.html#process">진행 순서</a>
+        <a href="../index.html#inquiry">상담</a>
       </nav>
-      <a href="../index.html#estimator" class="btn btn-primary btn-sm header-cta">AI 예상견적</a>
+      <a href="../index.html#inquiry" class="btn btn-primary btn-sm header-cta">상담 신청</a>
       <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -242,7 +252,7 @@ def article_html(a, insights):
 
   <footer class="site-footer">
     <div class="container footer-inner">
-      <span>© 만물인테리어 · Loop Agent</span>
+      <span>© 만물인테리어 · 인테리어·누수 전문</span>
       <a href="../index.html">홈으로</a>
     </div>
   </footer>
@@ -279,15 +289,33 @@ def list_markup(insights):
     blog.js 는 그대로 두면 로드 후 같은 내용으로 덮어쓰므로 화면 차이가 없다.
     → 두 마크업이 어긋나면 깜빡이므로 반드시 함께 고칠 것.
     """
+    featured = insights[0] if insights else None
+    featured_html = ''
+    if featured:
+        featured_image = ''
+        if featured.get('image'):
+            featured_image = ('<img class="ic-image" src="%s" alt="%s" loading="eager" '
+                              'fetchpriority="high" decoding="async">'
+                              % (esc(featured['image']), esc(featured.get('imageAlt') or featured.get('title'))))
+        featured_html = (
+            '        <a class="insight-featured" href="posts/%s.html" data-group="%s">\n'
+            '          <span class="ic-cover" style="background:%s">%s<span class="ic-cat">최신 현장 · %s</span></span>\n'
+            '          <span class="ic-body"><span class="eyebrow">FEATURED CASE</span><b>%s</b>'
+            '<span class="ic-excerpt">%s</span><span class="ic-meta">%s · %s분 읽기</span></span>\n'
+            '        </a>' % (
+                esc(featured.get('slug')), case_group(featured), shade_cover(featured.get('cover') or '#d8c3a5'),
+                featured_image, esc(featured.get('category')), esc(featured.get('title')), esc(featured.get('excerpt')),
+                esc(featured.get('date')), esc(featured.get('readMin'))))
+
     cards = []
-    for idx, a in enumerate(insights):
+    for idx, a in enumerate(insights[1:]):
         img = ''
         if a.get('image'):
-            priority = ' loading="eager" fetchpriority="high"' if idx == 0 else ' loading="lazy"'
+            priority = ' loading="lazy"'
             img = ('<img class="ic-image" src="%s" alt="%s"%s decoding="async">'
                    % (esc(a['image']), esc(a.get('imageAlt') or a.get('title')), priority))
         cards.append(
-            '          <a class="insight-card" href="posts/%s.html">\n'
+            '          <a class="insight-card" href="posts/%s.html" data-group="%s">\n'
             '            <span class="ic-cover" style="background:%s">%s<span class="ic-cat">%s</span></span>\n'
             '            <span class="ic-body">\n'
             '              <b>%s</b>\n'
@@ -295,17 +323,25 @@ def list_markup(insights):
             '              <span class="ic-meta">%s · %s분 읽기</span>\n'
             '            </span>\n'
             '          </a>' % (
-                esc(a.get('slug')), shade_cover(a.get('cover') or '#d8c3a5'), img,
+                esc(a.get('slug')), case_group(a), shade_cover(a.get('cover') or '#d8c3a5'), img,
                 esc(a.get('category')), esc(a.get('title')), esc(a.get('excerpt')),
                 esc(a.get('date')), esc(a.get('readMin'))))
     return (
         '      <div class="container" id="blogRoot">\n'
-        '        <div class="section-head" style="text-align:center">\n'
-        '          <span class="eyebrow">INSIGHTS</span>\n'
-        '          <h1>누수·배관 사례부터 인테리어까지</h1>\n'
-        '          <p class="section-sub" style="margin:12px auto 0">누수탐지·배관·방수 실제 현장을 먼저, 인테리어 시공·견적·보증 안내도 함께 기록합니다.</p>\n'
+        '        <div class="section-head">\n'
+        '          <span class="eyebrow">ACTUAL WORK</span>\n'
+        '          <h1>현장에서 한 일을 사진과 함께 기록합니다</h1>\n'
+        '          <p class="section-sub">누수·배관 실제 현장과 인테리어 공정, 견적·보증 안내를 분야별로 확인하세요.</p>\n'
         '        </div>\n'
-        '        <div class="insights-grid" style="margin-top:40px">\n'
+        + featured_html + '\n'
+        '        <div class="case-filter-bar" role="group" aria-label="사례 분야 선택">\n'
+        '          <button type="button" class="case-filter" data-case-filter="all" aria-pressed="true">전체</button>\n'
+        '          <button type="button" class="case-filter" data-case-filter="leak" aria-pressed="false">누수·배관</button>\n'
+        '          <button type="button" class="case-filter" data-case-filter="interior" aria-pressed="false">인테리어</button>\n'
+        '          <button type="button" class="case-filter" data-case-filter="info" aria-pressed="false">정보</button>\n'
+        '        </div>\n'
+        f'        <p class="case-filter-status" id="caseFilterStatus" aria-live="polite">전체 {len(insights)}건</p>\n'
+        '        <div class="insights-grid">\n'
         + '\n'.join(cards) + '\n'
         '        </div>\n'
         '      </div>')
