@@ -62,3 +62,19 @@
   copyBtn.addEventListener('click', copyMemo);
   render();
 })();
+
+/* 공통 모바일 메뉴 */
+(function () {
+  const toggle = document.getElementById('navToggle');
+  const nav = document.getElementById('mainNav');
+  if (!toggle || !nav) return;
+  toggle.addEventListener('click', () => {
+    const open = nav.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+  nav.addEventListener('click', (event) => {
+    if (event.target.tagName !== 'A') return;
+    nav.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+  });
+})();

@@ -16,6 +16,18 @@
   var CONFIG = null;
   var state = { complex: '', region: '', units: '', needs: [], manager: '', phone: '', agreed: false };
 
+  function scrollChat() {
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function focusTextIfVisible() {
+    var rect = bar.getBoundingClientRect();
+    if (rect.bottom > 0 && rect.top < window.innerHeight) {
+      try { txt.focus({ preventScroll: true }); }
+      catch (e) { txt.focus(); }
+    }
+  }
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -26,7 +38,7 @@
     d.className = 'of-msg of-bot';
     d.innerHTML = html;
     chat.appendChild(d);
-    d.scrollIntoView({ block: 'nearest' });
+    scrollChat();
     return d;
   }
   function me(text) {
@@ -34,7 +46,7 @@
     d.className = 'of-msg of-me';
     d.textContent = text;
     chat.appendChild(d);
-    d.scrollIntoView({ block: 'nearest' });
+    scrollChat();
   }
   function chips(items, onPick, multi) {
     var wrap = document.createElement('div');
@@ -64,7 +76,7 @@
       wrap.appendChild(next);
     }
     chat.appendChild(wrap);
-    wrap.scrollIntoView({ block: 'nearest' });
+    scrollChat();
     return wrap;
   }
   function askText(placeholder, type, onDone) {
@@ -72,7 +84,7 @@
     txt.value = '';
     txt.placeholder = placeholder;
     txt.type = type || 'text';
-    txt.focus();
+    focusTextIfVisible();
     var fire = function () {
       var v = txt.value.trim();
       if (!v) { txt.focus(); return; }
@@ -87,7 +99,7 @@
 
   /* ---- 단계 ---- */
   function stepComplex() {
-    bot('안녕하세요, <b>만물인테리어</b>입니다.<br>관리사무소 담당자님 전용 창구예요. 몇 가지만 여쭙겠습니다.<br><br><b>단지(아파트) 이름</b>이 어떻게 되나요?');
+    bot('안녕하세요, <b>만물인테리어</b>입니다.<br>관리사무소 업무를 빠르게 확인할 수 있도록 몇 가지만 여쭙겠습니다.<br><br><b>단지(아파트) 이름</b>이 어떻게 되나요?');
     askText('예: 신흥마을아파트', 'text', function (v) { state.complex = v; stepRegion(); });
   }
   function stepRegion() {
@@ -105,10 +117,10 @@
   function stepNeeds() {
     bot('<b>필요하신 것</b>을 모두 골라 주세요. (여러 개 가능)');
     chips([
-      '입주민 인테리어 안내문 비치',
-      '공용부 보수 견적(방수·도장·타일 등)',
-      '세대 하자·보수 협력업체 등록',
-      '공사 소음·양해 안내문 제작',
+      '누수·배관 원인 확인·보수',
+      '공용부 방수·타일·도장 보수',
+      '세대 민원 보수·복구',
+      '인테리어 공사 안내·행정지원',
       '기타(통화로 설명)'
     ], function (label, on, wrap, done) {
       if (done) {

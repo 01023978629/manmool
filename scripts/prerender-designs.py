@@ -9,7 +9,7 @@
 #
 # 정직성 원칙:
 #  - 금액을 여기서 계산하지 않는다. 예상비용은 홈 카탈로그(DesignBom)가 한 곳에서만 낸다.
-#  - AI 시안임을 페이지에 명시한다(실제 시공 사진으로 오해 금지).
+#  - 디지털 참고 시안임을 명시한다(실제 시공 사진으로 오해 금지).
 #  - 데이터에 있는 것(자재·팔레트·팁)만 옮겨 적는다.
 #
 # 실행: python3 scripts/prerender-designs.py   (site.json 의 portfolio 를 읽어 designs/ 재생성)
@@ -41,7 +41,7 @@ for sp, (_k, x) in best.items():
     slug = x['id']
     url = f'{BASE}/designs/{slug}.html'
     title = f"{x['title']} — 대전 {sp} 인테리어 디자인 | 만물인테리어"
-    desc = (f"{x.get('area','')}평형 {sp} · {x.get('style','')} 스타일 AI 추천 디자인. "
+    desc = (f"{x.get('area','')}평형 {sp} · {x.get('style','')} 스타일 디자인 참고 시안. "
             f"주요 자재: {', '.join((x.get('materials') or [])[:3])}. "
             "무료 방문 실측으로 우리 집 기준 견적을 받아보세요. 대전·세종·충남 만물인테리어.")
     alt = x.get('imageAlt') or x['title']
@@ -68,28 +68,34 @@ for sp, (_k, x) in best.items():
   <meta property="og:title" content="{E(x['title'])} — {E(sp)} 인테리어 디자인" />
   <meta property="og:description" content="{E(desc)}" />
   <meta property="og:image" content="{BASE}/{E((x.get('photo') or '').split('?')[0])}" />
-  <link rel="stylesheet" href="../css/styles.css?v=20260729-designs" />
+  <link rel="stylesheet" href="../css/styles.css?v=20260823-brand1" />
+  <link rel="stylesheet" href="../css/brand-system.css?v=20260823-brand1" />
 </head>
-<body>
-  <header class="site-header">
+<body class="design-page">
+  <header class="site-header" id="siteHeader">
     <div class="container header-inner">
       <a href="../index.html#top" class="logo" aria-label="만물인테리어 홈">
         <span class="logo-mark">萬</span>
-        <span class="logo-text"><strong>만물인테리어</strong><em>Loop Agent</em></span>
+        <span class="logo-text"><strong>만물인테리어</strong><em>인테리어·누수 전문</em></span>
       </a>
-      <nav class="main-nav" aria-label="주요 메뉴">
-        <a href="../index.html#portfolio">추천 디자인</a>
-        <a href="../blog.html">인사이트</a>
-        <a href="../index.html#inquiry">상담 신청</a>
+      <nav class="main-nav" id="mainNav" aria-label="주요 메뉴">
+        <a href="../index.html">인테리어</a>
+        <a href="../leak.html">누수·배관</a>
+        <a href="../blog.html">실제 사례</a>
+        <a href="../office.html">관리사무소</a>
+        <a href="../index.html#process">진행 순서</a>
+        <a href="../index.html#inquiry">상담</a>
       </nav>
+      <a href="../index.html#inquiry" class="btn btn-primary btn-sm header-cta">상담 신청</a>
+      <button class="nav-toggle" id="navToggle" type="button" aria-label="메뉴 열기" aria-expanded="false"><span></span><span></span><span></span></button>
     </div>
   </header>
   <main id="top">
     <article class="section">
       <div class="container office-wrap">
-        <span class="eyebrow">{E(sp)} · AI 추천 디자인</span>
+        <span class="eyebrow">{E(sp)} · 디자인 참고 시안</span>
         <h1 class="dp-title">{E(x['title'])}</h1>
-        <p class="of-small">이 이미지는 AI가 구성한 디자인 시안입니다 — 실제 시공 사진이 아니며, 고객님 댁을 촬영하거나 합성한 것이 아닙니다.</p>
+        <p class="digital-reference-note"><b>디지털 참고 시안 · 실제 완공 사진 아님</b><br />고객님 댁을 촬영하거나 합성한 이미지가 아니며 실제 구조와 자재에 따라 달라집니다.</p>
         <img class="dp-photo" src="../{E(x.get('photo') or '')}" alt="{E(alt)}" />
         <dl class="dp-specs">{spec_html}</dl>
         {f'<div class="dp-pal" aria-hidden="true">{pal}</div>' if pal else ''}
@@ -108,6 +114,13 @@ for sp, (_k, x) in best.items():
       <p class="footer-note">만물인테리어 · 대표 전병덕 · 사업자등록번호 895-48-01132 · <a href="tel:01023978629">010-2397-8629</a> · <a href="../privacy.html">개인정보처리방침</a> · 대전·세종·충남</p>
     </div>
   </footer>
+  <script>
+  (function () {{
+    var t = document.getElementById('navToggle'), n = document.getElementById('mainNav');
+    if (!t || !n) return;
+    t.addEventListener('click', function () {{ var open = n.classList.toggle('open'); t.setAttribute('aria-expanded', String(open)); }});
+  }})();
+  </script>
 </body>
 </html>
 '''

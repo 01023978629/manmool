@@ -15,24 +15,25 @@
   <meta property="og:description" content="대전 누수탐지·배관·방수 실제 현장과 인테리어 시공 기록을 확인하세요." />
   <meta property="og:image" content="https://01023978629.github.io/manmool/og-image.png" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23b8895a'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="css/styles.css?v=20260823-leak" />
+  <link rel="stylesheet" href="css/styles.css?v=20260823-brand1" />
+  <link rel="stylesheet" href="css/brand-system.css?v=20260823-brand1" />
 </head>
-<body>
+<body class="stories-page">
   <header class="site-header" id="siteHeader">
     <div class="container header-inner">
       <a href="index.html#top" class="logo" aria-label="만물인테리어 홈">
         <span class="logo-mark">萬</span>
-        <span class="logo-text"><strong>만물인테리어</strong><em>Loop Agent</em></span>
+        <span class="logo-text"><strong>만물인테리어</strong><em>인테리어·누수 전문</em></span>
       </a>
       <nav class="main-nav" id="mainNav" aria-label="주요 메뉴">
-        <a href="index.html#about">회사 소개</a>
-        <a href="index.html#portfolio">추천 디자인</a>
-        <a href="index.html#estimator">AI 예상견적</a>
-        <a href="leak.html">누수 전용</a>
-        <a href="blog.html">인사이트</a>
-        <a href="index.html#inquiry">상담 신청</a>
+        <a href="index.html">인테리어</a>
+        <a href="leak.html">누수·배관</a>
+        <a href="blog.html" aria-current="page">실제 사례</a>
+        <a href="office.html">관리사무소</a>
+        <a href="index.html#process">진행 순서</a>
+        <a href="index.html#inquiry">상담</a>
       </nav>
-      <a href="index.html#estimator" class="btn btn-primary btn-sm header-cta">AI 예상견적</a>
+      <a href="index.html#inquiry" class="btn btn-primary btn-sm header-cta">상담 신청</a>
       <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -42,21 +43,24 @@
   <main id="top">
     <section class="section">
       <div class="container" id="blogRoot">
-        <div class="section-head" style="text-align:center">
-          <span class="eyebrow">INSIGHTS</span>
-          <h1>누수·배관 사례부터 인테리어까지</h1>
-          <p class="section-sub" style="margin:12px auto 0">누수탐지·배관·방수 실제 현장을 먼저, 인테리어 시공·견적·보증 안내도 함께 기록합니다.</p>
+        <div class="section-head">
+          <span class="eyebrow">ACTUAL WORK</span>
+          <h1>현장에서 한 일을 사진과 함께 기록합니다</h1>
+          <p class="section-sub">누수·배관 실제 현장과 인테리어 공정, 견적·보증 안내를 분야별로 확인하세요.</p>
         </div>
-        <div class="insights-grid" style="margin-top:40px">
-          <a class="insight-card" href="posts/yeolmae-waterproof-screed.html">
-            <span class="ic-cover" style="background:#5b726d"><img class="ic-image" src="assets/cases/yeolmae-waterproof-screed-cover.jpg" alt="열매마을 욕실 바닥과 벽 하단에 도포한 1차 방수층" loading="eager" fetchpriority="high" decoding="async"><span class="ic-cat">방수·설비</span></span>
-            <span class="ic-body">
-              <b>대전 열매마을 욕실 방수와 확장부 미장 — 보이지 않을 공정을 기록했습니다</b>
-              <span class="ic-excerpt">같은 날 진행한 욕실 1차 방수와 거실·방 확장부 바닥 공정입니다. 단열재, 난방배관, 미장으로 이어지는 과정을 실제 현장 사진으로 정리했습니다.</span>
-              <span class="ic-meta">2026-08-20 · 2분 읽기</span>
-            </span>
-          </a>
-          <a class="insight-card" href="posts/mugunghwa-pipe-replacement.html">
+        <a class="insight-featured" href="posts/yeolmae-waterproof-screed.html" data-group="interior">
+          <span class="ic-cover" style="background:#5b726d"><img class="ic-image" src="assets/cases/yeolmae-waterproof-screed-cover.jpg" alt="열매마을 욕실 바닥과 벽 하단에 도포한 1차 방수층" loading="eager" fetchpriority="high" decoding="async"><span class="ic-cat">최신 현장 · 방수·설비</span></span>
+          <span class="ic-body"><span class="eyebrow">FEATURED CASE</span><b>대전 열매마을 욕실 방수와 확장부 미장 — 보이지 않을 공정을 기록했습니다</b><span class="ic-excerpt">같은 날 진행한 욕실 1차 방수와 거실·방 확장부 바닥 공정입니다. 단열재, 난방배관, 미장으로 이어지는 과정을 실제 현장 사진으로 정리했습니다.</span><span class="ic-meta">2026-08-20 · 2분 읽기</span></span>
+        </a>
+        <div class="case-filter-bar" role="group" aria-label="사례 분야 선택">
+          <button type="button" class="case-filter" data-case-filter="all" aria-pressed="true">전체</button>
+          <button type="button" class="case-filter" data-case-filter="leak" aria-pressed="false">누수·배관</button>
+          <button type="button" class="case-filter" data-case-filter="interior" aria-pressed="false">인테리어</button>
+          <button type="button" class="case-filter" data-case-filter="info" aria-pressed="false">정보</button>
+        </div>
+        <p class="case-filter-status" id="caseFilterStatus" aria-live="polite">전체 31건</p>
+        <div class="insights-grid">
+          <a class="insight-card" href="posts/mugunghwa-pipe-replacement.html" data-group="leak">
             <span class="ic-cover" style="background:#66757c"><img class="ic-image" src="assets/cases/mugunghwa-pipe-replacement-cover.jpg" alt="무궁화아파트에 새로 연결한 배관과 관통부" loading="lazy" decoding="async"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>대전 무궁화아파트 배관 교체 — 연결부와 관통부를 기록했습니다</b>
@@ -64,7 +68,7 @@
               <span class="ic-meta">2026-08-19 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/taesan-lexan-frame.html">
+          <a class="insight-card" href="posts/taesan-lexan-frame.html" data-group="interior">
             <span class="ic-cover" style="background:#6b7f93"><img class="ic-image" src="assets/cases/taesan-lexan-frame-cover.jpg" alt="고정대 교체 대상 렉산 전경" loading="lazy" decoding="async"><span class="ic-cat">시공 사례</span></span>
             <span class="ic-body">
               <b>대전 태산그린아파트 렉산 고정대 교체 — 판보다 먼저 삭는 것이 고정대입니다</b>
@@ -72,7 +76,7 @@
               <span class="ic-meta">2026-08-15 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/geumseong-basement-pipe-valve.html">
+          <a class="insight-card" href="posts/geumseong-basement-pipe-valve.html" data-group="leak">
             <span class="ic-cover" style="background:#5b7a8c"><img class="ic-image" src="assets/cases/geumseong-basement-pipe-valve-cover.jpg" alt="지하실에 새로 교체해 보온재로 감싼 공용배관" loading="lazy" decoding="async"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>대전 금성백조아파트 지하 공용배관 교체 — 세대 계량기 밸브까지 함께 정리했습니다</b>
@@ -80,7 +84,7 @@
               <span class="ic-meta">2026-08-14 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/samsung-apartment-drain-pipe-replacement.html">
+          <a class="insight-card" href="posts/samsung-apartment-drain-pipe-replacement.html" data-group="leak">
             <span class="ic-cover" style="background:#657683"><img class="ic-image" src="assets/cases/samsung-apartment-drain-after-wide.jpg" alt="대전 삼성아파트 욕실 천장 내부에 새로 교체한 생활하수 배관과 연결부 전체 모습" loading="lazy" decoding="async"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>욕실 천장 배관에서 물이 샜습니다 — 대전 삼성아파트 오수관·생활하수 배관 교체</b>
@@ -88,7 +92,7 @@
               <span class="ic-meta">2026-08-13 · 4분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/hanbat-drain-replacement.html">
+          <a class="insight-card" href="posts/hanbat-drain-replacement.html" data-group="leak">
             <span class="ic-cover" style="background:#6b7f93"><img class="ic-image" src="assets/cases/case-hanbat-drain.jpg" alt="천장 슬래브 아래로 새로 교체한 흰색 생활하수관 배관과 조임식 이음" loading="lazy" decoding="async"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>한밭유성아파트 생활하수관 교체 — 물 테스트까지 확인하고 마무리했습니다</b>
@@ -96,7 +100,7 @@
               <span class="ic-meta">2026-08-11 · 4분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/seonbi-pipe-replacement.html">
+          <a class="insight-card" href="posts/seonbi-pipe-replacement.html" data-group="leak">
             <span class="ic-cover" style="background:#657683"><img class="ic-image" src="assets/cases/seonbi-pipe-replacement-cover.jpg" alt="천장 안에 새로 교체한 세대 배관" loading="lazy" decoding="async"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>대전 선비마을3단지 세대 배관 교체 — 문제 구간을 확인하고 갈았습니다</b>
@@ -104,7 +108,7 @@
               <span class="ic-meta">2026-08-10 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/leak-insurance-guide.html">
+          <a class="insight-card" href="posts/leak-insurance-guide.html" data-group="leak">
             <span class="ic-cover" style="background:#5b7a8c"><img class="ic-image" src="assets/cases/case-drain.jpg" alt="누수 보수를 위해 배수 구간을 확인하는 시공 현장" loading="lazy" decoding="async"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>아랫집 천장에 물자국 — 누수, 보험으로 처리될까요?</b>
@@ -112,7 +116,7 @@
               <span class="ic-meta">2026-08-09 · 5분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/apt-office-repair-partner.html">
+          <a class="insight-card" href="posts/apt-office-repair-partner.html" data-group="info">
             <span class="ic-cover" style="background:#cbb9a2"><img class="ic-image" src="assets/cases/case-drain.jpg" alt="욕실 배수 구간 방수 보수 시공 현장" loading="lazy" decoding="async"><span class="ic-cat">관리사무소</span></span>
             <span class="ic-body">
               <b>아파트 관리사무소가 세대 보수 업체를 고를 때 확인하는 5가지</b>
@@ -120,7 +124,7 @@
               <span class="ic-meta">2026-08-02 · 4분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/rainy-season-waterproof-check.html">
+          <a class="insight-card" href="posts/rainy-season-waterproof-check.html" data-group="leak">
             <span class="ic-cover" style="background:#9fb2c0"><img class="ic-image" src="assets/cases/case-coat-gray.jpg" alt="방수 도막을 올린 회색 바닥 시공 현장" loading="lazy" decoding="async"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>장마철 앞두고 봐야 할 욕실·베란다 방수 점검 포인트</b>
@@ -128,7 +132,7 @@
               <span class="ic-meta">2026-07-29 · 4분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/apt-office-construction-notice.html">
+          <a class="insight-card" href="posts/apt-office-construction-notice.html" data-group="info">
             <span class="ic-cover" style="background:#cbb9a2"><img class="ic-image" src="assets/designs/arch-entry-24.jpg" alt="아치형 중문이 있는 아파트 현관 인테리어" loading="lazy" decoding="async"><span class="ic-cat">계약 가이드</span></span>
             <span class="ic-body">
               <b>아파트 인테리어 공사, 관리사무소 신고는 이렇게 진행됩니다</b>
@@ -136,7 +140,7 @@
               <span class="ic-meta">2026-07-29 · 4분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/mokdong-trench-drain.html">
+          <a class="insight-card" href="posts/mokdong-trench-drain.html" data-group="leak">
             <span class="ic-cover" style="background:#6e7b62"><img class="ic-image" src="assets/cases/mokdong-trench-drain-cover.jpg" alt="대전 목동 출입구 바닥에 설치를 마친 스테인리스 트렌치 배수로" loading="lazy" decoding="async"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>대전 목동 트렌치 배수 시공 — 비만 오면 고이던 물길을 잡았습니다</b>
@@ -144,7 +148,7 @@
               <span class="ic-meta">2026-07-27 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/dodam-floor-screed.html">
+          <a class="insight-card" href="posts/dodam-floor-screed.html" data-group="interior">
             <span class="ic-cover" style="background:#6e7b62"><img class="ic-image" src="assets/cases/dodam-floor-screed-cover.jpg" alt="세종 도담동 상가 내부 바닥의 미장과 수평 정리를 마친 전체 모습" loading="lazy" decoding="async"><span class="ic-cat">시공 사례</span></span>
             <span class="ic-body">
               <b>세종 도담동 상가 바닥 미장 — 마감재보다 먼저 챙겨야 하는 공정</b>
@@ -152,7 +156,7 @@
               <span class="ic-meta">2026-07-25 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/warranty-periods-by-work.html">
+          <a class="insight-card" href="posts/warranty-periods-by-work.html" data-group="info">
             <span class="ic-cover" style="background:#7d9a92"><img class="ic-image" src="assets/cases/case-drain.jpg" alt="욕실 배수 방수 시공 현장 사진" loading="lazy" decoding="async"><span class="ic-cat">보증·A/S</span></span>
             <span class="ic-body">
               <b>인테리어 하자보증 기간, 공정별로 이렇게 다릅니다</b>
@@ -160,7 +164,7 @@
               <span class="ic-meta">2026-07-19 · 4분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/extra-work-dispute-prevention.html">
+          <a class="insight-card" href="posts/extra-work-dispute-prevention.html" data-group="info">
             <span class="ic-cover" style="background:#a8836b"><img class="ic-image" src="assets/cases/case-mortar.jpg" alt="바닥 몰탈 미장 시공 중인 현장 사진" loading="lazy" decoding="async"><span class="ic-cat">계약 가이드</span></span>
             <span class="ic-body">
               <b>인테리어 추가공사 분쟁, 시공하는 사람이 알려드립니다</b>
@@ -168,7 +172,7 @@
               <span class="ic-meta">2026-07-19 · 5분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/bathroom-waterproof-signs.html">
+          <a class="insight-card" href="posts/bathroom-waterproof-signs.html" data-group="leak">
             <span class="ic-cover" style="background:#9fb4c4"><img class="ic-image" src="assets/cases/case-blue-floor.jpg" alt="파란색 방수층을 꼼꼼하게 시공한 실제 욕실 바닥 현장" loading="lazy" decoding="async"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>욕실 방수, 언제 다시 해야 할까? 누수 징후 5가지와 비용</b>
@@ -176,7 +180,7 @@
               <span class="ic-meta">2026-07-16 · 5분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/partial-vs-full-remodel.html">
+          <a class="insight-card" href="posts/partial-vs-full-remodel.html" data-group="info">
             <span class="ic-cover" style="background:#c9a86a"><img class="ic-image" src="assets/insights/partial-vs-full-remodel.jpg" alt="기존 주방과 전체 리모델링 공간이 한 집 안에서 이어지는 모습" loading="lazy" decoding="async"><span class="ic-cat">견적 가이드</span></span>
             <span class="ic-body">
               <b>부분 리모델링 vs 전체 리모델링 — 우리 집엔 뭐가 유리할까?</b>
@@ -184,7 +188,7 @@
               <span class="ic-meta">2026-07-16 · 5분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/daejayeon-bathroom-fixtures.html">
+          <a class="insight-card" href="posts/daejayeon-bathroom-fixtures.html" data-group="interior">
             <span class="ic-cover" style="background:#5f7d74"><img class="ic-image" src="assets/cases/daejayeon-bathroom-fixtures-cover.jpg" alt="타일에 수전 홀을 타공한 욕실 벽" loading="lazy" decoding="async"><span class="ic-cat">시공 사례</span></span>
             <span class="ic-body">
               <b>대전 대자연아파트 욕실 수전 홀 타공과 위생기구 설치</b>
@@ -192,7 +196,7 @@
               <span class="ic-meta">2026-07-15 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/budget-guide-34py.html">
+          <a class="insight-card" href="posts/budget-guide-34py.html" data-group="info">
             <span class="ic-cover" style="background:#d8c3a5"><img class="ic-image" src="assets/insights/budget-guide-34py.jpg" alt="아파트 평면도와 마감재 샘플로 리모델링 예산을 계획하는 테이블" loading="lazy" decoding="async"><span class="ic-cat">견적 가이드</span></span>
             <span class="ic-body">
               <b>34평 아파트 리모델링, 예산 6천만원으로 어디까지 될까?</b>
@@ -200,7 +204,7 @@
               <span class="ic-meta">2026-07-10 · 5분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/gaon-bathroom-waterproof.html">
+          <a class="insight-card" href="posts/gaon-bathroom-waterproof.html" data-group="interior">
             <span class="ic-cover" style="background:#7d6e5f"><img class="ic-image" src="assets/cases/gaon-bathroom-waterproof-cover.jpg" alt="젠다이와 바닥까지 방수를 올린 욕실" loading="lazy" decoding="async"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>세종 가온마을 욕실 젠다이·매립수전 시공과 1·2차 방수</b>
@@ -208,7 +212,7 @@
               <span class="ic-meta">2026-07-07 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/warranty-5-checks.html">
+          <a class="insight-card" href="posts/warranty-5-checks.html" data-group="info">
             <span class="ic-cover" style="background:#c9d6df"><img class="ic-image" src="assets/cases/case-blue-mesh.jpg" alt="욕실 바닥 방수 보강망을 시공한 실제 현장" loading="lazy" decoding="async"><span class="ic-cat">보증·A/S</span></span>
             <span class="ic-body">
               <b>인테리어 하자보증, 국가 기준으로 꼭 확인할 5가지</b>
@@ -216,7 +220,7 @@
               <span class="ic-meta">2026-07-04 · 4분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/beomjigi-bathroom-waterproof.html">
+          <a class="insight-card" href="posts/beomjigi-bathroom-waterproof.html" data-group="leak">
             <span class="ic-cover" style="background:#5f7d74"><img class="ic-image" src="assets/cases/beomjigi-bathroom-waterproof-cover.jpg" alt="욕실 바닥과 벽에 방수를 도포한 상태" loading="lazy" decoding="async"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>세종 범지기마을 욕실 방수 1·2차 — 두 세대를 같은 기간에 시공했습니다</b>
@@ -224,7 +228,7 @@
               <span class="ic-meta">2026-07-02 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/doram-waterproof-heating.html">
+          <a class="insight-card" href="posts/doram-waterproof-heating.html" data-group="interior">
             <span class="ic-cover" style="background:#5b7a8c"><img class="ic-image" src="assets/cases/doram-waterproof-heating-cover.jpg" alt="도막방수 위에 난방 배관을 배치한 욕실 바닥" loading="lazy" decoding="async"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>세종 도램마을 욕실 도막방수와 난방 배관 — 바닥을 연 김에 한 번에</b>
@@ -232,7 +236,7 @@
               <span class="ic-meta">2026-06-29 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/contract-checklist.html">
+          <a class="insight-card" href="posts/contract-checklist.html" data-group="info">
             <span class="ic-cover" style="background:#e0cfc0"><img class="ic-image" src="assets/insights/contract-checklist.jpg" alt="세부 항목이 구분된 견적서와 마감재 샘플을 검토하는 테이블" loading="lazy" decoding="async"><span class="ic-cat">계약</span></span>
             <span class="ic-body">
               <b>계약 전 반드시 확인할 견적서 체크리스트</b>
@@ -240,7 +244,7 @@
               <span class="ic-meta">2026-06-27 · 4분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/eunhasu-bathroom-waterproof.html">
+          <a class="insight-card" href="posts/eunhasu-bathroom-waterproof.html" data-group="interior">
             <span class="ic-cover" style="background:#5f7468"><img class="ic-image" src="assets/cases/eunhasu-bathroom-waterproof-cover.jpg" alt="은하수아파트 욕실 바닥과 벽 하단에 시공한 1차 방수층" loading="lazy" decoding="async"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>대전 은하수아파트 욕실 1차 방수 — 벽 하단과 배관 주변까지 도포했습니다</b>
@@ -248,7 +252,7 @@
               <span class="ic-meta">2026-06-26 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/taesan-rain-pipe-replacement.html">
+          <a class="insight-card" href="posts/taesan-rain-pipe-replacement.html" data-group="leak">
             <span class="ic-cover" style="background:#6b7f93"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>대전 태산그린아파트 우수관 교체 — 비 올 때만 새는 물의 원인을 잡았습니다</b>
@@ -256,7 +260,7 @@
               <span class="ic-meta">2026-06-24 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/sejong-cafe-waterproof.html">
+          <a class="insight-card" href="posts/sejong-cafe-waterproof.html" data-group="interior">
             <span class="ic-cover" style="background:#657683"><img class="ic-image" src="assets/cases/sejong-cafe-waterproof-cover.jpg" alt="도막방수를 올린 카페 화장실 바닥과 배관" loading="lazy" decoding="async"><span class="ic-cat">방수·설비</span></span>
             <span class="ic-body">
               <b>세종 카페 화장실 도막방수 3차 — 난방·환풍기 배관까지 한 번에 정리했습니다</b>
@@ -264,7 +268,7 @@
               <span class="ic-meta">2026-06-20 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/ai-operated-interior.html">
+          <a class="insight-card" href="posts/ai-operated-interior.html" data-group="info">
             <span class="ic-cover" style="background:#cfcfcf"><img class="ic-image" src="assets/insights/ai-operated-interior.jpg" alt="완성된 인테리어 공간에서 공정 관리 화면과 도면을 확인하는 작업대" loading="lazy" decoding="async"><span class="ic-cat">브랜드</span></span>
             <span class="ic-body">
               <b>AI가 운영하는 인테리어, 무엇이 다른가</b>
@@ -272,7 +276,7 @@
               <span class="ic-meta">2026-06-20 · 3분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/daejeon-cafe-restroom-remodel.html">
+          <a class="insight-card" href="posts/daejeon-cafe-restroom-remodel.html" data-group="interior">
             <span class="ic-cover" style="background:#7a6f5b"><img class="ic-image" src="assets/cases/daejeon-cafe-restroom-remodel-cover.jpg" alt="가스보일러 설치와 배관 정리를 마친 상태" loading="lazy" decoding="async"><span class="ic-cat">시공 사례</span></span>
             <span class="ic-body">
               <b>대전 카페 건물 화장실 리모델링 — 철거부터 방수 3차, 보일러 설치까지</b>
@@ -280,7 +284,7 @@
               <span class="ic-meta">2026-06-18 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/daejeon-church-canopy.html">
+          <a class="insight-card" href="posts/daejeon-church-canopy.html" data-group="interior">
             <span class="ic-cover" style="background:#7a6f5b"><img class="ic-image" src="assets/cases/daejeon-church-canopy-cover.jpg" alt="새로 입고해 고정한 지붕 판넬 전경" loading="lazy" decoding="async"><span class="ic-cat">시공 사례</span></span>
             <span class="ic-body">
               <b>대전 교회 지붕·처마 전면 교체 — 커팅부터 배수구 설치까지</b>
@@ -288,7 +292,7 @@
               <span class="ic-meta">2026-05-12 · 2분 읽기</span>
             </span>
           </a>
-          <a class="insight-card" href="posts/nonsan-fire-door.html">
+          <a class="insight-card" href="posts/nonsan-fire-door.html" data-group="interior">
             <span class="ic-cover" style="background:#7d6e5f"><span class="ic-cat">시공 사례</span></span>
             <span class="ic-body">
               <b>논산 공장 방화문 교체 — 상부 탈부착형으로 시공한 이유</b>
@@ -303,7 +307,7 @@
 
   <footer class="site-footer">
     <div class="container footer-inner">
-      <span>© 만물인테리어 · Loop Agent</span>
+      <span>© 만물인테리어 · 인테리어·누수 전문</span>
       <a href="index.html">홈으로</a>
     </div>
   </footer>
@@ -314,6 +318,6 @@
     <a class="dock-call" href="tel:01023978629">📞 전화</a>
   </nav>
 
-  <script src="js/blog.js?v=20260823-leak"></script>
+  <script src="js/blog.js?v=20260823-brand1"></script>
 </body>
 </html>

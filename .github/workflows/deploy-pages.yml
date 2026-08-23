@@ -61,6 +61,7 @@ jobs:
             fi
             node "$check"
           done
+          node --test tests/unified-brand-design.e2e.cjs
           node --test scripts/new-case-post.test.mjs
           node --test apps-script-contract/test/*.mjs
           git diff --exit-code

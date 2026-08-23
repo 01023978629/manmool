@@ -1,5 +1,5 @@
 /* ============================================================
-   AI 예상견적 — 대화식(chat) 흐름
+   간편 예상견적 — 대화식 흐름
    긴 설문 대신 한 번에 하나씩 묻고, 마지막에 예상금액·필요공사·
    자재등급·공사기간·비슷한 사례·상담 전 준비를 생성합니다.
    ============================================================ */
@@ -14,7 +14,7 @@
 
   const STEPS = [
     {
-      key: 'type', bot: '안녕하세요! AI 예상견적을 도와드릴게요 🤖\n어떤 공간을 공사하시나요?',
+      key: 'type', bot: '안녕하세요. 간편 예상견적을 도와드릴게요.\n어떤 공간을 공사하시나요?',
       options: [{ v: '주거', l: '주거(아파트·주택)' }, { v: '상업', l: '상업(카페·매장·오피스)' }, { v: '리모델링', l: '리모델링' }]
     },
     {
@@ -173,7 +173,7 @@
     // 상담 폼이 같은 질문을 반복하지 않도록 답변을 넘겨준다
     MANMUL.lastAnswers = { type: type, area: area, scope: scope, budget: budget, photo: answers.photo || 0 };
 
-    bubble('bot', 'AI가 입력하신 내용을 분석했어요. 아래 참고 결과를 확인해 주세요 👇');
+    bubble('bot', '입력하신 조건으로 참고 범위를 정리했습니다. 아래 결과를 확인해 주세요.');
 
     const card = document.createElement('div');
     card.className = 'ce-result';
@@ -221,7 +221,7 @@
       <div class="cr-flow">
         <span class="crf-title">다음 단계</span>
         <ol class="crf-steps">
-          <li class="done"><b>AI 예상견적</b><span>지금 여기</span></li>
+          <li class="done"><b>간편 예상견적</b><span>지금 여기</span></li>
           <li class="active"><b>무료 방문 실측</b><span>현장 확인</span></li>
           <li><b>정식 견적서</b><span>금액 확정</span></li>
           <li><b>계약</b><span>전자 서명</span></li>

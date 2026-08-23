@@ -31,9 +31,9 @@ check(/js\/lookbook\.js\?v=/.test(index) && /initLookbook/.test(main),
   'lookbook.js 로드·초기화 연결');
 
 /* ② 기존 사례 카탈로그를 대체하지 않는다 -------------------------------- */
-// 사장님 지시: "AI 인테리어 사례는 두고" — 새 보기는 그것을 덮지 않는다.
-check(/id="portfolio"/.test(index) && /AI 추천 인테리어 디자인/.test(index),
-  '기존 "AI 추천 인테리어 디자인" 섹션이 사라졌다',
+// 디자인 참고 카탈로그는 유지하되 운영기술 설명 없이 고객용 이름으로 보여 준다.
+check(/id="portfolio"/.test(index) && /인테리어 디자인 참고 시안/.test(index),
+  '기존 디자인 참고 시안 섹션이 사라졌다',
   '기존 사례 카탈로그 유지됨');
 // 개수를 숫자로 박아두면 카탈로그를 늘릴 때마다 검증기가 거짓으로 빨간불이 된다(실제로 300 확장 때 그랬다).
 // 지켜야 할 것은 '몇 개냐'가 아니라 ⑴ 줄지 않았고 ⑵ 화면에 적은 숫자가 사실이냐 두 가지다.
@@ -43,11 +43,11 @@ check(/id="portfolio"/.test(index) && /AI 추천 인테리어 디자인/.test(in
   check(n >= FLOOR,
     `site.json portfolio 가 ${n}개로 줄었다(최소 ${FLOOR}) — 카탈로그가 파손됐다`,
     `portfolio ${n}개 (축소 없음)`);
-  const claim = index.match(/총\s*([\d,]+)\s*가지/);
+  const claim = index.match(/총\s*([\d,]+)\s*(?:가지|개)\s*(?:디자인|시안)?/);
   const claimed = claim ? Number(claim[1].replace(/,/g, '')) : null;
-  check(claimed === n,
-    `화면에는 "총 ${claimed}가지"라고 적혀 있는데 실제 시안은 ${n}개다 — 고객에게 숫자를 부풀려 말하게 된다`,
-    `화면 표기(총 ${claimed}가지)와 실제 시안 수 일치`);
+  check((claimed == null || claimed === n) && /총 \$\{list\.length\}개 디자인/.test(main),
+    `정적 화면 수(${claimed}) 또는 동적 카운트가 실제 시안 ${n}개와 일치하지 않는다`,
+    `화면 카운트가 실제 목록 길이(${n}개)를 사용`);
 
   // "총 N가지"가 사실이려면 개수만 맞아선 부족하다 — 손님은 설명이 아니라 사진으로 훑는다.
   // 사진·자른위치·배율·좌우반전이 전부 같으면 손님 눈에는 같은 시안 두 개다(js/main.js portfolioPhotoStyle 기준).

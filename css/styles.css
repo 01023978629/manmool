@@ -226,7 +226,7 @@ body.content-preview .site-header { top: 46px; }
 .real-work-note strong { color: var(--ink); white-space: nowrap; }
 
 /* ===== Process loop ===== */
-.process-loop { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; counter-reset: none; }
+.process-loop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; counter-reset: none; }
 .process-step {
   position: relative; background: var(--surface); border: 1px solid var(--line);
   border-radius: var(--radius); padding: 26px 20px; text-align: center;

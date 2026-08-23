@@ -23,7 +23,7 @@ check(/id="realWork"/.test(index) && (index.match(/class="real-work-card"/g) || 
   'index.html 에 실제 현장 공정 카드 3개가 없다');
 check((index.match(/class="real-work-photo"/g) || []).length === (index.match(/실제 (?:현장|공정) ·/g) || []).length,
   '실제 현장 사진의 출처 구분 라벨이 빠졌다');
-check(/완공 사례가 아닌 <b>자체 제작 AI 참고 시안/.test(index), 'AI 디자인을 완공 사례와 구분하는 고지가 없다');
+check(/디지털 참고 시안\s*·\s*실제 완공 사진 아님/.test(index), '디자인 참고 시안을 실제 완공 사진과 구분하는 고지가 없다');
 check(/data-featured-slugs="apt-office-construction-notice,budget-guide-34py,partial-vs-full-remodel"/.test(index),
   '인테리어 대문 추천 글이 누수 최신글과 분리되지 않았다');
 check(/dataset\.featuredSlugs/.test(main), '추천 인테리어 글 순서를 읽는 렌더 로직이 없다');
