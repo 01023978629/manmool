@@ -16,25 +16,30 @@
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const cover = (a) => `linear-gradient(150deg, ${a.cover || '#d8c3a5'}, ${shade(a.cover || '#d8c3a5', -16)})`;
   const image = (a, className, priority) => a.image
-    ? `<img class="${className}" src="${esc(a.image)}" alt="${esc(a.imageAlt || a.title)}"${priority ? ' fetchpriority="high"' : ' loading="lazy"'} decoding="async">`
+    ? `<img class="${className}" src="${esc(a.image)}" alt="${esc(a.imageAlt || a.title)}"${priority ? ' loading="eager" fetchpriority="high"' : ' loading="lazy"'} decoding="async">`
     : '';
   const absoluteImage = (a) => a.image
     ? 'https://01023978629.github.io/manmool/' + String(a.image).replace(/^\.\//, '')
     : 'https://01023978629.github.io/manmool/og-image.png';
+  const articleService = (a) => a.service === 'leak'
+    ? 'leak'
+    : a.service === 'interior'
+      ? 'interior'
+      : (a.category === '방수·설비' || a.category === '누수탐지·수리') ? 'leak' : 'interior';
 
   function renderList(list) {
-    document.title = '인사이트 · 만물인테리어';
+    document.title = '누수·배관 사례와 인테리어 기록 · 만물인테리어';
     list = list.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))); // 최신순
     root.innerHTML = `
       <div class="section-head" style="text-align:center">
         <span class="eyebrow">INSIGHTS</span>
-        <h1>인테리어, 알고 시작하면 다릅니다</h1>
-        <p class="section-sub" style="margin:12px auto 0">견적·계약·보증까지 — 후회 없는 선택을 돕는 만물인테리어의 콘텐츠.</p>
+        <h1>누수·배관 사례부터 인테리어까지</h1>
+        <p class="section-sub" style="margin:12px auto 0">누수탐지·배관·방수 실제 현장을 먼저, 인테리어 시공·견적·보증 안내도 함께 기록합니다.</p>
       </div>
       <div class="insights-grid" style="margin-top:40px">
-        ${list.map((a) => `
+        ${list.map((a, idx) => `
           <a class="insight-card" href="posts/${encodeURIComponent(a.slug)}.html">
-            <span class="ic-cover" style="background:${cover(a)}">${image(a, 'ic-image', true)}<span class="ic-cat">${esc(a.category)}</span></span>
+            <span class="ic-cover" style="background:${cover(a)}">${image(a, 'ic-image', idx === 0)}<span class="ic-cat">${esc(a.category)}</span></span>
             <span class="ic-body">
               <b>${esc(a.title)}</b>
               <span class="ic-excerpt">${esc(a.excerpt)}</span>
@@ -62,6 +67,24 @@
     document.title = `${a.title} · 만물인테리어`;
     applyPostSeo(a);
     const related = list.filter((x) => x.slug !== a.slug).slice(0, 3);
+    const leakArticle = articleService(a) === 'leak';
+    const sourceMarkup = Array.isArray(a.sources) && a.sources.length
+      ? `<aside class="post-sources" aria-label="공식 출처">
+          <h2>공식 출처</h2><p>확인일 ${esc(a.sourcesChecked || '')}</p>
+          <ul>${a.sources.map((source) => `<li><a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.title || source.url)}</a></li>`).join('')}</ul>
+        </aside>`
+      : '';
+    const articleCta = leakArticle
+      ? `<div class="post-cta">
+          <p data-service="leak">누수 원인과 필요한 공사 범위는 현장 확인 후 안내합니다.</p>
+          <a href="leak.html#leakInquiry" class="btn btn-primary">누수 증상 남기기</a>
+          <a href="tel:01023978629" class="btn btn-ghost">전화 상담</a>
+        </div>`
+      : `<div class="post-cta">
+          <p data-service="interior">예상 범위는 참고용이며, 최종 범위·금액은 실측 후 확정됩니다.</p>
+          <a href="index.html#estimator" class="btn btn-primary">예상 범위 확인</a>
+          <a href="index.html#inquiry" class="btn btn-ghost">인테리어 상담</a>
+        </div>`;
     root.innerHTML = `
       <article class="post">
         <a class="post-back" href="blog.html">← 인사이트 목록</a>
@@ -72,12 +95,9 @@
         <div class="post-body">
           <p class="post-excerpt">${esc(a.excerpt)}</p>
           ${(a.body || []).map((s) => `<h2>${esc(s.h)}</h2><p>${esc(s.p)}</p>`).join('')}
+          ${sourceMarkup}
         </div>
-        <div class="post-cta">
-          <p>더 정확한 금액이 궁금하신가요?</p>
-          <a href="index.html#estimator" class="btn btn-primary">30초 AI 예상견적</a>
-          <a href="index.html#inquiry" class="btn btn-ghost">상담 신청</a>
-        </div>
+        ${articleCta}
       </article>
       ${related.length ? `
       <div class="post-related">

@@ -18,7 +18,7 @@ from email.utils import format_datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE = 'https://01023978629.github.io/manmool'
-V = '20260813-place'  # css 캐시버스터 — 루트 html들과 동일하게 유지
+V = '20260823-leak'  # css 캐시버스터 — 루트 html들과 동일하게 유지
 
 
 def esc(s):
@@ -27,6 +27,18 @@ def esc(s):
 
 def shade_cover(hexv):
     return hexv or '#d8c3a5'
+
+
+def article_service(a):
+    """방수·설비 기록은 누수 전용 접수, 나머지는 인테리어 접수로 보낸다.
+
+    새 누수 사례는 명시적 service를 쓰고, 기존 글은 category로 하위 호환한다.
+    제목 키워드 추측은 하지 않으므로 일반 보증·계약 글을 누수로 잘못 보내지 않는다.
+    """
+    explicit = a.get('service')
+    if explicit in ('leak', 'interior'):
+        return explicit
+    return 'leak' if a.get('category') in ('방수·설비', '누수탐지·수리') else 'interior'
 
 
 def rss_date(value):
@@ -75,7 +87,7 @@ def article_html(a, insights):
     url = f'{BASE}/posts/{a["slug"]}.html'
     img_abs = f'{BASE}/{a["image"]}' if a.get('image') else f'{BASE}/og-image.png'
     cover_img = (
-        f'<img class="post-cover-image" src="../{esc(a["image"])}" alt="{esc(a.get("imageAlt") or a["title"])}" fetchpriority="high" decoding="async">'
+        f'<img class="post-cover-image" src="../{esc(a["image"])}" alt="{esc(a.get("imageAlt") or a["title"])}" loading="eager" fetchpriority="high" decoding="async">'
         if a.get('image') else '')
     # 문단마다 사진을 한 장 붙일 수 있다(선택). 표지 한 장만으로는 '무엇을 갈았는지'가
     # 안 보이는 현장 기록이 있어서, 해당 문단 바로 아래에 근거 사진을 둔다.
@@ -125,6 +137,8 @@ def article_html(a, insights):
         'publisher': {'@type': 'Organization', 'name': '만물인테리어'},
         'mainEntityOfPage': url,
     }
+    if a.get('updated'):
+        ld_obj['dateModified'] = a['updated']
     if place.get('name'):
         # 좌표는 확인된 값이 있을 때만 넣는다. 지어낸 좌표는 엉뚱한 곳으로 안내한다.
         loc = {'@type': 'Place', 'name': place['name']}
@@ -133,6 +147,32 @@ def article_html(a, insights):
                               'addressCountry': 'KR'}
         ld_obj['contentLocation'] = loc
     ld = json.dumps(ld_obj, ensure_ascii=False)
+    sources = a.get('sources') or []
+    sources_html = ''
+    if sources:
+        items = ''.join(
+            f'<li><a href="{esc(source.get("url"))}" target="_blank" rel="noopener noreferrer">'
+            f'{esc(source.get("title") or source.get("url"))}</a></li>'
+            for source in sources if source.get('url'))
+        sources_html = (
+            '\n            <aside class="post-sources" aria-label="공식 출처">'
+            '<h2>공식 출처</h2>'
+            f'<p>확인일 {esc(a.get("sourcesChecked"))}</p>'
+            f'<ul>{items}</ul>'
+            '</aside>')
+    service = article_service(a)
+    if service == 'leak':
+        cta_html = '''<div class="post-cta">
+            <p data-service="leak">누수 원인과 필요한 공사 범위는 현장 확인 후 안내합니다.</p>
+            <a href="../leak.html#leakInquiry" class="btn btn-primary">누수 증상 남기기</a>
+            <a href="tel:01023978629" class="btn btn-ghost">전화 상담</a>
+          </div>'''
+    else:
+        cta_html = '''<div class="post-cta">
+            <p data-service="interior">예상 범위는 참고용이며, 최종 범위·금액은 실측 후 확정됩니다.</p>
+            <a href="../index.html#estimator" class="btn btn-primary">예상 범위 확인</a>
+            <a href="../index.html#inquiry" class="btn btn-ghost">인테리어 상담</a>
+          </div>'''
 
     return f'''<!DOCTYPE html>
 <html lang="ko">
@@ -165,6 +205,7 @@ def article_html(a, insights):
         <a href="../index.html#portfolio">추천 디자인</a>
         <a href="../index.html#estimator">AI 예상견적</a>
         <a href="../blog.html">인사이트</a>
+        <a href="../leak.html">누수 전용</a>
         <a href="../index.html#inquiry">상담 신청</a>
       </nav>
       <a href="../index.html#estimator" class="btn btn-primary btn-sm header-cta">AI 예상견적</a>
@@ -185,13 +226,9 @@ def article_html(a, insights):
           <div class="post-cover" style="background:{shade_cover(a.get('cover'))}">{cover_img}</div>
           <div class="post-body">
             <p class="post-excerpt">{esc(a.get('excerpt'))}</p>
-            {body}
+            {body}{sources_html}
           </div>
-          <div class="post-cta">
-            <p>더 정확한 금액이 궁금하신가요?</p>
-            <a href="../index.html#estimator" class="btn btn-primary">30초 AI 예상견적</a>
-            <a href="../index.html#inquiry" class="btn btn-ghost">상담 신청</a>
-          </div>
+          {cta_html}
         </article>
         <div class="post-related">
           <h3>다른 인사이트</h3>
@@ -209,6 +246,12 @@ def article_html(a, insights):
       <a href="../index.html">홈으로</a>
     </div>
   </footer>
+
+  <nav class="mobile-service-dock" aria-label="빠른 상담">
+    <a class="dock-leak" href="../leak.html#leakInquiry">💧 누수</a>
+    <a href="../index.html#inquiry">🏠 인테리어</a>
+    <a class="dock-call" href="tel:01023978629">📞 전화</a>
+  </nav>
 
   <script>
   (function () {{
@@ -237,11 +280,12 @@ def list_markup(insights):
     → 두 마크업이 어긋나면 깜빡이므로 반드시 함께 고칠 것.
     """
     cards = []
-    for a in insights:
+    for idx, a in enumerate(insights):
         img = ''
         if a.get('image'):
-            img = ('<img class="ic-image" src="%s" alt="%s" fetchpriority="high" decoding="async">'
-                   % (esc(a['image']), esc(a.get('imageAlt') or a.get('title'))))
+            priority = ' loading="eager" fetchpriority="high"' if idx == 0 else ' loading="lazy"'
+            img = ('<img class="ic-image" src="%s" alt="%s"%s decoding="async">'
+                   % (esc(a['image']), esc(a.get('imageAlt') or a.get('title')), priority))
         cards.append(
             '          <a class="insight-card" href="posts/%s.html">\n'
             '            <span class="ic-cover" style="background:%s">%s<span class="ic-cat">%s</span></span>\n'
@@ -258,8 +302,8 @@ def list_markup(insights):
         '      <div class="container" id="blogRoot">\n'
         '        <div class="section-head" style="text-align:center">\n'
         '          <span class="eyebrow">INSIGHTS</span>\n'
-        '          <h1>인테리어, 알고 시작하면 다릅니다</h1>\n'
-        '          <p class="section-sub" style="margin:12px auto 0">견적·계약·보증까지 — 후회 없는 선택을 돕는 만물인테리어의 콘텐츠.</p>\n'
+        '          <h1>누수·배관 사례부터 인테리어까지</h1>\n'
+        '          <p class="section-sub" style="margin:12px auto 0">누수탐지·배관·방수 실제 현장을 먼저, 인테리어 시공·견적·보증 안내도 함께 기록합니다.</p>\n'
         '        </div>\n'
         '        <div class="insights-grid" style="margin-top:40px">\n'
         + '\n'.join(cards) + '\n'
