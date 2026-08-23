@@ -1,5 +1,6 @@
-# 이 저장소는 루트 전체가 GitHub Pages 로 공개 서빙된다.
-# 여기 없는 파일이 실수로 커밋되면 그대로 인터넷에 올라간다.
+# GitHub Pages는 scripts/build-pages-artifact.mjs가 만든 허용목록만 공개한다.
+# 로컬·CI 생성 산출물은 커밋하지 않는다.
+_site/
 
 # clasp(Apps Script 업로드) 가 만드는 것
 # 앞엣것은 스크립트 ID, 뒤엣것은 구글 OAuth 새로고침 토큰을 담는다.

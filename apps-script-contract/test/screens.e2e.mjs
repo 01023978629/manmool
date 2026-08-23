@@ -23,7 +23,7 @@
      만료·사용완료 문구를 같게 → ② 실패 · boot() 파괴 → ①②③ 실패
 
    실행: node apps-script-contract/test/screens.e2e.mjs
-   (Playwright 필요 — 없으면 건너뛰고 그 사실을 알린다) */
+   (Playwright 필요 — 로컬에서는 없으면 알리고 건너뛰지만 CI에서는 실패한다) */
 import { readFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
@@ -43,6 +43,9 @@ catch (_) {
       // 양쪽에서 화면 검사를 실제로 실행할 수 있다.
       ({ chromium } = createRequire(import.meta.url)('playwright'));
     } catch (___) {
+      if (process.env.CI) {
+        throw new Error('CI 필수 화면 검사에 Playwright가 설치되지 않았습니다.');
+      }
       console.log('SKIP  Playwright 가 없어 화면 검사를 건너뜁니다 — 이 환경에서는 .gs 검사만 유효합니다.');
       process.exit(0);
     }
@@ -129,9 +132,10 @@ async function openAdmin(page, bootObj, handler) {
   await page.waitForTimeout(400);
 }
 
-const browser = await chromium.launch({
-  executablePath: process.env.PLAYWRIGHT_EXECUTABLE || (process.platform !== 'win32' ? '/opt/pw-browsers/chromium' : undefined)
-});
+const launchOptions = process.env.PLAYWRIGHT_EXECUTABLE
+  ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE }
+  : {};
+const browser = await chromium.launch(launchOptions);
 
 /* ══════════════════ 고객 서명 화면 ══════════════════ */
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true });

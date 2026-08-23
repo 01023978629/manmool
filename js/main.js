@@ -173,7 +173,7 @@ const PROJECT_GUIDES = {
     kicker: '누수·방수 첫 대응', title: '젖은 위치와 발생 시간을 먼저 남겨주세요',
     desc: '누수는 원인을 확인하기 전에 넓게 철거하지 않는 것이 중요합니다. 증상 사진과 계량기 상태를 남긴 뒤 누수 전용 안내에서 점검 순서를 확인하세요.',
     checks: ['젖은 위치의 전체·근접 사진', '처음 발견한 시간', '최근 수도 사용 여부', '아랫집·관리사무소 연락 여부'],
-    primary: ['누수 첫 대응 보기', 'leak.html#firstResponse'], secondary: ['사진 상담', 'index.html?type=누수#inquiry']
+    primary: ['누수 첫 대응 보기', 'leak.html#firstResponse'], secondary: ['증상 상담', 'leak.html#leakInquiry']
   }
 };
 

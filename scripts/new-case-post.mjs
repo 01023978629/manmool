@@ -74,6 +74,7 @@ export function makeDraft(values, now = new Date()) {
     slug: `case-draft-${date.replaceAll('-', '')}-${hash}`,
     title: `${normalized.place} ${normalized.symptom} — 탐지부터 보수까지`,
     category: '누수탐지·수리',
+    service: 'leak',
     date,
     readMin: Math.max(2, Math.ceil(Object.values(normalized).join(' ').length / 500)),
     cover: '#5b7a8c',

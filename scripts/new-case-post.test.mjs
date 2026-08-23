@@ -19,6 +19,7 @@ const safe = {
 test('6항목으로 비공개 초안을 만든다', () => {
   const draft = makeDraft(safe, new Date('2026-08-10T00:00:00Z'));
   assert.equal(draft.published, false);
+  assert.equal(draft.service, 'leak');
   assert.equal(draft.body.length, 5);
   assert.match(draft.slug, /^case-draft-20260810-[a-f0-9]{10}$/);
 });

@@ -31,14 +31,54 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify generated blog is current
+        shell: bash
+        run: |
+          python3 scripts/prerender-posts.py
+          git diff --exit-code -- blog.html posts rss.xml
+
+      - name: Install browser test runtime
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/manmool-e2e" --no-save --package-lock=false playwright@1.55.0
+          "$RUNNER_TEMP/manmool-e2e/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Run source quality checks
+        shell: bash
+        env:
+          CI: "true"
+          NODE_PATH: ${{ runner.temp }}/manmool-e2e/node_modules
+        run: |
+          set -euo pipefail
+          for check in scripts/ensure-*.mjs; do
+            if [ "$(basename "$check")" = "ensure-pages-artifact.mjs" ]; then
+              continue
+            fi
+            node "$check"
+          done
+          node --test scripts/new-case-post.test.mjs
+          node --test apps-script-contract/test/*.mjs
+          git diff --exit-code
+
+      - name: Build public allowlist artifact
+        run: node scripts/build-pages-artifact.mjs
+
+      - name: Verify public artifact
+        run: node scripts/ensure-pages-artifact.mjs
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # 정적 사이트이므로 저장소 루트를 그대로 업로드
-          path: "."
+          # 고객 화면에 필요한 허용목록만 공개한다. 서버 소스·테스트·문서는 제외.
+          path: "_site"
 
       - name: Deploy to GitHub Pages
         id: deployment

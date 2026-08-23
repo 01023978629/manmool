@@ -80,6 +80,9 @@ ul, ol { list-style: none; }
 .nav-toggle { display: none; background: none; border: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 10px; min-width: 44px; min-height: 44px; align-items: center; justify-content: center; }
 .nav-toggle span { width: 24px; height: 2px; background: var(--ink); border-radius: 2px; transition: .25s; }
 
+/* 블로그·사례에서 모바일 메뉴를 열지 않아도 서비스별 상담을 바로 고른다. */
+.mobile-service-dock { display: none; }
+
 /* ===== Hero ===== */
 .hero {
   position: relative; overflow: hidden; padding: 72px 0 84px; min-height: 610px;
@@ -373,6 +376,11 @@ body.content-preview .site-header { top: 46px; }
 .post-cta { margin: 40px 0 8px; padding: 28px; background: var(--brand-soft); border-radius: var(--radius); text-align: center; }
 .post-cta p { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
 .post-cta .btn { margin: 0 6px; }
+.post-sources { margin: 34px 0 8px; padding: 20px 22px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg-alt); }
+.post-sources h2 { margin: 0 0 4px; font-size: 19px; }
+.post-sources p { margin: 0 0 12px; color: var(--ink-soft); font-size: 13px; }
+.post-sources ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.post-sources a { color: var(--link-strong); font-size: 13.5px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; word-break: break-word; }
 .post-related { max-width: 1000px; margin: 60px auto 0; }
 .post-related h3 { font-size: 20px; margin-bottom: 20px; text-align: center; }
 @media (max-width: 640px) { .post-title { font-size: 26px; } .post-cta .btn { display: block; margin: 8px 0; } }
@@ -1090,6 +1098,22 @@ img.lb-shot, img.lb-cand-shot { object-fit: cover; }
 }
 
 @media (max-width: 640px) {
+  body:has(.mobile-service-dock) { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
+  .mobile-service-dock {
+    position: fixed; z-index: 90; left: 8px; right: 8px;
+    bottom: max(8px, env(safe-area-inset-bottom)); display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px;
+    padding: 6px; border: 1px solid var(--line); border-radius: 14px;
+    background: rgba(255,255,255,.97); box-shadow: 0 10px 28px rgba(35,30,25,.2);
+  }
+  .mobile-service-dock a {
+    min-width: 0; min-height: 44px; display: inline-flex; align-items: center;
+    justify-content: center; padding: 8px 4px; border-radius: 9px;
+    color: var(--ink); background: var(--bg-alt); font-size: 13px; font-weight: 800;
+    white-space: nowrap;
+  }
+  .mobile-service-dock .dock-leak { color: #fff; background: #087f98; }
+  .mobile-service-dock .dock-call { color: #fff; background: var(--brand-dark); }
   .hero { min-height: auto; padding: 58px 0 64px; background-position: 64% center; }
   .hero-bg { background: rgba(25,22,19,.72); }
   .hero-card { width: 100%; }
@@ -1123,6 +1147,9 @@ img.lb-shot, img.lb-cand-shot { object-fit: cover; }
   .space-cost-item { min-height: 78px; }
   .fab-group { left: 12px; right: 12px; bottom: max(10px, env(safe-area-inset-bottom)); flex-direction: row; gap: 8px; align-items: stretch; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: rgba(255,255,255,.96); box-shadow: 0 10px 28px rgba(35,30,25,.18); }
   .fab-group .fab { flex: 1 1 0; min-width: 0; min-height: 44px; justify-content: center; padding: 10px 12px; border-radius: var(--radius-sm); box-shadow: none; }
+  /* 전화·누수·인테리어 세 진입을 한 줄로 유지한다. 카카오 채널은 본문에서 이용할 수 있다. */
+  .fab-group .fab-kakao { display: none !important; }
+  .fab-group .fab span { display: none; }
   /* 디자인 카탈로그(300장)를 폰으로 스크롤하는 동안 전폭 FAB 바가 카드를 덮어 숨겼었다.
      그런데 그 구간이 방문자가 가장 오래 머무는 곳이라, 통째로 숨기면 연락 접점이 0이 된다
      (같은 블록 :757 이 헤더 CTA도 감춘다). 전화 하나만 오른쪽 작은 알약으로 남긴다. */
