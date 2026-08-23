@@ -128,7 +128,23 @@ test('전체 주요 페이지에서 관리사무소 전용 창구로 이동할 �
   }
 });
 
-test('관리사무소 페이지는 발주 판단 정보와 실제 문의 흐름을 제공한다', async () => {
+test('관리사무소 페이지는 운영 주체를 밝히고 개인정보를 온라인으로 수집하지 않는다', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
+  await page.goto(`${origin}/office.html`, { waitUntil: 'networkidle' });
+
+  const bodyText = await page.locator('body').innerText();
+  assert.match(bodyText, /아파트 관리사무소의 공식 홈페이지가 아니라/);
+  assert.match(bodyText, /만물인테리어가.*운영하는.*상담 안내 페이지/);
+  assert.match(bodyText, /비밀번호.*주민등록번호.*신용카드.*계좌정보.*요청하지 않습니다/);
+  assert.equal(await page.locator('#officeInquiry input, #officeInquiry textarea, #officeInquiry form').count(), 0);
+  assert.equal(await page.locator('script[src*="office.js"]').count(), 0);
+  assert.equal(await page.locator('a[href^="tel:01023978629"]').count() > 0, true);
+  assert.equal(await page.locator('a[href^="sms:01023978629"]').count() > 0, true);
+
+  await page.close();
+});
+
+test('관리사무소 페이지는 발주 판단 정보와 전화·문자 상담 경로를 제공한다', async () => {
   const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
   await page.goto(`${origin}/office.html`, { waitUntil: 'networkidle' });
 
@@ -143,34 +159,27 @@ test('관리사무소 페이지는 발주 판단 정보와 실제 문의 흐름�
   );
   assert.equal(await page.locator('#officeCases a[href^="posts/"]').count() >= 3, true);
   assert.equal(await page.getByRole('link', { name: '관리사무소', exact: true }).getAttribute('aria-current'), 'page');
-
-  const complexInput = page.locator('#ofText');
-  await complexInput.fill('테스트아파트');
-  await page.locator('#ofSend').click();
-  assert.equal(await page.getByRole('button', { name: '대전 중구', exact: true }).count(), 1);
+  assert.equal(await page.getByRole('link', { name: '전화 상담', exact: true }).getAttribute('href'), 'tel:01023978629');
+  assert.equal(await page.getByRole('link', { name: '문자 상담', exact: true }).getAttribute('href'), 'sms:01023978629');
   await page.close();
 });
 
-test('관리사무소 문의는 누수·배관 업무를 우선 분류한다', async () => {
+test('관리사무소 상담 안내는 현장 위치와 증상을 우선 준비하도록 안내한다', async () => {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   await page.goto(`${origin}/office.html`, { waitUntil: 'networkidle' });
-  await page.locator('#ofText').fill('테스트아파트');
-  await page.locator('#ofSend').click();
-  await page.getByRole('button', { name: '대전 중구', exact: true }).click();
-  await page.getByRole('button', { name: '300~500세대', exact: true }).click();
-  assert.equal(await page.getByRole('button', { name: '누수·배관 원인 확인·보수', exact: true }).count(), 1);
+  assert.deepEqual(
+    await page.locator('.office-contact-list b').allInnerTexts(),
+    ['단지명과 현장 위치', '발생한 증상', '사진과 희망 일정']
+  );
+  assert.match(await page.locator('.office-contact-list').innerText(), /누수.*배수 불량.*배관 파손/);
   await page.close();
 });
 
-test('관리사무소 첫 방문은 하단 문의창으로 자동 이동하지 않는다', async () => {
+test('관리사무소 첫 방문은 하단 상담 영역으로 자동 이동하지 않는다', async () => {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   await page.goto(`${origin}/office.html`, { waitUntil: 'networkidle' });
-  const state = await page.evaluate(() => ({
-    scrollY: Math.round(window.scrollY),
-    activeId: document.activeElement && document.activeElement.id,
-  }));
+  const state = await page.evaluate(() => ({ scrollY: Math.round(window.scrollY) }));
   assert.equal(state.scrollY < 10, true, `첫 화면이 ${state.scrollY}px 아래로 자동 이동함`);
-  assert.notEqual(state.activeId, 'ofText', '화면 밖 문의 입력창이 자동 포커스됨');
   await page.close();
 });
 
