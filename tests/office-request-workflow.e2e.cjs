@@ -36,8 +36,8 @@ async function openPortal(respond, options = {}) {
   const pageErrors = [];
   page.on('pageerror', (error) => pageErrors.push(error));
   await page.addInitScript(() => {
-    let sequence = 0;
-    crypto.randomUUID = () => `00000000-0000-4000-8000-${String(++sequence).padStart(12, '0')}`;
+    window.__officeUuidCount = 0;
+    crypto.randomUUID = () => `00000000-0000-4000-8000-${String(++window.__officeUuidCount).padStart(12, '0')}`;
   });
   await page.route('**/office-api.json', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ enabled: true, apiUrl: API_URL }) }));
   if (options.photoFixture) {
@@ -125,6 +125,14 @@ test('생성 재시도는 한 idempotency UUID와 같은 영수번호를 사용�
   await page.getByText('사진 준비 완료').waitFor();
   await page.getByRole('button', { name: '접수 저장' }).click();
   await page.waitForFunction(() => document.getElementById('officeCreateError').textContent.length > 0);
+  assert.equal(await page.locator('[name="photos"]').isDisabled(), true);
+  assert.equal(await page.locator('[name="unit"]').isDisabled(), true);
+  const uuidCountAfterLostResponse = await page.evaluate(() => window.__officeUuidCount);
+  await page.evaluate(() => { document.querySelector('[name="photos"]').disabled = false; document.querySelector('[name="unit"]').disabled = false; });
+  await page.locator('[name="unit"]').fill('강제 변경 999호');
+  await page.locator('[name="photos"]').setInputFiles({ ...pngFile(), name: 'replacement.png' });
+  await page.waitForTimeout(50);
+  assert.equal(await page.evaluate(() => window.__officeUuidCount), uuidCountAfterLostResponse);
   await page.getByRole('button', { name: '접수 저장' }).click();
   await page.getByText('접수 완료 · MM-20260826-0001').waitFor();
   const creates = calls.filter((call) => call.action === 'officeCreate');
@@ -132,12 +140,62 @@ test('생성 재시도는 한 idempotency UUID와 같은 영수번호를 사용�
   assert.match(creates[0].payload.idempotencyKey, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
   assert.equal(creates[0].payload.idempotencyKey, creates[1].payload.idempotencyKey);
   assert.deepEqual(creates[0].payload.expectedUploadIds, creates[1].payload.expectedUploadIds);
+  assert.deepEqual(creates[0].payload, creates[1].payload);
   assert.equal(creates[0].payload.expectedUploadIds.length, 1);
   assert.equal(calls.find((call) => call.action === 'officeUpload').payload.uploadId, creates[0].payload.expectedUploadIds[0]);
   const storage = await page.evaluate(() => `${JSON.stringify(localStorage)}${JSON.stringify(sessionStorage)}`);
   assert.equal(storage.includes('천장에서 물이 떨어집니다.'), false);
   assert.equal(storage.includes(creates[0].payload.idempotencyKey), false);
   assert.equal(storage.includes(creates[0].payload.expectedUploadIds[0]), false);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('명확한 생성 거절은 고정을 풀어 수정할 수 있고 세션 만료는 민감한 초안을 지운다', async () => {
+  let createAttempts = 0;
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: [] };
+    if (body.action === 'officeCreate') { createAttempts += 1; return createAttempts === 1 ? { ok: false, error: 'invalid-input' } : { ok: false, error: 'session-expired' }; }
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await login(page); await openCreate(page); await fillRequired(page);
+  await page.getByRole('button', { name: '접수 저장' }).click();
+  await page.waitForFunction(() => !document.querySelector('[name="unit"]').disabled && !document.getElementById('officeCreateSubmit').disabled);
+  assert.equal(await page.locator('[name="unit"]').isEnabled(), true);
+  assert.equal(await page.locator('[name="photos"]').isEnabled(), true);
+  await page.locator('[name="unit"]').fill('104동 1301호');
+  await page.getByRole('button', { name: '접수 저장' }).click();
+  await page.locator('#officeLoginView').waitFor({ state: 'visible' });
+  const creates = calls.filter((call) => call.action === 'officeCreate');
+  assert.equal(creates.length, 2);
+  assert.notEqual(creates[0].payload.idempotencyKey, creates[1].payload.idempotencyKey);
+  assert.equal(creates[1].payload.unit, '104동 1301호');
+  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_KEY), null);
+  assert.equal(await page.locator('#officeCreateForm [name="unit"]').inputValue(), '');
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('응답이 불확실한 생성 초안은 확인 없이 버리지 않고 확인 뒤 새 초안으로 초기화한다', async () => {
+  const { page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: [] };
+    if (body.action === 'officeCreate') return { ok: false, error: 'network-error' };
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await login(page); await openCreate(page); await fillRequired(page);
+  await page.getByRole('button', { name: '접수 저장' }).click();
+  await page.waitForFunction(() => document.getElementById('officeCreateError').textContent.length > 0);
+  await page.evaluate(() => { window.confirm = () => false; });
+  await page.getByRole('button', { name: '목록으로' }).click();
+  assert.equal(await page.locator('#officeCreateView').isVisible(), true);
+  await page.evaluate(() => { window.confirm = () => true; });
+  await page.getByRole('button', { name: '목록으로' }).click();
+  assert.equal(await page.locator('#officeDashboardView').isVisible(), true);
+  await openCreate(page);
+  assert.equal(await page.locator('[name="photos"]').isEnabled(), true);
+  assert.equal(await page.locator('[name="unit"]').isEnabled(), true);
   assert.deepEqual(pageErrors, []);
   await page.close();
 });
