@@ -58,7 +58,7 @@
         </form>
       </section>
       <section id="officeDetailView" class="office-view" hidden aria-labelledby="officeDetailTitle">
-        <span class="request-eyebrow">관리사무소 전용</span><h1 id="officeDetailTitle">접수 상세</h1>
+        <span class="request-eyebrow">관리사무소 전용</span><h1 id="officeDetailTitle" tabindex="-1">접수 상세</h1>
         <dl id="officeDetailSummary" class="office-detail-summary">
           <div><dt>접수번호</dt><dd id="officeDetailReceipt"></dd></div>
           <div><dt>진행 상태</dt><dd id="officeDetailStatus"></dd></div>
@@ -66,6 +66,7 @@
           <div id="officeDetailVisitRow" hidden><dt>방문 예정</dt><dd id="officeDetailVisit"></dd></div>
           <div id="officeDetailAmountRow" hidden><dt>공개 금액</dt><dd id="officeDetailAmount"></dd></div>
         </dl>
+        <ol id="officeStatusTimeline" class="office-status-timeline" aria-label="업무 진행 상태"></ol>
         <section class="office-completion-report" aria-labelledby="officeCompletionTitle">
           <h2 id="officeCompletionTitle">완료 보고</h2><p id="officeCompletionSummary" class="office-completion-summary"></p><p id="officeCompletionPhotoStatus" class="office-photo-status" role="status" aria-live="polite"></p><div id="officeCompletionPhotos" class="office-completion-photos" aria-label="공개 완료 사진"></div>
         </section>
