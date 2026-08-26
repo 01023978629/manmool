@@ -426,11 +426,13 @@ Expected: all focused tests pass.
 **Files:**
 
 - Create: `scripts/configure-office-api.mjs`
+- Create: `tests/configure-office-api.test.cjs`
 - Modify: `scripts/build-pages-artifact.mjs`
 - Modify: `scripts/ensure-pages-artifact.mjs`
 - Modify: `scripts/ensure-office-intake.mjs`
 - Modify: `tests/office-intake.e2e.cjs`
 - Modify: `office-api.json`
+- Modify: `.github/workflows/deploy-pages.yml`
 
 **Interfaces:**
 
@@ -452,6 +454,7 @@ check(!/office-request\.html/.test(sitemap), 'noindex portal entered sitemap');
 ```
 
 Add a test that `configure-office-api.mjs` rejects non-HTTPS, non-Apps-Script, and non-`/exec` URLs, and rejects any `--token`, `--pin`, or `--secret` argument.
+The Pages workflow must run the portal logic/API/auth/workflow tests before artifact build so a green static build cannot bypass the staff portal regression gate.
 
 - [ ] **Step 2: Run the static checks and verify they fail**
 
@@ -476,15 +479,16 @@ It validates the exact Apps Script URL pattern and writes formatted JSON `{ "ena
 - [ ] **Step 4: Include all portal files in the Pages artifact**
 
 Add `office-api.json`, `js/office-request-api.js`, and `js/office-request-photo.js` to the explicit allowlist. Ensure the build never copies `.env`, Apps Script source, test fixtures, or configuration command history.
+The artifact check must run only after a fresh build, verify required source and `_site` files, and scan the built artifact for secret identifiers and test fixture values so a stale `_site` directory cannot pass.
 
 - [ ] **Step 5: Run the full portal regression**
 
 ```powershell
 $env:NODE_PATH='C:\Users\1dncj\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\node_modules'
 & $node --test tests\office-request.logic.test.cjs tests\office-request-api.test.cjs tests\office-request-auth.e2e.cjs tests\office-request-workflow.e2e.cjs tests\office-intake.e2e.cjs tests\unified-brand-design.e2e.cjs
+& $node scripts\build-pages-artifact.mjs
 & $node scripts\ensure-office-intake.mjs
 & $node scripts\ensure-pages-artifact.mjs
-& $node scripts\build-pages-artifact.mjs
 git diff --check
 ```
 
@@ -493,7 +497,7 @@ Expected: all tests and static checks pass, artifact creation exits 0, and an ar
 - [ ] **Step 6: Commit the deployment-ready portal**
 
 ```powershell
-git add scripts/configure-office-api.mjs scripts/build-pages-artifact.mjs scripts/ensure-pages-artifact.mjs scripts/ensure-office-intake.mjs tests/office-intake.e2e.cjs office-api.json
+git add scripts/configure-office-api.mjs scripts/build-pages-artifact.mjs scripts/ensure-pages-artifact.mjs scripts/ensure-office-intake.mjs tests/configure-office-api.test.cjs tests/office-intake.e2e.cjs office-api.json .github/workflows/deploy-pages.yml
 git commit -m "chore: prepare management office portal release"
 ```
 
