@@ -117,9 +117,12 @@ test('생성 재시도는 한 idempotency UUID와 같은 영수번호를 사용�
       createAttempts += 1;
       return createAttempts === 1 ? { ok: false, error: 'network-error' } : { ok: true, requestId: 'req-1', receiptNo: 'MM-20260826-0001', status: 'pending_review', createdAt: '2026-08-26T09:00:00.000Z' };
     }
+    if (body.action === 'officeUpload') return { ok: true, fileId: 'file-retry', name: 'server.jpg', mimeType: 'image/jpeg', size: 1, createdAt: '2026-08-26T09:00:00.000Z', uploadId: body.payload.uploadId };
     throw new Error(`unexpected ${body.action}`);
-  });
+  }, { photoFixture: true });
   await login(page); await openCreate(page); await fillRequired(page);
+  await page.locator('[name="photos"]').setInputFiles(pngFile());
+  await page.getByText('사진 준비 완료').waitFor();
   await page.getByRole('button', { name: '접수 저장' }).click();
   await page.waitForFunction(() => document.getElementById('officeCreateError').textContent.length > 0);
   await page.getByRole('button', { name: '접수 저장' }).click();
@@ -128,9 +131,13 @@ test('생성 재시도는 한 idempotency UUID와 같은 영수번호를 사용�
   assert.equal(creates.length, 2);
   assert.match(creates[0].payload.idempotencyKey, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
   assert.equal(creates[0].payload.idempotencyKey, creates[1].payload.idempotencyKey);
+  assert.deepEqual(creates[0].payload.expectedUploadIds, creates[1].payload.expectedUploadIds);
+  assert.equal(creates[0].payload.expectedUploadIds.length, 1);
+  assert.equal(calls.find((call) => call.action === 'officeUpload').payload.uploadId, creates[0].payload.expectedUploadIds[0]);
   const storage = await page.evaluate(() => `${JSON.stringify(localStorage)}${JSON.stringify(sessionStorage)}`);
   assert.equal(storage.includes('천장에서 물이 떨어집니다.'), false);
   assert.equal(storage.includes(creates[0].payload.idempotencyKey), false);
+  assert.equal(storage.includes(creates[0].payload.expectedUploadIds[0]), false);
   assert.deepEqual(pageErrors, []);
   await page.close();
 });
@@ -157,6 +164,8 @@ test('불완전한 접수 생성 응답은 성공으로 잠그지 않고 같은 
   const creates = calls.filter((call) => call.action === 'officeCreate');
   assert.equal(creates.length, 2);
   assert.equal(creates[0].payload.idempotencyKey, creates[1].payload.idempotencyKey);
+  assert.deepEqual(creates[0].payload.expectedUploadIds, []);
+  assert.deepEqual(creates[1].payload.expectedUploadIds, []);
   assert.deepEqual(pageErrors, []);
   await page.close();
 });
@@ -179,10 +188,12 @@ test('사진은 생성 뒤 순서대로 별도 UUID로 전송하며 실패한 �
   await page.getByRole('button', { name: '접수 저장' }).click();
   await page.getByText('접수 저장됨 · 사진 전송 필요').waitFor();
   const firstUploads = calls.filter((call) => call.action === 'officeUpload');
+  const create = calls.find((call) => call.action === 'officeCreate');
   assert.equal(calls.findIndex((call) => call.action === 'officeCreate') < calls.findIndex((call) => call.action === 'officeUpload'), true);
   assert.equal(firstUploads.length, 2);
   assert.deepEqual(firstUploads.map((call) => Object.keys(call.payload).sort()), [['dataB64', 'mimeType', 'requestId', 'uploadId'], ['dataB64', 'mimeType', 'requestId', 'uploadId']]);
   assert.notEqual(firstUploads[0].payload.uploadId, firstUploads[1].payload.uploadId);
+  assert.deepEqual(create.payload.expectedUploadIds, firstUploads.map((call) => call.payload.uploadId));
   await page.getByRole('button', { name: '사진 다시 보내기' }).click();
   await page.getByText('접수 완료 · MM-20260826-0002').waitFor();
   const uploads = calls.filter((call) => call.action === 'officeUpload');

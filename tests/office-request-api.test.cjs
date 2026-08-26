@@ -26,6 +26,14 @@ function withImmediateTimers(fn) {
   });
 }
 
+function createPayload(expectedUploadIds = []) {
+  return {
+    idempotencyKey: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', unit: '101동 101호', location: '욕실', issueType: '누수',
+    pipeType: '미확정', urgency: 'normal', description: '천장 누수', officeContact: { name: '김소장', phone: '010-1234-5678' },
+    residentContact: null, preferredVisitDate: '', privacyConsent: true, expectedUploadIds,
+  };
+}
+
 test('공개 office action은 text/plain과 sessionToken만 전송한다', async () => {
   const fetchCalls = [];
   await withFetch(async (url, options) => {
@@ -193,10 +201,40 @@ test('허용하는 공개 action 집합은 로그인과 일곱 개 세션 action
   }, async () => {
     for (const action of expected) await api.call(action, action === 'officePhoto'
       ? { sessionToken: 'session-test', payload: { requestId: 'req-1', photoId: 'public-photo' } }
-      : { sessionToken: 'session-test' });
+      : action === 'officeCreate'
+        ? { sessionToken: 'session-test', payload: createPayload() }
+        : { sessionToken: 'session-test' });
     await assert.rejects(api.call('officeUnexpected'), (error) => error.code === 'bad-request');
   });
   assert.deepEqual(postedActions, expected);
+});
+
+test('officeCreate는 정확한 expectedUploadIds 선언과 payload allowlist만 전송한다', async () => {
+  const ids = ['11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222'];
+  const posted = [];
+  await withFetch(async (url, options) => {
+    if (url === 'office-api.json') return jsonResponse({ enabled: true, apiUrl: 'https://script.google.com/macros/s/example-deployment/exec' });
+    posted.push(JSON.parse(options.body));
+    return jsonResponse({ ok: true, requestId: 'req-1', receiptNo: 'MM-1', status: 'pending_review', createdAt: '2026-08-27T00:00:00.000Z' });
+  }, async () => api.call('officeCreate', { sessionToken: 'session-test', payload: createPayload(ids) }));
+  assert.deepEqual(posted[0].payload.expectedUploadIds, ids);
+  assert.deepEqual(Object.keys(posted[0].payload).sort(), ['description', 'expectedUploadIds', 'idempotencyKey', 'issueType', 'location', 'officeContact', 'pipeType', 'preferredVisitDate', 'privacyConsent', 'residentContact', 'unit', 'urgency']);
+});
+
+test('officeCreate는 누락·추가·중복·비정규 expectedUploadIds를 네트워크 전에 거절한다', async () => {
+  let fetchCalls = 0;
+  await withFetch(async () => { fetchCalls += 1; return jsonResponse({ ok: true }); }, async () => {
+    const valid = createPayload();
+    const { expectedUploadIds: _removed, ...missing } = valid;
+    for (const payload of [
+      missing,
+      { ...valid, unexpected: true },
+      createPayload(['11111111-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111']),
+      createPayload(['AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA']),
+      createPayload(Array.from({ length: 6 }, (_, index) => `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`)),
+    ]) await assert.rejects(api.call('officeCreate', { sessionToken: 'session-test', payload }), (error) => error.code === 'bad-request');
+  });
+  assert.equal(fetchCalls, 0);
 });
 
 test('officePhoto는 세션과 정확히 requestId 및 photoId만 전송한다', async () => {

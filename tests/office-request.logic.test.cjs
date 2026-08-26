@@ -43,7 +43,22 @@ test('서버 create 계약에 맞는 접수 입력을 검증하고 정규화한�
     residentContact: null,
     preferredVisitDate: '2026-08-27',
     privacyConsent: true,
+    expectedUploadIds: [],
   });
+});
+
+test('접수 생성은 순서가 보존된 고유 canonical 사진 UUID를 최대 다섯 개만 선언한다', () => {
+  const ids = ['11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222'];
+  const payload = api.buildCreatePayload(valid, 'create-key', ids);
+  assert.deepEqual(payload.expectedUploadIds, ids);
+  assert.notEqual(payload.expectedUploadIds, ids);
+  for (const invalid of [
+    'not-an-array',
+    ['11111111-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111'],
+    ['AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA'],
+    ['11111111-1111-1111-8111-111111111111'],
+    Array.from({ length: 6 }, (_, index) => `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`),
+  ]) assert.throws(() => api.buildCreatePayload(valid, 'create-key', invalid), /expectedUploadIds/);
 });
 
 test('입주민 연락처는 이름과 전화번호를 함께 받거나 null로 보낸다', () => {

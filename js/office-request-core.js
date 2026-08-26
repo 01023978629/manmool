@@ -5,6 +5,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function createApi() {
   const ISSUE_TYPES = ['누수', '배수', '급수', '난방', '방수', '공용시설', '기타'];
   const PIPE_TYPES = ['미확정', '오수', '우수', '잡배수', '난방', '급수'];
+  const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
   const STATUS_LABELS = {
     pending_review: '접수됨', needs_info: '내용 확인 필요', accepted: '확인 완료', visit_scheduled: '방문 예정',
     in_progress: '작업 중', completed: '작업 완료', billed: '청구 완료', paid: '처리 완료', on_hold: '확인 중', cancelled: '취소됨',
@@ -27,7 +28,11 @@
       ? { ok: true, field: null, message: '' }
       : { ok: false, field: 'pin', message: '6자리 비밀번호를 확인해 주세요.' };
   }
-  function buildCreatePayload(data, idempotencyKey) {
+  function exactExpectedUploadIds(value) {
+    if (!Array.isArray(value) || value.length > 5 || value.some((id) => typeof id !== 'string' || !UUID_V4.test(id)) || new Set(value).size !== value.length) throw new TypeError('expectedUploadIds');
+    return [...value];
+  }
+  function buildCreatePayload(data, idempotencyKey, expectedUploadIds = []) {
     data = data && typeof data === 'object' ? data : {};
     const residentName = text(data.residentName, 60);
     const residentPhone = normalizePhone(data.residentPhone);
@@ -37,6 +42,7 @@
       description: text(data.description, 1200), officeContact: { name: text(data.officeContactName, 60), phone: normalizePhone(data.officeContactPhone) },
       residentContact: residentName && residentPhone ? { name: residentName, phone: residentPhone } : null,
       preferredVisitDate: text(data.preferredVisitDate, 10), privacyConsent: data.privacyConsent === true,
+      expectedUploadIds: exactExpectedUploadIds(expectedUploadIds),
     };
   }
   function validateRequest(data) {

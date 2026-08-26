@@ -5,6 +5,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function createApi() {
   const CONFIG_PATH = 'office-api.json';
   const API_URL = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
+  const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
   const PUBLIC_ACTIONS = new Set(['officeLogin', 'officeList', 'officeGet', 'officeCreate', 'officeUpdate', 'officeCancel', 'officeUpload', 'officePhoto']);
   const SESSION_ACTIONS = new Set(['officeList', 'officeGet', 'officeCreate', 'officeUpdate', 'officeCancel', 'officeUpload', 'officePhoto']);
   const MESSAGES = {
@@ -48,6 +49,16 @@
     const keys = Object.keys(payload).sort();
     return keys.join(',') === 'photoId,requestId' && typeof payload.requestId === 'string' && payload.requestId.length > 0 && typeof payload.photoId === 'string' && payload.photoId.length > 0;
   }
+  function exactObjectKeys(value, expected) { return Boolean(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).sort().join(',') === [...expected].sort().join(',')); }
+  function isExactOfficeCreatePayload(payload) {
+    if (!exactObjectKeys(payload, ['idempotencyKey', 'unit', 'location', 'issueType', 'pipeType', 'urgency', 'description', 'officeContact', 'residentContact', 'preferredVisitDate', 'privacyConsent', 'expectedUploadIds'])) return false;
+    if (!exactObjectKeys(payload.officeContact, ['name', 'phone']) || typeof payload.officeContact.name !== 'string' || typeof payload.officeContact.phone !== 'string') return false;
+    if (payload.residentContact !== null && (!exactObjectKeys(payload.residentContact, ['name', 'phone']) || typeof payload.residentContact.name !== 'string' || typeof payload.residentContact.phone !== 'string')) return false;
+    const stringKeys = ['idempotencyKey', 'unit', 'location', 'issueType', 'pipeType', 'urgency', 'description', 'preferredVisitDate'];
+    if (stringKeys.some((key) => typeof payload[key] !== 'string') || payload.idempotencyKey.length === 0 || payload.idempotencyKey.length > 80 || payload.privacyConsent !== true) return false;
+    const ids = payload.expectedUploadIds;
+    return Array.isArray(ids) && ids.length <= 5 && ids.every((id) => typeof id === 'string' && UUID_V4.test(id)) && new Set(ids).size === ids.length;
+  }
   async function fetchJsonWithTimeout(url, options, httpErrorCode) {
     const controller = typeof AbortController === 'function' ? new AbortController() : null;
     const timeout = controller ? setTimeout(() => controller.abort(), 15000) : null;
@@ -73,6 +84,7 @@
     if (!PUBLIC_ACTIONS.has(action)) throw error('bad-request');
     options = options && typeof options === 'object' ? options : {};
     if (action === 'officePhoto' && (!options.sessionToken || !isExactOfficePhotoPayload(options.payload))) throw error('bad-request');
+    if (action === 'officeCreate' && (!options.sessionToken || !isExactOfficeCreatePayload(options.payload))) throw error('bad-request');
     const config = await loadConfig();
     if (!config.enabled) throw error('not-configured');
     const body = { action, ts: Date.now(), payload: options.payload && typeof options.payload === 'object' ? options.payload : {} };
