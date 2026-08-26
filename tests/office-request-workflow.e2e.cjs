@@ -469,3 +469,35 @@ test('invalid-status 뒤 officeGet 재조회도 실패하면 해당 로컬 행�
   assert.deepEqual(pageErrors, []);
   await page.close();
 });
+
+test('officeGet 재조회 실패 차단은 대상 행에만 적용되고 다음 officeList는 서버 상태로 임시 차단을 대체한다', async () => {
+  const target = request('req-target-refresh', 'pending_review');
+  const other = request('req-other-refresh', 'needs_info');
+  let listCalls = 0;
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') {
+      listCalls += 1;
+      return { ok: true, requests: listCalls === 1 ? [target, other] : [{ ...target, status: 'needs_info' }, other] };
+    }
+    if (body.action === 'officeUpdate') return { ok: false, error: 'invalid-status' };
+    if (body.action === 'officeGet') return { ok: false, error: 'network-error' };
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await login(page);
+  await page.locator('[data-office-edit="req-target-refresh"]').click();
+  await page.getByRole('button', { name: '수정 저장' }).click();
+  await page.getByText('현재 상태를 새로고침하지 못했습니다. 대표 확인 후에는 전화로 변경해 주세요').waitFor();
+  assert.equal(await page.locator('[data-office-edit="req-target-refresh"], [data-office-cancel="req-target-refresh"]').count(), 0);
+  assert.equal(await page.locator('[data-office-edit="req-other-refresh"]').count(), 1);
+  assert.equal(await page.locator('[data-office-cancel="req-other-refresh"]').count(), 1);
+  await page.reload();
+  await page.locator('#officeDashboardView').waitFor({ state: 'visible' });
+  await page.locator('[data-office-edit="req-target-refresh"]').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-office-cancel="req-target-refresh"]').count(), 1);
+  assert.match(await page.locator('#officeRequestList').innerText(), /내용 확인 필요/);
+  assert.equal(calls.filter((call) => call.action === 'officeList').length, 2);
+  assert.deepEqual(calls.filter((call) => ['officeUpdate', 'officeGet'].includes(call.action)).map((call) => call.action), ['officeUpdate', 'officeGet']);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
