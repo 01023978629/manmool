@@ -369,6 +369,7 @@ Expected: all tests pass.
 - Modify: `office-request.html`
 - Modify: `css/office-request.css`
 - Modify: `js/office-request.js`
+- Modify: `js/office-request-api.js`
 - Modify: `office.html`
 - Modify: `privacy.html`
 - Modify: `tests/office-request-workflow.e2e.cjs`
@@ -376,7 +377,7 @@ Expected: all tests pass.
 
 **Interfaces:**
 
-- Consumes: server `officeGet` response and public fields only.
+- Consumes: server `officeGet` response and authenticated `officePhoto({requestId,photoId})` response. The server must revalidate that the request belongs to the session office and that `photoId` is present in that request's explicit `completionReport.publicPhotoIds` allowlist before reading Drive.
 - Produces: status timeline, visit display, public amount, public completion report, staff-only sales-page entry.
 
 - [ ] **Step 1: Add failing detail/report/privacy tests**
@@ -386,7 +387,8 @@ Assert:
 - `pending_review`, `visit_scheduled`, `in_progress`, `completed`, `billed`, `paid`, `on_hold`, and `cancelled` use the approved Korean labels;
 - visit time appears only when present;
 - amount appears only when `publicAmount` is a finite number;
-- report renders only `completionReport.summary` and returned `photoIds`;
+- report renders only `completionReport.summary` and returned `publicPhotoIds`;
+- bitmap requests are issued only for IDs returned in `completionReport.publicPhotoIds`; an unrelated or non-public ID is never requested or inferred;
 - office/resident phone, internal cost, margin, and unrelated photo IDs are absent from the report;
 - `office.html` says “관리사무소 직원 전용” and explains that each office receives a dedicated URL;
 - privacy text names office contact, optional resident contact, photos, purpose, 90-day cancelled classification, one-year general retention, and legal retention for contract/tax evidence.
@@ -401,7 +403,7 @@ Expected: FAIL until detail and legal copy are present.
 
 - [ ] **Step 3: Implement safe detail and report rendering**
 
-Use a fixed status step list. Set text with `textContent`. For public photos, request only IDs returned in `completionReport.photoIds`; do not infer or enumerate other Drive files. Show an explicit empty state when a report is not yet public.
+Use a fixed status step list. Set text with `textContent`. For public photos, request only IDs returned in `completionReport.publicPhotoIds`; do not infer or enumerate other Drive files. Fetch each bitmap through authenticated `officePhoto` and accept only its validated JPEG/PNG/WebP base64 response for an in-memory `data:` image URL. Do not store image bytes or IDs in browser storage. Show an explicit empty state when a report is not yet public.
 
 - [ ] **Step 4: Update `office.html` and privacy copy**
 
