@@ -247,9 +247,11 @@ test('수정과 취소는 pending_review 또는 needs_info에만 노출되고 �
   await page.locator('#officeCreateForm [name="description"]').fill('수정된 증상');
   await page.getByRole('button', { name: '수정 저장' }).click();
   await page.getByText('수정 내용을 저장했습니다.').waitFor();
+  assert.equal(await page.evaluate(() => document.activeElement.getAttribute('data-office-edit')), 'req-1');
   await page.evaluate(() => { window.confirm = () => true; });
   await page.locator('[data-office-cancel="req-1"]').click();
   await page.getByText('취소됨').waitFor();
+  assert.equal(await page.evaluate(() => document.activeElement.getAttribute('data-office-detail')), 'req-1');
   assert.deepEqual(calls.filter((call) => ['officeUpdate', 'officeCancel', 'officeGet'].includes(call.action)).map((call) => call.action), ['officeUpdate', 'officeGet', 'officeCancel', 'officeGet']);
   assert.deepEqual(pageErrors, []);
   await page.close();
