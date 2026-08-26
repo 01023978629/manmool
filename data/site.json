@@ -11924,7 +11924,7 @@
       "readMin": 2
     },
     {
-      "slug": "daejayeon-bathroom-install",
+      "slug": "daejayeon-bathroom-fixtures",
       "date": "2026-07-15",
       "category": "시공 사례",
       "cover": "#5f7d74",
@@ -11945,7 +11945,7 @@
         {
           "h": "기구 설치와 누수 확인",
           "p": "기구 설치 후 급수·배수를 모두 열어 연결부 누수를 확인했습니다. 설치 직후에는 멀쩡해 보여도 시간이 지나 미세하게 새는 경우가 있어, 연결부 조임과 실링을 꼼꼼히 봅니다.",
-          "img": "assets/cases/daejayeon-bathroom-install-1.jpg",
+          "img": "assets/cases/daejayeon-bathroom-fixtures-1.jpg",
           "imgAlt": "위생기구 부속 설치 작업",
           "imgCaption": "위생기구 부속 설치 작업"
         },
@@ -11955,7 +11955,7 @@
         }
       ],
       "readMin": 2,
-      "image": "assets/cases/daejayeon-bathroom-install-cover.jpg",
+      "image": "assets/cases/daejayeon-bathroom-fixtures-cover.jpg",
       "imageAlt": "타일에 수전 홀을 타공한 욕실 벽"
     },
     {

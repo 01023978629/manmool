@@ -39,8 +39,12 @@ before(async () => {
 
 after(() => fs.rmSync(tempRoot, { recursive: true, force: true }));
 
-test('모든 공개 경로 후보는 root·css·posts·assets의 test/fixture/history 토큰을 거절하고 output에 남기지 않는다', () => {
-  for (const relative of ['test-fixture.html', 'css/test-fixture.css', 'posts/command-history.html', 'assets/nested/fixture-image.jpg']) {
+test('공개 경로는 테스트 구조·명명된 command/shell history만 거절하고 output에 남기지 않는다', () => {
+  for (const relative of [
+    'test-fixture.html', 'css/test-fixture.css', 'posts/command-history.html',
+    'assets/test/normal.jpg', 'assets/nested/__fixtures__/normal.jpg',
+    'posts/example.fixture.html', 'posts/.bash_history', 'posts/ConsoleHost_history.txt',
+  ]) {
     assert.throws(() => policy.assertAllowedPublicPath(relative), /금지/);
   }
   buildPagesArtifact(tempRoot, artifactRoot);
@@ -49,12 +53,31 @@ test('모든 공개 경로 후보는 root·css·posts·assets의 test/fixture/hi
     'posts/command-history.html',
     'assets/nested/test-fixture.jpg',
     'posts/nested/command-history.html',
+    'assets/test/normal.jpg',
+    'posts/nested/__fixtures__/normal.html',
   ]) {
     write(relative, 'mutation');
     assert.throws(() => buildPagesArtifact(tempRoot, artifactRoot), /금지/);
     assert.equal(fs.existsSync(path.join(artifactRoot, ...relative.split('/'))), false);
     fs.rmSync(path.join(tempRoot, ...relative.split('/')));
+    if (relative.startsWith('assets/test/')) fs.rmSync(path.join(tempRoot, 'assets', 'test'), { recursive: true, force: true });
+    if (relative.startsWith('assets/nested/')) fs.rmSync(path.join(tempRoot, 'assets', 'nested'), { recursive: true, force: true });
+    if (relative.startsWith('posts/nested/')) fs.rmSync(path.join(tempRoot, 'posts', 'nested'), { recursive: true, force: true });
   }
+});
+
+test('기존 bathroom-fixtures 공개 URL·이미지는 허용되고 source와 artifact에 정확히 존재한다', () => {
+  const post = 'posts/daejayeon-bathroom-fixtures.html';
+  const cover = 'assets/cases/daejayeon-bathroom-fixtures-cover.jpg';
+  const image = 'assets/cases/daejayeon-bathroom-fixtures-1.jpg';
+  for (const relative of [post, cover, image]) assert.doesNotThrow(() => policy.assertAllowedPublicPath(relative));
+  for (const relative of [post, cover, image]) assert.equal(fs.existsSync(path.join(ROOT, ...relative.split('/'))), true, `missing source: ${relative}`);
+  const rss = fs.readFileSync(path.join(ROOT, 'rss.xml'), 'utf8');
+  assert.match(rss, /<guid isPermaLink="true">https:\/\/01023978629\.github\.io\/manmool\/posts\/daejayeon-bathroom-fixtures\.html<\/guid>/);
+  assert.doesNotMatch(rss, /daejayeon-bathroom-install/);
+  buildPagesArtifact(tempRoot, artifactRoot);
+  for (const relative of [post, cover, image]) assert.equal(fs.existsSync(path.join(artifactRoot, ...relative.split('/'))), true, `missing artifact: ${relative}`);
+  assert.equal(fs.existsSync(path.join(artifactRoot, 'posts', 'daejayeon-bathroom-install.html')), false);
 });
 
 test('scanner는 Windows 경로를 정규화하고 hash 비교 없이 모든 PIN·세션·연락처·비밀 marker를 직접 거절한다', () => {

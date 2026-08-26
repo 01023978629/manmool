@@ -28,12 +28,15 @@ export function toPublicPath(value) {
   return String(value).replace(/\\/g, '/');
 }
 
-const PROHIBITED_PATH_TOKEN = /(?:^|[._-])(?:test|tests|fixture|fixtures|history)(?=$|[._-])/i;
+const PROHIBITED_DIRECTORY_SEGMENT = /^(?:test|tests|fixture|fixtures|__tests__|__fixtures__)$/i;
+const PROHIBITED_FILE_PATTERN = /(?:\.test\.|\.spec\.|\.fixture\.|(?:^|[._-])(?:test-fixture|command-history)(?:[._-]|$)|^(?:\.bash_history|\.zsh_history|ConsoleHost_history\.txt|PowerShell_history\.txt)$)/i;
 
 export function assertAllowedPublicPath(relative) {
   const normalized = toPublicPath(relative);
-  if (!normalized || normalized.startsWith('/') || normalized.split('/').some((segment) => PROHIBITED_PATH_TOKEN.test(segment))) {
-    throw new Error(`공개 경로에 금지된 test·fixture·history 토큰이 있습니다: ${normalized}`);
+  const segments = normalized.split('/');
+  const name = segments.at(-1) || '';
+  if (!normalized || normalized.startsWith('/') || segments.some((segment) => PROHIBITED_DIRECTORY_SEGMENT.test(segment)) || PROHIBITED_FILE_PATTERN.test(name)) {
+    throw new Error(`공개 경로에 금지된 테스트·fixture·history 구조가 있습니다: ${normalized}`);
   }
   return normalized;
 }
