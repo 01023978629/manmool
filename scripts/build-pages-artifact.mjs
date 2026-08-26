@@ -19,7 +19,7 @@ const PUBLIC_DIR_RULES = new Map([
 ]);
 const PUBLIC_ROOT_FILES = [
   'admin.html', 'as.html', 'bathroom-check.html', 'blog.html', 'case-new.html',
-  'field.html', 'index.html', 'leak.html', 'mypage.html', 'office.html', 'privacy.html',
+  'field.html', 'index.html', 'leak.html', 'mypage.html', 'office.html', 'office-request.html', 'privacy.html',
   'google11dc37fbc3ab6e98.html', 'og-image.png', 'robots.txt', 'rss.xml', 'sitemap.xml'
 ];
 

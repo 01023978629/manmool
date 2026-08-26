@@ -12,7 +12,7 @@ const forbiddenTop = ['.git', '.github', '.claude', '.codex', 'apps-script-contr
 const googleVerificationFile = 'google11dc37fbc3ab6e98.html';
 const requiredRoot = [
   'admin.html', 'as.html', 'bathroom-check.html', 'blog.html', 'case-new.html',
-  'field.html', 'index.html', 'leak.html', 'mypage.html', 'office.html', 'privacy.html',
+  'field.html', 'index.html', 'leak.html', 'mypage.html', 'office.html', 'office-request.html', 'privacy.html',
   googleVerificationFile, 'og-image.png', 'robots.txt', 'rss.xml', 'sitemap.xml'
 ];
 const buildSource = fs.readFileSync(path.join(ROOT, 'scripts', 'build-pages-artifact.mjs'), 'utf8');
