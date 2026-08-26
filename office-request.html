@@ -10,7 +10,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src 'none'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'" />
   <link rel="stylesheet" href="css/styles.css?v=20260827-office-request2" />
   <link rel="stylesheet" href="css/brand-system.css?v=20260827-office-request2" />
-  <link rel="stylesheet" href="css/office-request.css?v=20260827-office-request2" />
+  <link rel="stylesheet" href="css/office-request.css?v=20260827-office-request3" />
 </head>
 <body class="request-page">
   <header class="site-header" id="siteHeader">
@@ -42,7 +42,21 @@
         <div class="office-filters" role="group" aria-label="접수 상태 필터"><button class="office-action office-filter is-active" type="button" data-office-filter="all" aria-pressed="true">전체</button><button class="office-action office-filter" type="button" data-office-filter="pending" aria-pressed="false">확인 대기</button><button class="office-action office-filter" type="button" data-office-filter="progress" aria-pressed="false">진행 중</button><button class="office-action office-filter" type="button" data-office-filter="completed" aria-pressed="false">완료</button></div>
         <div id="officeRequestList" class="office-request-list" aria-live="polite"></div>
       </section>
-      <section id="officeCreateView" class="office-view" hidden aria-labelledby="officeCreateTitle"><h1 id="officeCreateTitle">새 접수 등록</h1><p>접수 작성 기능을 준비하고 있습니다.</p></section>
+      <section id="officeCreateView" class="office-view" hidden aria-labelledby="officeCreateTitle">
+        <span class="request-eyebrow">관리사무소 전용</span><h1 id="officeCreateTitle">새 접수 등록</h1>
+        <form id="officeCreateForm" class="office-create-form" novalidate>
+          <div class="office-form-grid"><label>동·호수<input name="unit" maxlength="80" autocomplete="off" /></label><label>발생 위치<input name="location" maxlength="120" autocomplete="off" /></label></div>
+          <div class="office-form-grid"><label>문제 유형<select name="issueType"><option value="">선택해 주세요</option><option>누수</option><option>배수</option><option>급수</option><option>난방</option><option>방수</option><option>공용시설</option><option>기타</option></select></label><label>배관 유형<select name="pipeType"><option>미확정</option><option>오수</option><option>우수</option><option>잡배수</option><option>난방</option><option>급수</option></select></label></div>
+          <label>긴급도<select name="urgency"><option value="normal">일반</option><option value="urgent">긴급</option></select></label>
+          <label>증상<textarea name="description" maxlength="1200"></textarea></label>
+          <div class="office-form-grid"><label>관리사무소 담당자<input name="officeContactName" maxlength="60" autocomplete="name" /></label><label>관리사무소 연락처<input name="officeContactPhone" inputmode="tel" maxlength="40" autocomplete="tel" /></label></div>
+          <details><summary>입주민 연락처 추가</summary><div class="office-form-grid"><label>입주민 성함<input name="residentName" maxlength="60" autocomplete="name" /></label><label>입주민 연락처<input name="residentPhone" inputmode="tel" maxlength="40" autocomplete="tel" /></label></div></details>
+          <label>희망 방문일<input name="preferredVisitDate" type="date" /></label><label>현장 사진 (최대 5장)<input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple /></label>
+          <label class="office-consent"><input name="privacyConsent" type="checkbox" /> 개인정보 수집·이용에 동의합니다.</label>
+          <p id="officeCreateError" class="request-error" role="alert"></p><p id="officeCreateProgress" class="office-progress" role="status" aria-live="polite"></p>
+          <div class="office-form-actions"><button id="officeCreateSubmit" class="office-action request-primary" type="submit">접수 저장</button><button id="officeRetryPhotos" class="office-action request-secondary" type="button" hidden>사진 다시 보내기</button><button id="officeCreateBack" class="office-action request-secondary" type="button">목록으로</button></div>
+        </form>
+      </section>
       <section id="officeDetailView" class="office-view" hidden aria-labelledby="officeDetailTitle"><h1 id="officeDetailTitle">접수 상세</h1><p>접수 상세 기능을 준비하고 있습니다.</p></section>
     </section>
   </main>
@@ -50,6 +64,7 @@
   <script src="js/public-nav.js?v=20260824-office1"></script>
   <script src="js/office-request-core.js?v=20260827-office-request2"></script>
   <script src="js/office-request-api.js?v=20260827-office-request2"></script>
-  <script src="js/office-request.js?v=20260827-office-request2"></script>
+  <script src="js/office-request-photo.js?v=20260827-office-request3"></script>
+  <script src="js/office-request.js?v=20260827-office-request3"></script>
 </body>
 </html>

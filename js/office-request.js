@@ -1,149 +1,66 @@
 (() => {
   const SESSION_KEY = 'manmul_office_session_v1';
-  const core = window.ManmulOfficeRequest;
-  const api = window.ManmulOfficeApi;
-  const routeError = document.getElementById('officeRouteError');
-  const loginView = document.getElementById('officeLoginView');
-  const dashboardView = document.getElementById('officeDashboardView');
-  const createView = document.getElementById('officeCreateView');
-  const detailView = document.getElementById('officeDetailView');
-  const loginForm = document.getElementById('officeLoginForm');
-  const loginSubmit = document.getElementById('officeLoginSubmit');
-  const pin = document.getElementById('officePin');
-  const complex = document.getElementById('officeComplex');
-  const loginError = document.getElementById('officeLoginError');
-  const officeName = document.getElementById('officeName');
-  const requestList = document.getElementById('officeRequestList');
-  const syncStatus = document.getElementById('officeSyncStatus');
-  const logout = document.getElementById('officeLogout');
-  const newRequest = document.getElementById('officeNewRequest');
-  const year = document.getElementById('requestYear');
-  const filters = [...document.querySelectorAll('[data-office-filter]')];
-  const views = [routeError, loginView, dashboardView, createView, detailView];
-  let session = null;
-  let requests = [];
-  let activeFilter = 'all';
-  let loginPending = false;
+  const core = window.ManmulOfficeRequest, api = window.ManmulOfficeApi, photo = window.ManmulOfficePhoto;
+  const byId = (id) => document.getElementById(id);
+  const routeError = byId('officeRouteError'), loginView = byId('officeLoginView'), dashboardView = byId('officeDashboardView'), createView = byId('officeCreateView'), detailView = byId('officeDetailView');
+  const loginForm = byId('officeLoginForm'), loginSubmit = byId('officeLoginSubmit'), pin = byId('officePin'), complex = byId('officeComplex'), loginError = byId('officeLoginError');
+  const officeName = byId('officeName'), requestList = byId('officeRequestList'), syncStatus = byId('officeSyncStatus'), logout = byId('officeLogout'), newRequest = byId('officeNewRequest');
+  const createForm = byId('officeCreateForm'), createTitle = byId('officeCreateTitle'), createError = byId('officeCreateError'), createProgress = byId('officeCreateProgress'), createSubmit = byId('officeCreateSubmit'), retryPhotos = byId('officeRetryPhotos'), createBack = byId('officeCreateBack');
+  const year = byId('requestYear'), filters = [...document.querySelectorAll('[data-office-filter]')], views = [routeError, loginView, dashboardView, createView, detailView];
+  let session = null, requests = [], activeFilter = 'all', loginPending = false, formPending = false, editingRequest = null;
+  let currentDraft = { idempotencyKey: null, requestId: null, receiptNo: null, photoSlots: [], photoError: '', photoPending: false };
 
   function setView(view) { views.forEach((element) => { if (element) element.hidden = element !== view; }); }
-  function safeOffice(value) {
-    const source = value && typeof value === 'object' ? value : {};
-    const office = { id: String(source.id || '').trim().slice(0, 80), slug: String(source.slug || '').trim().slice(0, 80) };
-    const complexName = String(source.complexName || '').trim().slice(0, 160);
-    if (complexName) { office.complexName = complexName; return office; }
-    const name = String(source.name || '').trim().slice(0, 160);
-    if (name) office.name = name;
-    return office;
-  }
+  function safeOffice(value) { const source = value && typeof value === 'object' ? value : {}; const office = { id: String(source.id || '').trim().slice(0, 80), slug: String(source.slug || '').trim().slice(0, 80) }; const complexName = String(source.complexName || '').trim().slice(0, 160); if (complexName) { office.complexName = complexName; return office; } const name = String(source.name || '').trim().slice(0, 160); if (name) office.name = name; return office; }
   function officeLabel(office) { return office && (office.complexName || office.name) || ''; }
-  function saveSession(value) {
-    const saved = { token: String(value && value.sessionToken || '').trim(), office: safeOffice(value && value.office), expiresAt: Number(value && value.expiresAt) };
-    if (!saved.token || !saved.office.id || !saved.office.slug || !officeLabel(saved.office) || !Number.isFinite(saved.expiresAt)) return null;
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(saved));
-    return saved;
-  }
+  function saveSession(value) { const saved = { token: String(value && value.sessionToken || '').trim(), office: safeOffice(value && value.office), expiresAt: Number(value && value.expiresAt) }; if (!saved.token || !saved.office.id || !saved.office.slug || !officeLabel(saved.office) || !Number.isFinite(saved.expiresAt)) return null; sessionStorage.setItem(SESSION_KEY, JSON.stringify(saved)); return saved; }
   function clearSession() { sessionStorage.removeItem(SESSION_KEY); session = null; }
-  function restoreSession(slug) {
-    try {
-      const value = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
-      const keys = value && typeof value === 'object' ? Object.keys(value).sort() : [];
-      if (keys.join(',') !== 'expiresAt,office,token' || !value.token || Date.now() >= Number(value.expiresAt)) { clearSession(); return null; }
-      const office = safeOffice(value.office);
-      if (!office.id || !office.slug || office.slug !== slug || !officeLabel(office)) { clearSession(); return null; }
-      return { token: String(value.token), office, expiresAt: Number(value.expiresAt) };
-    } catch (_) { clearSession(); return null; }
-  }
+  function restoreSession(slug) { try { const value = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); const keys = value && typeof value === 'object' ? Object.keys(value).sort() : []; if (keys.join(',') !== 'expiresAt,office,token' || !value.token || Date.now() >= Number(value.expiresAt)) { clearSession(); return null; } const office = safeOffice(value.office); if (!office.id || !office.slug || office.slug !== slug || !officeLabel(office)) { clearSession(); return null; } return { token: String(value.token), office, expiresAt: Number(value.expiresAt) }; } catch (_) { clearSession(); return null; } }
   function focusPin() { if (pin) pin.focus(); }
-  function showLogin(message) {
-    if (loginError) loginError.textContent = message || '';
-    if (requestList) requestList.textContent = '';
-    if (syncStatus) syncStatus.textContent = '';
-    setView(loginView);
-    focusPin();
-  }
-  function errorMessage(error) {
-    if (error && error.code === 'rate-limited') return '시도가 많습니다. 10분 후 다시 시도해 주세요.';
-    return error && typeof error.message === 'string' ? error.message : '로그인 처리 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.';
-  }
-  function matchesFilter(item) {
-    const status = String(item && item.status || '');
-    if (activeFilter === 'pending') return ['pending_review', 'needs_info', 'on_hold'].includes(status);
-    if (activeFilter === 'progress') return ['accepted', 'visit_scheduled', 'in_progress'].includes(status);
-    if (activeFilter === 'completed') return ['completed', 'billed', 'paid', 'cancelled'].includes(status);
-    return true;
-  }
+  function showLogin(message) { if (loginError) loginError.textContent = message || ''; if (requestList) requestList.textContent = ''; if (syncStatus) syncStatus.textContent = ''; setView(loginView); focusPin(); }
+  function errorMessage(error) { if (error && error.code === 'rate-limited') return '시도가 많습니다. 10분 후 다시 시도해 주세요.'; return error && typeof error.message === 'string' ? error.message : '처리 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.'; }
+  function mutable(item) { return ['pending_review', 'needs_info'].includes(String(item && item.status || '')); }
+  function requestId(item) { return String(item && (item.requestId || item.id) || ''); }
+  function matchesFilter(item) { const status = String(item && item.status || ''); if (activeFilter === 'pending') return ['pending_review', 'needs_info', 'on_hold'].includes(status); if (activeFilter === 'progress') return ['accepted', 'visit_scheduled', 'in_progress'].includes(status); if (activeFilter === 'completed') return ['completed', 'billed', 'paid', 'cancelled'].includes(status); return true; }
   function addText(parent, className, value) { const element = document.createElement('p'); element.className = className; element.textContent = String(value || ''); parent.appendChild(element); }
-  function renderRequests() {
-    if (!requestList) return;
-    requestList.textContent = '';
-    const visible = requests.filter(matchesFilter);
-    if (!visible.length) { addText(requestList, 'office-empty', '표시할 접수가 없습니다.'); return; }
-    visible.forEach((item) => {
-      const card = document.createElement('article');
-      card.className = 'office-request-card';
-      const title = document.createElement('h2');
-      title.textContent = String(item.receiptNo || item.id || '접수').slice(0, 100);
-      card.appendChild(title);
-      addText(card, 'office-request-unit', `${String(item.unit || '').slice(0, 100)} · ${String(item.location || '').slice(0, 140)}`);
-      addText(card, 'office-request-meta', `${core.statusLabel(item.status)} · ${String(item.issueType || '').slice(0, 30)}`);
-      requestList.appendChild(card);
-    });
-  }
-  function setFilter(next) {
-    activeFilter = next;
-    filters.forEach((button) => { const selected = button.dataset.officeFilter === next; button.classList.toggle('is-active', selected); button.setAttribute('aria-pressed', String(selected)); });
-    renderRequests();
-  }
-  async function loadDashboard() {
-    if (!session) return;
-    if (officeName) officeName.textContent = officeLabel(session.office);
-    setView(dashboardView);
-    if (syncStatus) syncStatus.textContent = '접수 목록을 불러오는 중입니다.';
-    try {
-      const response = await api.call('officeList', { sessionToken: session.token, payload: {} });
-      requests = Array.isArray(response.requests) ? response.requests : [];
-      renderRequests();
-      if (syncStatus) syncStatus.textContent = '접수 목록을 최신 상태로 불러왔습니다.';
-    } catch (error) {
-      if (error && error.code === 'session-expired') { clearSession(); showLogin(errorMessage(error)); return; }
-      if (requestList) requestList.textContent = '';
-      if (syncStatus) syncStatus.textContent = errorMessage(error);
-    }
-  }
-  async function submitLogin(event, slug) {
-    event.preventDefault();
-    if (loginPending) return;
-    const validation = core.validateLogin({ pin: pin && pin.value });
-    if (!validation.ok) { if (loginError) loginError.textContent = validation.message; focusPin(); return; }
-    if (loginError) loginError.textContent = '';
-    loginPending = true;
-    if (loginSubmit) loginSubmit.disabled = true;
-    try {
-      const response = await api.call('officeLogin', { payload: { slug, pin: pin.value } });
-      const saved = saveSession(response);
-      pin.value = '';
-      if (!saved) throw new Error('invalid-session');
-      session = saved;
-      await loadDashboard();
-    } catch (error) {
-      if (pin) pin.value = '';
-      if (loginError) loginError.textContent = errorMessage(error);
-      focusPin();
-    } finally {
-      loginPending = false;
-      if (loginSubmit) loginSubmit.disabled = false;
-    }
-  }
+  function actionButton(label, attribute, id) { const button = document.createElement('button'); button.type = 'button'; button.className = 'office-action request-secondary'; button.textContent = label; button.setAttribute(attribute, id); return button; }
+  function renderRequests() { if (!requestList) return; requestList.textContent = ''; const visible = requests.filter(matchesFilter); if (!visible.length) { addText(requestList, 'office-empty', '표시할 접수가 없습니다.'); return; } visible.forEach((item) => { const card = document.createElement('article'); card.className = 'office-request-card'; const title = document.createElement('h2'); title.textContent = String(item.receiptNo || requestId(item) || '접수').slice(0, 100); card.appendChild(title); addText(card, 'office-request-unit', `${String(item.unit || '').slice(0, 100)} · ${String(item.location || '').slice(0, 140)}`); addText(card, 'office-request-meta', `${core.statusLabel(item.status)} · ${String(item.issueType || '').slice(0, 30)}`); if (mutable(item)) { const actions = document.createElement('div'); actions.className = 'office-card-actions'; const id = requestId(item); actions.appendChild(actionButton('수정', 'data-office-edit', id)); actions.appendChild(actionButton('취소', 'data-office-cancel', id)); card.appendChild(actions); } requestList.appendChild(card); }); }
+  function setFilter(next) { activeFilter = next; filters.forEach((button) => { const selected = button.dataset.officeFilter === next; button.classList.toggle('is-active', selected); button.setAttribute('aria-pressed', String(selected)); }); renderRequests(); }
+  function replaceRequest(next) { const id = requestId(next), index = requests.findIndex((item) => requestId(item) === id); if (index >= 0) requests[index] = next; else requests.unshift(next); renderRequests(); }
+  async function loadDashboard() { if (!session) return; if (officeName) officeName.textContent = officeLabel(session.office); setView(dashboardView); if (syncStatus) syncStatus.textContent = '접수 목록을 불러오는 중입니다.'; try { const response = await api.call('officeList', { sessionToken: session.token, payload: {} }); requests = Array.isArray(response.requests) ? response.requests : []; renderRequests(); if (syncStatus) syncStatus.textContent = '접수 목록을 최신 상태로 불러왔습니다.'; } catch (error) { if (error && error.code === 'session-expired') { clearSession(); showLogin(errorMessage(error)); return; } if (requestList) requestList.textContent = ''; if (syncStatus) syncStatus.textContent = errorMessage(error); } }
+  async function submitLogin(event, slug) { event.preventDefault(); if (loginPending) return; const validation = core.validateLogin({ pin: pin && pin.value }); if (!validation.ok) { if (loginError) loginError.textContent = validation.message; focusPin(); return; } if (loginError) loginError.textContent = ''; loginPending = true; if (loginSubmit) loginSubmit.disabled = true; try { const response = await api.call('officeLogin', { payload: { slug, pin: pin.value } }); const saved = saveSession(response); pin.value = ''; if (!saved) throw new Error('invalid-session'); session = saved; await loadDashboard(); } catch (error) { if (pin) pin.value = ''; if (loginError) loginError.textContent = errorMessage(error); focusPin(); } finally { loginPending = false; if (loginSubmit) loginSubmit.disabled = false; } }
+  function dataFromForm() { const get = (name) => createForm.elements.namedItem(name); return { unit: get('unit').value, location: get('location').value, issueType: get('issueType').value, pipeType: get('pipeType').value, urgency: get('urgency').value, description: get('description').value, officeContactName: get('officeContactName').value, officeContactPhone: get('officeContactPhone').value, residentName: get('residentName').value, residentPhone: get('residentPhone').value, preferredVisitDate: get('preferredVisitDate').value, privacyConsent: get('privacyConsent').checked }; }
+  function focusField(field) { const name = field === 'residentContact' ? 'residentName' : field; const input = createForm && createForm.elements.namedItem(name); if (input && typeof input.focus === 'function') input.focus(); }
+  function setCreateError(message) { if (createError) createError.textContent = message || ''; }
+  function setProgress(message) { if (createProgress) createProgress.textContent = message || ''; if (retryPhotos) retryPhotos.hidden = message !== '접수 저장됨 · 사진 전송 필요'; }
+  function resetDraft() { currentDraft = { idempotencyKey: null, requestId: null, receiptNo: null, photoSlots: [], photoError: '', photoPending: false }; }
+  function resetCreate() { editingRequest = null; resetDraft(); createForm.reset(); createTitle.textContent = '새 접수 등록'; createSubmit.textContent = '접수 저장'; setCreateError(''); setProgress(''); }
+  function populateCreate(item) { const set = (name, value) => { const input = createForm.elements.namedItem(name); if (input) input.value = value || ''; }; set('unit', item.unit); set('location', item.location); set('issueType', item.issueType); set('pipeType', item.pipeType || '미확정'); set('urgency', item.urgency || 'normal'); set('description', item.description); set('officeContactName', item.officeContact && item.officeContact.name); set('officeContactPhone', item.officeContact && item.officeContact.phone); set('residentName', item.residentContact && item.residentContact.name); set('residentPhone', item.residentContact && item.residentContact.phone); set('preferredVisitDate', item.preferredVisitDate); createForm.elements.namedItem('privacyConsent').checked = true; }
+  async function addPhotos(files) { if (!files.length) return; if (currentDraft.photoSlots.length + files.length > 5) { currentDraft.photoError = '사진은 최대 5장까지 올릴 수 있습니다.'; setCreateError(currentDraft.photoError); return; } currentDraft.photoPending = true; setProgress('사진을 준비하는 중입니다.'); try { const compressed = await Promise.all([...files].map((file) => photo.compressOfficePhoto(file))); compressed.forEach((value) => currentDraft.photoSlots.push({ uploadId: crypto.randomUUID(), compressed: value, state: 'pending' })); currentDraft.photoError = ''; setCreateError(''); setProgress('사진 준비 완료'); } catch (error) { currentDraft.photoError = errorMessage(error); setCreateError(currentDraft.photoError); setProgress(''); } finally { currentDraft.photoPending = false; } }
+  async function uploadSlots(states) { for (const slot of currentDraft.photoSlots) { if (!states.includes(slot.state)) continue; try { await api.call('officeUpload', { sessionToken: session.token, payload: { requestId: currentDraft.requestId, uploadId: slot.uploadId, mimeType: slot.compressed.mimeType, dataB64: slot.compressed.dataB64 } }); slot.state = 'sent'; } catch (_) { slot.state = 'failed'; } } }
+  async function finishUploads(states) { if (!currentDraft.photoSlots.some((slot) => states.includes(slot.state))) { setProgress(`접수 완료 · ${currentDraft.receiptNo}`); return true; } setProgress('접수 저장됨 · 사진 전송 중'); await uploadSlots(states); if (currentDraft.photoSlots.some((slot) => slot.state === 'failed')) { setProgress('접수 저장됨 · 사진 전송 필요'); return false; } setProgress(`접수 완료 · ${currentDraft.receiptNo}`); return true; }
+  async function retryOfficePhotos() { if (!currentDraft.requestId) return false; return finishUploads(['failed']); }
+  async function submitCreate(data) { if (!currentDraft.idempotencyKey) currentDraft.idempotencyKey = crypto.randomUUID(); const result = await api.call('officeCreate', { sessionToken: session.token, payload: core.buildCreatePayload(data, currentDraft.idempotencyKey) }); currentDraft.requestId = result.requestId; currentDraft.receiptNo = result.receiptNo; return finishUploads(['pending']); }
+  async function editOfficeRequest(id) { const item = requests.find((entry) => requestId(entry) === id); if (!mutable(item)) { if (syncStatus) syncStatus.textContent = '대표 확인 후에는 전화로 변경해 주세요'; return false; } editingRequest = item; resetDraft(); populateCreate(item); createTitle.textContent = '접수 수정'; createSubmit.textContent = '수정 저장'; setCreateError(''); setProgress(''); setView(createView); return true; }
+  async function updateOfficeRequest(data) { if (!editingRequest || !mutable(editingRequest)) { if (syncStatus) syncStatus.textContent = '대표 확인 후에는 전화로 변경해 주세요'; return false; } const payload = core.buildCreatePayload(data, 'update'); delete payload.idempotencyKey; payload.requestId = requestId(editingRequest); await api.call('officeUpdate', { sessionToken: session.token, payload }); const fresh = await api.call('officeGet', { sessionToken: session.token, payload: { requestId: payload.requestId } }); replaceRequest(fresh.request); editingRequest = null; setView(dashboardView); if (syncStatus) syncStatus.textContent = '수정 내용을 저장했습니다.'; return true; }
+  async function cancelOfficeRequest(id) { const item = requests.find((entry) => requestId(entry) === id); if (!mutable(item)) { if (syncStatus) syncStatus.textContent = '대표 확인 후에는 전화로 변경해 주세요'; return false; } if (!window.confirm('이 접수를 취소할까요?')) return false; await api.call('officeCancel', { sessionToken: session.token, payload: { requestId: id } }); const fresh = await api.call('officeGet', { sessionToken: session.token, payload: { requestId: id } }); replaceRequest(fresh.request); if (syncStatus) syncStatus.textContent = '접수를 취소했습니다.'; return true; }
+  async function submitRequest(event) { event.preventDefault(); if (formPending) return; const data = dataFromForm(), validation = core.validateRequest(data); if (!validation.ok) { setCreateError(validation.message); focusField(validation.field); return; } if (currentDraft.photoPending) { setCreateError('사진을 준비하는 중입니다.'); return; } if (currentDraft.photoError) { setCreateError(currentDraft.photoError); return; } formPending = true; createSubmit.disabled = true; setCreateError(''); try { if (editingRequest) await updateOfficeRequest(data); else await submitCreate(data); } catch (error) { setCreateError(errorMessage(error)); } finally { formPending = false; createSubmit.disabled = false; } }
 
   if (year) year.textContent = new Date().getFullYear();
-  if (!core || !api || !routeError || !loginView || !dashboardView || !loginForm || !pin || !loginSubmit) return;
+  if (!core || !api || !photo || !routeError || !loginView || !dashboardView || !loginForm || !pin || !loginSubmit || !createForm) return;
   const slug = core.parseOfficeSlug(window.location.search);
   if (!slug) { setView(routeError); return; }
   if (complex) complex.value = slug;
   loginForm.addEventListener('submit', (event) => { submitLogin(event, slug); });
   if (logout) logout.addEventListener('click', () => { clearSession(); showLogin(''); });
-  if (newRequest) newRequest.addEventListener('click', () => { setView(createView); });
+  if (newRequest) newRequest.addEventListener('click', () => { resetCreate(); setView(createView); });
+  if (createBack) createBack.addEventListener('click', () => { setView(dashboardView); });
+  createForm.addEventListener('submit', submitRequest);
+  createForm.elements.namedItem('photos').addEventListener('change', (event) => { addPhotos(event.target.files || []); });
+  if (retryPhotos) retryPhotos.addEventListener('click', () => { retryOfficePhotos(); });
+  if (requestList) requestList.addEventListener('click', (event) => { const button = event.target.closest('button'); if (!button) return; if (button.dataset.officeEdit) editOfficeRequest(button.dataset.officeEdit); if (button.dataset.officeCancel) cancelOfficeRequest(button.dataset.officeCancel).catch((error) => { if (syncStatus) syncStatus.textContent = errorMessage(error); }); });
   filters.forEach((button) => button.addEventListener('click', () => setFilter(button.dataset.officeFilter || 'all')));
+  window.submitOfficeRequest = () => submitCreate(dataFromForm()); window.retryOfficePhotos = retryOfficePhotos; window.editOfficeRequest = editOfficeRequest; window.cancelOfficeRequest = cancelOfficeRequest;
   session = restoreSession(slug);
   if (session) loadDashboard(); else showLogin('');
 })();
