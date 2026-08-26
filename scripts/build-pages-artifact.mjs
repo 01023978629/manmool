@@ -19,13 +19,20 @@ const PUBLIC_DIR_RULES = new Map([
 ]);
 const PUBLIC_ROOT_FILES = [
   'admin.html', 'as.html', 'bathroom-check.html', 'blog.html', 'case-new.html',
-  'field.html', 'index.html', 'leak.html', 'mypage.html', 'office.html', 'office-request.html', 'privacy.html',
+  'field.html', 'index.html', 'leak.html', 'mypage.html', 'office.html', 'office-request.html', 'office-api.json', 'privacy.html',
   'google11dc37fbc3ab6e98.html', 'og-image.png', 'robots.txt', 'rss.xml', 'sitemap.xml'
+];
+const REQUIRED_PORTAL_FILES = [
+  'office-api.json', 'office-request.html', 'css/office-request.css',
+  'js/office-request-core.js', 'js/office-request-api.js', 'js/office-request-photo.js', 'js/office-request.js',
 ];
 
 // 삭제 대상은 이 저장소 바로 아래의 고정 경로 한 곳뿐이다.
 if (path.dirname(OUT) !== ROOT || path.basename(OUT) !== '_site') {
   throw new Error('안전하지 않은 Pages 출력 경로입니다: ' + OUT);
+}
+for (const name of REQUIRED_PORTAL_FILES) {
+  if (!fs.existsSync(path.join(ROOT, name))) throw new Error('필수 관리사무소 포털 파일이 없습니다: ' + name);
 }
 
 fs.rmSync(OUT, { recursive: true, force: true });

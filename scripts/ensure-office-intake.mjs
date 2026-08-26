@@ -8,7 +8,9 @@ const office = read('office.html');
 const request = read('office-request.html');
 const core = read('js/office-request-core.js');
 const controller = read('js/office-request.js');
-const privacy = read('privacy.html');
+const apiClient = read('js/office-request-api.js');
+const photoClient = read('js/office-request-photo.js');
+const apiConfig = read('office-api.json');
 const build = read('scripts/build-pages-artifact.mjs');
 const sitemap = read('sitemap.xml');
 const fail = [];
@@ -20,17 +22,21 @@ check(
 );
 check(/id="officeRequestIntro"/.test(office), '단지 전용 시설접수 소개 구역이 없다');
 check(/name="robots" content="noindex,follow"/.test(request), '접수 페이지 noindex가 없다');
-check(/01023978629/.test(core) && /010-2397-8629/.test(request), '대표번호가 일치하지 않는다');
 check(
-  !/(localStorage|sessionStorage|indexedDB|fetch\s*\(|XMLHttpRequest|Web3Forms)/.test(request + core + controller),
-  '접수 화면이 저장소나 네트워크 전송을 사용한다'
+  /office-request-api\.js/.test(request) && /office-request-photo\.js/.test(request),
+  '접수 페이지에 API 또는 사진 클라이언트 스크립트가 없다'
 );
-check(/문자 앱에서 전송 버튼/.test(request), '전송 전 확인 안내가 없다');
 check(
-  /문자 접수[\s\S]*1년/.test(privacy) && /브라우저에는[^<]*저장하지/.test(privacy),
-  '문자 접수 개인정보 고지가 불완전하다'
+  /sessionStorage/.test(controller) && !/(localStorage|indexedDB)/.test(request + core + controller + apiClient + photoClient),
+  '포털이 허용되지 않은 영구 브라우저 저장소를 사용한다'
 );
-check(/'office-request\.html'/.test(build), 'Pages 공개 허용목록에 접수 페이지가 없다');
+check(
+  !/(APP_TOKEN|OFFICE_SESSION_SECRET|pinHash|pinSalt)/.test(request + core + controller + apiClient + photoClient + apiConfig),
+  '포털 공개 소스 또는 설정에 비밀 식별자가 있다'
+);
+check(apiConfig === '{\n  "enabled": false,\n  "apiUrl": ""\n}\n', 'office-api.json 기본값이 fail-closed 형식이 아니다');
+check(/'office-api\.json'/.test(build), 'Pages 공개 허용목록에 office-api.json이 없다');
+check(/office-request-api\.js/.test(build) && /office-request-photo\.js/.test(build), 'Pages 공개 허용목록에 포털 API 또는 사진 파일이 없다');
 check(!/office-request\.html/.test(sitemap), 'noindex 접수 페이지가 sitemap에 들어갔다');
 check(!/(HOME DOC|담당 문규|homedoc\.co\.kr)/.test(request + office), '별도 HOME DOC 브랜드가 공개 화면에 남았다');
 
@@ -40,4 +46,4 @@ if (fail.length) {
   process.exit(1);
 }
 
-console.log('PASS  관리사무소 시설접수 링크·개인정보·저장금지·Pages 허용목록');
+console.log('PASS  관리사무소 포털 API·사진·세션·비밀값·Pages 공개 경계');

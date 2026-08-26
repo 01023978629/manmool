@@ -1,6 +1,7 @@
 /* build-pages-artifact.mjs가 만든 실제 GitHub Pages 산출물을 검증한다. */
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -12,8 +13,12 @@ const forbiddenTop = ['.git', '.github', '.claude', '.codex', 'apps-script-contr
 const googleVerificationFile = 'google11dc37fbc3ab6e98.html';
 const requiredRoot = [
   'admin.html', 'as.html', 'bathroom-check.html', 'blog.html', 'case-new.html',
-  'field.html', 'index.html', 'leak.html', 'mypage.html', 'office.html', 'office-request.html', 'privacy.html',
+  'field.html', 'index.html', 'leak.html', 'mypage.html', 'office.html', 'office-request.html', 'office-api.json', 'privacy.html',
   googleVerificationFile, 'og-image.png', 'robots.txt', 'rss.xml', 'sitemap.xml'
+];
+const requiredPortal = [
+  'office-api.json', 'office-request.html', 'css/office-request.css',
+  'js/office-request-core.js', 'js/office-request-api.js', 'js/office-request-photo.js', 'js/office-request.js',
 ];
 const buildSource = fs.readFileSync(path.join(ROOT, 'scripts', 'build-pages-artifact.mjs'), 'utf8');
 if (/readdirSync\(ROOT[\s\S]*?endsWith\(['"]\.html['"]\)/.test(buildSource)) {
@@ -50,6 +55,10 @@ function walk(dir) {
   return out;
 }
 
+function sha256(file) {
+  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+}
+
 const files = walk(SITE);
 const allowedByDir = new Map([
   ['assets', /\.(?:avif|gif|jpe?g|png|svg|webp)$/i],
@@ -76,6 +85,45 @@ const requiredData = ['config.json', 'material-catalog.json', 'project.json', 's
 const actualData = fs.readdirSync(path.join(SITE, 'data')).sort();
 if (JSON.stringify(actualData) !== JSON.stringify(requiredData)) {
   fail.push(`data 공개 파일이 고정 허용목록과 다름: ${actualData.join(', ')}`);
+}
+
+for (const relative of requiredPortal) {
+  const source = path.join(ROOT, relative);
+  const output = path.join(SITE, relative);
+  if (!fs.existsSync(source)) fail.push(`필수 포털 소스 누락: ${relative}`);
+  else if (!fs.existsSync(output)) fail.push(`필수 포털 산출물 누락: ${relative}`);
+  else if (sha256(source) !== sha256(output)) fail.push(`포털 산출물이 소스와 다름(신선한 빌드 필요): ${relative}`);
+}
+
+const sourceFiles = [
+  ...requiredRoot.map((name) => path.join(ROOT, name)),
+  ...requiredData.map((name) => path.join(ROOT, 'data', name)),
+  ...[...allowedByDir.keys()].flatMap((directory) => walk(path.join(ROOT, directory))),
+];
+for (const source of sourceFiles) {
+  const relative = path.relative(ROOT, source);
+  const output = path.join(SITE, relative);
+  if (!fs.existsSync(output) || sha256(source) !== sha256(output)) {
+    fail.push(`산출물이 현재 공개 소스와 다름(신선한 빌드 필요): ${relative}`);
+  }
+}
+
+const secretIdentifiers = [/\b(?:APP_TOKEN|OFFICE_SESSION_SECRET|pinHash|pinSalt)\b/];
+const portalFixtureMarkers = [
+  /\b(?:session-test|test-session|fixture-(?:session|contact|request))\b/i,
+  /010-(?:1234|9999)-(?:5678|8888)/,
+  /(?:김소장|홍길동|대표 내부 메모)/,
+];
+for (const file of files) {
+  if (!/\.(?:html|css|js|json|txt|xml)$/i.test(file)) continue;
+  const source = fs.readFileSync(file, 'utf8');
+  const relative = path.relative(SITE, file);
+  if (secretIdentifiers.some((marker) => marker.test(source))) {
+    fail.push(`공개 산출물에 비밀 식별자가 있음: ${relative}`);
+  }
+  if (requiredPortal.includes(relative) && portalFixtureMarkers.some((marker) => marker.test(source))) {
+    fail.push(`포털 산출물에 테스트·세션·연락처 fixture가 있음: ${relative}`);
+  }
 }
 
 const googleVerificationPath = path.join(SITE, googleVerificationFile);
