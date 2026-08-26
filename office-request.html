@@ -4,103 +4,52 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>관리사무소 시설보수 접수 · 만물인테리어</title>
-  <meta name="description" content="아파트 시설보수 내용을 확인한 뒤 만물인테리어 대표번호 문자로 직접 전달하는 접수 화면입니다." />
+  <meta name="description" content="관리사무소 전용 시설보수 접수 및 진행 현황 확인 화면입니다." />
   <meta name="robots" content="noindex,follow" />
   <meta name="theme-color" content="#103b4d" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; frame-src 'none'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'" />
-  <link rel="stylesheet" href="css/styles.css?v=20260826-office-request1" />
-  <link rel="stylesheet" href="css/brand-system.css?v=20260826-office-request1" />
-  <link rel="stylesheet" href="css/office-request.css?v=20260826-office-request1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src 'none'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+  <link rel="stylesheet" href="css/styles.css?v=20260827-office-request2" />
+  <link rel="stylesheet" href="css/brand-system.css?v=20260827-office-request2" />
+  <link rel="stylesheet" href="css/office-request.css?v=20260827-office-request2" />
 </head>
 <body class="request-page">
   <header class="site-header" id="siteHeader">
     <div class="container header-inner">
-      <a href="index.html" class="logo" aria-label="만물인테리어 홈">
-        <span class="logo-mark">萬</span>
-        <span class="logo-text"><strong>만물인테리어</strong><em>인테리어·누수 전문</em></span>
-      </a>
-      <nav class="main-nav" id="mainNav" aria-label="주요 메뉴">
-        <a href="index.html">인테리어</a>
-        <a href="leak.html">누수·배관</a>
-        <a href="blog.html">실제 사례</a>
-        <a href="office.html">관리사무소</a>
-      </nav>
+      <a href="index.html" class="logo" aria-label="만물인테리어 홈"><span class="logo-mark">萬</span><span class="logo-text"><strong>만물인테리어</strong><em>인테리어·누수 전문</em></span></a>
+      <nav class="main-nav" id="mainNav" aria-label="주요 메뉴"><a href="index.html">인테리어</a><a href="leak.html">누수·배관</a><a href="blog.html">실제 사례</a><a href="office.html">관리사무소</a></nav>
       <a href="office.html" class="btn btn-primary btn-sm header-cta">관리사무소 안내</a>
       <button class="nav-toggle" id="navToggle" type="button" aria-label="메뉴 열기" aria-expanded="false"><span></span><span></span><span></span></button>
     </div>
   </header>
-
   <main class="request-main">
-    <section class="request-shell" aria-labelledby="requestTitle">
-      <header class="request-heading">
-        <span class="request-eyebrow">관리사무소 시설보수 접수</span>
-        <h1 id="requestTitle">현장 위치와 증상을 알려 주세요</h1>
-        <p>내용을 확인한 뒤 대표번호 문자 앱으로 이동합니다. 문자 앱에서 전송 버튼을 눌러야 접수됩니다.</p>
-      </header>
-
-      <aside class="request-safety" aria-label="접수 전 안내">
-        <b>웹에는 접수 내용을 저장하지 않습니다.</b>
-        <span>긴급한 누수나 안전 위험이 있으면 먼저 관리사무소 또는 대표에게 전화해 주세요.</span>
-      </aside>
-
-      <form id="officeRequestForm" novalidate>
-        <div class="request-grid">
-          <label>단지명<input name="complex" autocomplete="organization" placeholder="예: 열매마을 7단지" required /></label>
-          <label>동<input name="dong" inputmode="numeric" placeholder="예: 704" required /></label>
-          <label>호수<input name="ho" inputmode="numeric" placeholder="예: 1102" required /></label>
-          <label>문제 유형
-            <select name="issueType" required>
-              <option value="">선택해 주세요</option>
-              <option>누수</option>
-              <option>배관·배수</option>
-              <option>욕실·방수</option>
-              <option>공용부 보수</option>
-              <option>기타</option>
-            </select>
-          </label>
-          <label class="request-wide">발생 위치<input name="location" placeholder="예: 욕실 천장, 지하주차장 배관" required /></label>
-          <label class="request-wide">증상 설명<textarea name="description" rows="4" placeholder="언제부터 어떤 증상이 생겼는지 적어 주세요." required></textarea></label>
-          <label>신청자 이름<input name="name" autocomplete="name" required /></label>
-          <label>회신 전화번호<input name="phone" inputmode="tel" autocomplete="tel" placeholder="010-0000-0000" required /></label>
-        </div>
-        <label class="request-consent">
-          <input type="checkbox" name="privacyConsent" />
-          <span>개인정보 수집·이용에 동의합니다. <a href="privacy.html">내용 보기</a></span>
-        </label>
-        <p id="requestError" class="request-error" role="alert" aria-live="polite"></p>
-        <button type="submit" class="request-button request-primary">문자 내용 확인</button>
-      </form>
-
-      <section id="requestReview" class="request-review" hidden aria-labelledby="reviewTitle">
-        <span class="request-eyebrow">전송 전 확인</span>
-        <h2 id="reviewTitle">전송할 내용을 확인해 주세요</h2>
-        <textarea id="requestPreview" readonly rows="10" aria-label="전송할 접수 내용"></textarea>
-        <p id="requestStatus" class="request-status">아직 접수되지 않았습니다. 문자 앱에서 전송 버튼을 눌러야 접수됩니다.</p>
-        <div class="request-actions">
-          <a id="smsLaunch" class="request-button request-primary">문자 앱 열기</a>
-          <button id="copyRequest" type="button" class="request-button request-secondary">접수 내용 복사</button>
-        </div>
-        <p id="copyStatus" class="request-copy-status" aria-live="polite"></p>
-        <p class="request-photo-note">현장 사진은 문자 전송 후 같은 번호로 추가해 주세요.</p>
+    <section class="request-shell" aria-live="polite">
+      <section id="officeRouteError" class="office-view office-route-error" hidden aria-labelledby="officeRouteErrorTitle">
+        <span class="request-eyebrow">관리사무소 시설보수 접수</span><h1 id="officeRouteErrorTitle">관리사무소 전용 주소를 확인해 주세요</h1>
+        <p>안내받은 단지 전용 주소로 다시 접속해 주세요. 도움이 필요하면 대표번호로 연락해 주세요.</p><a class="office-action request-secondary" href="tel:01023978629">010-2397-8629로 전화하기</a>
       </section>
-
-      <div class="request-direct">
-        <b>전화로 바로 상담하려면</b>
-        <a href="tel:01023978629">010-2397-8629</a>
-      </div>
+      <section id="officeLoginView" class="office-view" hidden aria-labelledby="officeLoginTitle">
+        <span class="request-eyebrow">관리사무소 전용</span><h1 id="officeLoginTitle">시설보수 접수 관리</h1><p class="office-intro">단지 담당자에게 전달받은 6자리 비밀번호로 로그인해 주세요.</p>
+        <form id="officeLoginForm" class="office-login-form" novalidate>
+          <label for="officeComplex">접속 단지<input id="officeComplex" type="text" readonly placeholder="단지 전용 주소 확인 중" /></label>
+          <label for="officePin">6자리 비밀번호<input id="officePin" name="pin" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" aria-describedby="officePinHelp" /></label>
+          <span id="officePinHelp" class="office-help">비밀번호는 이 브라우저에 저장하지 않습니다.</span><p id="officeLoginError" class="request-error" role="alert" aria-live="polite"></p><button class="office-action request-primary" type="submit">로그인</button>
+        </form>
+        <p class="office-phone-fallback">비밀번호 확인이 필요하면 <a class="office-action office-phone-link" href="tel:01023978629">010-2397-8629로 전화</a>해 주세요.</p>
+      </section>
+      <section id="officeDashboardView" class="office-view" hidden aria-labelledby="officeDashboardTitle">
+        <div class="office-dashboard-head"><div><span class="request-eyebrow">관리사무소 전용</span><h1 id="officeDashboardTitle">시설보수 접수</h1><p id="officeName" class="office-name"></p></div><button id="officeLogout" class="office-action request-secondary" type="button">로그아웃</button></div>
+        <div class="office-dashboard-actions"><button id="officeNewRequest" class="office-action request-primary" type="button">새 접수 등록</button><p id="officeSyncStatus" class="office-sync-status" role="status" aria-live="polite"></p></div>
+        <div class="office-filters" role="group" aria-label="접수 상태 필터"><button class="office-action office-filter is-active" type="button" data-office-filter="all" aria-pressed="true">전체</button><button class="office-action office-filter" type="button" data-office-filter="pending" aria-pressed="false">확인 대기</button><button class="office-action office-filter" type="button" data-office-filter="progress" aria-pressed="false">진행 중</button><button class="office-action office-filter" type="button" data-office-filter="completed" aria-pressed="false">완료</button></div>
+        <div id="officeRequestList" class="office-request-list" aria-live="polite"></div>
+      </section>
+      <section id="officeCreateView" class="office-view" hidden aria-labelledby="officeCreateTitle"><h1 id="officeCreateTitle">새 접수 등록</h1><p>접수 작성 기능을 준비하고 있습니다.</p></section>
+      <section id="officeDetailView" class="office-view" hidden aria-labelledby="officeDetailTitle"><h1 id="officeDetailTitle">접수 상세</h1><p>접수 상세 기능을 준비하고 있습니다.</p></section>
     </section>
   </main>
-
-  <footer class="site-footer">
-    <div class="container footer-inner">
-      <p class="footer-note">만물인테리어 · 대표 전병덕 · 사업자등록번호 895-48-01132<br />대전광역시 중구 돌다리로19번길 9, 1층(석교동) · <a href="tel:01023978629">010-2397-8629</a></p>
-      <p class="footer-links"><a href="office.html">관리사무소 안내</a> · <a href="privacy.html">개인정보처리방침</a></p>
-      <p class="footer-copy">© <span id="requestYear"></span> 만물인테리어. All rights reserved.</p>
-    </div>
-  </footer>
-
+  <footer class="site-footer"><div class="container footer-inner"><p class="footer-note">만물인테리어 · 대표 전병덕 · 사업자등록번호 895-48-01132<br />대전광역시 중구 돌다리로19번길 9, 1층(석교동) · <a href="tel:01023978629">010-2397-8629</a></p><p class="footer-links"><a href="office.html">관리사무소 안내</a> · <a href="privacy.html">개인정보처리방침</a></p><p class="footer-copy">© <span id="requestYear"></span> 만물인테리어. All rights reserved.</p></div></footer>
   <script src="js/public-nav.js?v=20260824-office1"></script>
-  <script src="js/office-request-core.js?v=20260826-office-request1"></script>
-  <script src="js/office-request.js?v=20260826-office-request1"></script>
+  <script src="js/office-request-core.js?v=20260827-office-request2"></script>
+  <script src="js/office-request-api.js?v=20260827-office-request2"></script>
+  <script src="js/office-request.js?v=20260827-office-request2"></script>
 </body>
 </html>
