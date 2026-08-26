@@ -288,6 +288,7 @@ Expected: all tests pass and page errors are zero.
 - Consumes: authenticated session and server `officeCreate`, `officeUpdate`, `officeCancel`, `officeUpload`.
 - Produces:
   - `compressOfficePhoto(file: File): Promise<{name:string,mimeType:'image/jpeg',dataB64:string,bytes:number}>`
+  - in-memory photo slots `{uploadId:string,compressed:object,state:'pending'|'sent'|'failed'}`; `uploadId` is created once per selected photo and is never persisted in browser storage.
   - `submitOfficeRequest(form: HTMLFormElement): Promise<object>`
   - `retryOfficePhotos(): Promise<boolean>`
   - `editOfficeRequest(requestId: string): Promise<boolean>`
@@ -302,6 +303,7 @@ Cover these cases with mocked API responses:
 - create sends one UUID idempotency key and receives `MM-20260826-0001`;
 - retry after network failure sends the same idempotency key and displays the same receipt;
 - selected photos are uploaded sequentially only after create;
+- every photo upload sends its own canonical UUID `uploadId`, and retrying a failed slot reuses that exact ID;
 - one failed photo leaves the view at “접수 저장됨 · 사진 전송 필요” with a `사진 다시 보내기` button;
 - retry sends only failed photo slots;
 - six selected photos are rejected before API calls;
@@ -331,7 +333,7 @@ Do not put the original File or base64 in browser storage.
 
 - [ ] **Step 4: Implement create and idempotent retry**
 
-Generate `crypto.randomUUID()` once when the user first presses submit and keep it in the current controller object until the server returns or the user explicitly resets the form. Do not generate a new key for a network retry.
+Generate `crypto.randomUUID()` once for the request idempotency key when the user first presses submit and keep it in the current controller object until the server returns or the user explicitly resets the form. Separately generate one `crypto.randomUUID()` for each accepted photo selection and keep it with that in-memory photo slot. Send the slot ID as `officeUpload.payload.uploadId` on both first upload and retry. Never generate a new request key or photo upload ID for a network retry, and never store either the original File or base64 in browser storage.
 
 After `officeCreate` succeeds:
 
@@ -346,7 +348,7 @@ else setProgress('접수 완료 · '+result.receiptNo);
 
 - [ ] **Step 5: Implement edit and cancel guards**
 
-Check local status before calling the server, but rely on server rejection as the authority. Show “대표 확인 후에는 전화로 변경해 주세요” for `accepted` and later states. Cancel requires an explicit confirmation dialog and never deletes the local list row; it re-renders status `취소됨`.
+Check local status before calling the server, but rely on server rejection as the authority. Show “대표 확인 후에는 전화로 변경해 주세요” for `accepted` and later states. Cancel requires an explicit confirmation dialog and never deletes the local list row; it re-renders status `취소됨`. `officeUpdate` and `officeCancel` return only a minimal state result, so call `officeGet` after success instead of assuming a full request response.
 
 - [ ] **Step 6: Run workflow, auth, and unit tests; commit**
 
