@@ -12,6 +12,20 @@ function withFetch(fake, fn) {
   return Promise.resolve().then(fn).finally(() => { global.fetch = original; });
 }
 
+function withImmediateTimers(fn) {
+  const originalSetTimeout = global.setTimeout;
+  const originalClearTimeout = global.clearTimeout;
+  global.setTimeout = (callback) => {
+    queueMicrotask(callback);
+    return { immediate: true };
+  };
+  global.clearTimeout = () => {};
+  return Promise.resolve().then(fn).finally(() => {
+    global.setTimeout = originalSetTimeout;
+    global.clearTimeout = originalClearTimeout;
+  });
+}
+
 test('공개 office action은 text/plain과 sessionToken만 전송한다', async () => {
   const fetchCalls = [];
   await withFetch(async (url, options) => {
@@ -56,6 +70,69 @@ test('설정은 정확한 Apps Script HTTPS /exec URL만 허용한다', async ()
   }
 });
 
+test('URL 원문과 구조가 정확한 Apps Script 배포 주소일 때만 설정을 허용한다', async () => {
+  const valid = 'https://script.google.com/macros/s/Ab_C-9/exec';
+  await withFetch(async () => jsonResponse({ enabled: true, apiUrl: valid }), async () => {
+    assert.deepEqual(await api.loadConfig(), { enabled: true, apiUrl: valid });
+  });
+  for (const apiUrl of [
+    ` ${valid}`, `${valid} `, `${valid}\n`, `${valid}/`,
+    'https://SCRIPT.google.com/macros/s/Ab_C-9/exec',
+    'https://script.google.com:443/macros/s/Ab_C-9/exec',
+    'https://user@script.google.com/macros/s/Ab_C-9/exec',
+    'https://script.google.com/macros/s/Ab_C-9/exec#hash',
+    'https://script.google.com/macros/s/Ab_C-9/exec?x=1',
+    'https://script.google.com\\macros\\s\\Ab_C-9\\exec',
+    'https://script.google.com/macros/s/Ab_C-9/\u0000exec',
+    'https://script.goog1e.com/macros/s/Ab_C-9/exec',
+    'https://script.googⅼe.com/macros/s/Ab_C-9/exec',
+  ]) {
+    await withFetch(async () => jsonResponse({ enabled: true, apiUrl }), async () => {
+      await assert.rejects(api.loadConfig(), (error) => error.code === 'not-configured');
+    });
+  }
+});
+
+test('설정과 본문 읽기까지 하나의 timeout으로 보호하고 AbortError를 timeout으로 매핑한다', async () => {
+  await withImmediateTimers(() => withFetch(async (_url, options) => {
+    if (!options.signal) {
+      const error = new Error('signal required');
+      error.name = 'NoSignalError';
+      throw error;
+    }
+    return new Promise((_, reject) => options.signal.addEventListener('abort', () => {
+      const error = new Error('session-test must not escape');
+      error.name = 'AbortError';
+      reject(error);
+    }, { once: true }));
+  }, async () => {
+    await assert.rejects(api.loadConfig(), (error) => error.code === 'timeout' && error.retryable === true && !String(error).includes('session-test'));
+  }));
+
+  await withImmediateTimers(() => withFetch(async (url, options) => {
+    if (url === 'office-api.json') return jsonResponse({ enabled: true, apiUrl: 'https://script.google.com/macros/s/example-deployment/exec' });
+    return {
+      ok: true,
+      status: 200,
+      text: () => new Promise((_, reject) => {
+        if (options.signal.aborted) {
+          const error = new Error('session-test must not escape');
+          error.name = 'AbortError';
+          reject(error);
+          return;
+        }
+        options.signal.addEventListener('abort', () => {
+          const error = new Error('session-test must not escape');
+          error.name = 'AbortError';
+          reject(error);
+        }, { once: true });
+      }),
+    };
+  }, async () => {
+    await assert.rejects(api.call('officeList', { sessionToken: 'session-test' }), (error) => error.code === 'timeout' && error.retryable === true && !String(error).includes('session-test'));
+  }));
+});
+
 test('HTTP, 비JSON, timeout 오류를 안전하게 분류한다', async () => {
   const cases = [
     { response: { ok: false, status: 500, text: async () => 'server exploded' }, code: 'http-error', retryable: true },
@@ -94,4 +171,65 @@ test('세션 만료는 자동 재시도하지 않고 안전한 오류만 반환�
     });
   });
   assert.equal(postCalls, 1);
+});
+
+test('공개 action allowlist 밖의 내부 action은 전송 전에 거절한다', async () => {
+  let fetchCalls = 0;
+  await withFetch(async () => { fetchCalls += 1; return jsonResponse({ ok: true }); }, async () => {
+    for (const action of ['officeInbox', 'officeAccept', 'officeSetStatus', 'officeAdminUpsert', 'officeRotatePin', 'officeDisable', 'officeRetentionList', 'health']) {
+      await assert.rejects(api.call(action, { sessionToken: 'session-test' }), (error) => error.code === 'bad-request' && error.retryable === false);
+    }
+  });
+  assert.equal(fetchCalls, 0);
+});
+
+test('허용하는 공개 action 집합은 로그인과 여섯 개 세션 action으로 한정한다', async () => {
+  const expected = ['officeLogin', 'officeList', 'officeGet', 'officeCreate', 'officeUpdate', 'officeCancel', 'officeUpload'];
+  const postedActions = [];
+  await withFetch(async (url, options) => {
+    if (url === 'office-api.json') return jsonResponse({ enabled: true, apiUrl: 'https://script.google.com/macros/s/example-deployment/exec' });
+    postedActions.push(JSON.parse(options.body).action);
+    return jsonResponse({ ok: true });
+  }, async () => {
+    for (const action of expected) await api.call(action, { sessionToken: 'session-test' });
+    await assert.rejects(api.call('officeUnexpected'), (error) => error.code === 'bad-request');
+  });
+  assert.deepEqual(postedActions, expected);
+});
+
+test('로그인과 인증 action 본문은 공개 계약의 정확한 키만 보낸다', async () => {
+  const calls = [];
+  await withFetch(async (url, options) => {
+    calls.push({ url, options });
+    if (url === 'office-api.json') return jsonResponse({ enabled: true, apiUrl: 'https://script.google.com/macros/s/example-deployment/exec' });
+    return jsonResponse({ ok: true });
+  }, async () => {
+    await api.call('officeLogin', { sessionToken: 'session-test', payload: { slug: 'sample-apt', pin: '123456' } });
+    await api.call('officeGet', { sessionToken: 'session-test', payload: { requestId: 'req-1' } });
+  });
+  const login = JSON.parse(calls[1].options.body);
+  const authenticated = JSON.parse(calls[3].options.body);
+  assert.deepEqual(Object.keys(login).sort(), ['action', 'payload', 'ts']);
+  assert.deepEqual(Object.keys(authenticated).sort(), ['action', 'payload', 'sessionToken', 'ts']);
+  assert.equal('token' in login, false);
+  assert.equal('APP_TOKEN' in login, false);
+  assert.equal('token' in authenticated, false);
+  assert.equal('APP_TOKEN' in authenticated, false);
+  assert.equal('sessionToken' in login, false);
+  assert.equal(authenticated.sessionToken, 'session-test');
+});
+
+test('프로토타입 오류코드는 서버 오류로 안전하게 축소한다', async () => {
+  for (const errorCode of ['constructor', 'toString', '__proto__']) {
+    await withFetch(async (url) => url === 'office-api.json'
+      ? jsonResponse({ enabled: true, apiUrl: 'https://script.google.com/macros/s/example-deployment/exec' })
+      : jsonResponse({ ok: false, error: errorCode, message: 'session-test must not escape' }), async () => {
+      await assert.rejects(api.call('officeList', { sessionToken: 'session-test' }), (error) => {
+        assert.equal(error.code, 'server-error');
+        assert.equal(error.message, '서버 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        assert.equal(String(error).includes('session-test'), false);
+        return true;
+      });
+    });
+  }
 });

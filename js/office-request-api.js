@@ -4,7 +4,7 @@
   root.ManmulOfficeApi = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function createApi() {
   const CONFIG_PATH = 'office-api.json';
-  const API_URL = /^https:\/\/script\.google\.com\/macros\/s\/[^/?#]+\/exec$/;
+  const API_URL = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
   const PUBLIC_ACTIONS = new Set(['officeLogin', 'officeList', 'officeGet', 'officeCreate', 'officeUpdate', 'officeCancel', 'officeUpload']);
   const SESSION_ACTIONS = new Set(['officeList', 'officeGet', 'officeCreate', 'officeUpdate', 'officeCancel', 'officeUpload']);
   const MESSAGES = {
@@ -20,7 +20,7 @@
   };
   const RETRYABLE = new Set(['timeout', 'network-error', 'http-error', 'invalid-response', 'server-error']);
   class ManmulOfficeApiError extends Error {
-    constructor(code) { super(MESSAGES[code] || MESSAGES['server-error']); this.name = 'ManmulOfficeApiError'; this.code = MESSAGES[code] ? code : 'server-error'; this.retryable = RETRYABLE.has(this.code); }
+    constructor(code) { const safeCode = Object.prototype.hasOwnProperty.call(MESSAGES, code) ? code : 'server-error'; super(MESSAGES[safeCode]); this.name = 'ManmulOfficeApiError'; this.code = safeCode; this.retryable = RETRYABLE.has(this.code); }
   }
   function error(code) { return new ManmulOfficeApiError(code); }
   async function readJson(response) {
@@ -30,16 +30,38 @@
       else if (response && typeof response.json === 'function') return await response.json();
       else throw new Error('response-unreadable');
       return JSON.parse(String(raw));
-    } catch (_) { throw error('invalid-response'); }
+    } catch (caught) {
+      if (caught && caught.name === 'AbortError') throw caught;
+      if (caught instanceof ManmulOfficeApiError) throw caught;
+      throw error('invalid-response');
+    }
+  }
+  function isAllowedApiUrl(value) {
+    if (typeof value !== 'string' || value !== value.trim() || !API_URL.test(value)) return false;
+    try {
+      const url = new URL(value);
+      return url.protocol === 'https:' && url.hostname === 'script.google.com' && url.port === '' && !url.username && !url.password && !url.search && !url.hash && /^\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url.pathname);
+    } catch (_) { return false; }
+  }
+  async function fetchJsonWithTimeout(url, options, httpErrorCode) {
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const timeout = controller ? setTimeout(() => controller.abort(), 15000) : null;
+    try {
+      const response = await fetch(url, { ...options, ...(controller ? { signal: controller.signal } : {}) });
+      if (!response || !response.ok) throw error(httpErrorCode);
+      return await readJson(response);
+    } catch (caught) {
+      if (caught instanceof ManmulOfficeApiError) throw caught;
+      throw error(caught && caught.name === 'AbortError' ? 'timeout' : 'network-error');
+    } finally {
+      if (timeout) clearTimeout(timeout);
+    }
   }
   async function loadConfig() {
-    let response;
-    try { response = await fetch(CONFIG_PATH, { cache: 'no-store', credentials: 'same-origin' }); } catch (_) { throw error('network-error'); }
-    if (!response || !response.ok) throw error('not-configured');
-    const config = await readJson(response);
+    const config = await fetchJsonWithTimeout(CONFIG_PATH, { cache: 'no-store', credentials: 'same-origin' }, 'not-configured');
     if (!config || typeof config !== 'object' || Array.isArray(config)) throw error('not-configured');
     if (config.enabled === false && config.apiUrl === '') return { enabled: false, apiUrl: '' };
-    if (config.enabled !== true || typeof config.apiUrl !== 'string' || !API_URL.test(config.apiUrl)) throw error('not-configured');
+    if (config.enabled !== true || !isAllowedApiUrl(config.apiUrl)) throw error('not-configured');
     return { enabled: true, apiUrl: config.apiUrl };
   }
   async function call(action, options) {
@@ -49,20 +71,9 @@
     options = options && typeof options === 'object' ? options : {};
     const body = { action, ts: Date.now(), payload: options.payload && typeof options.payload === 'object' ? options.payload : {} };
     if (SESSION_ACTIONS.has(action) && options.sessionToken) body.sessionToken = String(options.sessionToken);
-    const controller = typeof AbortController === 'function' ? new AbortController() : null;
-    const timeout = controller ? setTimeout(() => controller.abort(), 15000) : null;
-    let response;
-    try {
-      response = await fetch(config.apiUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow', ...(controller ? { signal: controller.signal } : {}) });
-    } catch (caught) {
-      if (timeout) clearTimeout(timeout);
-      throw error(caught && caught.name === 'AbortError' ? 'timeout' : 'network-error');
-    }
-    if (timeout) clearTimeout(timeout);
-    if (!response || !response.ok) throw error('http-error');
-    const result = await readJson(response);
+    const result = await fetchJsonWithTimeout(config.apiUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow' }, 'http-error');
     if (!result || typeof result !== 'object' || Array.isArray(result) || typeof result.ok !== 'boolean') throw error('invalid-response');
-    if (!result.ok) throw error(result.error);
+    if (!result.ok) throw error(Object.prototype.hasOwnProperty.call(result, 'error') && typeof result.error === 'string' ? result.error : 'server-error');
     return result;
   }
   return { ManmulOfficeApiError, loadConfig, call };
