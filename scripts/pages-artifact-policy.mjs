@@ -28,6 +28,16 @@ export function toPublicPath(value) {
   return String(value).replace(/\\/g, '/');
 }
 
+const PROHIBITED_PATH_TOKEN = /(?:^|[._-])(?:test|tests|fixture|fixtures|history)(?=$|[._-])/i;
+
+export function assertAllowedPublicPath(relative) {
+  const normalized = toPublicPath(relative);
+  if (!normalized || normalized.startsWith('/') || normalized.split('/').some((segment) => PROHIBITED_PATH_TOKEN.test(segment))) {
+    throw new Error(`공개 경로에 금지된 test·fixture·history 토큰이 있습니다: ${normalized}`);
+  }
+  return normalized;
+}
+
 export function isForbiddenPublicName(name) {
   return /(?:^\.|(?:^|[-_.])(?:backup|backups|archive|archives|debug|tmp|temp)(?:[-_.]|$)|~$|\.(?:bak|backup|old|orig|tmp|temp|zip|7z|rar)$)/i.test(name);
 }
@@ -46,6 +56,7 @@ function listAllowedTree(root, directory, allowedFile, fileSystem) {
         throw new Error(`공개 금지 백업·임시·링크 경로가 있습니다: ${toPublicPath(path.relative(root, path.join(current, entry.name)))}`);
       }
       const absolute = path.join(current, entry.name);
+      assertAllowedPublicPath(path.relative(root, absolute));
       if (entry.isDirectory()) visit(absolute);
       else if (entry.isFile() && allowedFile.test(entry.name)) found.push(absolute);
       else throw new Error(`허용되지 않은 공개 파일 형식입니다: ${toPublicPath(path.relative(root, absolute))}`);
@@ -64,12 +75,16 @@ function listExplicitJavaScript(root, fileSystem) {
   if (actual.some((entry) => !entry.isFile() || isForbiddenPublicName(entry.name)) || JSON.stringify(names) !== JSON.stringify(expected)) {
     throw new Error(`js 공개 파일은 명시적 허용목록과 정확히 같아야 합니다: ${names.join(', ')}`);
   }
-  return PUBLIC_JS_FILES.map((name) => path.join(jsRoot, name));
+  return PUBLIC_JS_FILES.map((name) => {
+    assertAllowedPublicPath(`js/${name}`);
+    return path.join(jsRoot, name);
+  });
 }
 
 export function expectedPublicFiles(root, fileSystem = fs) {
   const files = [];
   for (const name of PUBLIC_ROOT_FILES) {
+    assertAllowedPublicPath(name);
     const source = path.join(root, name);
     requireFile(fileSystem, source, '필수 공개 파일이 없습니다');
     files.push(source);
@@ -80,7 +95,10 @@ export function expectedPublicFiles(root, fileSystem = fs) {
   if (JSON.stringify(actualData) !== JSON.stringify([...PUBLIC_DATA_FILES].sort())) {
     throw new Error(`data 공개 파일은 고정 허용목록과 정확히 같아야 합니다: ${actualData.join(', ')}`);
   }
-  files.push(...PUBLIC_DATA_FILES.map((name) => path.join(dataRoot, name)));
+  files.push(...PUBLIC_DATA_FILES.map((name) => {
+    assertAllowedPublicPath(`data/${name}`);
+    return path.join(dataRoot, name);
+  }));
   files.push(...listExplicitJavaScript(root, fileSystem));
   for (const [directory, allowedFile] of PUBLIC_TREE_RULES) files.push(...listAllowedTree(root, directory, allowedFile, fileSystem));
   return files.map((source) => ({ source, relative: toPublicPath(path.relative(root, source)) }));
