@@ -45,7 +45,7 @@ function loginResult() {
   return {
     ok: true,
     sessionToken: 'session-allowlist-test',
-    office: { id: 'office-1', name: '테스트 한빛마을 관리사무소' },
+    office: { id: 'office-1', slug: 'test-complex', complexName: '테스트 한빛마을 관리사무소' },
     expiresAt: Date.now() + (60 * 60 * 1000),
   };
 }
@@ -95,7 +95,13 @@ test('여섯 자리 PIN 로그인은 slug를 보내고 허용된 세션 필드�
   const stored = await page.evaluate((key) => JSON.parse(sessionStorage.getItem(key)), SESSION_KEY);
   assert.deepEqual(Object.keys(stored).sort(), ['expiresAt', 'office', 'token']);
   assert.equal(stored.token, 'session-allowlist-test');
-  assert.deepEqual(stored.office, { id: 'office-1', name: '테스트 한빛마을 관리사무소' });
+  assert.deepEqual(stored.office, { id: 'office-1', slug: 'test-complex', complexName: '테스트 한빛마을 관리사무소' });
+  const storage = await page.evaluate((key) => ({ local: JSON.stringify(localStorage), session: sessionStorage.getItem(key) || '' }), SESSION_KEY);
+  assert.equal(storage.local.includes('042-123-4567'), false);
+  assert.equal(storage.session.includes('042-123-4567'), false);
+  assert.equal(storage.local.includes('반환된 접수 설명'), false);
+  assert.equal(storage.session.includes('반환된 접수 설명'), false);
+  assert.equal(storage.session.includes('123456'), false);
   assert.equal(await page.locator('#officeRequestList').innerText().then((text) => text.includes('MMO-20260827-001')), true);
   assert.equal(await page.locator('#officeRequestList').innerText().then((text) => text.includes('다른 단지 접수')), false);
   assert.deepEqual(pageErrors, []);
@@ -110,7 +116,7 @@ test('유효한 세션은 새로고침 뒤 PIN 없이 목록을 다시 불러온
   });
   await page.goto(`${origin}/office-request.html?office=test-complex`);
   await page.evaluate((key) => sessionStorage.setItem(key, JSON.stringify({
-    token: 'session-allowlist-test', office: { id: 'office-1', name: '테스트 한빛마을 관리사무소' }, expiresAt: Date.now() + 60000,
+    token: 'session-allowlist-test', office: { id: 'office-1', slug: 'test-complex', complexName: '테스트 한빛마을 관리사무소' }, expiresAt: Date.now() + 60000,
   })), SESSION_KEY);
   await page.reload();
   await page.locator('#officeDashboardView').waitFor({ state: 'visible' });
@@ -122,11 +128,87 @@ test('유효한 세션은 새로고침 뒤 PIN 없이 목록을 다시 불러온
   await page.close();
 });
 
+test('다른 단지 slug로 이동하면 기존 세션을 지우고 다시 로그인하게 한다', async () => {
+  const { calls, page, pageErrors } = await openPortal(async () => ({ ok: true, requests: requestList() }));
+  await page.goto(`${origin}/office-request.html?office=test-complex`);
+  await page.evaluate((key) => sessionStorage.setItem(key, JSON.stringify({
+    token: 'session-allowlist-test', office: { id: 'office-1', slug: 'test-complex', complexName: '테스트 한빛마을 관리사무소' }, expiresAt: Date.now() + 60000,
+  })), SESSION_KEY);
+  await page.goto(`${origin}/office-request.html?office=other-complex`);
+  assert.equal(await page.locator('#officeLoginView').isVisible(), true);
+  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_KEY), null);
+  assert.equal(calls.length, 0);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('서버가 세션 만료를 반환하면 저장소를 지우고 PIN 입력으로 되돌린다', async () => {
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeList') return { ok: false, error: 'session-expired' };
+    throw new Error(`unexpected action ${body.action}`);
+  });
+  await page.goto(`${origin}/office-request.html?office=test-complex`);
+  await page.evaluate((key) => sessionStorage.setItem(key, JSON.stringify({
+    token: 'session-allowlist-test', office: { id: 'office-1', slug: 'test-complex', complexName: '테스트 한빛마을 관리사무소' }, expiresAt: Date.now() + 60000,
+  })), SESSION_KEY);
+  await page.reload();
+  await page.locator('#officeLoginView').waitFor({ state: 'visible' });
+  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_KEY), null);
+  assert.equal(calls.filter((call) => call.action === 'officeList').length, 1);
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'officePin');
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('지연된 로그인 중 중복 제출을 막고 완료 뒤 버튼을 복구한다', async () => {
+  let release;
+  const delayed = new Promise((resolve) => { release = resolve; });
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action !== 'officeLogin') throw new Error(`unexpected action ${body.action}`);
+    await delayed;
+    return { ok: false, error: 'invalid-credentials' };
+  });
+  await page.goto(`${origin}/office-request.html?office=test-complex`);
+  await page.locator('#officePin').fill('123456');
+  await page.evaluate(() => {
+    const form = document.getElementById('officeLoginForm');
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  });
+  await page.waitForFunction(() => document.getElementById('officeLoginSubmit').disabled);
+  assert.equal(calls.filter((call) => call.action === 'officeLogin').length, 1);
+  release();
+  await page.waitForFunction(() => !document.getElementById('officeLoginSubmit').disabled);
+  assert.match(await page.locator('#officeLoginError').innerText(), /비밀번호/);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('악성 문자열을 포함한 반환 접수는 HTML을 실행하지 않고 문자 그대로 표시한다', async () => {
+  const malicious = [{
+    id: 'req-malicious', receiptNo: 'MMO-20260827-002', unit: '<img src=x onerror="window.officeInjected=true">', location: '욕실',
+    issueType: '누수', status: 'pending_review', description: '<script>window.officeInjected=true</script>', officeContact: { phone: '042-111-2222' },
+  }];
+  const { page, pageErrors } = await openPortal(async (body) => body.action === 'officeLogin'
+    ? loginResult()
+    : { ok: true, requests: malicious });
+  await page.goto(`${origin}/office-request.html?office=test-complex`);
+  await page.evaluate(() => { window.officeInjected = false; });
+  await page.locator('#officePin').fill('123456');
+  await page.getByRole('button', { name: '로그인' }).click();
+  await page.locator('#officeDashboardView').waitFor({ state: 'visible' });
+  assert.equal(await page.evaluate(() => window.officeInjected), false);
+  assert.equal(await page.locator('#officeRequestList img').count(), 0);
+  assert.match(await page.locator('#officeRequestList').innerText(), /<img src=x onerror/);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
 test('만료된 세션은 지우고 로그인 화면으로 돌아간다', async () => {
   const { calls, page, pageErrors } = await openPortal(async () => ({ ok: true, requests: requestList() }));
   await page.goto(`${origin}/office-request.html?office=test-complex`);
   await page.evaluate((key) => sessionStorage.setItem(key, JSON.stringify({
-    token: 'expired-session', office: { id: 'office-1', name: '테스트 한빛마을 관리사무소' }, expiresAt: Date.now() - 1,
+    token: 'expired-session', office: { id: 'office-1', slug: 'test-complex', complexName: '테스트 한빛마을 관리사무소' }, expiresAt: Date.now() - 1,
   })), SESSION_KEY);
   await page.reload();
   assert.equal(await page.locator('#officeLoginView').isVisible(), true);

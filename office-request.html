@@ -32,7 +32,7 @@
         <form id="officeLoginForm" class="office-login-form" novalidate>
           <label for="officeComplex">접속 단지<input id="officeComplex" type="text" readonly placeholder="단지 전용 주소 확인 중" /></label>
           <label for="officePin">6자리 비밀번호<input id="officePin" name="pin" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" aria-describedby="officePinHelp" /></label>
-          <span id="officePinHelp" class="office-help">비밀번호는 이 브라우저에 저장하지 않습니다.</span><p id="officeLoginError" class="request-error" role="alert" aria-live="polite"></p><button class="office-action request-primary" type="submit">로그인</button>
+          <span id="officePinHelp" class="office-help">비밀번호는 이 브라우저에 저장하지 않습니다.</span><p id="officeLoginError" class="request-error" role="alert" aria-live="polite"></p><button id="officeLoginSubmit" class="office-action request-primary" type="submit">로그인</button>
         </form>
         <p class="office-phone-fallback">비밀번호 확인이 필요하면 <a class="office-action office-phone-link" href="tel:01023978629">010-2397-8629로 전화</a>해 주세요.</p>
       </section>

@@ -8,6 +8,7 @@
   const createView = document.getElementById('officeCreateView');
   const detailView = document.getElementById('officeDetailView');
   const loginForm = document.getElementById('officeLoginForm');
+  const loginSubmit = document.getElementById('officeLoginSubmit');
   const pin = document.getElementById('officePin');
   const complex = document.getElementById('officeComplex');
   const loginError = document.getElementById('officeLoginError');
@@ -22,26 +23,33 @@
   let session = null;
   let requests = [];
   let activeFilter = 'all';
+  let loginPending = false;
 
   function setView(view) { views.forEach((element) => { if (element) element.hidden = element !== view; }); }
   function safeOffice(value) {
     const source = value && typeof value === 'object' ? value : {};
-    return { id: String(source.id || '').trim().slice(0, 80), name: String(source.name || source.displayName || source.complexName || '').trim().slice(0, 160) };
+    const office = { id: String(source.id || '').trim().slice(0, 80), slug: String(source.slug || '').trim().slice(0, 80) };
+    const complexName = String(source.complexName || '').trim().slice(0, 160);
+    if (complexName) { office.complexName = complexName; return office; }
+    const name = String(source.name || '').trim().slice(0, 160);
+    if (name) office.name = name;
+    return office;
   }
+  function officeLabel(office) { return office && (office.complexName || office.name) || ''; }
   function saveSession(value) {
     const saved = { token: String(value && value.sessionToken || '').trim(), office: safeOffice(value && value.office), expiresAt: Number(value && value.expiresAt) };
-    if (!saved.token || !saved.office.name || !Number.isFinite(saved.expiresAt)) return null;
+    if (!saved.token || !saved.office.id || !saved.office.slug || !officeLabel(saved.office) || !Number.isFinite(saved.expiresAt)) return null;
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(saved));
     return saved;
   }
   function clearSession() { sessionStorage.removeItem(SESSION_KEY); session = null; }
-  function restoreSession() {
+  function restoreSession(slug) {
     try {
       const value = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
       const keys = value && typeof value === 'object' ? Object.keys(value).sort() : [];
       if (keys.join(',') !== 'expiresAt,office,token' || !value.token || Date.now() >= Number(value.expiresAt)) { clearSession(); return null; }
       const office = safeOffice(value.office);
-      if (!office.name) { clearSession(); return null; }
+      if (!office.id || !office.slug || office.slug !== slug || !officeLabel(office)) { clearSession(); return null; }
       return { token: String(value.token), office, expiresAt: Number(value.expiresAt) };
     } catch (_) { clearSession(); return null; }
   }
@@ -88,7 +96,7 @@
   }
   async function loadDashboard() {
     if (!session) return;
-    if (officeName) officeName.textContent = session.office.name;
+    if (officeName) officeName.textContent = officeLabel(session.office);
     setView(dashboardView);
     if (syncStatus) syncStatus.textContent = '접수 목록을 불러오는 중입니다.';
     try {
@@ -104,9 +112,12 @@
   }
   async function submitLogin(event, slug) {
     event.preventDefault();
+    if (loginPending) return;
     const validation = core.validateLogin({ pin: pin && pin.value });
     if (!validation.ok) { if (loginError) loginError.textContent = validation.message; focusPin(); return; }
     if (loginError) loginError.textContent = '';
+    loginPending = true;
+    if (loginSubmit) loginSubmit.disabled = true;
     try {
       const response = await api.call('officeLogin', { payload: { slug, pin: pin.value } });
       const saved = saveSession(response);
@@ -118,11 +129,14 @@
       if (pin) pin.value = '';
       if (loginError) loginError.textContent = errorMessage(error);
       focusPin();
+    } finally {
+      loginPending = false;
+      if (loginSubmit) loginSubmit.disabled = false;
     }
   }
 
   if (year) year.textContent = new Date().getFullYear();
-  if (!core || !api || !routeError || !loginView || !dashboardView || !loginForm || !pin) return;
+  if (!core || !api || !routeError || !loginView || !dashboardView || !loginForm || !pin || !loginSubmit) return;
   const slug = core.parseOfficeSlug(window.location.search);
   if (!slug) { setView(routeError); return; }
   if (complex) complex.value = slug;
@@ -130,6 +144,6 @@
   if (logout) logout.addEventListener('click', () => { clearSession(); showLogin(''); });
   if (newRequest) newRequest.addEventListener('click', () => { setView(createView); });
   filters.forEach((button) => button.addEventListener('click', () => setFilter(button.dataset.officeFilter || 'all')));
-  session = restoreSession();
+  session = restoreSession(slug);
   if (session) loadDashboard(); else showLogin('');
 })();
