@@ -54,7 +54,7 @@ jobs:
           NODE_PATH: ${{ runner.temp }}/manmool-e2e/node_modules
         run: |
           set -euo pipefail
-          node --test tests/configure-office-api.test.cjs tests/office-request.logic.test.cjs tests/office-request-api.test.cjs tests/office-request-auth.e2e.cjs tests/office-request-workflow.e2e.cjs tests/office-intake.e2e.cjs
+          node --test tests/configure-office-api.test.cjs tests/pages-artifact-policy.test.cjs tests/office-request.logic.test.cjs tests/office-request-api.test.cjs tests/office-request-auth.e2e.cjs tests/office-request-workflow.e2e.cjs tests/office-intake.e2e.cjs
 
       - name: Run source quality checks
         shell: bash

@@ -16,17 +16,17 @@ test('배포 게이트의 공개 포털 소스 계약은 설정 CLI와 fail-clos
     .map(read)
     .join('\n');
   const config = read('office-api.json');
-  const build = read('scripts/build-pages-artifact.mjs');
+  const policy = read('scripts/pages-artifact-policy.mjs');
   const workflow = read('.github/workflows/deploy-pages.yml');
   assert.equal(fs.existsSync(path.join(ROOT, 'scripts', 'configure-office-api.mjs')), true);
   assert.equal(fs.existsSync(path.join(ROOT, 'tests', 'configure-office-api.test.cjs')), true);
   assert.deepEqual(Object.keys(JSON.parse(config)).sort(), ['apiUrl', 'enabled']);
-  assert.match(build, /office-api\.json/);
-  assert.match(build, /office-request-api\.js/);
-  assert.match(build, /office-request-photo\.js/);
+  assert.match(policy, /office-api\.json/);
+  assert.match(policy, /office-request-api\.js/);
+  assert.match(policy, /office-request-photo\.js/);
   assert.match(portal, /sessionStorage/);
   assert.doesNotMatch(portal, /(localStorage|indexedDB|APP_TOKEN|OFFICE_SESSION_SECRET|pinHash|pinSalt)/);
-  assert.match(workflow, /node --test tests\/configure-office-api\.test\.cjs tests\/office-request\.logic\.test\.cjs tests\/office-request-api\.test\.cjs tests\/office-request-auth\.e2e\.cjs tests\/office-request-workflow\.e2e\.cjs tests\/office-intake\.e2e\.cjs/);
+  assert.match(workflow, /node --test tests\/configure-office-api\.test\.cjs tests\/pages-artifact-policy\.test\.cjs tests\/office-request\.logic\.test\.cjs tests\/office-request-api\.test\.cjs tests\/office-request-auth\.e2e\.cjs tests\/office-request-workflow\.e2e\.cjs tests\/office-intake\.e2e\.cjs/);
   assert.ok(workflow.indexOf('Run management office portal regression') < workflow.indexOf('Build public allowlist artifact'));
 });
 

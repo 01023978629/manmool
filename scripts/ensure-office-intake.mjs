@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { expectedPublicFiles } from './pages-artifact-policy.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -11,8 +12,8 @@ const controller = read('js/office-request.js');
 const apiClient = read('js/office-request-api.js');
 const photoClient = read('js/office-request-photo.js');
 const apiConfig = read('office-api.json');
-const build = read('scripts/build-pages-artifact.mjs');
 const sitemap = read('sitemap.xml');
+const publicFiles = expectedPublicFiles(ROOT).map(({ relative }) => relative);
 const fail = [];
 const check = (condition, message) => { if (!condition) fail.push(message); };
 
@@ -35,8 +36,8 @@ check(
   '포털 공개 소스 또는 설정에 비밀 식별자가 있다'
 );
 check(apiConfig === '{\n  "enabled": false,\n  "apiUrl": ""\n}\n', 'office-api.json 기본값이 fail-closed 형식이 아니다');
-check(/'office-api\.json'/.test(build), 'Pages 공개 허용목록에 office-api.json이 없다');
-check(/office-request-api\.js/.test(build) && /office-request-photo\.js/.test(build), 'Pages 공개 허용목록에 포털 API 또는 사진 파일이 없다');
+check(publicFiles.includes('office-api.json'), 'Pages 공개 허용목록에 office-api.json이 없다');
+check(publicFiles.includes('js/office-request-api.js') && publicFiles.includes('js/office-request-photo.js'), 'Pages 공개 허용목록에 포털 API 또는 사진 파일이 없다');
 check(!/office-request\.html/.test(sitemap), 'noindex 접수 페이지가 sitemap에 들어갔다');
 check(!/(HOME DOC|담당 문규|homedoc\.co\.kr)/.test(request + office), '별도 HOME DOC 브랜드가 공개 화면에 남았다');
 
