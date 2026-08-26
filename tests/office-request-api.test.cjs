@@ -183,18 +183,51 @@ test('공개 action allowlist 밖의 내부 action은 전송 전에 거절한다
   assert.equal(fetchCalls, 0);
 });
 
-test('허용하는 공개 action 집합은 로그인과 여섯 개 세션 action으로 한정한다', async () => {
-  const expected = ['officeLogin', 'officeList', 'officeGet', 'officeCreate', 'officeUpdate', 'officeCancel', 'officeUpload'];
+test('허용하는 공개 action 집합은 로그인과 일곱 개 세션 action으로 한정한다', async () => {
+  const expected = ['officeLogin', 'officeList', 'officeGet', 'officeCreate', 'officeUpdate', 'officeCancel', 'officeUpload', 'officePhoto'];
   const postedActions = [];
   await withFetch(async (url, options) => {
     if (url === 'office-api.json') return jsonResponse({ enabled: true, apiUrl: 'https://script.google.com/macros/s/example-deployment/exec' });
     postedActions.push(JSON.parse(options.body).action);
     return jsonResponse({ ok: true });
   }, async () => {
-    for (const action of expected) await api.call(action, { sessionToken: 'session-test' });
+    for (const action of expected) await api.call(action, action === 'officePhoto'
+      ? { sessionToken: 'session-test', payload: { requestId: 'req-1', photoId: 'public-photo' } }
+      : { sessionToken: 'session-test' });
     await assert.rejects(api.call('officeUnexpected'), (error) => error.code === 'bad-request');
   });
   assert.deepEqual(postedActions, expected);
+});
+
+test('officePhoto는 세션과 정확히 requestId 및 photoId만 전송한다', async () => {
+  const calls = [];
+  await withFetch(async (url, options) => {
+    if (url === 'office-api.json') return jsonResponse({ enabled: true, apiUrl: 'https://script.google.com/macros/s/example-deployment/exec' });
+    calls.push(JSON.parse(options.body));
+    return jsonResponse({ ok: true, photoId: 'public-photo', mimeType: 'image/png', dataB64: 'iVBORw0KGgo=' });
+  }, async () => {
+    await api.call('officePhoto', { sessionToken: 'session-test', payload: { requestId: 'req-1', photoId: 'public-photo' } });
+  });
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0], {
+    action: 'officePhoto',
+    sessionToken: 'session-test',
+    payload: { requestId: 'req-1', photoId: 'public-photo' },
+    ts: calls[0].ts,
+  });
+  assert.equal(typeof calls[0].ts, 'number');
+});
+
+test('officePhoto는 세션 또는 정확한 두 payload 키가 없으면 전송 전에 거절한다', async () => {
+  let fetchCalls = 0;
+  await withFetch(async () => { fetchCalls += 1; return jsonResponse({ ok: true }); }, async () => {
+    for (const options of [
+      { payload: { requestId: 'req-1', photoId: 'public-photo' } },
+      { sessionToken: 'session-test', payload: { requestId: 'req-1' } },
+      { sessionToken: 'session-test', payload: { requestId: 'req-1', photoId: 'public-photo', other: 'nope' } },
+    ]) await assert.rejects(api.call('officePhoto', options), (error) => error.code === 'bad-request');
+  });
+  assert.equal(fetchCalls, 0);
 });
 
 test('로그인과 인증 action 본문은 공개 계약의 정확한 키만 보낸다', async () => {

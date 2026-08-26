@@ -501,3 +501,95 @@ test('officeGet 재조회 실패 차단은 대상 행에만 적용되고 다음 
   assert.deepEqual(pageErrors, []);
   await page.close();
 });
+
+test('상세 화면은 officeGet의 공개 상태와 완료 보고만 textContent로 표시하고 공개 사진만 요청한다', async () => {
+  const listed = request('req-public-report', 'completed');
+  const detail = {
+    ...listed,
+    visitAt: '2026-08-28T10:30:00+09:00',
+    publicAmount: 0,
+    completionReport: {
+      summary: '완료 <img src=x onerror="window.__portalXss=true">',
+      publicPhotoIds: ['public-photo'],
+      photoIds: ['internal-photo'],
+      privateNote: '대표 내부 메모',
+    },
+    internalCost: 150000,
+    margin: 70000,
+    officeContact: { name: '김소장', phone: '010-1234-5678' },
+    residentContact: { name: '입주민', phone: '010-9999-8888' },
+    unrelatedPhotoId: 'unrelated-photo',
+  };
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: [listed] };
+    if (body.action === 'officeGet') return { ok: true, request: detail };
+    if (body.action === 'officePhoto') {
+      assert.deepEqual(body.payload, { requestId: 'req-public-report', photoId: 'public-photo' });
+      return { ok: true, photoId: 'public-photo', mimeType: 'image/png', dataB64: 'iVBORw0KGgo=' };
+    }
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await page.addInitScript(() => { window.__portalXss = false; });
+  await login(page);
+  await page.getByRole('button', { name: '상세 보기' }).click();
+  await page.locator('#officeDetailView').waitFor({ state: 'visible' });
+  const text = await page.locator('#officeDetailView').innerText();
+  assert.match(text, /작업 완료/);
+  assert.match(text, /방문 예정\s*2026-08-28T10:30:00\+09:00/);
+  assert.match(text, /공개 금액\s*0원/);
+  assert.match(text, /완료 <img src=x onerror=/);
+  for (const privateValue of ['010-1234-5678', '010-9999-8888', '150000', '70000', 'internal-photo', 'unrelated-photo', '대표 내부 메모']) {
+    assert.equal(text.includes(privateValue), false, `비공개 값 노출: ${privateValue}`);
+  }
+  assert.equal(await page.locator('#officeCompletionSummary img').count(), 0);
+  assert.equal(await page.locator('#officeCompletionPhotos img').count(), 1);
+  assert.equal(await page.evaluate(() => window.__portalXss), false);
+  assert.deepEqual(calls.filter((call) => call.action === 'officePhoto').map((call) => call.payload.photoId), ['public-photo']);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('상세 화면은 보고서 없음과 유효하지 않은 사진을 안전하게 처리하고 이미지 DOM을 지운다', async () => {
+  const withPhoto = request('req-photo-cleanup', 'paid');
+  const noReport = request('req-no-report', 'on_hold');
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: [withPhoto, noReport] };
+    if (body.action === 'officeGet' && body.payload.requestId === 'req-photo-cleanup') return { ok: true, request: { ...withPhoto, completionReport: { summary: '공개 완료', publicPhotoIds: ['published'] } } };
+    if (body.action === 'officeGet' && body.payload.requestId === 'req-no-report') return { ok: true, request: { ...noReport, visitAt: '', publicAmount: '10000', completionReport: null } };
+    if (body.action === 'officePhoto') return { ok: true, photoId: 'other-photo', mimeType: 'image/png', dataB64: 'iVBORw0KGgo=' };
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await login(page);
+  await page.locator('[data-office-detail="req-photo-cleanup"]').click();
+  await page.locator('#officeDetailView').waitFor({ state: 'visible' });
+  await page.getByText('완료 사진을 불러오지 못했습니다.').waitFor();
+  assert.equal(await page.locator('#officeCompletionPhotos img').count(), 0);
+  await page.getByRole('button', { name: '목록으로' }).click();
+  await page.locator('[data-office-detail="req-no-report"]').click();
+  await page.getByText('완료 보고서가 아직 공개되지 않았습니다.').waitFor();
+  assert.equal(await page.locator('#officeDetailVisitRow').isHidden(), true);
+  assert.equal(await page.locator('#officeDetailAmountRow').isHidden(), true);
+  assert.equal(await page.locator('#officeCompletionPhotos img').count(), 0);
+  assert.deepEqual(calls.filter((call) => call.action === 'officePhoto').map((call) => call.payload.photoId), ['published']);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('대시보드는 계약된 열 가지 상태를 고정된 한국어 라벨로 표시한다', async () => {
+  const statuses = [
+    ['pending_review', '접수됨'], ['needs_info', '내용 확인 필요'], ['accepted', '확인 완료'], ['visit_scheduled', '방문 예정'], ['in_progress', '작업 중'],
+    ['completed', '작업 완료'], ['billed', '청구 완료'], ['paid', '처리 완료'], ['on_hold', '확인 중'], ['cancelled', '취소됨'],
+  ];
+  const { page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: statuses.map(([status], index) => request(`req-status-${index}`, status)) };
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await login(page);
+  const text = await page.locator('#officeRequestList').innerText();
+  for (const [, label] of statuses) assert.equal(text.includes(label), true, `상태 라벨 누락: ${label}`);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});

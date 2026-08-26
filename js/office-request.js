@@ -6,8 +6,9 @@
   const loginForm = byId('officeLoginForm'), loginSubmit = byId('officeLoginSubmit'), pin = byId('officePin'), complex = byId('officeComplex'), loginError = byId('officeLoginError');
   const officeName = byId('officeName'), requestList = byId('officeRequestList'), syncStatus = byId('officeSyncStatus'), logout = byId('officeLogout'), newRequest = byId('officeNewRequest');
   const createForm = byId('officeCreateForm'), createTitle = byId('officeCreateTitle'), createError = byId('officeCreateError'), createProgress = byId('officeCreateProgress'), createSubmit = byId('officeCreateSubmit'), retryPhotos = byId('officeRetryPhotos'), createBack = byId('officeCreateBack'), photoField = byId('officePhotoField');
+  const detailBack = byId('officeDetailBack'), detailReceipt = byId('officeDetailReceipt'), detailStatus = byId('officeDetailStatus'), detailLocation = byId('officeDetailLocation'), detailVisitRow = byId('officeDetailVisitRow'), detailVisit = byId('officeDetailVisit'), detailAmountRow = byId('officeDetailAmountRow'), detailAmount = byId('officeDetailAmount'), completionSummary = byId('officeCompletionSummary'), completionPhotoStatus = byId('officeCompletionPhotoStatus'), completionPhotos = byId('officeCompletionPhotos');
   const year = byId('requestYear'), filters = [...document.querySelectorAll('[data-office-filter]')], views = [routeError, loginView, dashboardView, createView, detailView];
-  let session = null, requests = [], activeFilter = 'all', loginPending = false, formPending = false, editingRequest = null, photoGeneration = 0;
+  let session = null, requests = [], activeFilter = 'all', loginPending = false, formPending = false, editingRequest = null, photoGeneration = 0, detailGeneration = 0;
   let currentDraft = blankDraft();
 
   function blankDraft() { return { idempotencyKey: null, requestId: null, receiptNo: null, photoSlots: [], photoError: '', photoPending: false }; }
@@ -15,7 +16,9 @@
   function safeOffice(value) { const source = value && typeof value === 'object' ? value : {}; const office = { id: String(source.id || '').trim().slice(0, 80), slug: String(source.slug || '').trim().slice(0, 80) }; const complexName = String(source.complexName || '').trim().slice(0, 160); if (complexName) { office.complexName = complexName; return office; } const name = String(source.name || '').trim().slice(0, 160); if (name) office.name = name; return office; }
   function officeLabel(office) { return office && (office.complexName || office.name) || ''; }
   function saveSession(value) { const saved = { token: String(value && value.sessionToken || '').trim(), office: safeOffice(value && value.office), expiresAt: Number(value && value.expiresAt) }; if (!saved.token || !saved.office.id || !saved.office.slug || !officeLabel(saved.office) || !Number.isFinite(saved.expiresAt)) return null; sessionStorage.setItem(SESSION_KEY, JSON.stringify(saved)); return saved; }
-  function clearSession() { sessionStorage.removeItem(SESSION_KEY); session = null; }
+  function clearCompletionPhotos() { if (!completionPhotos) return; completionPhotos.querySelectorAll('img').forEach((image) => { image.removeAttribute('src'); image.remove(); }); completionPhotos.textContent = ''; }
+  function clearDetail() { detailGeneration += 1; [detailReceipt, detailStatus, detailLocation, detailVisit, detailAmount, completionSummary, completionPhotoStatus].forEach((element) => { if (element) element.textContent = ''; }); if (detailVisitRow) detailVisitRow.hidden = true; if (detailAmountRow) detailAmountRow.hidden = true; clearCompletionPhotos(); }
+  function clearSession() { clearDetail(); sessionStorage.removeItem(SESSION_KEY); session = null; }
   function restoreSession(slug) { try { const value = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); const keys = value && typeof value === 'object' ? Object.keys(value).sort() : []; if (keys.join(',') !== 'expiresAt,office,token' || !value.token || Date.now() >= Number(value.expiresAt)) { clearSession(); return null; } const office = safeOffice(value.office); if (!office.id || !office.slug || office.slug !== slug || !officeLabel(office)) { clearSession(); return null; } return { token: String(value.token), office, expiresAt: Number(value.expiresAt) }; } catch (_) { clearSession(); return null; } }
   function focusPin() { if (pin) pin.focus(); }
   function showLogin(message) { if (loginError) loginError.textContent = message || ''; if (requestList) requestList.textContent = ''; if (syncStatus) syncStatus.textContent = ''; setView(loginView); focusPin(); }
@@ -28,10 +31,68 @@
   function resetCreate() { editingRequest = null; resetDraft(); if (createForm) createForm.reset(); if (createTitle) createTitle.textContent = '새 접수 등록'; if (createSubmit) { createSubmit.textContent = '접수 저장'; createSubmit.disabled = false; createSubmit.hidden = false; } setPhotoControl(true); setCreateError(''); setProgress(''); }
   function handleSessionExpired(error) { if (!error || error.code !== 'session-expired') return false; clearSession(); requests = []; resetCreate(); error.officeSessionHandled = true; showLogin(errorMessage(error)); return true; }
   async function authenticatedCall(action, payload) { try { return await api.call(action, { sessionToken: session && session.token, payload }); } catch (error) { handleSessionExpired(error); throw error; } }
+  function publicPhotoIds(report) { return report && typeof report === 'object' && !Array.isArray(report) && Array.isArray(report.publicPhotoIds) ? report.publicPhotoIds.filter((id) => typeof id === 'string' && id.length > 0 && id.length <= 200) : []; }
+  function validPhotoResponse(response, expectedId) {
+    const allowedMime = new Set(['image/jpeg', 'image/png', 'image/webp']);
+    const maxB64Length = 4 * Math.ceil((2 * 1024 * 1024) / 3);
+    const b64 = response && typeof response.dataB64 === 'string' ? response.dataB64 : '';
+    return Boolean(response && response.photoId === expectedId && allowedMime.has(response.mimeType) && b64.length > 0 && b64.length <= maxB64Length && /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(b64));
+  }
+  async function loadPublicPhotos(id, photoIds, generation) {
+    if (!completionPhotos || !photoIds.length) return;
+    let unavailable = false;
+    for (const photoId of photoIds) {
+      if (generation !== detailGeneration) return;
+      try {
+        const response = await authenticatedCall('officePhoto', { requestId: id, photoId });
+        if (generation !== detailGeneration) return;
+        if (!validPhotoResponse(response, photoId)) { unavailable = true; continue; }
+        const image = document.createElement('img');
+        image.alt = '완료 사진';
+        image.src = `data:${response.mimeType};base64,${response.dataB64}`;
+        completionPhotos.appendChild(image);
+      } catch (error) {
+        if (error.officeSessionHandled || generation !== detailGeneration) return;
+        unavailable = true;
+      }
+    }
+    if (unavailable && generation === detailGeneration && completionPhotoStatus) completionPhotoStatus.textContent = '완료 사진을 불러오지 못했습니다.';
+  }
+  function renderDetail(request) {
+    clearDetail();
+    const item = request && typeof request === 'object' ? request : {};
+    if (detailReceipt) detailReceipt.textContent = String(item.receiptNo || item.requestId || '');
+    if (detailStatus) detailStatus.textContent = core.statusLabel(item.status);
+    if (detailLocation) detailLocation.textContent = [item.unit, item.location].filter((value) => typeof value === 'string' && value).map((value) => value.slice(0, 140)).join(' · ');
+    const visitAt = typeof item.visitAt === 'string' ? item.visitAt.trim() : '';
+    if (detailVisitRow) detailVisitRow.hidden = !visitAt;
+    if (visitAt && detailVisit) detailVisit.textContent = visitAt;
+    const hasPublicAmount = typeof item.publicAmount === 'number' && Number.isFinite(item.publicAmount);
+    if (detailAmountRow) detailAmountRow.hidden = !hasPublicAmount;
+    if (hasPublicAmount && detailAmount) detailAmount.textContent = `${new Intl.NumberFormat('ko-KR').format(item.publicAmount)}원`;
+    const report = item.completionReport && typeof item.completionReport === 'object' && !Array.isArray(item.completionReport) ? item.completionReport : null;
+    if (!report) { if (completionSummary) completionSummary.textContent = '완료 보고서가 아직 공개되지 않았습니다.'; return; }
+    if (completionSummary) completionSummary.textContent = typeof report.summary === 'string' ? report.summary.slice(0, 800) : '';
+    const photoIds = publicPhotoIds(report);
+    if (!photoIds.length) return;
+    loadPublicPhotos(String(item.requestId || ''), photoIds, detailGeneration);
+  }
+  async function openDetail(id) {
+    clearDetail();
+    try {
+      const response = await authenticatedCall('officeGet', { requestId: id });
+      renderDetail(response && response.request);
+      setView(detailView);
+      return true;
+    } catch (error) {
+      if (!error.officeSessionHandled && syncStatus) syncStatus.textContent = errorMessage(error);
+      return false;
+    }
+  }
   function matchesFilter(item) { const status = String(item && item.status || ''); if (activeFilter === 'pending') return ['pending_review', 'needs_info', 'on_hold'].includes(status); if (activeFilter === 'progress') return ['accepted', 'visit_scheduled', 'in_progress'].includes(status); if (activeFilter === 'completed') return ['completed', 'billed', 'paid', 'cancelled'].includes(status); return true; }
   function addText(parent, className, value) { const element = document.createElement('p'); element.className = className; element.textContent = String(value || ''); parent.appendChild(element); }
   function actionButton(label, attribute, id) { const button = document.createElement('button'); button.type = 'button'; button.className = 'office-action request-secondary'; button.textContent = label; button.setAttribute(attribute, id); return button; }
-  function renderRequests() { if (!requestList) return; requestList.textContent = ''; const visible = requests.filter(matchesFilter); if (!visible.length) { addText(requestList, 'office-empty', '표시할 접수가 없습니다.'); return; } visible.forEach((item) => { const card = document.createElement('article'); card.className = 'office-request-card'; const title = document.createElement('h2'); title.textContent = String(item.receiptNo || requestId(item) || '접수').slice(0, 100); card.appendChild(title); addText(card, 'office-request-unit', `${String(item.unit || '').slice(0, 100)} · ${String(item.location || '').slice(0, 140)}`); addText(card, 'office-request-meta', `${core.statusLabel(item.status)} · ${String(item.issueType || '').slice(0, 30)}`); if (mutable(item)) { const actions = document.createElement('div'); actions.className = 'office-card-actions'; const id = requestId(item); actions.appendChild(actionButton('수정', 'data-office-edit', id)); actions.appendChild(actionButton('취소', 'data-office-cancel', id)); card.appendChild(actions); } requestList.appendChild(card); }); }
+  function renderRequests() { if (!requestList) return; requestList.textContent = ''; const visible = requests.filter(matchesFilter); if (!visible.length) { addText(requestList, 'office-empty', '표시할 접수가 없습니다.'); return; } visible.forEach((item) => { const card = document.createElement('article'); card.className = 'office-request-card'; const title = document.createElement('h2'); title.textContent = String(item.receiptNo || requestId(item) || '접수').slice(0, 100); card.appendChild(title); addText(card, 'office-request-unit', `${String(item.unit || '').slice(0, 100)} · ${String(item.location || '').slice(0, 140)}`); addText(card, 'office-request-meta', `${core.statusLabel(item.status)} · ${String(item.issueType || '').slice(0, 30)}`); const actions = document.createElement('div'); actions.className = 'office-card-actions'; const id = requestId(item); actions.appendChild(actionButton('상세 보기', 'data-office-detail', id)); if (mutable(item)) { actions.appendChild(actionButton('수정', 'data-office-edit', id)); actions.appendChild(actionButton('취소', 'data-office-cancel', id)); } card.appendChild(actions); requestList.appendChild(card); }); }
   function setFilter(next) { activeFilter = next; filters.forEach((button) => { const selected = button.dataset.officeFilter === next; button.classList.toggle('is-active', selected); button.setAttribute('aria-pressed', String(selected)); }); renderRequests(); }
   function replaceRequest(next) { const id = requestId(next), index = requests.findIndex((item) => requestId(item) === id); if (index >= 0) requests[index] = next; else requests.unshift(next); renderRequests(); }
   function blockLocalRequest(id) { const index = requests.findIndex((item) => requestId(item) === id); if (index >= 0) requests[index] = { ...requests[index], _officeUiBlocked: true }; renderRequests(); }
@@ -83,9 +144,10 @@
   createForm.addEventListener('submit', submitRequest);
   photoInput().addEventListener('change', (event) => { const files = [...(event.target.files || [])]; event.target.value = ''; addPhotos(files); });
   if (retryPhotos) retryPhotos.addEventListener('click', () => { retryOfficePhotos().catch((error) => { if (!error.officeSessionHandled) setCreateError(errorMessage(error)); }); });
-  if (requestList) requestList.addEventListener('click', (event) => { const button = event.target.closest('button'); if (!button) return; if (button.dataset.officeEdit) editOfficeRequest(button.dataset.officeEdit); if (button.dataset.officeCancel) cancelOfficeRequest(button.dataset.officeCancel).catch((error) => { if (!error.officeSessionHandled && syncStatus) syncStatus.textContent = errorMessage(error); }); });
+  if (detailBack) detailBack.addEventListener('click', () => { clearDetail(); setView(dashboardView); });
+  if (requestList) requestList.addEventListener('click', (event) => { const button = event.target.closest('button'); if (!button) return; if (button.dataset.officeDetail) openDetail(button.dataset.officeDetail); if (button.dataset.officeEdit) editOfficeRequest(button.dataset.officeEdit); if (button.dataset.officeCancel) cancelOfficeRequest(button.dataset.officeCancel).catch((error) => { if (!error.officeSessionHandled && syncStatus) syncStatus.textContent = errorMessage(error); }); });
   filters.forEach((button) => button.addEventListener('click', () => setFilter(button.dataset.officeFilter || 'all')));
-  window.submitOfficeRequest = submitOfficeRequest; window.retryOfficePhotos = retryOfficePhotos; window.editOfficeRequest = editOfficeRequest; window.cancelOfficeRequest = cancelOfficeRequest;
+  window.submitOfficeRequest = submitOfficeRequest; window.retryOfficePhotos = retryOfficePhotos; window.editOfficeRequest = editOfficeRequest; window.cancelOfficeRequest = cancelOfficeRequest; window.openOfficeDetail = openDetail;
   session = restoreSession(slug);
   if (session) loadDashboard(); else showLogin('');
 })();

@@ -57,7 +57,20 @@
           <div class="office-form-actions"><button id="officeCreateSubmit" class="office-action request-primary" type="submit">접수 저장</button><button id="officeRetryPhotos" class="office-action request-secondary" type="button" hidden>사진 다시 보내기</button><button id="officeCreateBack" class="office-action request-secondary" type="button">목록으로</button></div>
         </form>
       </section>
-      <section id="officeDetailView" class="office-view" hidden aria-labelledby="officeDetailTitle"><h1 id="officeDetailTitle">접수 상세</h1><p>접수 상세 기능을 준비하고 있습니다.</p></section>
+      <section id="officeDetailView" class="office-view" hidden aria-labelledby="officeDetailTitle">
+        <span class="request-eyebrow">관리사무소 전용</span><h1 id="officeDetailTitle">접수 상세</h1>
+        <dl id="officeDetailSummary" class="office-detail-summary">
+          <div><dt>접수번호</dt><dd id="officeDetailReceipt"></dd></div>
+          <div><dt>진행 상태</dt><dd id="officeDetailStatus"></dd></div>
+          <div><dt>현장</dt><dd id="officeDetailLocation"></dd></div>
+          <div id="officeDetailVisitRow" hidden><dt>방문 예정</dt><dd id="officeDetailVisit"></dd></div>
+          <div id="officeDetailAmountRow" hidden><dt>공개 금액</dt><dd id="officeDetailAmount"></dd></div>
+        </dl>
+        <section class="office-completion-report" aria-labelledby="officeCompletionTitle">
+          <h2 id="officeCompletionTitle">완료 보고</h2><p id="officeCompletionSummary" class="office-completion-summary"></p><p id="officeCompletionPhotoStatus" class="office-photo-status" role="status" aria-live="polite"></p><div id="officeCompletionPhotos" class="office-completion-photos" aria-label="공개 완료 사진"></div>
+        </section>
+        <div class="office-form-actions"><button id="officeDetailBack" class="office-action request-secondary" type="button">목록으로</button></div>
+      </section>
     </section>
   </main>
   <footer class="site-footer"><div class="container footer-inner"><p class="footer-note">만물인테리어 · 대표 전병덕 · 사업자등록번호 895-48-01132<br />대전광역시 중구 돌다리로19번길 9, 1층(석교동) · <a href="tel:01023978629">010-2397-8629</a></p><p class="footer-links"><a href="office.html">관리사무소 안내</a> · <a href="privacy.html">개인정보처리방침</a></p><p class="footer-copy">© <span id="requestYear"></span> 만물인테리어. All rights reserved.</p></div></footer>

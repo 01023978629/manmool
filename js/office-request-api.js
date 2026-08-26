@@ -5,14 +5,14 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function createApi() {
   const CONFIG_PATH = 'office-api.json';
   const API_URL = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
-  const PUBLIC_ACTIONS = new Set(['officeLogin', 'officeList', 'officeGet', 'officeCreate', 'officeUpdate', 'officeCancel', 'officeUpload']);
-  const SESSION_ACTIONS = new Set(['officeList', 'officeGet', 'officeCreate', 'officeUpdate', 'officeCancel', 'officeUpload']);
+  const PUBLIC_ACTIONS = new Set(['officeLogin', 'officeList', 'officeGet', 'officeCreate', 'officeUpdate', 'officeCancel', 'officeUpload', 'officePhoto']);
+  const SESSION_ACTIONS = new Set(['officeList', 'officeGet', 'officeCreate', 'officeUpdate', 'officeCancel', 'officeUpload', 'officePhoto']);
   const MESSAGES = {
     'not-configured': '관리사무소 접수 서비스가 아직 설정되지 않았습니다.', 'office-disabled': '관리사무소 접수가 현재 비활성화되어 있습니다.',
     'invalid-credentials': '관리사무소 코드 또는 비밀번호를 확인해 주세요.', 'rate-limited': '시도가 많습니다. 잠시 후 다시 시도해 주세요.',
     'session-expired': '로그인 세션이 만료되었습니다. 다시 로그인해 주세요.', 'invalid-input': '입력 내용을 확인해 주세요.',
     'consent-required': '개인정보 수집·이용 동의가 필요합니다.', 'invalid-status': '현재 상태에서는 요청을 변경할 수 없습니다.',
-    'not-found': '요청을 찾을 수 없습니다.', 'unsupported-type': '지원하지 않는 파일 형식입니다.', 'invalid-file': '파일을 확인할 수 없습니다.',
+    'not-found': '요청을 찾을 수 없습니다.', 'unsupported-type': '지원하지 않는 파일 형식입니다.', 'invalid-file': '파일을 확인할 수 없습니다.', 'photo-unavailable': '완료 사진을 불러오지 못했습니다.',
     'too-large': '파일 또는 요청 크기가 너무 큽니다.', 'too-many-files': '사진은 최대 5장까지 올릴 수 있습니다.',
     'bad-request': '요청 형식을 확인해 주세요.', 'timeout': '서버 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.',
     'network-error': '네트워크 연결을 확인한 뒤 다시 시도해 주세요.', 'http-error': '서버 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요.',
@@ -43,6 +43,11 @@
       return url.protocol === 'https:' && url.hostname === 'script.google.com' && url.port === '' && !url.username && !url.password && !url.search && !url.hash && /^\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url.pathname);
     } catch (_) { return false; }
   }
+  function isExactOfficePhotoPayload(payload) {
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return false;
+    const keys = Object.keys(payload).sort();
+    return keys.join(',') === 'photoId,requestId' && typeof payload.requestId === 'string' && payload.requestId.length > 0 && typeof payload.photoId === 'string' && payload.photoId.length > 0;
+  }
   async function fetchJsonWithTimeout(url, options, httpErrorCode) {
     const controller = typeof AbortController === 'function' ? new AbortController() : null;
     const timeout = controller ? setTimeout(() => controller.abort(), 15000) : null;
@@ -66,9 +71,10 @@
   }
   async function call(action, options) {
     if (!PUBLIC_ACTIONS.has(action)) throw error('bad-request');
+    options = options && typeof options === 'object' ? options : {};
+    if (action === 'officePhoto' && (!options.sessionToken || !isExactOfficePhotoPayload(options.payload))) throw error('bad-request');
     const config = await loadConfig();
     if (!config.enabled) throw error('not-configured');
-    options = options && typeof options === 'object' ? options : {};
     const body = { action, ts: Date.now(), payload: options.payload && typeof options.payload === 'object' ? options.payload : {} };
     if (SESSION_ACTIONS.has(action) && options.sessionToken) body.sessionToken = String(options.sessionToken);
     const result = await fetchJsonWithTimeout(config.apiUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow' }, 'http-error');
