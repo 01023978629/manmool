@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expectedPublicFiles } from './pages-artifact-policy.mjs';
+import { isExactOfficeApiConfig } from './configure-office-api.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -35,7 +36,9 @@ check(
   !/(APP_TOKEN|OFFICE_SESSION_SECRET|pinHash|pinSalt)/.test(request + core + controller + apiClient + photoClient + apiConfig),
   '포털 공개 소스 또는 설정에 비밀 식별자가 있다'
 );
-check(apiConfig === '{\n  "enabled": false,\n  "apiUrl": ""\n}\n', 'office-api.json 기본값이 fail-closed 형식이 아니다');
+let parsedApiConfig = null;
+try { parsedApiConfig = JSON.parse(apiConfig); } catch (_) { /* checked below */ }
+check(isExactOfficeApiConfig(parsedApiConfig) && apiConfig === `${JSON.stringify(parsedApiConfig, null, 2)}\n`, 'office-api.json은 exact disabled 형식 또는 유효한 Apps Script /exec enabled 형식이어야 한다');
 check(publicFiles.includes('office-api.json'), 'Pages 공개 허용목록에 office-api.json이 없다');
 check(publicFiles.includes('js/office-request-api.js') && publicFiles.includes('js/office-request-photo.js'), 'Pages 공개 허용목록에 포털 API 또는 사진 파일이 없다');
 check(!/office-request\.html/.test(sitemap), 'noindex 접수 페이지가 sitemap에 들어갔다');

@@ -37,13 +37,13 @@
         <p class="office-phone-fallback">비밀번호 확인이 필요하면 <a class="office-action office-phone-link" href="tel:01023978629">010-2397-8629로 전화</a>해 주세요.</p>
       </section>
       <section id="officeDashboardView" class="office-view" hidden aria-labelledby="officeDashboardTitle">
-        <div class="office-dashboard-head"><div><span class="request-eyebrow">관리사무소 전용</span><h1 id="officeDashboardTitle">시설보수 접수</h1><p id="officeName" class="office-name"></p></div><button id="officeLogout" class="office-action request-secondary" type="button">로그아웃</button></div>
+        <div class="office-dashboard-head"><div><span class="request-eyebrow">관리사무소 전용</span><h1 id="officeDashboardTitle" tabindex="-1">시설보수 접수</h1><p id="officeName" class="office-name"></p></div><button id="officeLogout" class="office-action request-secondary" type="button">로그아웃</button></div>
         <div class="office-dashboard-actions"><button id="officeNewRequest" class="office-action request-primary" type="button">새 접수 등록</button><p id="officeSyncStatus" class="office-sync-status" role="status" aria-live="polite"></p></div>
         <div class="office-filters" role="group" aria-label="접수 상태 필터"><button class="office-action office-filter is-active" type="button" data-office-filter="all" aria-pressed="true">전체</button><button class="office-action office-filter" type="button" data-office-filter="pending" aria-pressed="false">확인 대기</button><button class="office-action office-filter" type="button" data-office-filter="progress" aria-pressed="false">진행 중</button><button class="office-action office-filter" type="button" data-office-filter="completed" aria-pressed="false">완료</button></div>
         <div id="officeRequestList" class="office-request-list" aria-live="polite"></div>
       </section>
       <section id="officeCreateView" class="office-view" hidden aria-labelledby="officeCreateTitle">
-        <span class="request-eyebrow">관리사무소 전용</span><h1 id="officeCreateTitle">새 접수 등록</h1>
+        <span class="request-eyebrow">관리사무소 전용</span><h1 id="officeCreateTitle" tabindex="-1">새 접수 등록</h1>
         <form id="officeCreateForm" class="office-create-form" novalidate>
           <div class="office-form-grid"><label>동·호수<input name="unit" maxlength="80" autocomplete="off" /></label><label>발생 위치<input name="location" maxlength="120" autocomplete="off" /></label></div>
           <div class="office-form-grid"><label>문제 유형<select name="issueType"><option value="">선택해 주세요</option><option>누수</option><option>배수</option><option>급수</option><option>난방</option><option>방수</option><option>공용시설</option><option>기타</option></select></label><label>배관 유형<select name="pipeType"><option>미확정</option><option>오수</option><option>우수</option><option>잡배수</option><option>난방</option><option>급수</option></select></label></div>

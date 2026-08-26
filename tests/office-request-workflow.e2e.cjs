@@ -59,6 +59,7 @@ async function login(page) {
   await page.locator('#officePin').fill('123456');
   await page.getByRole('button', { name: '로그인' }).click();
   await page.locator('#officeDashboardView').waitFor({ state: 'visible' });
+  await page.getByText('접수 목록을 최신 상태로 불러왔습니다.').waitFor();
 }
 
 async function openCreate(page) {
@@ -120,7 +121,7 @@ test('생성 재시도는 한 idempotency UUID와 같은 영수번호를 사용�
   });
   await login(page); await openCreate(page); await fillRequired(page);
   await page.getByRole('button', { name: '접수 저장' }).click();
-  await page.locator('#officeCreateError').waitFor({ state: 'visible' });
+  await page.waitForFunction(() => document.getElementById('officeCreateError').textContent.length > 0);
   await page.getByRole('button', { name: '접수 저장' }).click();
   await page.getByText('접수 완료 · MM-20260826-0001').waitFor();
   const creates = calls.filter((call) => call.action === 'officeCreate');
@@ -130,6 +131,32 @@ test('생성 재시도는 한 idempotency UUID와 같은 영수번호를 사용�
   const storage = await page.evaluate(() => `${JSON.stringify(localStorage)}${JSON.stringify(sessionStorage)}`);
   assert.equal(storage.includes('천장에서 물이 떨어집니다.'), false);
   assert.equal(storage.includes(creates[0].payload.idempotencyKey), false);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('불완전한 접수 생성 응답은 성공으로 잠그지 않고 같은 idempotency 키로 재시도한다', async () => {
+  let attempts = 0;
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: [] };
+    if (body.action === 'officeCreate') {
+      attempts += 1;
+      return attempts === 1
+        ? { ok: true }
+        : { ok: true, requestId: 'req-complete-response', receiptNo: 'MM-20260826-0020', status: 'pending_review', createdAt: '2026-08-26T09:00:00.000Z' };
+    }
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await login(page); await openCreate(page); await fillRequired(page);
+  await page.getByRole('button', { name: '접수 저장' }).click();
+  await page.waitForFunction(() => document.getElementById('officeCreateError').textContent.includes('처리 중 문제가 생겼습니다.'));
+  assert.equal(await page.getByRole('button', { name: '접수 저장' }).isEnabled(), true);
+  await page.getByRole('button', { name: '접수 저장' }).click();
+  await page.getByText('접수 완료 · MM-20260826-0020').waitFor();
+  const creates = calls.filter((call) => call.action === 'officeCreate');
+  assert.equal(creates.length, 2);
+  assert.equal(creates[0].payload.idempotencyKey, creates[1].payload.idempotencyKey);
   assert.deepEqual(pageErrors, []);
   await page.close();
 });

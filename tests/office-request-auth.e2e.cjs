@@ -108,6 +108,61 @@ test('여섯 자리 PIN 로그인은 slug를 보내고 허용된 세션 필드�
   await page.close();
 });
 
+test('새 로그인 응답의 단지 slug가 현재 주소와 다르면 세션과 목록을 남기지 않는다', async () => {
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return { ...loginResult(), office: { id: 'office-other', slug: 'other-complex', complexName: '다른 단지' } };
+    throw new Error(`unexpected action ${body.action}`);
+  });
+  await page.goto(`${origin}/office-request.html?office=test-complex`);
+  await page.locator('#officePin').fill('123456');
+  await page.getByRole('button', { name: '로그인' }).click();
+  await page.locator('#officeLoginView').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#officeLoginView').isVisible(), true);
+  assert.equal(await page.locator('#officeRequestList').innerText(), '');
+  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_KEY), null);
+  assert.equal(calls.filter((call) => call.action === 'officeList').length, 0);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('로그아웃 뒤 늦게 도착한 목록 응답은 접수 목록에 개인정보를 다시 렌더링하지 않는다', async () => {
+  let release;
+  const delayed = new Promise((resolve) => { release = resolve; });
+  const { page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return delayed;
+    throw new Error(`unexpected action ${body.action}`);
+  });
+  await page.goto(`${origin}/office-request.html?office=test-complex`);
+  await page.locator('#officePin').fill('123456');
+  await page.getByRole('button', { name: '로그인' }).click();
+  await page.locator('#officeDashboardView').waitFor({ state: 'visible' });
+  await page.getByRole('button', { name: '로그아웃' }).click();
+  release({ ok: true, requests: requestList() });
+  await page.waitForTimeout(100);
+  assert.equal(await page.locator('#officeLoginView').isVisible(), true);
+  assert.equal(await page.locator('#officeRequestList').innerText(), '');
+  assert.equal((await page.content()).includes('반환된 접수 설명'), false);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('로그인과 새 접수 및 목록 복귀는 각각 화면 제목과 원래 버튼에 초점을 둔다', async () => {
+  const { page, pageErrors } = await openPortal(async (body) => body.action === 'officeLogin' ? loginResult() : { ok: true, requests: [] });
+  await page.goto(`${origin}/office-request.html?office=test-complex`);
+  await page.locator('#officePin').fill('123456');
+  await page.getByRole('button', { name: '로그인' }).click();
+  await page.locator('#officeDashboardView').waitFor({ state: 'visible' });
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'officeDashboardTitle');
+  await page.getByRole('button', { name: '새 접수 등록' }).click();
+  await page.locator('#officeCreateView').waitFor({ state: 'visible' });
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'officeCreateTitle');
+  await page.getByRole('button', { name: '목록으로' }).click();
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'officeNewRequest');
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
 test('유효한 세션은 새로고침 뒤 PIN 없이 목록을 다시 불러온다', async () => {
   const { calls, page, pageErrors } = await openPortal(async (body) => {
     if (body.action === 'officeLogin') return loginResult();

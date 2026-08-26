@@ -19,6 +19,12 @@ export function isExactAppsScriptUrl(value) {
   }
 }
 
+export function isExactOfficeApiConfig(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).sort().join(',') !== 'apiUrl,enabled') return false;
+  if (value.enabled === false) return value.apiUrl === '';
+  return value.enabled === true && isExactAppsScriptUrl(value.apiUrl);
+}
+
 export function writeConfigAtomically(config, { fileSystem = fs, configPath = CONFIG_PATH, tempPath = `${CONFIG_PATH}.${process.pid}-${Date.now()}.tmp` } = {}) {
   const content = `${JSON.stringify(config, null, 2)}\n`;
   let descriptor;

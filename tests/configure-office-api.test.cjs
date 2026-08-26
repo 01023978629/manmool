@@ -56,6 +56,19 @@ test('관리사무소 API CLI handler는 임시 configPath에서만 정확한 UR
   assert.equal(fs.existsSync(path.join(ROOT, 'office-api.json')), true, 'production default path remains fixed and untouched');
 });
 
+test('관리사무소 API 설정 검증은 정확한 비활성 기본값과 Apps Script /exec 활성값만 허용한다', async () => {
+  const { isExactOfficeApiConfig } = await loadApi();
+  assert.equal(isExactOfficeApiConfig({ enabled: false, apiUrl: '' }), true);
+  assert.equal(isExactOfficeApiConfig({ enabled: true, apiUrl: 'https://script.google.com/macros/s/Safe_123/exec' }), true);
+  assert.equal(isExactOfficeApiConfig({ enabled: true, apiUrl: 'https://example.com/exec' }), false);
+  assert.equal(isExactOfficeApiConfig({ enabled: false, apiUrl: 'https://script.google.com/macros/s/Safe_123/exec' }), false);
+  assert.equal(isExactOfficeApiConfig({ enabled: false, apiUrl: '', unexpected: true }), false);
+});
+
+test('저장소 기본 공개 설정은 비활성 fail-closed 상태로 유지한다', () => {
+  assert.equal(fs.readFileSync(path.join(ROOT, 'office-api.json'), 'utf8'), DISABLED);
+});
+
 test('관리사무소 API CLI handler는 비밀 인자·URL 우회·중복을 거절하고 임시 설정을 보존한다', async () => {
   const { runCli, writeConfigAtomically } = await loadApi();
   const safeUrl = 'https://script.google.com/macros/s/Safe_123/exec';
