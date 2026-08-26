@@ -40,7 +40,12 @@ async function openPortal(respond, options = {}) {
     crypto.randomUUID = () => `00000000-0000-4000-8000-${String(++sequence).padStart(12, '0')}`;
   });
   await page.route('**/office-api.json', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ enabled: true, apiUrl: API_URL }) }));
-  if (options.photoFixture) await page.route('**/js/office-request-photo.js**', (route) => route.fulfill({ contentType: 'text/javascript', body: "window.ManmulOfficePhoto={compressOfficePhoto:async(file)=>({name:file.name.replace(/\\.[^.]*$/,'.jpg'),mimeType:'image/jpeg',dataB64:'AA==',bytes:1})};" }));
+  if (options.photoFixture) {
+    const body = options.photoFixture === 'deferred'
+      ? "window.__photoDeferred=[];window.ManmulOfficePhoto={compressOfficePhoto:(file)=>new Promise((resolve)=>window.__photoDeferred.push({name:file.name,resolve:()=>resolve({name:file.name.replace(/\\.[^.]*$/,'.jpg'),mimeType:'image/jpeg',dataB64:file.name,bytes:1})}))};"
+      : "window.ManmulOfficePhoto={compressOfficePhoto:async(file)=>({name:file.name.replace(/\\.[^.]*$/,'.jpg'),mimeType:'image/jpeg',dataB64:'AA==',bytes:1})};";
+    await page.route('**/js/office-request-photo.js**', (route) => route.fulfill({ contentType: 'text/javascript', body }));
+  }
   await page.route(API_URL, async (route) => {
     const body = route.request().postDataJSON();
     calls.push(body);
@@ -210,6 +215,8 @@ test('수정과 취소는 pending_review 또는 needs_info에만 노출되고 �
   assert.equal(await page.locator('[data-office-cancel="req-1"]').count(), 1);
   assert.equal(await page.locator('[data-office-edit="req-accepted"], [data-office-cancel="req-accepted"]').count(), 0);
   await page.locator('[data-office-edit="req-1"]').click();
+  assert.equal(await page.locator('#officePhotoField').isHidden(), true);
+  assert.equal(await page.locator('[name="photos"]').isDisabled(), true);
   await page.locator('#officeCreateForm [name="description"]').fill('수정된 증상');
   await page.getByRole('button', { name: '수정 저장' }).click();
   await page.getByText('수정 내용을 저장했습니다.').waitFor();
@@ -226,6 +233,176 @@ test('accepted 접수는 UI에서 수정 또는 취소 API를 호출할 수 없�
   await login(page);
   assert.equal(await page.locator('[data-office-edit="req-accepted"], [data-office-cancel="req-accepted"]').count(), 0);
   assert.equal(calls.some((call) => call.action === 'officeUpdate' || call.action === 'officeCancel'), false);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('업로드 세션 만료는 사진 재시도가 아니라 로그인 복귀와 민감한 초안 제거로 처리한다', async () => {
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: [] };
+    if (body.action === 'officeCreate') return { ok: true, requestId: 'req-expired', receiptNo: 'MM-20260826-0091', status: 'pending_review', createdAt: '2026-08-26T09:00:00.000Z' };
+    if (body.action === 'officeUpload') return { ok: false, error: 'session-expired' };
+    throw new Error(`unexpected ${body.action}`);
+  }, { photoFixture: true });
+  await login(page); await openCreate(page); await fillRequired(page);
+  await page.locator('[name="photos"]').setInputFiles(pngFile());
+  await page.getByText('사진 준비 완료').waitFor();
+  await page.getByRole('button', { name: '접수 저장' }).click();
+  await page.locator('#officeLoginView').waitFor({ state: 'visible' });
+  assert.equal(await page.getByRole('button', { name: '사진 다시 보내기' }).isHidden(), true);
+  assert.equal(await page.locator('[name="photos"]').evaluate((input) => input.files.length), 0);
+  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_KEY), null);
+  assert.equal(calls.some((call) => call.action === 'officeUpload'), true);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('create 성공 뒤 submitOfficeRequest는 결과 객체를 반환하고 일반 저장을 잠근다', async () => {
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: [] };
+    if (body.action === 'officeCreate') return { ok: true, requestId: 'req-locked', receiptNo: 'MM-20260826-0092', status: 'pending_review', createdAt: '2026-08-26T09:00:00.000Z' };
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await login(page); await openCreate(page); await fillRequired(page);
+  const result = await page.evaluate(async () => {
+    const form = document.getElementById('officeCreateForm');
+    const saved = await window.submitOfficeRequest(form);
+    return { saved, disabled: document.getElementById('officeCreateSubmit').disabled, hidden: document.getElementById('officeCreateSubmit').hidden };
+  });
+  assert.equal(result.saved.request.requestId, 'req-locked');
+  assert.equal(result.saved.photosComplete, true);
+  assert.equal(result.disabled || result.hidden, true);
+  await page.evaluate(() => document.getElementById('officeCreateForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
+  await page.waitForTimeout(50);
+  assert.equal(calls.filter((call) => call.action === 'officeCreate').length, 1);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('새 사진 선택은 이전 슬롯을 교체하고 늦게 끝난 이전 압축 결과를 전송하지 않는다', async () => {
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: [] };
+    if (body.action === 'officeCreate') return { ok: true, requestId: 'req-reselect', receiptNo: 'MM-20260826-0093', status: 'pending_review', createdAt: '2026-08-26T09:00:00.000Z' };
+    if (body.action === 'officeUpload') return { ok: true, fileId: 'f', name: 'server.jpg', mimeType: 'image/jpeg', size: 1, createdAt: '2026-08-26T09:00:00.000Z', uploadId: body.payload.uploadId };
+    throw new Error(`unexpected ${body.action}`);
+  }, { photoFixture: 'deferred' });
+  await login(page); await openCreate(page); await fillRequired(page);
+  await page.locator('[name="photos"]').setInputFiles({ ...pngFile(), name: 'first.png' });
+  await page.waitForFunction(() => window.__photoDeferred.length === 1);
+  await page.locator('[name="photos"]').setInputFiles({ ...pngFile(), name: 'second.png' });
+  await page.waitForFunction(() => window.__photoDeferred.length === 2);
+  await page.evaluate(() => window.__photoDeferred[1].resolve());
+  await page.getByText('사진 준비 완료').waitFor();
+  await page.evaluate(() => window.__photoDeferred[0].resolve());
+  await page.waitForTimeout(50);
+  await page.getByRole('button', { name: '접수 저장' }).click();
+  await page.getByText('접수 완료 · MM-20260826-0093').waitFor();
+  const uploads = calls.filter((call) => call.action === 'officeUpload');
+  assert.equal(uploads.length, 1);
+  assert.equal(uploads[0].payload.dataB64, 'second.png');
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('사진 업로드는 앞 슬롯 응답 전 다음 슬롯을 시작하지 않는다', async () => {
+  let inFlight = 0, maxInFlight = 0, releaseFirst, releaseSecond, startedFirst, startedSecond;
+  const firstStarted = new Promise((resolve) => { startedFirst = resolve; });
+  const secondStarted = new Promise((resolve) => { startedSecond = resolve; });
+  const { page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: [] };
+    if (body.action === 'officeCreate') return { ok: true, requestId: 'req-sequence', receiptNo: 'MM-20260826-0094', status: 'pending_review', createdAt: '2026-08-26T09:00:00.000Z' };
+    if (body.action === 'officeUpload') {
+      inFlight += 1; maxInFlight = Math.max(maxInFlight, inFlight);
+      const isFirst = !releaseFirst;
+      const pending = new Promise((resolve) => { if (isFirst) { releaseFirst = resolve; startedFirst(); } else { releaseSecond = resolve; startedSecond(); } });
+      await pending; inFlight -= 1;
+      return { ok: true, fileId: 'f', name: 'server.jpg', mimeType: 'image/jpeg', size: 1, createdAt: '2026-08-26T09:00:00.000Z', uploadId: body.payload.uploadId };
+    }
+    throw new Error(`unexpected ${body.action}`);
+  }, { photoFixture: true });
+  await login(page); await openCreate(page); await fillRequired(page);
+  await page.locator('[name="photos"]').setInputFiles([pngFile(), { ...pngFile(), name: 'two.png' }]);
+  await page.getByText('사진 준비 완료').waitFor();
+  await page.getByRole('button', { name: '접수 저장' }).click();
+  await firstStarted;
+  await page.waitForTimeout(100);
+  assert.equal(maxInFlight, 1);
+  releaseFirst();
+  await secondStarted;
+  assert.equal(maxInFlight, 1);
+  releaseSecond();
+  await page.getByText('접수 완료 · MM-20260826-0094').waitFor();
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('실제 Chromium PNG는 createImageBitmap과 Image fallback에서 JPEG로 압축되고 object URL을 해제한다', async () => {
+  const { page, pageErrors } = await openPortal(async () => ({ ok: true, requests: [] }));
+  await page.goto(`${origin}/office-request.html?office=test-complex`);
+  const result = await page.evaluate(async () => {
+    const makeFile = async () => {
+      const canvas = document.createElement('canvas'); canvas.width = 2000; canvas.height = 1000;
+      canvas.getContext('2d').fillRect(0, 0, 2000, 1000);
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      return new File([blob], 'real.png', { type: 'image/png' });
+    };
+    const decodeOutput = async (compressed) => new Promise((resolve, reject) => { const image = new Image(); image.onload = () => resolve({ width: image.width, height: image.height }); image.onerror = reject; image.src = `data:image/jpeg;base64,${compressed.dataB64}`; });
+    const nativeBitmap = window.createImageBitmap; let bitmapCalls = 0;
+    window.createImageBitmap = (...args) => { bitmapCalls += 1; return nativeBitmap(...args); };
+    const bitmap = await window.ManmulOfficePhoto.compressOfficePhoto(await makeFile());
+    window.createImageBitmap = undefined;
+    const createUrl = URL.createObjectURL, revokeUrl = URL.revokeObjectURL; let revoked = 0;
+    URL.createObjectURL = (...args) => createUrl(...args); URL.revokeObjectURL = (...args) => { revoked += 1; return revokeUrl(...args); };
+    const fallback = await window.ManmulOfficePhoto.compressOfficePhoto(await makeFile());
+    URL.createObjectURL = createUrl; URL.revokeObjectURL = revokeUrl; window.createImageBitmap = nativeBitmap;
+    return { bitmapCalls, bitmap: { mimeType: bitmap.mimeType, ...(await decodeOutput(bitmap)) }, fallback: { mimeType: fallback.mimeType, ...(await decodeOutput(fallback)) }, revoked };
+  });
+  assert.deepEqual(result.bitmap, { mimeType: 'image/jpeg', width: 1600, height: 800 });
+  assert.deepEqual(result.fallback, { mimeType: 'image/jpeg', width: 1600, height: 800 });
+  assert.equal(result.bitmapCalls > 0, true);
+  assert.equal(result.revoked, 1);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('서버 invalid-status는 officeGet으로 실제 상태를 반영하고 대표 전화 안내로 돌아간다', async () => {
+  const latest = request('req-stale', 'pending_review');
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: [latest] };
+    if (body.action === 'officeUpdate') return { ok: false, error: 'invalid-status' };
+    if (body.action === 'officeGet') return { ok: true, request: request('req-stale', 'accepted') };
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await login(page); await page.locator('[data-office-edit="req-stale"]').click();
+  await page.getByRole('button', { name: '수정 저장' }).click();
+  await page.locator('#officeDashboardView').waitFor({ state: 'visible' });
+  assert.match(await page.locator('#officeSyncStatus').innerText(), /대표 확인 후에는 전화/);
+  assert.equal(await page.locator('[data-office-edit="req-stale"], [data-office-cancel="req-stale"]').count(), 0);
+  assert.deepEqual(calls.filter((call) => ['officeUpdate', 'officeGet'].includes(call.action)).map((call) => call.action), ['officeUpdate', 'officeGet']);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('취소의 stale invalid-status도 officeGet으로 실제 상태를 반영한다', async () => {
+  const latest = request('req-cancel-stale', 'needs_info');
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: [latest] };
+    if (body.action === 'officeCancel') return { ok: false, error: 'invalid-status' };
+    if (body.action === 'officeGet') return { ok: true, request: request('req-cancel-stale', 'accepted') };
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await login(page); await page.evaluate(() => { window.confirm = () => true; });
+  await page.locator('[data-office-cancel="req-cancel-stale"]').click();
+  await page.getByText('대표 확인 후에는 전화로 변경해 주세요').waitFor();
+  assert.match(await page.locator('#officeSyncStatus').innerText(), /대표 확인 후에는 전화/);
+  assert.equal(await page.locator('[data-office-edit="req-cancel-stale"], [data-office-cancel="req-cancel-stale"]').count(), 0);
+  assert.deepEqual(calls.filter((call) => ['officeCancel', 'officeGet'].includes(call.action)).map((call) => call.action), ['officeCancel', 'officeGet']);
   assert.deepEqual(pageErrors, []);
   await page.close();
 });

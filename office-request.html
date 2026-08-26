@@ -51,7 +51,7 @@
           <label>증상<textarea name="description" maxlength="1200"></textarea></label>
           <div class="office-form-grid"><label>관리사무소 담당자<input name="officeContactName" maxlength="60" autocomplete="name" /></label><label>관리사무소 연락처<input name="officeContactPhone" inputmode="tel" maxlength="40" autocomplete="tel" /></label></div>
           <details><summary>입주민 연락처 추가</summary><div class="office-form-grid"><label>입주민 성함<input name="residentName" maxlength="60" autocomplete="name" /></label><label>입주민 연락처<input name="residentPhone" inputmode="tel" maxlength="40" autocomplete="tel" /></label></div></details>
-          <label>희망 방문일<input name="preferredVisitDate" type="date" /></label><label>현장 사진 (최대 5장)<input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple /></label>
+          <label>희망 방문일<input name="preferredVisitDate" type="date" /></label><label id="officePhotoField">현장 사진 (최대 5장)<input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple /></label>
           <label class="office-consent"><input name="privacyConsent" type="checkbox" /> 개인정보 수집·이용에 동의합니다.</label>
           <p id="officeCreateError" class="request-error" role="alert"></p><p id="officeCreateProgress" class="office-progress" role="status" aria-live="polite"></p>
           <div class="office-form-actions"><button id="officeCreateSubmit" class="office-action request-primary" type="submit">접수 저장</button><button id="officeRetryPhotos" class="office-action request-secondary" type="button" hidden>사진 다시 보내기</button><button id="officeCreateBack" class="office-action request-secondary" type="button">목록으로</button></div>
@@ -65,6 +65,6 @@
   <script src="js/office-request-core.js?v=20260827-office-request2"></script>
   <script src="js/office-request-api.js?v=20260827-office-request2"></script>
   <script src="js/office-request-photo.js?v=20260827-office-request3"></script>
-  <script src="js/office-request.js?v=20260827-office-request3"></script>
+  <script src="js/office-request.js?v=20260827-office-request4"></script>
 </body>
 </html>
