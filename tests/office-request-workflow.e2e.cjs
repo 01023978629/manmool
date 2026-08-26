@@ -406,3 +406,66 @@ test('취소의 stale invalid-status도 officeGet으로 실제 상태를 반영�
   assert.deepEqual(pageErrors, []);
   await page.close();
 });
+
+test('일시적인 수정 오류 뒤에는 입력을 보존하고 수정 저장을 다시 눌러 성공할 수 있다', async () => {
+  let updateAttempts = 0;
+  const latest = request('req-edit-retry', 'pending_review');
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: [latest] };
+    if (body.action === 'officeUpdate') { updateAttempts += 1; return updateAttempts === 1 ? { ok: false, error: 'network-error' } : { ok: true, requestId: 'req-edit-retry', status: 'pending_review', updatedAt: '2026-08-26T10:00:00.000Z' }; }
+    if (body.action === 'officeGet') return { ok: true, request: { ...latest, description: '다시 저장할 증상' } };
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await login(page); await page.locator('[data-office-edit="req-edit-retry"]').click();
+  await page.locator('#officeCreateForm [name="description"]').fill('다시 저장할 증상');
+  await page.getByRole('button', { name: '수정 저장' }).click();
+  await page.locator('#officeCreateError').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#officeCreateForm [name="description"]').inputValue(), '다시 저장할 증상');
+  assert.equal(await page.getByRole('button', { name: '수정 저장' }).isEnabled(), true);
+  assert.equal(await page.locator('#officeCreateView').isVisible(), true);
+  await page.getByRole('button', { name: '수정 저장' }).click();
+  await page.getByText('수정 내용을 저장했습니다.').waitFor();
+  assert.equal(calls.filter((call) => call.action === 'officeUpdate').length, 2);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('retryOfficePhotos는 실패 시 false, 모든 사진 전송 뒤 true boolean을 반환한다', async () => {
+  let uploadAttempts = 0;
+  const { page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: [] };
+    if (body.action === 'officeCreate') return { ok: true, requestId: 'req-retry-bool', receiptNo: 'MM-20260826-0095', status: 'pending_review', createdAt: '2026-08-26T09:00:00.000Z' };
+    if (body.action === 'officeUpload') { uploadAttempts += 1; return uploadAttempts < 3 ? { ok: false, error: 'network-error' } : { ok: true, fileId: 'f', name: 'server.jpg', mimeType: 'image/jpeg', size: 1, createdAt: '2026-08-26T09:00:00.000Z', uploadId: body.payload.uploadId }; }
+    throw new Error(`unexpected ${body.action}`);
+  }, { photoFixture: true });
+  await login(page); await openCreate(page); await fillRequired(page);
+  await page.locator('[name="photos"]').setInputFiles(pngFile());
+  await page.getByText('사진 준비 완료').waitFor();
+  await page.getByRole('button', { name: '접수 저장' }).click();
+  await page.getByText('접수 저장됨 · 사진 전송 필요').waitFor();
+  const result = await page.evaluate(async () => ({ first: await window.retryOfficePhotos(), second: await window.retryOfficePhotos() }));
+  assert.deepEqual(result, { first: false, second: true });
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('invalid-status 뒤 officeGet 재조회도 실패하면 해당 로컬 행의 수정과 취소를 잠근다', async () => {
+  const latest = request('req-refresh-fail', 'pending_review');
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: [latest] };
+    if (body.action === 'officeUpdate') return { ok: false, error: 'invalid-status' };
+    if (body.action === 'officeGet') return { ok: false, error: 'network-error' };
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await login(page); await page.locator('[data-office-edit="req-refresh-fail"]').click();
+  await page.getByRole('button', { name: '수정 저장' }).click();
+  await page.locator('#officeDashboardView').waitFor({ state: 'visible' });
+  await page.getByText('현재 상태를 새로고침하지 못했습니다. 대표 확인 후에는 전화로 변경해 주세요').waitFor();
+  assert.equal(await page.locator('[data-office-edit="req-refresh-fail"], [data-office-cancel="req-refresh-fail"]').count(), 0);
+  assert.deepEqual(calls.filter((call) => ['officeUpdate', 'officeGet'].includes(call.action)).map((call) => call.action), ['officeUpdate', 'officeGet']);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
