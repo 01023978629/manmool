@@ -598,7 +598,7 @@ test('상세 상태 타임라인은 정상 단계와 보완·보류·취소 분�
   const cases = [
     ['pending_review', '접수됨', [], '접수됨'], ['accepted', '확인 완료', [0], '확인 완료'], ['visit_scheduled', '방문 예정', [0, 1], '방문 예정'],
     ['in_progress', '작업 중', [0, 1, 2], '작업 중'], ['completed', '작업 완료', [0, 1, 2, 3], '작업 완료'], ['billed', '청구 완료', [0, 1, 2, 3, 4], '청구 완료'],
-    ['paid', '처리 완료', [0, 1, 2, 3, 4, 5], '처리 완료'], ['needs_info', '보완 요청', [], '보완 요청'], ['on_hold', '보류', [], '보류'], ['cancelled', '취소', [], '취소'],
+    ['paid', '처리 완료', [0, 1, 2, 3, 4, 5], '처리 완료'], ['needs_info', '내용 확인 필요', [], '내용 확인 필요'], ['on_hold', '확인 중', [], '확인 중'], ['cancelled', '취소됨', [], '취소됨'],
     ['unknown-status', '상태 확인 중', [], '상태 확인 중'],
   ];
   const items = cases.map(([status], index) => request(`req-timeline-${index}`, status));
@@ -689,6 +689,37 @@ test('완료 사진은 SVG MIME, 빈값, 비표준 base64, 초과 base64와 다�
     await page.getByRole('button', { name: '목록으로' }).click();
   }
   assert.deepEqual(calls.filter((call) => call.action === 'officePhoto').map((call) => call.payload.photoId), invalid.map(([kind]) => `${kind}-photo`));
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('완료 사진은 검증된 JPEG와 WebP 응답도 각각 data URL 이미지로 표시한다', async () => {
+  const fixtures = [
+    ['jpeg', 'image/jpeg', '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAH/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAEFAqf/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/Aaf/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/Aaf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAY/Aqf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/IV//2gAMAwEAAgADAAAAEP/EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQMBAT8QH//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQIBAT8QH//EABQQAQAAAAAAAAAAAAAAAAAAABD/2gAIAQEAAT8QH//Z'],
+    ['webp', 'image/webp', 'UklGRiIAAABXRUJQVlA4ICAAAAAwAQCdASoBAAEALmk0mk0iIiIiIhYA'],
+  ];
+  const items = fixtures.map(([kind]) => request(`req-${kind}-photo`, 'completed'));
+  const { page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: items };
+    if (body.action === 'officeGet') {
+      const item = items.find((entry) => entry.requestId === body.payload.requestId);
+      return { ok: true, request: { ...item, completionReport: { summary: '공개 완료', publicPhotoIds: [`${item.requestId.slice(4, -6)}-photo`] } } };
+    }
+    if (body.action === 'officePhoto') {
+      const [kind, mimeType, dataB64] = fixtures.find(([name]) => body.payload.photoId === `${name}-photo`);
+      return { ok: true, photoId: `${kind}-photo`, mimeType, dataB64 };
+    }
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await login(page);
+  for (const [kind, mimeType] of fixtures) {
+    await page.locator(`[data-office-detail="req-${kind}-photo"]`).click();
+    const image = page.locator('#officeCompletionPhotos img');
+    await image.waitFor();
+    assert.match(await image.getAttribute('src'), new RegExp(`^data:${mimeType};base64,`));
+    await page.getByRole('button', { name: '목록으로' }).click();
+  }
   assert.deepEqual(pageErrors, []);
   await page.close();
 });

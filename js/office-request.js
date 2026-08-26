@@ -63,7 +63,7 @@
     if (!detailTimeline) return;
     const steps = ['접수됨', '확인 완료', '방문 예정', '작업 중', '작업 완료', '청구 완료', '처리 완료'];
     const indices = { pending_review: 0, accepted: 1, visit_scheduled: 2, in_progress: 3, completed: 4, billed: 5, paid: 6 };
-    const branches = { needs_info: '보완 요청', on_hold: '보류', cancelled: '취소' };
+    const branches = new Set(['needs_info', 'on_hold', 'cancelled']);
     const current = Object.prototype.hasOwnProperty.call(indices, status) ? indices[status] : -1;
     steps.forEach((label, index) => {
       const item = document.createElement('li');
@@ -75,7 +75,7 @@
     if (current >= 0) return;
     const branch = document.createElement('li');
     branch.className = 'office-status-branch is-current';
-    branch.textContent = Object.prototype.hasOwnProperty.call(branches, status) ? branches[status] : '상태 확인 중';
+    branch.textContent = branches.has(status) ? core.statusLabel(status) : '상태 확인 중';
     branch.setAttribute('aria-current', 'step');
     detailTimeline.appendChild(branch);
   }
