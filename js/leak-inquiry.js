@@ -19,6 +19,11 @@
   const SCROLL = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
 
   let CONFIG = {};
+  let leakSubmitAttemptEpoch = 0;
+  let visibleFailureGeneration = 0;
+  let visibleFailurePayload = null;
+  let activeRetryTransport = null;
+  let activeRetryUiPromise = null;
   fetch('data/config.json', { cache: 'no-cache' })
     .then((r) => (r.ok ? r.json() : {}))
     .then((c) => { CONFIG = c || {}; })
@@ -85,10 +90,14 @@
     e.preventDefault();
     const data = collect();
 
-    // 봇 방어(허니팟). 오탐이 나도 손님이 '접수됐다'고 믿고 떠나지 않도록,
-    // 전송은 막되 화면은 '아직 전송 안 됨'으로 두어 전화·문자 길을 남긴다.
+    // 봇 방어(허니팟): 전송하거나 기억하지 않고 직접 연락 경로만 남긴다.
     const hp = $('lkCompanyUrl');
-    if (hp && hp.value) { showDone(data, { delivered: false, hasBackend: LEAD.backendConfigured(CONFIG) }); return; }
+    if (hp && hp.value) {
+      leakSubmitAttemptEpoch += 1;
+      submitBtn.disabled = false;
+      showDone(data, { delivered: false, hasBackend: LEAD.backendConfigured(CONFIG), honeypot: true });
+      return;
+    }
 
     const phone = normalizePhone(data.phone);
     if (!phone) { fail('연락처를 010-0000-0000 형식으로 입력해 주세요.', 'lkPhone'); return; }
@@ -106,19 +115,78 @@
     status.textContent = '접수 중입니다...';
 
     const hasBackend = LEAD.backendConfigured(CONFIG);
+    const attempt = ++leakSubmitAttemptEpoch;
+    const capturedFailureGeneration = visibleFailureGeneration;
     try {
       const delivered = await LEAD.deliver(CONFIG, payload);
-      // 전달에 성공하면 손님 브라우저에 사본을 남기지 않는다(공용 PC 에 이름·연락처 잔존 방지).
-      if (!delivered) LEAD.saveLocal(payload);
-      showDone(payload, { delivered, hasBackend });
+      if (attempt !== leakSubmitAttemptEpoch) return;
+      if (delivered === true) {
+        const clearedCapturedFailure = capturedFailureGeneration === 0 || LEAD.clearFailure(capturedFailureGeneration);
+        if (clearedCapturedFailure && visibleFailureGeneration === capturedFailureGeneration) {
+          visibleFailureGeneration = 0;
+          visibleFailurePayload = null;
+        }
+        showDone(payload, { delivered: true, hasBackend });
+        return;
+      }
+      rememberAndShowFailure(payload, hasBackend);
     } catch (err) {
-      // 전송이 실패해도 리드를 잃지 않도록 남겨두고, 직접 보낼 길을 안내한다.
-      LEAD.saveLocal(payload);
-      showDone(payload, { delivered: false, hasBackend, failed: true });
+      if (attempt !== leakSubmitAttemptEpoch) return;
+      rememberAndShowFailure(payload, hasBackend);
     } finally {
-      submitBtn.disabled = false;
+      if (attempt === leakSubmitAttemptEpoch) submitBtn.disabled = false;
     }
   });
+
+  function rememberAndShowFailure(payload, hasBackend) {
+    const generation = LEAD.rememberFailure(payload);
+    visibleFailureGeneration = generation;
+    visibleFailurePayload = payload;
+    showDone(payload, { delivered: false, hasBackend, failed: true, generation });
+  }
+
+  function retryVisibleFailure() {
+    const generation = visibleFailureGeneration;
+    const payload = visibleFailurePayload;
+    if (!generation || !payload) return Promise.resolve({ status: 'empty', generation: 0 });
+
+    const transport = LEAD.retryLatest(CONFIG);
+    if (activeRetryTransport === transport && activeRetryUiPromise) return activeRetryUiPromise;
+
+    activeRetryTransport = transport;
+    const retryButton = $('lkRetry');
+    if (retryButton) {
+      retryButton.disabled = true;
+      retryButton.textContent = '다시 시도 중…';
+    }
+    const uiPromise = Promise.resolve(transport)
+      .then((result) => {
+        if (result && result.status === 'sent' && result.generation === visibleFailureGeneration) {
+          visibleFailureGeneration = 0;
+          visibleFailurePayload = null;
+          showDone(payload, { delivered: true, hasBackend: true });
+          return result;
+        }
+        if (result && result.generation === visibleFailureGeneration) {
+          const currentButton = $('lkRetry');
+          if (currentButton) {
+            currentButton.disabled = false;
+            currentButton.textContent = result.status === 'unavailable'
+              ? '자동 접수 경로를 확인해 주세요'
+              : '다시 시도 (아직 전송되지 않음)';
+          }
+        }
+        return result;
+      })
+      .finally(() => {
+        if (activeRetryUiPromise === uiPromise) {
+          activeRetryTransport = null;
+          activeRetryUiPromise = null;
+        }
+      });
+    activeRetryUiPromise = uiPromise;
+    return uiPromise;
+  }
 
   function showDone(payload, opts) {
     opts = opts || {};
@@ -127,16 +195,18 @@
     const kakaoUrl = kakao.chatUrl || kakao.channelAddUrl || '';
     const kakaoReady = !!(kakao.ready && kakaoUrl);
     const smsHref = 'sms:' + PHONE + '?body=' + encodeURIComponent(text);
+    const retryable = !opts.delivered && !opts.honeypot && opts.generation > 0 && opts.hasBackend;
 
     const head = opts.delivered
       ? '<h3>접수됐습니다.</h3><p>평일 09:00–17:30에 확인하고 남겨주신 번호로 회신드립니다. 물이 계속 번지는 상황이면 아래 번호로 바로 전화 주세요.</p>'
-      : opts.failed
-        ? '<h3>전송이 되지 않았습니다.</h3><p>인터넷 문제로 전달되지 않았습니다. 내용은 이 기기에 남겨 두었으니, 아래 버튼으로 문자나 전화로 바로 보내주세요.</p>'
-        : '<h3>아직 전달되지 않았습니다.</h3><p>온라인 접수 경로가 준비되지 않아 자동 전달이 되지 않았습니다. 아래 버튼으로 문자나 전화로 보내주시면 바로 확인합니다.</p>';
+      : opts.honeypot
+        ? '<h3>아직 전송되지 않았습니다.</h3><p>자동 전송하지 않았고 내용도 저장되지 않았습니다. 아래 버튼으로 전화·문자 또는 내용 복사를 이용해 주세요.</p>'
+        : '<h3>아직 전송되지 않았습니다.</h3><p>최신 문의 1건만 현재 탭 메모리에 보관합니다. 새로고침하거나 탭을 닫으면 사라집니다. 다시 시도하거나 전화·문자로 보내주세요.</p>';
 
     doneBox.innerHTML = head
       + '<pre class="leak-done-text">' + esc(text) + '</pre>'
       + '<div class="leak-done-actions">'
+      + (retryable ? '<button type="button" class="primary-button" id="lkRetry">자동 접수 다시 시도</button>' : '')
       + '<a class="primary-button" href="tel:' + PHONE + '">지금 전화하기</a>'
       + '<a class="outline-case-button" href="' + smsHref + '">문자로 보내기</a>'
       + (kakaoReady ? '<a class="outline-case-button" href="' + esc(kakaoUrl) + '" target="_blank" rel="noopener">카카오톡으로 보내기</a>' : '')
@@ -145,6 +215,8 @@
     doneBox.hidden = false;
     form.hidden = true;
 
+    const retry = $('lkRetry');
+    if (retry) retry.addEventListener('click', () => { retryVisibleFailure(); });
     const copy = $('lkCopy');
     if (copy) copy.addEventListener('click', () => {
       LEAD.copyToClipboard(text);
@@ -152,4 +224,7 @@
     });
     doneBox.scrollIntoView({ behavior: SCROLL, block: 'center' });
   }
+
+  // 새 문서를 열 때는 자동 재시도하지 않는다. 같은 탭에서 실패한 최신 문의만 온라인 복귀 시 재시도한다.
+  window.addEventListener('online', () => { retryVisibleFailure(); });
 })();

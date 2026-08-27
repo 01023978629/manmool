@@ -17,7 +17,7 @@
         <span class="logo-mark">萬</span>
         <div>
           <strong>만물인테리어 관리자</strong>
-          <em>문의 · 사이트 콘텐츠 대시보드</em>
+          <em>외부 접수 경로 · 사이트 콘텐츠 관리</em>
         </div>
       </div>
       <div class="admin-header-actions">
@@ -30,14 +30,11 @@
   </header>
 
   <main class="admin-main">
-    <h1 class="sr-only">만물인테리어 관리자 · 문의와 사이트 콘텐츠 관리</h1>
+    <h1 class="sr-only">만물인테리어 관리자 · 외부 접수 경로와 사이트 콘텐츠 관리</h1>
     <nav class="admin-section-nav" aria-label="관리자 화면 바로가기">
       <a href="#contentEditor">사이트 콘텐츠 수정</a>
       <a href="#pipelinePanel">접수 경로</a>
-      <a href="#inquiryPanel">상담 문의</a>
     </nav>
-    <!-- KPI -->
-    <section class="kpi-row" id="kpiRow"></section>
 
     <!-- 공개 사이트 콘텐츠 편집 -->
     <section class="admin-panel content-editor" id="contentEditor" data-content-editor>
@@ -103,32 +100,16 @@
     <section class="admin-panel conn-panel">
       <div class="conn-head">
         <h2>연동 상태 <span class="conn-badge" id="connBadge">확인 중…</span></h2>
-        <button class="btn btn-ghost btn-sm" id="connTest">웹훅 연결 테스트</button>
+        <button class="btn btn-ghost btn-sm" id="connTest">접수 경로 설정 확인</button>
       </div>
       <div class="conn-grid" id="connGrid"></div>
       <p class="conn-result" id="connResult"></p>
-      <p class="conn-help">상담 접수는 <code>n8n</code> 또는 무료 폼 서비스 중 하나만 연결돼도 작동합니다. <code>demoMode</code>는 브라우저 임시 백업의 호환 설정이며, 실제 전달 여부는 위의 “상담 접수 경로”를 기준으로 판단하세요. 관리자 토큰 등 비밀값은 공개 파일이 아닌 서버 환경변수로 관리합니다.</p>
-    </section>
-
-    <!-- 문의 목록 -->
-    <section class="admin-panel" id="inquiryPanel">
-      <div class="panel-head">
-        <h2>상담 문의 <span class="count" id="inqCount">0</span></h2>
-        <div class="filter-tabs" id="statusFilter">
-          <button class="ftab active" data-f="전체">전체</button>
-          <button class="ftab" data-f="신규">신규</button>
-          <button class="ftab" data-f="승인">승인</button>
-          <button class="ftab" data-f="보류">보류</button>
-          <button class="ftab" data-f="거절">거절</button>
-        </div>
-        <button class="btn btn-ghost btn-sm" id="seedBtn" title="데모 샘플 문의 추가">샘플 추가</button>
-      </div>
-      <div id="inquiryList" class="inquiry-list"></div>
-      <p class="empty-note" id="emptyNote" hidden>접수된 문의가 없습니다. 사이트에서 상담 신청을 하거나 “샘플 추가”를 눌러보세요.</p>
+      <p class="conn-help">상담 접수는 <code>n8n</code> 또는 지원되는 폼 서비스 중 하나를 통해 외부로 전달됩니다. 이 관리자 화면은 브라우저에 상담 문의를 보관하지 않습니다. 위 버튼은 설정 상태만 확인하며 실제 문의를 전송하지 않습니다. 관리자 토큰 등 비밀값은 공개 파일이 아닌 서버 환경변수로 관리합니다.</p>
     </section>
   </main>
 
-  <script src="js/admin.js?v=20260812-editor"></script>
+  <script src="js/lead-transport.js?v=20260828-lead-privacy"></script>
+  <script src="js/admin.js?v=20260828-lead-privacy"></script>
   <script src="js/content-editor.js?v=20260812-editor"></script>
 </body>
 </html>

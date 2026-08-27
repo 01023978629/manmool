@@ -3,8 +3,8 @@
    ------------------------------------------------------------
    폼 제출 → data/config.json 의 n8n.inquiryWebhookUrl 로 POST.
    n8n 워크플로가 저장·AI요약·카카오알림·대표승인을 담당합니다.
-   미설정(또는 demoMode) 시 브라우저 localStorage 에 저장하여
-   admin.html 관리자 대시보드에서 확인할 수 있습니다.
+   전송 실패 시에는 현재 탭 메모리에 최신 문의 한 건만 두고,
+   사용자가 직접 다시 시도하거나 전화·문자·카카오로 전달합니다.
    ============================================================ */
 
 (function () {
@@ -13,10 +13,7 @@
   // 누수 폼(leak.html)과 같은 코드를 쓰게 해서, 나중에 n8n 주소나
   // 보유기간 안내를 바꿀 때 한쪽만 고쳐지는 일을 막는다.
   const LEAD = window.ManmulLead;
-  const STORAGE_KEY = LEAD.STORAGE_KEY;
   const buildLeadText = LEAD.buildLeadText;
-  const saveLocal = LEAD.saveLocal;
-  const pruneExpired = LEAD.pruneExpired;
   const copyToClipboard = LEAD.copyToClipboard;
   const backendConfigured = () => LEAD.backendConfigured(CONFIG);
   const deliver = (payload) => LEAD.deliver(CONFIG, payload);
@@ -29,6 +26,11 @@
   let SELECTED_DESIGN = null;
   let SIM_SPEC = '';   // 시뮬레이터에서 만든 '우리집 사양서' 요약(재현 링크 포함) — 문의 본문에 함께 보낸다
   let LOOK_SPEC = '';  // '우리집 한 채로 보기'에서 정한 공간·시안 목록 — SIM_SPEC 과 슬롯을 나눈다(재사용하면 사양서 요약이 덮여 사라진다)
+  let inquirySubmitAttemptEpoch = 0;
+  let visibleFailureGeneration = 0;
+  let visibleFailurePayload = null;
+  let activeRetryTransport = null;
+  let activeRetryUiPromise = null;
 
   const $ = (id) => document.getElementById(id);
 
@@ -262,12 +264,21 @@
   /* ----- 제출 ----- */
   async function submit() {
     const status = $('inquiryStatus');
-    // 봇 방어(허니팟): 사람 눈에 안 보이는 필드가 채워졌으면 실제 전송·저장 없이 조용히 성공 화면만.
+    // 봇 방어(허니팟): 전송하거나 기억하지 않고, 실제 사용자 오탐을 위해 직접 연락 경로만 남긴다.
     const hp = $('iCompanyUrl');
-    // 오탐이 나면 손님은 '전달됐다'고 믿고 떠나는데 실제로는 전송·저장이 0이다.
-    // 스팸은 그대로 막되(전송 안 함), 화면은 '아직 전송 안 됨'으로 두어
-    // 전화·문자 버튼이 남게 한다 → 진짜 사람이면 다른 길로 연락할 수 있다.
-    if (hp && hp.value) { showSuccess(collect(), { delivered: false, hasBackend: backendConfigured() }); return; }
+    if (hp && hp.value) {
+      inquirySubmitAttemptEpoch += 1;
+      const pendingButton = $('submitInquiry');
+      if (pendingButton) pendingButton.disabled = false;
+      showResult(collect(), { delivered: false, hasBackend: backendConfigured(), honeypot: true });
+      return;
+    }
+    const contactError = validateStep(3);
+    if (contactError) {
+      clearFieldErrors();
+      showFieldError(contactError.field, contactError.msg);
+      return;
+    }
     if (!$('iConsent').checked) {
       status.textContent = '개인정보 수집·이용에 동의해 주세요.';
       status.className = 'form-status err';
@@ -287,20 +298,81 @@
     status.textContent = '접수 중입니다...';
 
     const hasBackend = backendConfigured();
+    const attempt = ++inquirySubmitAttemptEpoch;
+    const capturedFailureGeneration = visibleFailureGeneration;
     try {
       const delivered = await deliver(payload);
-      // 백엔드 전달 성공 시엔 로컬 사본을 남기지 않는다 — 고객(제출자) 브라우저에 PII 잔존 방지.
-      // (공용 PC 등에서 다음 사용자가 이전 방문자 이름·전화·메모를 열람하는 위험 차단)
-      if (!delivered) saveLocal(payload);
-      showSuccess(payload, { delivered, hasBackend });
+      if (attempt !== inquirySubmitAttemptEpoch) return;
+      if (delivered === true) {
+        const clearedCapturedFailure = capturedFailureGeneration === 0 || LEAD.clearFailure(capturedFailureGeneration);
+        if (clearedCapturedFailure && visibleFailureGeneration === capturedFailureGeneration) {
+          visibleFailureGeneration = 0;
+          visibleFailurePayload = null;
+        }
+        showResult(payload, { delivered: true, hasBackend });
+        return;
+      }
+      rememberAndRenderFailure(payload, hasBackend);
     } catch (err) {
-      // 백엔드 실패 시에도 리드를 잃지 않도록: 로컬 저장 + 재시도/직접 전송 안내
-      saveLocal(payload);
-      showSuccess(payload, { delivered: false, hasBackend, failed: true });
+      if (attempt !== inquirySubmitAttemptEpoch) return;
+      rememberAndRenderFailure(payload, hasBackend);
+    } finally {
+      if (attempt === inquirySubmitAttemptEpoch && btn && btn.isConnected) btn.disabled = false;
     }
   }
 
-  function showSuccess(payload, opts) {
+  function rememberAndRenderFailure(payload, hasBackend) {
+    const generation = LEAD.rememberFailure(payload);
+    visibleFailureGeneration = generation;
+    visibleFailurePayload = payload;
+    showResult(payload, { delivered: false, failed: true, hasBackend, generation });
+  }
+
+  function retryVisibleFailure() {
+    const generation = visibleFailureGeneration;
+    const payload = visibleFailurePayload;
+    if (!generation || !payload) return Promise.resolve({ status: 'empty', generation: 0 });
+
+    const transport = LEAD.retryLatest(CONFIG);
+    if (activeRetryTransport === transport && activeRetryUiPromise) return activeRetryUiPromise;
+
+    activeRetryTransport = transport;
+    const retryButton = $('doneRetry');
+    if (retryButton) {
+      retryButton.disabled = true;
+      retryButton.textContent = '다시 시도 중…';
+    }
+
+    const uiPromise = Promise.resolve(transport)
+      .then((result) => {
+        if (result && result.status === 'sent' && result.generation === visibleFailureGeneration) {
+          visibleFailureGeneration = 0;
+          visibleFailurePayload = null;
+          showResult(payload, { delivered: true, hasBackend: true });
+          return result;
+        }
+        if (result && result.generation === visibleFailureGeneration) {
+          const currentButton = $('doneRetry');
+          if (currentButton) {
+            currentButton.disabled = false;
+            currentButton.textContent = result.status === 'unavailable'
+              ? '자동 접수 경로를 확인해 주세요'
+              : '🔄 다시 시도 (아직 전송되지 않음)';
+          }
+        }
+        return result;
+      })
+      .finally(() => {
+        if (activeRetryUiPromise === uiPromise) {
+          activeRetryTransport = null;
+          activeRetryUiPromise = null;
+        }
+      });
+    activeRetryUiPromise = uiPromise;
+    return uiPromise;
+  }
+
+  function showResult(payload, opts) {
     opts = opts || {};
     const form = $('inquiryForm');
     const phone = (COMPANY.phone || '').replace(/[^0-9]/g, '');
@@ -312,33 +384,45 @@
 
     const delivered = !!opts.delivered;
     const failed = !!opts.failed;
+    const retryable = !delivered && !opts.honeypot && opts.generation > 0 && opts.hasBackend;
     const icon = delivered ? '✓' : (failed ? '!' : '↗');
     const iconCls = delivered ? 'done-check ok' : (failed ? 'done-check warn' : 'done-check send');
     const head = delivered ? '상담 신청이 전달되었습니다'
-      : (failed ? '아직 전송되지 않았습니다' : '거의 다 됐어요 — 마지막으로 보내주세요');
+      : '아직 전송되지 않았습니다';
     const lead = delivered
       ? '접수 내용이 담당자에게 전달되었습니다. 영업시간 기준 빠르게 회신드립니다.'
-      : (failed
-        ? '자동 전송에 실패했습니다. <b>다시 시도</b>하거나 전화·문자로 보내주세요.'
-        : '아래 방법 중 하나로 신청 내용을 보내주시면 <b>담당자가 바로 확인</b>해 드립니다.');
+      : opts.honeypot
+        ? '자동 전송하지 않았고 내용도 저장되지 않았습니다. 전화·문자 또는 내용 복사로 직접 보내주세요.'
+        : '최신 문의 1건만 현재 탭 메모리에 보관합니다. 새로고침하거나 탭을 닫으면 사라집니다. 다시 시도하거나 전화·문자로 보내주세요.';
 
-    form.innerHTML = `
-      <div class="inquiry-done" role="status" aria-live="polite">
+    const previous = form.querySelector('.inquiry-done');
+    if (previous) previous.remove();
+    Array.from(form.children).forEach((child) => { child.hidden = true; });
+    const done = document.createElement('div');
+    done.className = 'inquiry-done';
+    done.setAttribute('role', 'status');
+    done.setAttribute('aria-live', 'polite');
+    done.innerHTML = `
         <div class="${iconCls}">${icon}</div>
         <h3 tabindex="-1">${head}</h3>
-        <p><b>${payload.name || '고객'}</b>님, 감사합니다. ${lead}</p>
+        <p><b class="done-person-name"></b>님, 감사합니다. <span class="done-lead"></span></p>
         ${delivered ? '' : `<div class="done-actions">
-          ${failed && opts.hasBackend ? '<button type="button" class="btn btn-primary btn-lg" id="doneRetry">🔄 자동 접수 다시 시도</button>' : ''}
+          ${retryable ? '<button type="button" class="btn btn-primary btn-lg" id="doneRetry">🔄 자동 접수 다시 시도</button>' : ''}
           ${phone ? `<a class="btn ${failed ? 'btn-ghost' : 'btn-primary'} btn-lg" href="tel:${phone}">📞 전화 상담</a>` : ''}
           ${kakaoReady ? '<button type="button" class="btn btn-kakao btn-lg" id="doneKakao">💬 카카오톡으로 보내기</button>' : ''}
           ${smsHref ? `<a class="btn btn-ghost btn-lg" href="${smsHref}">✉️ 문자로 문의 보내기</a>` : ''}
+          <button type="button" class="btn btn-ghost btn-lg" id="doneCopy">📋 문의 내용 복사</button>
         </div>`}
         <p class="done-eta">영업시간(평일 09:00–17:30) 기준 빠른 회신 · 금액·계약은 대표 확인 후 안내됩니다</p>
         <a href="#top" class="btn btn-ghost btn-sm">처음으로</a>
-      </div>`;
+      `;
+    done.querySelector('.done-person-name').textContent = payload.name || '고객';
+    done.querySelector('.done-lead').textContent = lead;
+    form.appendChild(done);
+    done.hidden = false;
 
     // 화면 전환을 스크린리더·키보드 사용자에게 전달 (innerHTML 교체는 포커스를 유실시킨다)
-    const doneHead = form.querySelector('.inquiry-done h3');
+    const doneHead = done.querySelector('h3');
     if (doneHead) doneHead.focus();
 
     const dk = $('doneKakao');
@@ -347,68 +431,13 @@
       if (kakaoUrl) window.open(kakaoUrl, '_blank', 'noopener');
       dk.textContent = '✓ 내용 복사됨 · 채널 열림 (붙여넣기 전송)';
     });
-    const rt = $('doneRetry');
-    if (rt) rt.addEventListener('click', async () => {
-      rt.disabled = true; rt.textContent = '다시 시도 중…';
-      try {
-        const ok = await deliver(payload);
-        showSuccess(payload, { delivered: ok, hasBackend: true });
-      } catch (e) {
-        rt.disabled = false; rt.textContent = '🔄 다시 시도 (전송 실패)';
-      }
+    const copy = $('doneCopy');
+    if (copy) copy.addEventListener('click', () => {
+      copyToClipboard(text);
+      copy.textContent = '✓ 문의 내용을 복사했습니다';
     });
-  }
-
-  /* ----- 못 보낸 문의 자동 재전송 -----
-     전파가 끊긴 지하 현장 등에서 전송이 실패하면 지금까지는 손님이 [다시 시도]를
-     직접 눌러야만 했다. 그대로 이탈하면 문의가 사라진다.
-     → 실패분은 이미 saveLocal 로 남으므로, 다음 방문이나 온라인 복귀 때 조용히 다시 보낸다.
-     성공하면 로컬 사본을 지운다 — 리드를 살리면서 손님 브라우저의 개인정보도 함께 줄어든다. */
-  const RETRY_MAX = 3;        // 이 횟수를 넘기면 포기(무한 재시도로 서비스 한도를 태우지 않는다)
-  const RETRY_BATCH = 5;      // 한 번에 시도할 최대 건수
-  let retrying = false;
-
-  function loadLocal() {
-    let list = [];
-    try { list = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { return []; }
-    // 여기서도 정리한다. 예전에는 saveLocal 에서만 걸러서, saveLocal 은 '전송 실패'일 때만 불리므로
-    // 전송이 잘 되는 동안에는 만료 항목이 영원히 남았다(실측: 201일 지난 항목이 그대로 있었다).
-    // 페이지를 열어 이 함수가 한 번이라도 불리면 정리된다.
-    const { kept, removed } = pruneExpired(list);
-    if (removed > 0) writeLocal(kept);
-    return kept;
-  }
-  function writeLocal(list) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
-  }
-
-  async function retryPending() {
-    if (retrying) return;                       // 재진입 방지(online 이벤트가 연달아 올 수 있다)
-    if (!backendConfigured()) return;           // 보낼 곳이 없으면 시도 자체가 무의미
-    if (navigator.onLine === false) return;
-    const list = loadLocal();
-    if (!list.length) return;
-
-    retrying = true;
-    try {
-      const targets = list.filter((x) => x && !x._gaveUp).slice(0, RETRY_BATCH);
-      let changed = false;
-      for (const item of targets) {
-        let sent = false;
-        try { sent = await deliver(item); } catch (e) { sent = false; }
-        if (sent) {
-          // 성공 → 로컬 사본 제거(개인정보 최소 보관 원칙과 같은 방향)
-          const i = list.findIndex((x) => x && x.id === item.id);
-          if (i >= 0) list.splice(i, 1);
-          changed = true;
-        } else {
-          item._tries = (item._tries || 0) + 1;
-          if (item._tries >= RETRY_MAX) item._gaveUp = true;   // 더는 건드리지 않는다
-          changed = true;
-        }
-      }
-      if (changed) writeLocal(list);
-    } finally { retrying = false; }
+    const rt = $('doneRetry');
+    if (rt) rt.addEventListener('click', () => { retryVisibleFailure(); });
   }
 
   /* ----- 초기화 ----- */
@@ -452,9 +481,9 @@
       prefillFromEstimate({ area: d.area, budget: d.budget });
     });
 
-    // 못 보낸 문의 재전송: 화면 그리기를 막지 않도록 뒤로 미루고, 온라인 복귀 때도 한 번.
-    setTimeout(() => { retryPending(); }, 3000);
-    window.addEventListener('online', () => { retryPending(); });
+    // 페이지를 다시 열었을 때는 자동 전송하지 않는다. 현재 탭에서 실패한 최신 문의만
+    // 온라인 복귀 시 공용 단일-flight 재시도 경로로 보낸다.
+    window.addEventListener('online', () => { retryVisibleFailure(); });
 
     document.addEventListener('manmul:design', (e) => {
       SELECTED_DESIGN = e.detail || null;
