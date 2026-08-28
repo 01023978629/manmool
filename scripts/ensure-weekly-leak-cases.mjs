@@ -66,16 +66,66 @@ for (const relative of allImages) {
 }
 
 const expectedContent = [
-  { slug: 'apartment-balcony-rain-pipe-replacement', date: '2026-08-28', title: '대전 아파트 베란다 우수관 교체 — 바닥 배수구와 연결부 작업' },
-  { slug: 'apartment-upper-lower-rain-pipe-repair', date: '2026-08-28', title: '대전 아파트 상·하층 우수관 보수 — 배수구 테두리와 관통부 마감' },
-  { slug: 'apartment-basement-cast-iron-pipe-repair', date: '2026-08-26', title: '대전 아파트 지하실 주철관 보수 — 부식 구간부터 슬리브 마감까지' }
+  { slug: 'apartment-balcony-rain-pipe-replacement', date: '2026-08-28', title: '대전 아파트 베란다 우수관 교체 — 바닥 배수구와 연결부 작업', coverAlt: '수직 우수관 하부 연결부와 바닥 마감 상태' },
+  { slug: 'apartment-upper-lower-rain-pipe-repair', date: '2026-08-28', title: '대전 아파트 상·하층 우수관 보수 — 배수구 테두리와 관통부 마감', coverAlt: '보수 후 수직 우수관과 천장 관통부 전경' },
+  { slug: 'apartment-basement-cast-iron-pipe-repair', date: '2026-08-26', title: '대전 아파트 지하실 주철관 보수 — 부식 구간부터 슬리브 마감까지', coverAlt: '지하실 주철관 두 라인에 슬리브 보수를 마친 상태' }
 ];
 const site = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'site.json'), 'utf8'));
 const blog = fs.readFileSync(path.join(ROOT, 'blog.html'), 'utf8');
 const rss = fs.readFileSync(path.join(ROOT, 'rss.xml'), 'utf8');
 const sitemap = fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8');
-const unitPattern = /\b\d{3,4}\s*(?:동|호)\b/;
-const phonePattern = /01[016789]-?\d{3,4}-?\d{4}/;
+const forbiddenPrivacyFields = new Set(['place', 'address', 'location', 'source', 'sourcePath', 'project', 'apartment', 'building', 'unit', 'unitNo']);
+const absolutePathPattern = /(?:\b[A-Za-z]:[\\/]|^\\\\|\bfile:\/\/)/i;
+const phonePattern = /01[016789](?:[ .-]?\d){7,8}\b/;
+const unitPattern = /(?:\d{1,4}\s*(?:동|호)|\d{1,3}\s*[-/]\s*\d{3,4})/;
+const detailedAddressPattern = /(?:[가-힣]+(?:로|길)\s*\d+(?:-\d+)?|[가-힣]+(?:동|리|읍|면)\s*\d+(?:-\d+)?|\d+(?:-\d+)?번지)/;
+const namedBuildingPattern = /[가-힣]{2,}(?:아파트|빌딩)/;
+
+function privacyViolations(value) {
+  const violations = [];
+  function walk(node, keyPath = '') {
+    if (Array.isArray(node)) {
+      node.forEach((entry, index) => walk(entry, `${keyPath}[${index}]`));
+      return;
+    }
+    if (node && typeof node === 'object') {
+      for (const [key, entry] of Object.entries(node)) {
+        const nextPath = keyPath ? `${keyPath}.${key}` : key;
+        if (forbiddenPrivacyFields.has(key)) violations.push(`${nextPath}: 비공개 필드`);
+        walk(entry, nextPath);
+      }
+      return;
+    }
+    if (typeof node !== 'string') return;
+    if (absolutePathPattern.test(node)) violations.push(`${keyPath}: 절대 경로`);
+    if (phonePattern.test(node)) violations.push(`${keyPath}: 전화번호`);
+    if (unitPattern.test(node)) violations.push(`${keyPath}: 동호수`);
+    if (detailedAddressPattern.test(node)) violations.push(`${keyPath}: 상세 주소`);
+    if (namedBuildingPattern.test(node)) violations.push(`${keyPath}: 단지·건물 고유명`);
+  }
+  walk(value);
+  return violations;
+}
+
+const privacyFixtures = [
+  ...Array.from(forbiddenPrivacyFields, (field) => [`빈 ${field} 필드`, { [field]: '' }]),
+  ['Windows 절대 경로', { note: 'C:\\fixtures\\private.jpg' }],
+  ['UNC 경로', { note: '\\\\server\\share\\private.jpg' }],
+  ['file 경로', { note: 'file:///fixtures/private.jpg' }],
+  ['공백 전화번호', { note: '010 1234 5678' }],
+  ['점 전화번호', { note: '010.1234.5678' }],
+  ['하이픈 전화번호', { note: '010-1234-5678' }],
+  ['동호수', { note: '101동 1203호' }],
+  ['동호수 조합', { note: '101-1203' }],
+  ['도로명 주소', { note: '가람로 12-3' }],
+  ['지번 주소', { note: '푸른동 123-4' }],
+  ['단지 고유명', { note: '가람아파트' }],
+  ['건물 고유명', { note: '푸른빌딩' }]
+];
+for (const [label, fixture] of privacyFixtures) {
+  if (!privacyViolations(fixture).length) failures.push(`개인정보 차단 fixture가 통과했다: ${label}`);
+}
+if (privacyViolations({ title: '대전 아파트 배관 보수' }).length) failures.push('개인정보 차단 fixture가 일반적인 대전 아파트 표현을 막는다');
 
 for (const expected of expectedContent) {
   const matches = (site.insights || []).filter((item) => item && item.slug === expected.slug);
@@ -84,12 +134,12 @@ for (const expected of expectedContent) {
   const media = [item.image, ...(item.body || []).filter((section) => section.img).map((section) => section.img)];
   const wantedMedia = WEEKLY_CASES.find((entry) => entry.slug === expected.slug).images;
   if (item.title !== expected.title || item.date !== expected.date) failures.push(`${expected.slug}: 제목 또는 날짜가 다르다`);
+  if (item.imageAlt !== expected.coverAlt) failures.push(`${expected.slug}: 표지 사진 설명이 다르다`);
   if (item.category !== '방수·설비' || item.service !== 'leak') failures.push(`${expected.slug}: 누수 서비스 분류가 아니다`);
-  if (item.place) failures.push(`${expected.slug}: 익명 사례에 위치 필드가 있다`);
   if ((item.body || []).length < 4 || item.body.length > 6) failures.push(`${expected.slug}: 본문 소제목이 4~6개가 아니다`);
   if (JSON.stringify(media) !== JSON.stringify(wantedMedia)) failures.push(`${expected.slug}: 사진 순서 또는 수가 다르다`);
-  const publicText = JSON.stringify(item);
-  if (unitPattern.test(publicText) || phonePattern.test(publicText)) failures.push(`${expected.slug}: 동호수 또는 전화번호가 공개 데이터에 있다`);
+  const publicPrivacy = privacyViolations(item);
+  if (publicPrivacy.length) failures.push(`${expected.slug}: 공개 데이터에 개인정보가 있다 (${publicPrivacy.join(', ')})`);
   const postPath = path.join(ROOT, 'posts', `${expected.slug}.html`);
   if (!fs.existsSync(postPath)) { failures.push(`${expected.slug}: 정적 글이 없다`); continue; }
   const post = fs.readFileSync(postPath, 'utf8');

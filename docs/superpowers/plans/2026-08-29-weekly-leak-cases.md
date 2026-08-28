@@ -134,7 +134,7 @@ Import `fs`, `path`, and `fileURLToPath` from the Node standard library. This ch
 Run:
 
 ```powershell
-& 'C:\Users\1dncj\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts/ensure-weekly-leak-cases.mjs
+node scripts/ensure-weekly-leak-cases.mjs
 ```
 
 Expected: FAIL because all 15 output JPEG files are missing. This proves the check catches absent production assets.
@@ -302,7 +302,7 @@ Insert these objects verbatim, in the order shown:
 Run:
 
 ```powershell
-& 'C:\Users\1dncj\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' scripts/prerender-posts.py
+python scripts/prerender-posts.py
 ```
 
 Expected: all published posts are generated, `blog.html` list count increases by 3, and `rss.xml` includes the new slugs.
@@ -337,11 +337,10 @@ Change the `blog.html` entry `lastmod` to `2026-08-29`. Add these exact entries 
 Run:
 
 ```powershell
-$node = 'C:\Users\1dncj\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe'
-& $node scripts/ensure-weekly-leak-cases.mjs
-& $node scripts/ensure-site-integrity.mjs
-& $node scripts/ensure-conversion-basics.mjs
-& $node scripts/new-case-post.test.mjs
+node scripts/ensure-weekly-leak-cases.mjs
+node scripts/ensure-site-integrity.mjs
+node scripts/ensure-conversion-basics.mjs
+node scripts/new-case-post.test.mjs
 ```
 
 Expected: all pass with pristine output.
