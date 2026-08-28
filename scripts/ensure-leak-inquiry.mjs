@@ -2,9 +2,9 @@
 /* 누수 페이지 상담 폼이 '접수되는 상태'로 남아 있는지 검사한다.
  *
  * 여기서 막으려는 사고는 세 가지다.
- *  1) 전송·보관 코드가 폼마다 갈라져서, 나중에 한쪽만 고쳐지고 다른 쪽 리드가 샌다.
- *  2) 화면의 보유기간 안내와 실제 삭제 시점이 어긋난다.
- *  3) 스크립트 순서가 뒤집혀 폼이 조용히 죽는다(제출해도 아무 일도 안 일어난다).
+ *  1) 전송·현재 탭 재시도 코드가 폼마다 갈라져 한쪽 리드만 샌다.
+ *  2) 실패 안내에서 다시 시도·전화·문자·복사 중 일부가 사라진다.
+ *  3) 제출 epoch/finally 또는 스크립트 순서가 깨져 폼이 조용히 죽는다.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -21,6 +21,45 @@ const inquiryJs = read('js/inquiry.js');
 const css = read('css/leak-theme.css');
 
 const fail = [];
+
+function functionBody(src, name) {
+  const header = new RegExp(`^\\s*(?:async\\s+)?function\\s+${name}\\s*\\(`, 'm').exec(src);
+  if (!header) return null;
+  const start = src.indexOf('{', header.index + header[0].length);
+  if (start < 0) return null;
+  let depth = 0;
+  for (let i = start; i < src.length; i++) {
+    if (src[i] === '{') depth += 1;
+    if (src[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return src.slice(start, i + 1);
+    }
+  }
+  return null;
+}
+
+function blockBody(src, marker) {
+  const markerAt = src.indexOf(marker);
+  if (markerAt < 0) return null;
+  const start = src.indexOf('{', markerAt + marker.length);
+  if (start < 0) return null;
+  let depth = 0;
+  for (let i = start; i < src.length; i++) {
+    if (src[i] === '{') depth += 1;
+    if (src[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return src.slice(start, i + 1);
+    }
+  }
+  return null;
+}
+
+function leadExports(src) {
+  const assignment = /\bwindow\.ManmulLead\s*=\s*\{([^}]*)\}\s*;/.exec(src);
+  return assignment
+    ? assignment[1].split(',').map((name) => name.trim()).filter(Boolean)
+    : [];
+}
 
 /* ① 폼 자체와 필수 요소 */
 if (!/id="leakInquiry"/.test(leak)) fail.push('leak.html 에 상담 폼 절(#leakInquiry)이 없다.');
@@ -40,8 +79,14 @@ const order = (html, first, second, page) => {
 order(leak, 'js/lead-transport.js', 'js/leak-inquiry.js', 'leak.html');
 order(index, 'js/lead-transport.js', 'js/inquiry.js', 'index.html');
 
-/* ③ 전송·보관은 공용 모듈 한 곳에만 — 폼별 자체 구현이 생기면 경로가 갈라진다 */
-if (!/window\.ManmulLead\s*=/.test(transport)) fail.push('js/lead-transport.js 가 window.ManmulLead 를 내보내지 않는다.');
+/* ③ 전송·현재 탭 재시도는 공용 모듈 한 곳에만 둔다 --------------------- */
+const expectedExports = [
+  'backendConfigured', 'fetchWithTimeout', 'buildLeadText', 'deliver',
+  'rememberFailure', 'retryLatest', 'clearFailure', 'copyToClipboard'
+];
+if (JSON.stringify(leadExports(transport)) !== JSON.stringify(expectedExports)) {
+  fail.push('js/lead-transport.js 의 공용 export 계약이 정확하지 않다.');
+}
 for (const [file, src] of [['js/inquiry.js', inquiryJs], ['js/leak-inquiry.js', leakJs]]) {
   // 이름 끝을 막는다. 처음엔 /ManmulLead/ 로 짰다가 변이 검증에서 걸렸다 —
   // window.ManmulLeadX 로 바꿔도 부분문자열이라 그대로 통과했다.
@@ -49,25 +94,45 @@ for (const [file, src] of [['js/inquiry.js', inquiryJs], ['js/leak-inquiry.js', 
     fail.push(`${file} 가 공용 전송 모듈(window.ManmulLead)을 쓰지 않는다.`);
   }
   // 자체 구현 여부는 '함수 선언'으로만 본다. 호출(LEAD.deliver(...))은 정상이다.
-  for (const fn of ['deliver', 'saveLocal', 'backendConfigured', 'pruneExpired']) {
+  for (const fn of ['deliver', 'backendConfigured', 'rememberFailure', 'retryLatest', 'clearFailure']) {
     if (new RegExp(`(?:async\\s+)?function\\s+${fn}\\s*\\(`).test(src)) {
       fail.push(`${file} 안에 ${fn}() 자체 구현이 있다 — 공용 모듈과 갈라져 한쪽 리드가 샌다.`);
     }
   }
+  if (/^\s*(?:async\s+)?function\s+(?:saveLocal|loadLocal)\s*\(/m.test(src) ||
+      /\b(?:saveLocal|loadLocal)\s*\(/.test(src) ||
+      /(?:localStorage|sessionStorage)\s*\.\s*(?:getItem|setItem)\s*\(/.test(src)) {
+    fail.push(`${file} 에 퇴역한 브라우저 영구 문의 큐가 있다.`);
+  }
 }
 
-/* ④ 화면의 보유기간 안내 == 코드의 실제 삭제 기간 */
-const days = /RETENTION_DAYS\s*=\s*(\d+)/.exec(transport);
-if (!days) fail.push('js/lead-transport.js 에서 RETENTION_DAYS 를 찾지 못했다.');
-else {
-  const years = Number(days[1]) / 365;
-  for (const [page, html] of [['leak.html', leak], ['index.html', index]]) {
-    const notice = /보유기간\s*(\d+)\s*년/.exec(html);
-    if (!notice) fail.push(`${page} 동의 문구에 보유기간 안내가 없다.`);
-    else if (Number(notice[1]) !== years) {
-      fail.push(`${page} 는 보유기간 ${notice[1]}년이라 안내하는데 코드는 ${days[1]}일(${years}년)이다.`);
-    }
-  }
+/* ④ 누수 폼이 메모리 실패 보관·재시도·대체 연락에 실제 연결된다 -------- */
+const rememberBody = functionBody(leakJs, 'rememberAndShowFailure') || '';
+const retryBody = functionBody(leakJs, 'retryVisibleFailure') || '';
+const doneBody = functionBody(leakJs, 'showDone') || '';
+const submitBody = blockBody(leakJs, "form.addEventListener('submit', async") || '';
+
+if (!/\bLEAD\.rememberFailure\s*\(\s*payload\s*\)/.test(rememberBody)) {
+  fail.push('누수 실패 처리 함수가 공용 rememberFailure(payload)를 호출하지 않는다.');
+}
+if (!/\bLEAD\.retryLatest\s*\(\s*CONFIG\s*\)/.test(retryBody)) {
+  fail.push('누수 재시도 함수가 공용 retryLatest(CONFIG)를 호출하지 않는다.');
+}
+if (!/id="lkRetry"/.test(doneBody) || !/id="lkCopy"/.test(doneBody) ||
+    !/href="tel:'\s*\+\s*PHONE/.test(doneBody) || !/sms:/.test(doneBody)) {
+  fail.push('누수 실패 화면에 다시 시도·복사·전화·문자(SMS) 경로가 모두 연결되지 않았다.');
+}
+if (!/최신\s*문의\s*1건/.test(doneBody) || !/현재\s*탭\s*메모리/.test(doneBody) ||
+    !/새로고침/.test(doneBody) || !/탭을\s*닫으면\s*사라/.test(doneBody)) {
+  fail.push('누수 실패 안내에 현재 탭 최신 1건·새로고침/탭 닫기 소멸 설명이 없다.');
+}
+if (!/const\s+attempt\s*=\s*\+\+leakSubmitAttemptEpoch/.test(submitBody) ||
+    !/if\s*\(attempt\s*!==\s*leakSubmitAttemptEpoch\)\s*return/.test(submitBody) ||
+    !/finally\s*\{\s*if\s*\(attempt\s*===\s*leakSubmitAttemptEpoch\)\s*submitBtn\.disabled\s*=\s*false/.test(submitBody)) {
+  fail.push('누수 제출의 attempt epoch 또는 최신 시도만 버튼을 복구하는 finally 가드가 없다.');
+}
+if (!/window\.addEventListener\(\s*['"]online['"]\s*,\s*\(\)\s*=>\s*\{\s*retryVisibleFailure\(\);\s*\}\s*\)/.test(leakJs)) {
+  fail.push('누수 온라인 복귀 이벤트가 현재 탭 재시도 함수에 연결되지 않았다.');
 }
 
 /* ⑤ 접수 뒤 폼이 실제로 사라지는지 — display 를 준 요소는 hidden 속성만으로 안 사라진다 */

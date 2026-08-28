@@ -43,20 +43,79 @@ function funcBody(src, header) {
   return null;
 }
 
-/** 경로를 '켤지 말지' 결정하는 게이팅 키만 뽑는다.
- *  enabled / endpoint / ...Url 만 대상 — accessKey 처럼 본문에 실어 보내는 값은
- *  전송 여부를 좌우하지 않으므로 일치 대상이 아니다(넣으면 오탐이 난다). */
-const GATING = /^(enabled|endpoint)$|Url$|url$/;
-function routeKeys(body) {
+/** if(...) 조건만 중첩 괄호까지 잘라낸다. deliver()의 accessKey payload ternary는
+ * 전송 경로 gate가 아니므로 포함하지 않고, 조건에 accessKey가 들어오면 포함한다. */
+function ifConditions(body) {
+  const conditions = [];
+  const pattern = /\bif\s*\(/g;
+  let match;
+  while ((match = pattern.exec(body))) {
+    const start = body.indexOf('(', match.index);
+    let depth = 0;
+    for (let i = start; i < body.length; i++) {
+      if (body[i] === '(') depth += 1;
+      if (body[i] === ')') {
+        depth -= 1;
+        if (depth === 0) {
+          conditions.push(body.slice(start + 1, i));
+          pattern.lastIndex = i + 1;
+          break;
+        }
+      }
+    }
+  }
+  return conditions;
+}
+
+function configKeys(source) {
   const keys = new Set();
-  for (const m of body.matchAll(/\b(n8n|forms)\.([A-Za-z_$][\w$]*)/g)) {
-    if (GATING.test(m[2])) keys.add(m[1] + '.' + m[2]);
+  for (const match of source.matchAll(/\b(n8n|forms)\.([A-Za-z_$][\w$]*)/g)) {
+    keys.add(match[1] + '.' + match[2]);
+  }
+  for (const match of source.matchAll(/\b(?:config|CONFIG)\.([A-Za-z_$][\w$]*)/g)) {
+    if (match[1] !== 'n8n' && match[1] !== 'forms') keys.add('config.' + match[1]);
   }
   return keys;
 }
 
+function sameSet(left, right) {
+  return left.size === right.size && [...left].every((value) => right.has(value));
+}
+
+function providerList(src, file) {
+  const match = /^\s*const\s+SUPPORTED_FORM_PROVIDERS\s*=\s*\[([^\]]*)\]\s*;/m.exec(src);
+  if (!match) {
+    fail.push(`${file} 에 명시적 SUPPORTED_FORM_PROVIDERS 배열이 없습니다`);
+    return [];
+  }
+  const values = [...match[1].matchAll(/(['"])([a-z0-9-]+)\1/g)].map((item) => item[2]);
+  const residue = match[1].replace(/(['"])[a-z0-9-]+\1/g, '').replace(/[\s,]/g, '');
+  if (residue) fail.push(`${file} 의 provider 배열에 정적 문자열 외 값이 섞였습니다`);
+  return values;
+}
+
 const inquirySrc = read(TRANSPORT);
 const adminSrc = read(ADMIN);
+const expectedProviders = ['web3forms', 'generic', 'formspree'];
+const transportProviders = providerList(inquirySrc, 'js/lead-transport.js');
+const adminProviders = providerList(adminSrc, 'js/admin.js');
+const expectedProviderSet = new Set(expectedProviders);
+const transportProviderSet = new Set(transportProviders);
+const adminProviderSet = new Set(adminProviders);
+
+if (transportProviders.length !== expectedProviders.length ||
+    transportProviderSet.size !== expectedProviderSet.size ||
+    !sameSet(transportProviderSet, expectedProviderSet)) {
+  fail.push('js/lead-transport.js 의 지원 폼 provider 집합이 계약과 다릅니다');
+}
+if (adminProviders.length !== expectedProviders.length ||
+    adminProviderSet.size !== expectedProviderSet.size ||
+    !sameSet(adminProviderSet, expectedProviderSet)) {
+  fail.push('js/admin.js 의 지원 폼 provider 집합이 계약과 다릅니다');
+}
+if (!sameSet(transportProviderSet, adminProviderSet)) {
+  fail.push('전송 모듈과 관리자 화면의 지원 폼 provider 집합이 서로 다릅니다');
+}
 
 const deliverBody = funcBody(inquirySrc, 'async function deliver(');
 const backendBody = funcBody(inquirySrc, 'function backendConfigured(');
@@ -67,23 +126,41 @@ if (!backendBody) fail.push('js/lead-transport.js 에서 backendConfigured() 본
 if (!routeBody) fail.push('js/admin.js 에서 leadRoute() 본문을 찾지 못했습니다 — admin 이 접수 경로 판정을 잃었습니다');
 
 if (deliverBody && backendBody && routeBody) {
-  const dk = routeKeys(deliverBody);
-  const bk = routeKeys(backendBody);
-  const rk = routeKeys(routeBody);
+  const dk = configKeys(ifConditions(deliverBody).join('\n'));
+  // backendConfigured()는 전체 함수가 순수 route predicate라 모든 설정 참조가 gate다.
+  const bk = configKeys(backendBody);
+  const rk = configKeys(ifConditions(routeBody).join('\n'));
 
-  // ① 손님 화면 안내(backendConfigured)와 실제 전송(deliver)이 같은 조건을 봐야 한다
-  for (const k of dk) {
-    if (!bk.has(k)) fail.push(`deliver() 는 ${k} 를 쓰는데 backendConfigured() 는 안 봅니다 — 손님에게 잘못된 안내가 나갑니다`);
-  }
-  // ② 대표님 화면(admin)이 실제 전송과 같은 조건을 봐야 한다
-  for (const k of dk) {
-    if (!rk.has(k)) fail.push(`deliver() 는 ${k} 를 쓰는데 admin 의 leadRoute() 는 안 봅니다 — 접수 상태가 거짓으로 표시됩니다`);
-  }
-  // ③ admin 이 실제로는 쓰이지 않는 조건을 보고 있으면 그것도 거짓 표시다
-  for (const k of rk) {
-    if (!dk.has(k)) fail.push(`admin 의 leadRoute() 가 ${k} 를 보는데 deliver() 는 안 씁니다 — 연결됐다고 표시해도 전송되지 않습니다`);
-  }
+  const compareGates = (name, keys) => {
+    for (const key of dk) {
+      if (!keys.has(key)) fail.push(`deliver() 는 ${key} 로 gate하지만 ${name}은 보지 않습니다`);
+    }
+    for (const key of keys) {
+      if (!dk.has(key)) fail.push(`${name}은 ${key} 로 추가 gate하지만 deliver() 는 사용하지 않습니다`);
+    }
+  };
+  compareGates('backendConfigured()', bk);
+  compareGates('admin leadRoute()', rk);
   if (dk.size === 0) fail.push('deliver() 에서 접수 경로 설정 키를 하나도 찾지 못했습니다 — 검사가 무의미해졌습니다');
+
+  // provider 배열을 선언만 해두고 우회 전송하는 decoy를 막는다. n8n이 먼저이며,
+  // 폼은 enabled+endpoint를 만족한 뒤 명시 지원 provider만 허용해야 한다.
+  if (!/n8n\.enabled\s*&&\s*n8n\.inquiryWebhookUrl/.test(deliverBody) ||
+      !/forms\.enabled\s*&&\s*forms\.endpoint/.test(deliverBody) ||
+      !/SUPPORTED_FORM_PROVIDERS\.includes\(provider\)/.test(deliverBody) ||
+      !/throw\s+new\s+Error\(['"]unsupported-form-provider['"]\)/.test(deliverBody) ||
+      deliverBody.indexOf('n8n.enabled') > deliverBody.indexOf('forms.enabled')) {
+    fail.push('deliver() 가 n8n 우선 또는 지원된 enabled 폼만 전송하는 계약을 지키지 않습니다');
+  }
+  if (!/n8n\.enabled\s*&&\s*n8n\.inquiryWebhookUrl/.test(backendBody) ||
+      !/forms\.enabled\s*&&\s*forms\.endpoint\s*&&\s*SUPPORTED_FORM_PROVIDERS\.includes\(formProvider\(forms\)\)/.test(backendBody)) {
+    fail.push('backendConfigured() 가 n8n 또는 지원된 enabled 폼만 준비 상태로 판정하지 않습니다');
+  }
+  if (!/n8n\.enabled\s*&&\s*n8n\.inquiryWebhookUrl/.test(routeBody) ||
+      !/forms\.enabled\s*&&\s*forms\.endpoint\s*&&\s*SUPPORTED_FORM_PROVIDERS\.includes\(provider\)/.test(routeBody) ||
+      routeBody.indexOf('n8n.enabled') > routeBody.indexOf('forms.enabled')) {
+    fail.push('admin leadRoute() 가 n8n 우선 또는 지원된 enabled 폼만 표시하는 계약을 지키지 않습니다');
+  }
 }
 
 // ④ config.json 에 두 경로의 자리가 모두 있어야 대표님이 설정할 수 있다
@@ -92,6 +169,9 @@ try {
   if (!cfg.n8n || typeof cfg.n8n !== 'object') fail.push('data/config.json 에 n8n 항목이 없습니다');
   if (!cfg.forms || typeof cfg.forms !== 'object') fail.push('data/config.json 에 forms 항목이 없습니다 (무료 접수 경로를 설정할 자리)');
   if (cfg.forms && !('endpoint' in cfg.forms)) fail.push('data/config.json 의 forms 에 endpoint 키가 없습니다');
+  if (cfg.forms && cfg.forms.enabled && !expectedProviders.includes(String(cfg.forms.provider || '').trim().toLowerCase())) {
+    fail.push('data/config.json 에 활성화된 폼 provider가 명시 지원 집합 밖입니다');
+  }
 } catch (e) {
   fail.push('data/config.json 을 읽지 못했습니다: ' + e.message);
 }

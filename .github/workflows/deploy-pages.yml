@@ -48,6 +48,30 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/manmool-e2e" --no-save --package-lock=false playwright@1.55.0
           "$RUNNER_TEMP/manmool-e2e/node_modules/.bin/playwright" install --with-deps chromium
 
+      - name: Verify lead privacy
+        env:
+          NODE_PATH: ${{ runner.temp }}/manmool-e2e/node_modules
+        run: >-
+          node --test --test-concurrency=1
+          tests/lead-transport.test.cjs
+          tests/lead-privacy.e2e.cjs
+
+      - name: Run management office artifact mutation tests
+        shell: bash
+        env:
+          NODE_PATH: ${{ runner.temp }}/manmool-e2e/node_modules
+        run: |
+          set -euo pipefail
+          node --test --test-concurrency=1 tests/configure-office-api.test.cjs tests/pages-artifact-policy.test.cjs
+
+      - name: Run management office portal regression
+        shell: bash
+        env:
+          NODE_PATH: ${{ runner.temp }}/manmool-e2e/node_modules
+        run: |
+          set -euo pipefail
+          node --test --test-concurrency=1 tests/office-request.logic.test.cjs tests/office-request-api.test.cjs tests/office-request-auth.e2e.cjs tests/office-request-workflow.e2e.cjs tests/office-intake.e2e.cjs
+
       - name: Run source quality checks
         shell: bash
         env:

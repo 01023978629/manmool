@@ -325,6 +325,24 @@ body.office-page .site-header .header-cta { background: var(--office-navy); }
 .office-package-note p { margin-top: 4px; color: var(--office-muted); font-size: 12.5px; }
 .office-package-note small { color: var(--office-navy); font-size: 12.5px; font-weight: 750; }
 
+.office-request-intro { background: #e8f3f1; }
+.office-request-intro-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 38px;
+}
+.office-request-intro h2 {
+  max-width: 760px;
+  margin: 10px 0 14px;
+  color: var(--office-navy);
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1.22;
+}
+.office-request-intro p { max-width: 720px; color: var(--office-muted); line-height: 1.72; }
+.office-request-intro-actions { display: grid; justify-items: start; gap: 14px; min-width: 250px; }
+.office-request-intro-actions .office-button { width: 100%; }
+
 .office-report-section { background: var(--office-paper); }
 .office-report-grid {
   display: grid;
@@ -551,6 +569,8 @@ body.office-page .site-footer { background: #071f29; }
   .office-report-grid { gap: 36px; }
   .office-case-grid { grid-template-columns: 1fr 1fr; }
   .office-inquiry-grid { gap: 36px; }
+  .office-request-intro-grid { grid-template-columns: 1fr; }
+  .office-request-intro-actions { min-width: 0; }
 }
 
 @media (max-width: 640px) {
@@ -590,6 +610,8 @@ body.office-page .site-footer { background: #071f29; }
   .office-section-head-row .office-text-link { margin-top: 14px; }
   .office-case-card img { height: 220px; }
   .office-inquiry-copy h2 { font-size: 31px; }
+  .office-request-intro h2 { font-size: 31px; }
+  .office-request-intro-actions { width: 100%; }
   .office-inquiry-panel { min-width: 0; min-height: 390px; padding: 20px 16px; border-radius: 16px; }
   .office-inquiry-panel-head { display: block; }
   .office-inquiry-panel-head b { display: block; margin-top: 5px; }

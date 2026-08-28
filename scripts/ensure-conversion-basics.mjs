@@ -14,10 +14,42 @@ const fail = [];
 const ok = [];
 function check(cond, bad, good) { if (cond) ok.push(good); else fail.push(bad); }
 
+function functionBody(src, name) {
+  const header = new RegExp(`^\\s*(?:async\\s+)?function\\s+${name}\\s*\\(`, 'm').exec(src);
+  if (!header) return null;
+  const start = src.indexOf('{', header.index + header[0].length);
+  if (start < 0) return null;
+  let depth = 0;
+  for (let i = start; i < src.length; i++) {
+    if (src[i] === '{') depth += 1;
+    if (src[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return src.slice(start, i + 1);
+    }
+  }
+  return null;
+}
+
+function leadExports(src) {
+  const assignment = /\bwindow\.ManmulLead\s*=\s*\{([^}]*)\}\s*;/.exec(src);
+  if (!assignment) return [];
+  return assignment[1].split(',').map((name) => name.trim()).filter(Boolean);
+}
+
+function paragraphTextById(html, id) {
+  const match = new RegExp(`<p\\s+id="${id}"[^>]*>([\\s\\S]*?)<\\/p>`).exec(html);
+  return match ? match[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : '';
+}
+
 const index = read('index.html');
 const css = read('css/styles.css');
 const inquiry = read('js/inquiry.js');
 const transport = read('js/lead-transport.js');
+const leakInquiry = read('js/leak-inquiry.js');
+const adminHtml = read('admin.html');
+const adminJs = read('js/admin.js');
+const privacy = read('privacy.html');
+const handoff = read('integrations/인수인계서.md');
 const main = read('js/main.js');
 const blogJs = read('js/blog.js');
 const office = read('office.html');
@@ -98,15 +130,41 @@ check(/portfolioSpriteMarkup\(item, 'scene', true\)/.test(main),
   '모달 시안이 지연 로딩으로 바뀌었다 — 누르면 빈 칸이 보인다(모달은 즉시 로딩이어야 함)',
   '모달 시안은 즉시 로딩');
 
-/* ⑧ 못 보낸 문의를 자동으로 다시 보낸다 -------------------------------- */
-// 전파가 끊긴 곳에서 전송이 실패하면 손님이 [다시 시도]를 직접 눌러야 했다.
-// 그대로 이탈하면 문의가 사라진다. 성공 시 로컬 사본을 지우므로 개인정보도 함께 준다.
-check(/function retryPending/.test(inquiry) && /window\.addEventListener\('online'/.test(inquiry),
-  '못 보낸 문의 자동 재전송이 사라졌다 — 전파 끊긴 곳에서 넣은 문의가 그대로 묻힌다',
-  '못 보낸 문의 자동 재전송(다음 방문·온라인 복귀)');
-check(/RETRY_MAX/.test(inquiry),
-  '재전송 횟수 상한이 없다 — 실패가 반복되면 무한 재시도로 발송 한도를 태운다',
-  '재전송 횟수 상한 있음');
+/* ⑧ 실패 문의는 현재 탭 메모리에서 공용 단일-flight 경로로만 재시도한다 --- */
+// 개인정보를 localStorage 큐에 쌓지 않는다. 두 폼 모두 공용 모듈의 최신 1건
+// 메모리 보관·재시도 함수를 실제 실패/온라인 복귀 경로에 연결해야 한다.
+const expectedLeadExports = [
+  'backendConfigured', 'fetchWithTimeout', 'buildLeadText', 'deliver',
+  'rememberFailure', 'retryLatest', 'clearFailure', 'copyToClipboard'
+];
+check(JSON.stringify(leadExports(transport)) === JSON.stringify(expectedLeadExports),
+  '공용 전송 모듈의 export 계약이 달라졌다 — 메모리 재시도/삭제 함수가 빠졌거나 이름만 비슷한 decoy가 생겼다',
+  '공용 전송 모듈 export 계약 정확');
+
+for (const [file, src, rememberName] of [
+  ['js/inquiry.js', inquiry, 'rememberAndRenderFailure'],
+  ['js/leak-inquiry.js', leakInquiry, 'rememberAndShowFailure']
+]) {
+  const rememberBody = functionBody(src, rememberName) || '';
+  const retryBody = functionBody(src, 'retryVisibleFailure') || '';
+  check(/\bLEAD\.rememberFailure\s*\(\s*payload\s*\)/.test(rememberBody),
+    `${file} 실패 처리 함수가 공용 rememberFailure(payload)를 호출하지 않는다`,
+    `${file} 실패 문의를 공용 현재-탭 메모리에 보관`);
+  check(/\bLEAD\.retryLatest\s*\(\s*CONFIG\s*\)/.test(retryBody),
+    `${file} 재시도 함수가 공용 retryLatest(CONFIG)를 호출하지 않는다`,
+    `${file} 공용 단일-flight 재시도 사용`);
+  check(/window\.addEventListener\(\s*['"]online['"]\s*,\s*\(\)\s*=>\s*\{\s*retryVisibleFailure\(\);\s*\}\s*\)/.test(src),
+    `${file} 온라인 복귀 이벤트가 현재 탭의 retryVisibleFailure()에 연결되지 않았다`,
+    `${file} 현재 탭 온라인 복귀 재시도 연결`);
+}
+
+const inquiryResultBody = functionBody(inquiry, 'showResult') || '';
+check(/id="doneRetry"/.test(inquiryResultBody) && /id="doneCopy"/.test(inquiryResultBody),
+  '일반 상담 실패 화면에 명시적 다시 시도 또는 내용 복사 버튼이 없다',
+  '일반 상담 실패 화면에 다시 시도·복사 버튼');
+check(/href="tel:\$\{phone\}"/.test(inquiryResultBody) && /smsHref/.test(inquiryResultBody) && /href="\$\{smsHref\}"/.test(inquiryResultBody),
+  '일반 상담 실패 화면에 전화 또는 문자(SMS) 직접 전송 경로가 없다',
+  '일반 상담 실패 화면에 전화·문자 경로');
 
 /* ⑨ 블로그 목록이 JS 없이도 보인다 ------------------------------------ */
 // blog.html 은 sitemap 에 홈 다음 순위로 올라 있는데, 정적 HTML 에 h1 도 글 링크도 없으면
@@ -134,10 +192,9 @@ check(/const WORKS = \[[^\]]*'누수탐지·누수수리'/.test(inquiry) && /fd\
   '상담 폼의 누수탐지·누수수리 항목이 없거나 공사항목 수집 경로와 분리됐다',
   '누수탐지·누수수리 상담 항목이 공통 works 경로로 전달');
 
-// 공간 유형을 "누수"로 고른 리드가 접수→전송→관리자 표시→현장앱 인계까지 같은 값으로 가야 한다.
-// 항목만 화면에 추가하고 downstream 배선을 놓치면 대표님은 일반 리드와 구분할 수 없다.
+// 공간 유형을 "누수"로 고른 리드가 접수→외부 전송까지 같은 값으로 가야 한다.
+// 공개 관리자 화면은 개인정보 리드보드가 아니므로 문의 내용을 읽거나 현장앱으로 넘기지 않는다.
 {
-  const admin = read('js/admin.js');
   check(/<option value="누수">누수탐지·누수수리<\/option>/.test(index),
     '상담 공간 유형에 누수탐지·누수수리(value="누수")가 없다',
     '상담 공간 유형에 누수 전용 선택지 존재');
@@ -153,49 +210,78 @@ check(/const WORKS = \[[^\]]*'누수탐지·누수수리'/.test(inquiry) && /fd\
   check(/type:\s*'누수'/.test(read('js/leak-inquiry.js')),
     '누수 페이지 전용 폼이 유형을 누수로 접수하지 않는다',
     '누수 전용 폼이 누수 유형으로 접수');
-  check(/escapeHtml\(d\.type \|\| ''\)/.test(admin),
-    '관리자 문의 카드가 누수 유형을 표시하지 않는다',
-    '관리자 문의 카드에 누수 유형 표시');
-  check(/type:\s*d\.type/.test(admin) && /#lead=/.test(admin),
-    '관리자에서 현장앱으로 넘기는 리드에 누수 유형이 빠졌다',
-    '현장앱 인계 리드에 누수 유형 보존');
 }
 
-/* ⑩ 개인정보 보유기간이 손님에게 약속한 것과 같다 ---------------------- */
-// 화면은 "보유기간 1년"이라 동의를 받아 놓고 코드가 90일이면, 약속과 다른 시점에 자료가 사라진다.
-// 반대로 코드가 더 길면 약속보다 오래 갖고 있는 것이 된다. 둘 다 문제라 한 숫자로 묶는다.
+/* ⑩ 성공한 외부 접수와 실패한 현재-탭 초안을 구분한다 ------------------- */
 {
-  const admin = read('js/admin.js');
-  const promise = index.match(/보유기간\s*(\d+)\s*년/);
-  const leakPromise = read('leak.html').match(/보유기간\s*(\d+)\s*년/);
-  const days = (src, f) => { const m = src.match(/RETENTION_DAYS\s*=\s*(\d+)/); return m ? +m[1] : null; };
-  // 상수의 정본은 공용 전송 모듈이다(두 폼이 같은 값을 쓰게 하려고 옮겼다).
-  const dInq = days(transport), dAdm = days(admin);
-  const wantDays = promise ? +promise[1] * 365 : null;
-  check(promise, '상담 폼 동의 문구에서 보유기간을 찾지 못했다 — 손님이 무엇에 동의하는지 알 수 없다',
-    `동의 문구에 보유기간 ${promise ? promise[1] + '년' : '?'} 명시`);
-  check(dInq != null && dAdm != null, 'RETENTION_DAYS 가 js/lead-transport.js 또는 js/admin.js 에 없다 — 보관기간이 코드에 없다',
-    '보유기간이 코드에 상수로 있다');
-  check(dInq === dAdm, `보유기간이 파일마다 다르다 — inquiry ${dInq}일 vs admin ${dAdm}일`,
-    '문의 저장·관리 화면의 보유기간이 같다');
-  check(leakPromise && promise && leakPromise[1] === promise[1],
-    `두 상담 폼의 보유기간 안내가 다르다 — 인테리어 ${promise ? promise[1] : '?'}년 vs 누수 ${leakPromise ? leakPromise[1] : '없음'}년`,
-    '인테리어·누수 폼의 보유기간 안내가 같다');
-  check(wantDays == null || dInq === wantDays,
-    `코드 보유기간(${dInq}일)이 손님에게 약속한 기간(${wantDays}일)과 다르다 — 안내와 다른 시점에 지워진다`,
-    `보유기간이 약속(${wantDays}일)과 일치`);
-  check(/function pruneExpired/.test(transport) && /pruneExpired\(list\)/.test(inquiry.split('function loadLocal')[1] || ''),
-    '만료 문의 정리가 읽는 경로에서 안 돈다 — 전송이 잘 되는 동안 만료 항목이 영원히 남는다',
-    '만료 문의가 읽을 때마다 실제로 삭제됨');
   // 동의 체크박스 옆에서 처리방침을 읽을 수 있어야 '무엇에 동의하는지'가 성립한다.
-  // 문의 데이터가 국외(Web3Forms·미국)로 나가는데 방침 문서가 없으면 안내 자체가 거짓이 된다.
   check(/privacy\.html/.test(index.match(/id="iConsent"[\s\S]{0,300}/)?.[0] || ''),
     '동의 문구에서 개인정보처리방침 링크가 사라졌다 — 무엇에 동의하는지 읽을 수 없다',
     '동의 문구에 처리방침 링크 있음');
-  const privacy = read('privacy.html');
-  check(/1년/.test(privacy) && /Web3Forms/.test(privacy) && /010-2397-8629/.test(privacy),
-    'privacy.html 의 핵심 내용(보유 1년·국외 이전·연락처)이 빠졌다 — 안내와 실제가 어긋난다',
-    '처리방침에 보유기간·국외 이전·연락처 명시');
+
+  const successNotice = paragraphTextById(privacy, 'privacy-success-retention');
+  const failedNotice = paragraphTextById(privacy, 'privacy-failed-draft');
+  const fallbackNotice = paragraphTextById(privacy, 'privacy-fallback-actions');
+  check(/외부\s*접수\s*서비스/.test(successNotice) && /전달/.test(successNotice) && /1년/.test(successNotice),
+    '처리방침의 성공 접수 문단이 외부 서비스 전달과 서버측 기존 1년 보유 안내를 함께 설명하지 않는다',
+    '성공한 외부 접수의 서버측 보유 안내 분리');
+  check(/영구\s*저장소/.test(failedNotice) && /최신\s*(문의\s*)?1건/.test(failedNotice) &&
+        /현재\s*탭/.test(failedNotice) && /새로고침/.test(failedNotice) && /탭을?\s*닫/.test(failedNotice) && /사라/.test(failedNotice),
+    '처리방침의 실패 초안 문단이 비영구·최신 1건·현재 탭·새로고침/탭 닫기 소멸을 명확히 설명하지 않는다',
+    '실패 초안은 현재 탭 최신 1건이며 새로고침·탭 닫기 시 소멸');
+  check(!/1년/.test(failedNotice),
+    '실패 초안 문단에 1년 보유 문구가 섞였다 — 브라우저 초안이 장기 보관되는 것으로 오해된다',
+    '실패 초안 문단에 서버 보유기간 혼입 없음');
+  check(/다시\s*시도/.test(fallbackNotice) && /전화/.test(fallbackNotice) && /문자|SMS/.test(fallbackNotice) && /복사/.test(fallbackNotice),
+    '처리방침의 실패 대체 경로 문단에 다시 시도·전화·문자(SMS)·복사가 모두 없다',
+    '실패 대체 경로 4종 안내');
+  check(/Web3Forms/.test(privacy) && /010-2397-8629/.test(privacy),
+    'privacy.html 의 외부 처리 안내 또는 개인정보 문의 연락처가 빠졌다',
+    '처리방침 외부 처리·연락처 유지');
+
+  const handoffPrivacySummary = handoff.split(/\r?\n/)
+    .find((line) => /^\|\s*개인정보처리방침\s*\|/.test(line)) || '';
+  check(/성공\s*(?:한\s*)?(?:외부\s*)?접수/.test(handoffPrivacySummary) &&
+        /기존\s*(?:업무\s*)?보관\s*기준/.test(handoffPrivacySummary) &&
+        /실패\s*초안/.test(handoffPrivacySummary) && /현재\s*탭/.test(handoffPrivacySummary) &&
+        /새로고침/.test(handoffPrivacySummary) && /탭\s*닫/.test(handoffPrivacySummary),
+    '인수인계 개인정보 요약이 성공 접수 보관 기준과 실패 초안 현재-탭 소멸을 구분하지 않는다',
+    '인수인계 개인정보 요약도 성공 접수·실패 초안을 구분');
+}
+
+/* ⑩-1 문의 개인정보를 브라우저 영구 큐/공개 관리자 보드에 두지 않는다 */
+{
+  for (const [file, src] of [
+    ['js/inquiry.js', inquiry],
+    ['js/leak-inquiry.js', leakInquiry],
+    ['js/admin.js', adminJs]
+  ]) {
+    check(!/(?:localStorage|sessionStorage)\s*\.\s*(?:getItem|setItem)\s*\(/.test(src),
+      `${file} 가 문의 개인정보를 브라우저 영구 저장소에서 읽거나 쓴다`,
+      `${file} 문의 PII 영구 저장 큐 없음`);
+    check(!/^\s*(?:async\s+)?function\s+(?:saveLocal|loadLocal|seedDemo|seedInquiries|renderInquiries|renderLeadBoard)\s*\(/m.test(src),
+      `${file} 에 퇴역한 로컬 문의 큐/시드/리드보드 함수가 다시 생겼다`,
+      `${file} 퇴역 로컬 문의 함수 없음`);
+  }
+
+  const legacyKey = ['manmul', 'inquiries'].join('_');
+  const literalHits = transport.split(legacyKey).length - 1;
+  check(literalHits === 1 && /localStorage\.removeItem\(LEGACY_STORAGE_KEY\)/.test(transport) &&
+        !/localStorage\.(?:getItem|setItem)\s*\(/.test(transport),
+    '공용 전송 모듈의 legacy 키가 remove-only 정리 외에 읽기·쓰기 경로로 사용된다',
+    'legacy 문의 키는 remove-only 정리만 허용');
+
+  const scripts = [...adminHtml.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*><\/script>/g)]
+    .map((match) => match[1].split('?')[0])
+    .filter((src) => ['js/lead-transport.js', 'js/admin.js', 'js/content-editor.js'].includes(src));
+  check(JSON.stringify(scripts) === JSON.stringify(['js/lead-transport.js', 'js/admin.js', 'js/content-editor.js']),
+    'admin.html 의 공용 전송→관리 상태→콘텐츠 편집 스크립트 순서가 정확하지 않다',
+    '관리자 스크립트 순서 정확');
+  check(/id="pipelineStatus"/.test(adminHtml) && /id="connBadge"/.test(adminHtml) &&
+        /id="contentEditor"[^>]*data-content-editor/.test(adminHtml) &&
+        functionBody(adminJs, 'leadRoute') && functionBody(adminJs, 'renderPipeline') && functionBody(adminJs, 'renderConnection'),
+    '관리자 외부 접수 경로 상태 또는 콘텐츠 편집기가 사라졌다',
+    '관리자 외부 경로 상태·콘텐츠 편집기 유지');
 }
 
 /* ⑪ 상담 접수 경로가 살아 있다 ---------------------------------------- */
