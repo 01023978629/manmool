@@ -11403,6 +11403,62 @@
   },
   "insights": [
     {
+      "slug": "apartment-balcony-rain-pipe-replacement",
+      "title": "대전 아파트 베란다 우수관 교체 — 바닥 배수구와 연결부 작업",
+      "category": "방수·설비",
+      "service": "leak",
+      "date": "2026-08-28",
+      "readMin": 3,
+      "cover": "#5f7782",
+      "image": "assets/cases/apartment-balcony-rain-pipe-replacement-cover.jpg",
+      "imageAlt": "수직 우수관 하부 연결부와 바닥 마감 상태",
+      "excerpt": "바닥 배수구를 열어 기존 상태를 확인하고 수직 우수관 하부의 연결 부속을 교체한 현장입니다. 관통부와 연결부, 바닥 마감이 어떻게 달라졌는지 실제 사진으로 정리했습니다.",
+      "body": [
+        {"h": "바닥 배수구를 열어 확인했습니다", "p": "우수관 교체 작업을 시작하며 바닥 배수구를 개방해 내부와 주변 마감 상태를 확인했습니다. 사진에는 작업 전 배수구 안쪽과 바닥 타일 경계가 함께 남아 있습니다.", "img": "assets/cases/apartment-balcony-rain-pipe-replacement-1.jpg", "imgAlt": "작업 전 개방한 바닥 배수구와 주변 타일", "imgCaption": "작업 전 바닥 배수구를 개방한 상태"},
+        {"h": "천장 관통부의 기존 배관", "p": "수직 배관이 천장을 통과하는 위치와 기존 연결 상태도 함께 확인했습니다. 교체 전 배관의 방향과 관통부 주변을 나중에도 확인할 수 있도록 가까이 촬영했습니다.", "img": "assets/cases/apartment-balcony-rain-pipe-replacement-2.jpg", "imgAlt": "교체 전 수직 우수관과 천장 관통부", "imgCaption": "교체 전 천장 관통부와 수직 배관"},
+        {"h": "수직관 하부 연결 부속", "p": "수직 우수관 하부에 새 연결 부속을 설치했습니다. 바닥으로 이어지는 구간과 부속이 맞물린 상태가 보이도록 작업 중 사진을 남겼습니다.", "img": "assets/cases/apartment-balcony-rain-pipe-replacement-3.jpg", "imgAlt": "수직 우수관 하부에 설치한 연결 부속", "imgCaption": "수직관 하부 연결 부속 설치 상태"},
+        {"h": "연결부와 바닥 마감 기록", "p": "작업 후에는 배관 하부 연결부와 바닥 주변을 한 화면에 담았습니다. 사진으로 확인되는 작업 범위를 그대로 기록하며, 보이지 않는 원인이나 결과는 덧붙이지 않았습니다."}
+      ]
+    },
+    {
+      "slug": "apartment-upper-lower-rain-pipe-repair",
+      "title": "대전 아파트 상·하층 우수관 보수 — 배수구 테두리와 관통부 마감",
+      "category": "방수·설비",
+      "service": "leak",
+      "date": "2026-08-28",
+      "readMin": 3,
+      "cover": "#687b72",
+      "image": "assets/cases/apartment-upper-lower-rain-pipe-repair-cover.jpg",
+      "imageAlt": "우수관 보수 후 정리한 배수구 테두리와 내부",
+      "excerpt": "상·하층을 잇는 우수관 보수 현장에서 배수구와 배관 관통부 주변을 정리했습니다. 기존 마감 확인부터 부속 배치, 보수재 도포, 작업 후 상태까지 촬영 순서대로 기록했습니다.",
+      "body": [
+        {"h": "기존 배수구와 타일 마감", "p": "작업 전 배수구 안쪽과 주변 타일 경계를 먼저 확인했습니다. 배수구 테두리의 기존 마감 상태가 보이도록 가까운 거리에서 촬영했습니다.", "img": "assets/cases/apartment-upper-lower-rain-pipe-repair-1.jpg", "imgAlt": "작업 전 배수구와 주변 타일 마감", "imgCaption": "작업 전 배수구 테두리와 타일 경계"},
+        {"h": "배관 관통부 주변 확인", "p": "배관이 구조체를 통과하는 부분과 그 주변 마감도 함께 살폈습니다. 사진에는 관통부 위치와 배관이 이어지는 방향이 함께 보입니다.", "img": "assets/cases/apartment-upper-lower-rain-pipe-repair-2.jpg", "imgAlt": "우수관이 구조체를 통과하는 관통부 주변", "imgCaption": "배관 관통부와 주변 마감 상태"},
+        {"h": "보수용 부속 배치", "p": "배수구 크기와 위치에 맞춰 테두리 보수용 부속을 놓았습니다. 부속이 배수구 중심에 맞춰진 상태를 작업 중 기록으로 남겼습니다.", "img": "assets/cases/apartment-upper-lower-rain-pipe-repair-3.jpg", "imgAlt": "배수구 테두리에 놓은 보수용 부속", "imgCaption": "배수구 위치에 맞춘 보수용 부속"},
+        {"h": "테두리 보수재 도포", "p": "배수구 테두리와 부속 주변에 보수재를 도포했습니다. 물이 지나가는 내부를 막지 않으면서 가장자리 작업 범위가 보이도록 촬영했습니다.", "img": "assets/cases/apartment-upper-lower-rain-pipe-repair-4.jpg", "imgAlt": "배수구 테두리와 부속 주변에 도포한 보수재", "imgCaption": "배수구 테두리 보수재 도포 상태"},
+        {"h": "작업 후 상태를 남겼습니다", "p": "작업 후에는 정리된 배수구 테두리와 내부 상태를 표지 사진으로 남겼습니다. 특정 세대 정보는 공개하지 않고 상·하층 우수관 보수라는 실제 작업 범위만 기록합니다."}
+      ]
+    },
+    {
+      "slug": "apartment-basement-cast-iron-pipe-repair",
+      "title": "대전 아파트 지하실 주철관 보수 — 부식 구간부터 슬리브 마감까지",
+      "category": "방수·설비",
+      "service": "leak",
+      "date": "2026-08-26",
+      "readMin": 3,
+      "cover": "#59686d",
+      "image": "assets/cases/apartment-basement-cast-iron-pipe-repair-cover.jpg",
+      "imageAlt": "지하실 주철관 두 라인에 슬리브 보수를 마친 상태",
+      "excerpt": "지하실 주철관의 관벽이 부식돼 파손된 상태를 확인하고 손상 구간에 보수 슬리브를 설치한 현장입니다. 보수 전 내부 상태부터 두 배관 라인의 작업 후 모습까지 실제 사진으로 남겼습니다.",
+      "body": [
+        {"h": "관벽이 파손된 기존 상태", "p": "지하실 주철관의 겉면과 관벽이 부식돼 벌어진 구간이 보였습니다. 먼저 손상 부위의 크기와 주변 배관 상태가 함께 보이도록 작업 전 사진을 남겼습니다.", "img": "assets/cases/apartment-basement-cast-iron-pipe-repair-1.jpg", "imgAlt": "부식으로 관벽이 벌어진 기존 지하실 주철관", "imgCaption": "부식으로 관벽이 파손된 기존 주철관"},
+        {"h": "절개된 관 내부 확인", "p": "노후 주철관을 가까이에서 촬영해 관 안쪽과 절개된 가장자리 상태를 확인했습니다. 겉면만으로는 보기 어려운 내부 부식 상태가 사진에 남아 있습니다.", "img": "assets/cases/apartment-basement-cast-iron-pipe-repair-2.jpg", "imgAlt": "절개된 노후 주철관 안쪽과 주변 배관", "imgCaption": "절개된 노후 주철관 내부 상태"},
+        {"h": "보수 슬리브 설치", "p": "확인한 구간에는 주철관을 감싸는 보수 슬리브를 설치했습니다. 슬리브가 손상 구간을 덮고 양쪽 배관과 이어진 상태를 작업 중 사진으로 기록했습니다.", "img": "assets/cases/apartment-basement-cast-iron-pipe-repair-3.jpg", "imgAlt": "손상된 주철관 구간에 설치한 보수 슬리브", "imgCaption": "주철관 손상 구간의 보수 슬리브"},
+        {"h": "두 배관 라인의 연결부 고정", "p": "나란히 지나가는 두 배관 구간의 슬리브와 연결부를 각각 고정했습니다. 어느 위치를 손봤는지 구분할 수 있도록 두 라인이 한 화면에 보이게 남겼습니다.", "img": "assets/cases/apartment-basement-cast-iron-pipe-repair-4.jpg", "imgAlt": "두 주철관 라인에 고정한 슬리브 연결부", "imgCaption": "두 배관 라인의 슬리브 연결부 고정"},
+        {"h": "작업 후 연결 상태", "p": "마지막으로 보수 구간의 연결부와 주변 배관을 다시 촬영했습니다. 사진에서 확인되는 마감 상태를 기록하며, 원장에 없는 원인이나 시험 결과는 별도로 단정하지 않습니다.", "img": "assets/cases/apartment-basement-cast-iron-pipe-repair-5.jpg", "imgAlt": "주철관 보수 구간의 작업 후 연결부", "imgCaption": "보수 후 연결부와 주변 배관 상태"}
+      ]
+    },
+    {
       "slug": "eunhasu-bathroom-waterproof",
       "date": "2026-06-26",
       "category": "방수·설비",

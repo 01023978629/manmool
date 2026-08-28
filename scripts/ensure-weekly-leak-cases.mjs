@@ -65,6 +65,41 @@ for (const relative of allImages) {
   else if (size.width > 1600 || size.height > 1600) failures.push(`1600px를 넘음: ${relative} ${size.width}x${size.height}`);
 }
 
+const expectedContent = [
+  { slug: 'apartment-balcony-rain-pipe-replacement', date: '2026-08-28', title: '대전 아파트 베란다 우수관 교체 — 바닥 배수구와 연결부 작업' },
+  { slug: 'apartment-upper-lower-rain-pipe-repair', date: '2026-08-28', title: '대전 아파트 상·하층 우수관 보수 — 배수구 테두리와 관통부 마감' },
+  { slug: 'apartment-basement-cast-iron-pipe-repair', date: '2026-08-26', title: '대전 아파트 지하실 주철관 보수 — 부식 구간부터 슬리브 마감까지' }
+];
+const site = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'site.json'), 'utf8'));
+const blog = fs.readFileSync(path.join(ROOT, 'blog.html'), 'utf8');
+const rss = fs.readFileSync(path.join(ROOT, 'rss.xml'), 'utf8');
+const sitemap = fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8');
+const unitPattern = /\b\d{3,4}\s*(?:동|호)\b/;
+const phonePattern = /01[016789]-?\d{3,4}-?\d{4}/;
+
+for (const expected of expectedContent) {
+  const matches = (site.insights || []).filter((item) => item && item.slug === expected.slug);
+  if (matches.length !== 1) { failures.push(`${expected.slug}: insight가 ${matches.length}건이다`); continue; }
+  const item = matches[0];
+  const media = [item.image, ...(item.body || []).filter((section) => section.img).map((section) => section.img)];
+  const wantedMedia = WEEKLY_CASES.find((entry) => entry.slug === expected.slug).images;
+  if (item.title !== expected.title || item.date !== expected.date) failures.push(`${expected.slug}: 제목 또는 날짜가 다르다`);
+  if (item.category !== '방수·설비' || item.service !== 'leak') failures.push(`${expected.slug}: 누수 서비스 분류가 아니다`);
+  if (item.place) failures.push(`${expected.slug}: 익명 사례에 위치 필드가 있다`);
+  if ((item.body || []).length < 4 || item.body.length > 6) failures.push(`${expected.slug}: 본문 소제목이 4~6개가 아니다`);
+  if (JSON.stringify(media) !== JSON.stringify(wantedMedia)) failures.push(`${expected.slug}: 사진 순서 또는 수가 다르다`);
+  const publicText = JSON.stringify(item);
+  if (unitPattern.test(publicText) || phonePattern.test(publicText)) failures.push(`${expected.slug}: 동호수 또는 전화번호가 공개 데이터에 있다`);
+  const postPath = path.join(ROOT, 'posts', `${expected.slug}.html`);
+  if (!fs.existsSync(postPath)) { failures.push(`${expected.slug}: 정적 글이 없다`); continue; }
+  const post = fs.readFileSync(postPath, 'utf8');
+  const canonical = `https://01023978629.github.io/manmool/posts/${expected.slug}.html`;
+  if (!post.includes(`<link rel="canonical" href="${canonical}"`)) failures.push(`${expected.slug}: canonical이 없다`);
+  if (!post.includes('data-service="leak"')) failures.push(`${expected.slug}: 누수 상담 CTA가 없다`);
+  for (const image of wantedMedia) if (!post.includes(`../${image}`)) failures.push(`${expected.slug}: 정적 글에 사진 누락 ${image}`);
+  if (!blog.includes(expected.slug) || !rss.includes(expected.slug) || !sitemap.includes(expected.slug)) failures.push(`${expected.slug}: 목록·RSS·sitemap 연결이 빠졌다`);
+}
+
 if (failures.length) {
   console.error(`최근 누수 사례 검사 실패 ${failures.length}건`);
   failures.forEach((message) => console.error('  - ' + message));
