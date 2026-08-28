@@ -215,7 +215,11 @@ test('불완전한 접수 생성 응답은 성공으로 잠그지 않고 같은 
   });
   await login(page); await openCreate(page); await fillRequired(page);
   await page.getByRole('button', { name: '접수 저장' }).click();
-  await page.waitForFunction(() => document.getElementById('officeCreateError').textContent.includes('처리 중 문제가 생겼습니다.'));
+  await page.waitForFunction(() => {
+    const error = document.getElementById('officeCreateError');
+    const submit = document.getElementById('officeCreateSubmit');
+    return Boolean(error && error.textContent.includes('처리 중 문제가 생겼습니다.') && submit && !submit.disabled);
+  });
   assert.equal(await page.getByRole('button', { name: '접수 저장' }).isEnabled(), true);
   await page.getByRole('button', { name: '접수 저장' }).click();
   await page.getByText('접수 완료 · MM-20260826-0020').waitFor();
@@ -518,7 +522,11 @@ test('일시적인 수정 오류 뒤에는 입력을 보존하고 수정 저장�
   await login(page); await page.locator('[data-office-edit="req-edit-retry"]').click();
   await page.locator('#officeCreateForm [name="description"]').fill('다시 저장할 증상');
   await page.getByRole('button', { name: '수정 저장' }).click();
-  await page.locator('#officeCreateError').waitFor({ state: 'visible' });
+  await page.waitForFunction(() => {
+    const error = document.getElementById('officeCreateError');
+    const submit = document.getElementById('officeCreateSubmit');
+    return Boolean(error && error.textContent.includes('네트워크 연결을 확인한 뒤 다시 시도해 주세요.') && submit && !submit.disabled);
+  });
   assert.equal(await page.locator('#officeCreateForm [name="description"]').inputValue(), '다시 저장할 증상');
   assert.equal(await page.getByRole('button', { name: '수정 저장' }).isEnabled(), true);
   assert.equal(await page.locator('#officeCreateView').isVisible(), true);
