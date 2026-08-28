@@ -97,6 +97,12 @@ for (const expected of expectedContent) {
   if (!post.includes(`<link rel="canonical" href="${canonical}"`)) failures.push(`${expected.slug}: canonical이 없다`);
   if (!post.includes('data-service="leak"')) failures.push(`${expected.slug}: 누수 상담 CTA가 없다`);
   for (const image of wantedMedia) if (!post.includes(`../${image}`)) failures.push(`${expected.slug}: 정적 글에 사진 누락 ${image}`);
+  for (const section of (item.body || []).filter((entry) => entry.img)) {
+    if (typeof section.imgAlt !== 'string' || !section.imgAlt.trim()) failures.push(`${expected.slug}: 본문 사진 alt가 비어 있다 ${section.img}`);
+    if (typeof section.imgCaption !== 'string' || !section.imgCaption.trim()) failures.push(`${expected.slug}: 본문 사진 캡션이 비어 있다 ${section.img}`);
+    if (typeof section.imgAlt === 'string' && section.imgAlt.trim() && !post.includes(`alt="${section.imgAlt}"`)) failures.push(`${expected.slug}: 정적 글에 사진 alt가 없다 ${section.img}`);
+    if (typeof section.imgCaption === 'string' && section.imgCaption.trim() && !post.includes(`<figcaption>${section.imgCaption}</figcaption>`)) failures.push(`${expected.slug}: 정적 글에 사진 캡션이 없다 ${section.img}`);
+  }
   if (!blog.includes(expected.slug) || !rss.includes(expected.slug) || !sitemap.includes(expected.slug)) failures.push(`${expected.slug}: 목록·RSS·sitemap 연결이 빠졌다`);
 }
 
