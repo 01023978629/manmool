@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { PORTAL_PUBLIC_FILES, expectedPublicFiles, toPublicPath } from './pages-artifact-policy.mjs';
+import { PORTAL_PUBLIC_FILES, PUBLIC_ROOT_FILES, expectedPublicFiles, toPublicPath } from './pages-artifact-policy.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const googleVerificationFile = 'google11dc37fbc3ab6e98.html';
@@ -102,6 +102,16 @@ export function verifyPagesArtifact(root = ROOT, site = path.join(root, '_site')
   const verification = path.join(site, googleVerificationFile);
   if (fileSystem.existsSync(verification) && fileSystem.readFileSync(verification, 'utf8').trim() !== `google-site-verification: ${googleVerificationFile}`) {
     failures.push('Google Search Console 소유권 확인 파일 내용이 발급값과 다름');
+  }
+  /* 소유확인 파일이 저장소에는 있는데 공개 허용목록에 없으면 — 배포에서 조용히 빠진다.
+   * 오류도 안 나고, 검색엔진은 파일을 못 찾아 소유확인만 실패한다. 왜 안 되는지 알 길이
+   * 없는 실패라서 여기서 크게 막는다. 허용목록은 계속 명시적으로 둔다(아무 파일이나
+   * 공개되지 않게 하는 것이 이 목록의 존재 이유다). */
+  for (const name of fileSystem.readdirSync(ROOT)) {
+    if (!/^(?:google|naver)[A-Za-z0-9_-]{8,}\.html$/i.test(name)) continue;
+    if (PUBLIC_ROOT_FILES.includes(name)) continue;
+    failures.push(`소유확인 파일 ${name} 이 공개 허용목록에 없어 배포에서 빠진다 — `
+      + `scripts/pages-artifact-policy.mjs 의 PUBLIC_ROOT_FILES 에 '${name}' 를 추가하세요`);
   }
   for (const file of actual.files) {
     if (/\.html$/i.test(file)) {
