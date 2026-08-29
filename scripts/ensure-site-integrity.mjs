@@ -99,9 +99,9 @@ const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
   }
 }
 
-/* 동·호수 판별 규칙은 js/pii-rules.js 가 정본이다. 여기에 사본을 두면
+/* 개인정보 판별 규칙은 js/pii-rules.js 가 정본이다. 여기에 사본을 두면
  * 등록 화면은 막는데 배포 검사는 통과시키는(또는 그 반대) 일이 생긴다. */
-const UNIT_RULES = (() => {
+const PII_RULES = (() => {
   const src = readIf('js/pii-rules.js');
   if (!src) { fail.push('js/pii-rules.js 를 읽지 못했다 — 개인정보 규칙 없이 검사할 수 없다'); return []; }
   const sandbox = { window: undefined };
@@ -109,33 +109,41 @@ const UNIT_RULES = (() => {
   vm.runInContext(src + '\n;MANMUL_PII_RULES;', sandbox, { filename: 'js/pii-rules.js' });
   const rules = sandbox.MANMUL_PII_RULES;
   if (!Array.isArray(rules) || !rules.length) { fail.push('js/pii-rules.js 에서 규칙을 읽지 못했다'); return []; }
-  // 샌드박스 배열은 realm 이 달라 그대로 쓰면 안 된다 — 값만 옮긴다
-  const out = Array.from(rules, (r) => [String(r[0]), r[1]]).filter((r) => r[0] === '동·호수').map((r) => r[1]);
-  if (!out.length) { fail.push('js/pii-rules.js 에 동·호수 규칙이 없다 — 규칙 이름이 바뀌었는지 확인하라'); return []; }
+  // 고객명 규칙은 등록 화면 입력 검증용이다 — 산문에 돌리면 "호수와 고객" 같은
+  // 일반 문장이 걸린다(실측). 배포 검사는 아래 4종만 쓴다.
+  // 샌드박스 배열은 realm 이 달라 그대로 쓰면 안 된다 — 값만 옮긴다.
+  const kinds = ['동·호수', '휴대전화', '일반전화', '이메일'];
+  const out = Array.from(rules, (r) => [String(r[0]), r[1]]).filter((r) => kinds.includes(r[0]));
+  for (const k of kinds) {
+    if (!out.some((r) => r[0] === k)) fail.push(`js/pii-rules.js 에 ${k} 규칙이 없다 — 규칙 이름이 바뀌었는지 확인하라`);
+  }
   return out;
 })();
 
-/* ⓪-1 발행 글 본문에 세대 식별자가 없는가 ------------------------------
- * 현장앱 후기 재료는 동·호수를 빼지만, 사람이 붙여넣는 과정에서 다시 들어올 수 있다.
- * URL·전화 CTA 같은 공통 껍데기는 제외하고 실제 post-body 만 검사한다.
- *
- * 끝을 <div class="post-cta"> 로 잡는다. 예전에는 첫 </div> 까지만 봤는데,
- * 위치 블록(<aside class="post-place"><div class="pp-body">…</div>)이 본문 맨
- * 앞에 붙는 사례 글에서는 그 </div> 에서 검사가 끊겼다. 그 결과 **단지 이름을
- * 실제로 밝히는 글에서만** 본문의 86% 가 무검사로 나갔다(한밭유성 13.5%,
- * 삼성아파트 13.8% / 나머지 12개 글 96~99%). 동·호수가 샐 위험이 가장 큰
- * 바로 그 글에서 초록불이 거짓말을 하고 있었다. */
-for (const rel of htmlFiles.filter((f) => f.startsWith('posts/'))) {
+/* ⓪-1 공개 HTML 전체에 남의 개인정보가 없는가 --------------------------
+ * 예전에는 posts/ 의 post-body 구간에서 동·호수만 봤다 — 제목·사진 alt·메타
+ * 설명은 무검사였고, 전화·이메일 규칙은 파일에만 있고 게이트가 안 썼다
+ * (2026-08 종합평가에서 확인). 이제 공개 HTML 전부에서
+ *   ① 태그를 뗀 본문 텍스트(제목·본문·figcaption·JSON-LD 포함)와
+ *   ② alt·title·aria-label·content 속성값
+ * 을 4종 규칙으로 검사한다. 태그 전체를 검사하지 않는 이유: src·href 경로가
+ * "…-09/호텔식" 처럼 동·호수 규칙에 걸린다(실측) — 속성은 위 4개만 뽑는다.
+ * 상호 연락처만 지우고 검사한다 — 그 밖의 전화·이메일·동·호수는 전부
+ * 남의 정보로 본다. */
+const BUSINESS_CONTACTS = [
+  /010[\s.-]?2397[\s.-]?8629/g,     // 만물인테리어 대표번호
+  /010[\s.-]?5439[\s.-]?8629/g,     // 만물누수 번호
+  /1dncjf@naver\.com/gi,             // 대표 이메일
+];
+for (const rel of htmlFiles) {
   const src = readIf(rel) || '';
-  const after = src.split('<div class="post-body">')[1];
-  if (after === undefined) { fail.push(`${rel} 에 post-body 가 없다 — 검사가 본문을 못 찾으면 통과시키지 않는다`); continue; }
-  const body = after.split('<div class="post-cta">')[0];
-  if (body === after) { fail.push(`${rel} 에 post-cta 가 없다 — 본문 끝을 못 찾으면 통과시키지 않는다`); continue; }
   checked++;
-  const text = body.replace(/<[^>]+>/g, ' ');   // 태그 안 경로(assets/…-09/호텔식)에 걸리지 않게
-  for (const re of UNIT_RULES) {
+  const attrs = [...src.matchAll(/\b(?:alt|title|aria-label|content)="([^"]*)"/g)].map((m) => m[1]).join('\n');
+  let text = src.replace(/<[^>]+>/g, ' ') + '\n' + attrs;
+  for (const re of BUSINESS_CONTACTS) text = text.replace(re, ' ');
+  for (const [kind, re] of PII_RULES) {
     const m = text.match(re);
-    if (m) { fail.push(`${rel} 본문에 세대 식별자로 보이는 "${m[0].trim()}"가 있다 — 동·호수는 공개 글에 넣지 마라`); break; }
+    if (m) { fail.push(`${rel} 에 ${kind}로 보이는 "${m[0].trim()}"가 있다 — 고객 정보는 공개 페이지에 넣지 마라`); break; }
   }
 }
 
