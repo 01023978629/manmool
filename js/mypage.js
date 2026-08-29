@@ -369,6 +369,22 @@
     afterCare(DATA.project, DATA.referral);
   }
 
+  /* 데모 표시 — data/project.json 은 데모 데이터다(_comment 마커).
+     본인확인 게이트까지 있어 실제 고객 페이지로 오해하기 딱 좋다. 데이터가
+     데모인 동안에는 화면 맨 위에 상시 리본을 붙여 정직하게 밝힌다.
+     (실서비스 전환 시 서버 조회로 바뀌면 마커가 없어져 리본도 사라진다.
+      공개 JSON에 실고객 정보를 넣는 실수는 ensure-site-integrity 가 막는다.) */
+  function demoRibbon(doc) {
+    if (!/데모/.test(String(doc && doc._comment || ''))) return;
+    try {
+      const r = document.createElement('div');
+      r.setAttribute('role', 'note');
+      r.style.cssText = 'position:sticky;top:0;z-index:9999;background:#20242a;color:#ffd987;text-align:center;font-size:13px;font-weight:700;padding:8px 12px';
+      r.textContent = '예시 화면입니다 — 실제 고객 페이지가 아닙니다. 실제 페이지는 계약 시 카카오톡으로 받으신 개인 링크로 열립니다.';
+      document.body.prepend(r);
+    } catch (e) {}
+  }
+
   async function init() {
     DATA = await load();
     if (!DATA) {
@@ -378,6 +394,7 @@
     }
     const params = new URLSearchParams(location.search);
     PID = params.get('pid') || DATA.project.id;
+    demoRibbon(DATA);
     // 개인 링크 본인확인 → 최초 동의 → 렌더
     runGate(DATA.project, () => runConsent(renderAll));
   }
