@@ -217,8 +217,14 @@
   function validateStep(n) {
     if (n === 3) {
       if (!$('iName').value.trim()) return { field: 'iName', msg: '이름을 입력해 주세요.' };
+      /* 휴대폰만 받으면 안 된다 — 상가·사무실·관리사무소 손님은 042·02 유선번호로,
+         일부는 070으로 연락받길 원한다. 인테리어는 큰 공사가 들어오는 통로인데
+         예전 규칙(/^01[0-9]…/)은 그런 손님을 3단계에서 아예 막았다.
+         누수 폼(js/leak-inquiry.js normalizePhone)은 이미 0으로 시작하는 10~11자리를
+         받고 있었다 — 같은 사이트에서 규칙이 갈려 있던 것을 이쪽에 맞춘다. */
       const phone = $('iPhone').value.trim();
-      if (!/^01[0-9][-\s]?\d{3,4}[-\s]?\d{4}$/.test(phone)) return { field: 'iPhone', msg: '올바른 휴대폰 번호를 입력해 주세요. (예: 010-1234-5678)' };
+      const phoneDigits = phone.replace(/[^0-9]/g, '').replace(/^82/, '0');
+      if (!/^0\d{8,10}$/.test(phoneDigits)) return { field: 'iPhone', msg: '연락 받으실 번호를 입력해 주세요. (예: 010-1234-5678 또는 042-123-4567)' };
     }
     return null;
   }
