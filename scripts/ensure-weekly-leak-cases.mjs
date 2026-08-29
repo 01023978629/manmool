@@ -66,7 +66,9 @@ for (const relative of allImages) {
 }
 
 const expectedContent = [
-  { slug: 'apartment-balcony-rain-pipe-replacement', date: '2026-08-28', title: '대전 아파트 베란다 우수관 교체 — 바닥 배수구와 연결부 작업', coverAlt: '수직 우수관 하부 연결부와 바닥 마감 상태' },
+  // 제목 정정(2026-08-29): 사진 4장 전부 수직관은 기존 관이고 새것은 하부 연결
+  // 부속뿐이다 — "우수관 교체"는 사진이 뒷받침하지 않아 "보수·부속 교체"로 내렸다.
+  { slug: 'apartment-balcony-rain-pipe-replacement', date: '2026-08-28', title: '대전 아파트 베란다 우수관 보수 — 바닥 배수구와 하부 연결 부속 교체', coverAlt: '수직 우수관 하부 연결부와 바닥 마감 상태' },
   { slug: 'apartment-upper-lower-rain-pipe-repair', date: '2026-08-28', title: '대전 아파트 상·하층 우수관 보수 — 배수구 테두리와 관통부 마감', coverAlt: '보수 후 수직 우수관과 천장 관통부 전경' },
   { slug: 'apartment-basement-cast-iron-pipe-repair', date: '2026-08-26', title: '대전 아파트 지하실 주철관 보수 — 부식 구간부터 슬리브 마감까지', coverAlt: '지하실 주철관 두 라인에 슬리브 보수를 마친 상태' }
 ];
