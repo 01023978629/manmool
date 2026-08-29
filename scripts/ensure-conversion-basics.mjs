@@ -322,6 +322,39 @@ try {
     '시안 해시가 공용 헬퍼·replaceState 사용');
 }
 
+/* 자동 접수 경로가 실제로 살아 있는가 — 켜 놓고 값이 비면 리드가 전부 손으로 떨어진다.
+   실측: forms.accessKey 를 비워도 지금까지는 어떤 검사도 잡지 않았다. 그 상태에서는
+   web3forms 가 요청을 거절하므로 모든 상담이 "자동 접수 다시 시도"로 떨어지고,
+   손님은 전화를 걸거나 그냥 나간다. 대표는 파이프가 끊긴 줄도 모른다.
+   integrations/AUTO-BACKLOG.md 도 "forms.enabled=true + endpoint·accessKey 존재"를
+   유지 항목으로 적어 두었다 — 그 의도를 검사로 굳힌다. */
+{
+  const cfg = JSON.parse(read('data/config.json'));
+  const forms = cfg.forms || {};
+  const n8n = cfg.n8n || {};
+  const filled = (v) => typeof v === 'string' && v.trim().length > 0 && !/^(?:여기|your|example|placeholder)/i.test(v.trim());
+  const httpsUrl = (v) => filled(v) && /^https:\/\//i.test(v.trim());
+
+  if (forms.enabled === true) {
+    check(httpsUrl(forms.endpoint),
+      'forms.enabled=true 인데 endpoint 가 비었거나 https 주소가 아니다 — 상담이 자동 접수되지 않는다',
+      '상담 폼 전송 주소(forms.endpoint) 정상');
+    check(filled(forms.accessKey),
+      'forms.enabled=true 인데 accessKey 가 비었다 — 전송이 전부 거절돼 모든 상담이 손으로 떨어진다',
+      '상담 폼 인증키(forms.accessKey) 존재');
+  }
+  if (n8n.enabled === true) {
+    check(httpsUrl(n8n.inquiryWebhookUrl),
+      'n8n.enabled=true 인데 inquiryWebhookUrl 이 비었거나 https 가 아니다 — 자동 접수가 끊긴다',
+      'n8n 접수 주소 정상');
+  }
+  const formsUsable = forms.enabled === true && httpsUrl(forms.endpoint) && filled(forms.accessKey);
+  const n8nUsable = n8n.enabled === true && httpsUrl(n8n.inquiryWebhookUrl);
+  check(formsUsable || n8nUsable,
+    '자동 접수 경로가 하나도 살아 있지 않다 — 웹 상담이 전부 전화·복사로만 남는다 (data/config.json 의 forms 또는 n8n 을 살리세요)',
+    '자동 접수 경로 최소 1개 가동');
+}
+
 if (fail.length) {
   console.error('✗ 전환 기본기 ' + fail.length + '건 깨짐\n');
   fail.forEach((f) => console.error('  - ' + f));
