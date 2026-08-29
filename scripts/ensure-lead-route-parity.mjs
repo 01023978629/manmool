@@ -176,6 +176,30 @@ try {
   fail.push('data/config.json 을 읽지 못했습니다: ' + e.message);
 }
 
+// ⑤ 문서가 없는 기능을 있는 것처럼 말하지 않는다 --------------------------
+// 관리자 화면의 '🏗 현장 앱으로 보내기'(#lead= 딥링크)는 리드를 브라우저에
+// 보관하지 않도록 바꾸면서 내려갔는데, README 와 config 의 _help 는 계속
+// "이 주소로 리드를 실은 딥링크를 엽니다"라고 적혀 있었다. 대표가 없는 버튼을
+// 찾게 되고, 리드가 운영 앱으로 자동으로 넘어간다고 오해한다.
+{
+  const adminHasLeadHandoff = /#lead=/.test(read(ADMIN));
+  const goneWords = /(지금\s*)?없습니다|내렸습니다|제거/;
+  for (const [file, text] of [['README.md', read(path.join(ROOT, 'README.md'))], ['data/config.json', read(CONFIG)]]) {
+    for (const line of text.split(/\r?\n/)) {
+      if (!/현장 앱으로 보내기/.test(line)) continue;
+      if (adminHasLeadHandoff || goneWords.test(line)) continue;
+      fail.push(`${file} 이 '현장 앱으로 보내기'(#lead= 딥링크)를 있는 기능처럼 설명하는데 js/admin.js 에 그 코드가 없습니다 — 대표가 없는 버튼을 찾게 됩니다`);
+    }
+  }
+  // 반대 방향: 기능이 돌아왔는데 문서가 "지금 없습니다"로 남아 있으면 그것도 거짓말이다.
+  if (adminHasLeadHandoff) {
+    const readme = read(path.join(ROOT, 'README.md'));
+    if (/현장 앱으로 보내기[^\n]*지금\s*없습니다/.test(readme)) {
+      fail.push("js/admin.js 에 #lead= 인계 코드가 생겼는데 README 는 아직 '지금 없습니다'라고 적혀 있습니다");
+    }
+  }
+}
+
 if (fail.length) {
   console.error('✗ 상담 접수 경로 판정 불일치 ' + fail.length + '건\n');
   fail.forEach((f) => console.error('  - ' + f));

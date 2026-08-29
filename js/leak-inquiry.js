@@ -24,10 +24,9 @@
   let visibleFailurePayload = null;
   let activeRetryTransport = null;
   let activeRetryUiPromise = null;
-  fetch('data/config.json', { cache: 'no-cache' })
-    .then((r) => (r.ok ? r.json() : {}))
-    .then((c) => { CONFIG = c || {}; })
-    .catch(() => { CONFIG = {}; });
+  // 공용 로더 — 한 번 더 시도하고, 실패하면 configLoadFailed 표시를 남긴다.
+  // 설정을 못 읽은 것과 '접수 경로가 아예 없는 것'은 손님에게 다른 말이어야 한다.
+  LEAD.loadConfig().then((c) => { CONFIG = c; });
 
   const esc = (s) => String(s == null ? '' : s)
     .replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -207,7 +206,11 @@
       ? '<h3>접수됐습니다.</h3><p>평일 09:00–17:30에 확인하고 남겨주신 번호로 회신드립니다. 물이 계속 번지는 상황이면 아래 번호로 바로 전화 주세요.</p>'
       : opts.honeypot
         ? '<h3>아직 전송되지 않았습니다.</h3><p>자동 전송하지 않았고 내용도 저장되지 않았습니다. 아래 버튼으로 전화·문자 또는 내용 복사를 이용해 주세요.</p>'
-        : '<h3>아직 전송되지 않았습니다.</h3><p>최신 문의 1건만 현재 탭 메모리에 보관합니다. 새로고침하거나 탭을 닫으면 사라집니다. 다시 시도하거나 전화·문자로 보내주세요.</p>';
+        // 설정을 못 읽어 못 보낸 것과 '접수 경로가 아예 없는 것'은 다른 말이어야 한다.
+        // 앞의 경우 손님이 할 일은 새로고침이고, 뒤의 경우는 전화다. 누수는 급하니 더 그렇다.
+        : CONFIG.configLoadFailed
+          ? '<h3>아직 전송되지 않았습니다.</h3><p>홈페이지 설정을 잠시 못 읽어 자동 접수를 시도하지 못했습니다. 접수 경로가 없는 것이 아니니 새로고침 후 다시 넣어 주시거나, 급하시면 아래 번호로 바로 전화 주세요.</p>'
+          : '<h3>아직 전송되지 않았습니다.</h3><p>최신 문의 1건만 현재 탭 메모리에 보관합니다. 새로고침하거나 탭을 닫으면 사라집니다. 다시 시도하거나 전화·문자로 보내주세요.</p>';
 
     doneBox.innerHTML = head
       + '<pre class="leak-done-text">' + esc(text) + '</pre>'

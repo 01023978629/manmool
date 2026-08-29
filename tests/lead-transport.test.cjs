@@ -143,7 +143,10 @@ function loadLead(options) {
       clipboard: {
         writeText(value) {
           copyCalls.push(String(value));
-          return Promise.resolve();
+          // 권한 거부·구형 iOS 처럼 클립보드가 막힌 브라우저를 흉내 낸다
+          return opts.clipboardRejects
+            ? Promise.reject(new Error('synthetic clipboard denied'))
+            : Promise.resolve();
         }
       }
     },
@@ -268,7 +271,7 @@ test('공개 API는 legacy key나 영구 보관 helper를 노출하지 않는다
     Object.keys(lead).sort(),
     [
       'backendConfigured', 'buildLeadText', 'clearFailure', 'copyToClipboard',
-      'deliver', 'fetchWithTimeout', 'rememberFailure', 'retryLatest'
+      'deliver', 'fetchWithTimeout', 'loadConfig', 'rememberFailure', 'retryLatest'
     ].sort()
   );
   for (const property of ['STORAGE_KEY', 'RETENTION_DAYS', 'pruneExpired', 'saveLocal', 'LEGACY_STORAGE_KEY']) {
@@ -611,4 +614,78 @@ test('메모리 실패 등록·조회·삭제는 영구 저장소·캐시·URL·
   assert.deepEqual(loaded.persistenceCalls, persistenceCallsBefore);
   assert.deepEqual(loaded.urlCalls, urlCallsBefore);
   assert.deepEqual(loaded.consoleCalls, consoleCallsBefore);
+});
+
+/* ---- 설정 로더 -----------------------------------------------------------
+   config.json 요청이 한 번 실패하면 backendConfigured() 가 false 가 되어,
+   접수 경로는 멀쩡한데 손님 화면이 "이 업체는 온라인 접수를 안 받는다"처럼
+   말했다(다시 시도 버튼도 안 나온다). 한 번 더 시도하고, 그래도 못 읽으면
+   '못 읽었다'는 사실을 표시로 남겨 화면이 사실대로 말할 수 있게 한다. */
+function configLoader(responses) {
+  const calls = [];
+  const queue = responses.slice();
+  const loaded = loadLead({
+    fetch: async (url, init) => {
+      calls.push(url);
+      const next = queue.length > 1 ? queue.shift() : queue[0];
+      if (typeof next === 'function') return next();
+      return next;
+    }
+  });
+  return { lead: loaded.lead, calls };
+}
+const okConfig = (body) => response(200, body, async () => body);
+const boom = () => { throw new Error('synthetic config network failure'); };
+// VM 안에서 만들어진 객체는 프로토타입이 이쪽 realm 과 달라 deepEqual 이 모양이
+// 같아도 실패한다. 모양만 보려고 JSON 으로 견준다.
+const shape = (value) => JSON.stringify(value);
+
+test('설정을 읽으면 그대로 돌려주고 실패 표시를 붙이지 않는다', async () => {
+  const { lead, calls } = configLoader([okConfig('{"forms":{"enabled":true}}')]);
+  const config = await lead.loadConfig({ retryDelayMs: 0 });
+  assert.equal(shape(config), shape({ forms: { enabled: true } }));
+  assert.equal(Object.hasOwn(config, 'configLoadFailed'), false);
+  assert.equal(calls.length, 1, '성공했는데 요청을 더 보냈다');
+});
+
+test('첫 요청이 실패해도 한 번 더 시도해 살려낸다', async () => {
+  for (const firstFailure of [boom, () => response(500, 'nope'), () => response(200, 'not json', async () => { throw new Error('bad json'); })]) {
+    const { lead, calls } = configLoader([firstFailure, okConfig('{"n8n":{"enabled":true}}')]);
+    const config = await lead.loadConfig({ retryDelayMs: 0 });
+    assert.equal(shape(config), shape({ n8n: { enabled: true } }), '재시도가 살려내지 못했다');
+    assert.equal(calls.length, 2, `요청을 ${calls.length}번 보냈다 — 실패 뒤 정확히 한 번 더여야 한다`);
+  }
+});
+
+test('계속 실패하면 빈 설정이 아니라 못 읽었다는 표시를 돌려준다', async () => {
+  const { lead, calls } = configLoader([boom]);
+  const config = await lead.loadConfig({ retryDelayMs: 0 });
+  assert.equal(shape(config), shape({ configLoadFailed: true }),
+    "조용히 빈 설정을 주면 '설정을 못 읽음'과 '접수 경로가 없음'을 화면이 구분할 수 없다");
+  assert.equal(calls.length, 2, `요청을 ${calls.length}번 보냈다 — 두 번은 시도해야 한다`);
+  assert.equal(lead.backendConfigured(config), false, '못 읽은 설정으로 접수 경로가 있다고 판단한다');
+});
+
+test('설정으로 쓸 수 없는 응답(배열·문자열·null)도 못 읽은 것으로 본다', async () => {
+  for (const body of ['[1,2,3]', '"문자열"', 'null']) {
+    const { lead } = configLoader([okConfig(body)]);
+    assert.equal(shape(await lead.loadConfig({ retryDelayMs: 0 })), shape({ configLoadFailed: true }),
+      `${body} 를 설정으로 받아들였다`);
+  }
+});
+
+test('복사 결과를 boolean 으로 돌려준다 — 두 폼이 이 값으로 분기한다', async () => {
+  const { lead } = configLoader([okConfig('{}')]);
+  assert.equal(await lead.copyToClipboard('보낼 내용'), true,
+    '복사에 성공했는데 true 가 아니다 — 화면이 성공을 알릴 근거가 없다');
+});
+
+test('클립보드가 막히면 대체 복사를 거쳐 false 를 돌려준다', async () => {
+  // 실패를 true 로 보고하면 화면이 '복사했습니다'를 띄우고, 손님은 빈 카톡을
+  // 보내고 회신을 기다린다 — 리드가 통째로 증발한다.
+  const { lead, execCalls } = loadLead({ clipboardRejects: true });
+  assert.equal(await lead.copyToClipboard('보낼 내용'), false,
+    '복사가 막혔는데 성공했다고 돌려준다');
+  assert.deepEqual(execCalls, ['copy'],
+    '클립보드가 막혔는데 대체 복사(execCommand)를 시도하지 않았다');
 });

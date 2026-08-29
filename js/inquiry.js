@@ -409,11 +409,16 @@
     const iconCls = delivered ? 'done-check ok' : (failed ? 'done-check warn' : 'done-check send');
     const head = delivered ? '상담 신청이 전달되었습니다'
       : '아직 전송되지 않았습니다';
+    // 설정을 못 읽어 못 보낸 것과 '접수 경로가 아예 없는 것'은 다른 말이어야 한다.
+    // 앞의 경우 손님이 할 일은 새로고침이고, 뒤의 경우는 전화다.
+    const configFailed = !!CONFIG.configLoadFailed;
     const lead = delivered
       ? '접수 내용이 담당자에게 전달되었습니다. 영업시간 기준 빠르게 회신드립니다.'
       : opts.honeypot
         ? '자동 전송하지 않았고 내용도 저장되지 않았습니다. 전화·문자 또는 내용 복사로 직접 보내주세요.'
-        : '최신 문의 1건만 현재 탭 메모리에 보관합니다. 새로고침하거나 탭을 닫으면 사라집니다. 다시 시도하거나 전화·문자로 보내주세요.';
+        : configFailed
+          ? '홈페이지 설정을 잠시 못 읽어 자동 접수를 시도하지 못했습니다. 접수 경로가 없는 것이 아니니 새로고침 후 다시 넣어 주시거나, 아래 전화·문자로 바로 보내주세요.'
+          : '최신 문의 1건만 현재 탭 메모리에 보관합니다. 새로고침하거나 탭을 닫으면 사라집니다. 다시 시도하거나 전화·문자로 보내주세요.';
 
     const previous = form.querySelector('.inquiry-done');
     if (previous) previous.remove();
