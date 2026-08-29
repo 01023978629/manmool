@@ -21,10 +21,13 @@ const readIf = (rel) => {
   const p = path.join(ROOT, rel);
   return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null;
 };
-// Search Console HTML 파일은 사람이 보는 웹페이지가 아니라 Google이 읽는 한 줄짜리 소유권 증명이다.
-const machineVerificationFiles = new Set(['google11dc37fbc3ab6e98.html']);
+/* 소유확인 HTML 파일은 사람이 보는 웹페이지가 아니라 검색엔진이 읽는 한 줄짜리 증명이다.
+ * 구글은 google<코드>.html, 네이버는 naver<코드>.html 을 준다 — 둘 다 페이지 검사(제목·
+ * canonical·내부링크·개인정보)에서 빼야 한다. 예전에는 구글 파일 하나만 이름으로 박아 둬서,
+ * 네이버 파일 방식을 고르면 그 파일이 일반 페이지로 검사돼 배포가 막혔다. */
+const isMachineVerificationFile = (name) => /^(?:google|naver)[A-Za-z0-9_-]{8,}\.html$/i.test(name);
 const htmlFiles = [
-  ...fs.readdirSync(ROOT).filter((f) => f.endsWith('.html') && !machineVerificationFiles.has(f)),
+  ...fs.readdirSync(ROOT).filter((f) => f.endsWith('.html') && !isMachineVerificationFile(f)),
   ...(fs.existsSync(path.join(ROOT, 'posts'))
     ? fs.readdirSync(path.join(ROOT, 'posts')).filter((f) => f.endsWith('.html')).map((f) => 'posts/' + f)
     : []),
