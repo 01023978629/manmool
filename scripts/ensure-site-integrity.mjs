@@ -147,6 +147,27 @@ for (const rel of htmlFiles) {
   }
 }
 
+/* ⓪-1b 공개 data/*.json 에도 남의 개인정보가 없는가 --------------------
+ * mypage 의 본인확인 게이트는 data/project.json 의 전화 뒷자리를 정답으로
+ * 쓴다 — 공개 파일이라 누구나 읽을 수 있으니, 실고객 정보가 들어가는 순간
+ * 게이트는 장식이 되고 전화번호는 유출이다. 지금 들어 있는 값은 데모
+ * (홍길동·010-1234-5678, _comment 에 '데모' 마커)뿐이고, 그 상태를 강제한다:
+ *   · 데모 더미폰(010-1234-5678)은 '데모' 마커가 있는 파일에서만 허용
+ *   · 그 밖의 전화·이메일·동·호수는 전부 실패 */
+for (const name of fs.readdirSync(path.join(ROOT, 'data')).filter((f) => f.endsWith('.json'))) {
+  const rel = 'data/' + name;
+  let raw = readIf(rel) || '';
+  checked++;
+  const isDemoMarked = /데모/.test(raw);
+  for (const re of BUSINESS_CONTACTS) raw = raw.replace(re, ' ');
+  if (isDemoMarked) raw = raw.replace(/010[\s.-]?1234[\s.-]?5678/g, ' ');
+  else if (/010[\s.-]?1234[\s.-]?5678/.test(raw)) fail.push(`${rel} 에 데모 더미폰이 있는데 '데모' 마커(_comment)가 없다 — 실데이터인지 데모인지 구분이 안 된다`);
+  for (const [kind, re] of PII_RULES) {
+    const m = raw.match(re);
+    if (m) { fail.push(`${rel} 에 ${kind}로 보이는 "${m[0].trim()}"가 있다 — 실고객 정보는 공개 JSON에 넣지 마라(마이페이지 실서비스는 서버 조회로 전환할 것)`); break; }
+  }
+}
+
 /* ⓪-2 blog.html 에 목록이 정확히 한 벌인가 (중복 누적 방지) ------------
  * prerender 의 끝 탐지가 부분문자열 검색이던 시절, 실행할 때마다 옛 목록이
  * 컨테이너 밖에 한 벌씩 남아 쌓였다 — 실제로 4벌 중복된 채 배포돼 있었다.
