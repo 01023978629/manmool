@@ -159,12 +159,39 @@ for (const [file, src, rememberName] of [
 }
 
 const inquiryResultBody = functionBody(inquiry, 'showResult') || '';
-check(/id="doneRetry"/.test(inquiryResultBody) && /id="doneCopy"/.test(inquiryResultBody),
+// 성공 화면에도 전화 링크가 생겼다(회신 지연 대비). 그래서 '실패 화면에 연락 경로가
+// 있는가'는 showResult 전체가 아니라 **실패 분기의 .done-actions 안**에서만 봐야 한다.
+// 전체를 보면 성공 분기의 tel: 하나로 정규식이 충족돼, 실패 분기의 전화·문자 버튼이
+// 지워져도 이 검사가 계속 초록불을 켠다(2026-08 리드 감사에서 지적된 구멍).
+const doneActionsBlock = (inquiryResultBody.match(/<div class="done-actions">[\s\S]*?<\/div>/) || [''])[0];
+check(!!doneActionsBlock, '일반 상담 실패 화면의 .done-actions 블록을 찾지 못했다 — 구조가 바뀌었으면 이 검사부터 고쳐라',
+  '일반 상담 실패 화면 .done-actions 블록 존재');
+check(/id="doneRetry"/.test(doneActionsBlock) && /id="doneCopy"/.test(doneActionsBlock),
   '일반 상담 실패 화면에 명시적 다시 시도 또는 내용 복사 버튼이 없다',
   '일반 상담 실패 화면에 다시 시도·복사 버튼');
-check(/href="tel:\$\{phone\}"/.test(inquiryResultBody) && /smsHref/.test(inquiryResultBody) && /href="\$\{smsHref\}"/.test(inquiryResultBody),
+check(/href="tel:\$\{phone\}"/.test(doneActionsBlock) && /href="\$\{smsHref\}"/.test(doneActionsBlock),
   '일반 상담 실패 화면에 전화 또는 문자(SMS) 직접 전송 경로가 없다',
   '일반 상담 실패 화면에 전화·문자 경로');
+// 전송이 안 됐으면 보낼 내용을 화면에 펼쳐 둬야 한다 — 복사가 막힌 브라우저에서
+// 손님이 직접 긁을 수 있는 유일한 길이다. 누수 폼은 이미 그렇게 한다.
+check(/class="done-text"/.test(inquiryResultBody) && /doneText\.textContent = text/.test(inquiryResultBody),
+  '일반 상담 실패 화면이 보낼 내용을 화면에 보여주지 않는다 — 복사가 막히면 손님이 옮겨 적을 수 없다',
+  '일반 상담 실패 화면에 문의 본문 노출');
+
+/* ⑧-2 복사 결과를 사실대로 알리는가 ----------------------------------- */
+// '복사했습니다'가 실패에도 뜨면 손님은 빈 카톡·문자를 보내고 회신을 기다린다.
+// copyToClipboard 는 boolean 을 돌려주고, 두 폼 모두 그 값으로 분기해야 한다.
+check(/function fallbackCopy[\s\S]*?return !!ok;/.test(transport),
+  'fallbackCopy 가 복사 성공 여부를 돌려주지 않는다', '복사 헬퍼가 성공 여부를 반환');
+check(/writeText\(text\)\.then\(\(\) => true,/.test(transport),
+  'copyToClipboard 가 성공 시 true 를 돌려주지 않는다', 'copyToClipboard 가 boolean Promise 반환');
+for (const [file, src] of [['js/inquiry.js', inquiry], ['js/leak-inquiry.js', read('js/leak-inquiry.js')]]) {
+  const copyCalls = (src.match(/copyToClipboard\(text\)/g) || []).length;
+  const branched = (src.match(/copyToClipboard\(text\)\.then\(\(ok\)/g) || []).length;
+  check(copyCalls > 0 && copyCalls === branched,
+    `${file} 의 복사 호출 ${copyCalls}건 중 ${branched}건만 성공 여부로 분기한다 — 실패를 '복사됨'으로 알린다`,
+    `${file} 복사 성공 여부로 분기 (${branched}/${copyCalls})`);
+}
 
 /* ⑨ 블로그 목록이 JS 없이도 보인다 ------------------------------------ */
 // blog.html 은 sitemap 에 홈 다음 순위로 올라 있는데, 정적 HTML 에 h1 도 글 링크도 없으면

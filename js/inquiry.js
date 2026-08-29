@@ -298,8 +298,11 @@
       ...data
     };
 
+    // 누른 게 먹혔다는 표시를 버튼 자체에 남긴다. 전송은 최대 12초까지 걸리는데
+    // 그동안 버튼 글자가 그대로면 손님은 안 눌린 줄 알고 다시 누른다(중복 접수).
     const btn = $('submitInquiry');
-    btn.disabled = true;
+    const btnLabel = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = '접수 중입니다…'; }
     status.className = 'form-status';
     status.textContent = '접수 중입니다...';
 
@@ -323,7 +326,10 @@
       if (attempt !== inquirySubmitAttemptEpoch) return;
       rememberAndRenderFailure(payload, hasBackend);
     } finally {
-      if (attempt === inquirySubmitAttemptEpoch && btn && btn.isConnected) btn.disabled = false;
+      if (attempt === inquirySubmitAttemptEpoch && btn && btn.isConnected) {
+        btn.disabled = false;
+        btn.textContent = btnLabel;
+      }
     }
   }
 
@@ -412,7 +418,10 @@
         <div class="${iconCls}">${icon}</div>
         <h3 tabindex="-1">${head}</h3>
         <p><b class="done-person-name"></b>님, 감사합니다. <span class="done-lead"></span></p>
-        ${delivered ? '' : `<div class="done-actions">
+        ${delivered ? (phone ? `<p class="done-followup">회신이 없거나 급하시면 바로 전화 주세요 —
+          <a href="tel:${phone}">${COMPANY.phone || phone}</a></p>` : '')
+        : `<pre class="done-text"></pre>
+        <div class="done-actions">
           ${retryable ? '<button type="button" class="btn btn-primary btn-lg" id="doneRetry">🔄 자동 접수 다시 시도</button>' : ''}
           ${phone ? `<a class="btn ${failed ? 'btn-ghost' : 'btn-primary'} btn-lg" href="tel:${phone}">📞 전화 상담</a>` : ''}
           ${kakaoReady ? '<button type="button" class="btn btn-kakao btn-lg" id="doneKakao">💬 카카오톡으로 보내기</button>' : ''}
@@ -424,6 +433,10 @@
       `;
     done.querySelector('.done-person-name').textContent = payload.name || '고객';
     done.querySelector('.done-lead').textContent = lead;
+    // 전송이 안 된 화면에서는 보낼 내용을 화면에 펼쳐 둔다. 복사가 막힌 브라우저
+    // (권한 거부·구형 iOS)에서도 손님이 직접 긁어서 문자·카톡에 붙일 수 있어야 한다.
+    const doneText = done.querySelector('.done-text');
+    if (doneText) doneText.textContent = text;
     form.appendChild(done);
     done.hidden = false;
 
@@ -431,16 +444,22 @@
     const doneHead = done.querySelector('h3');
     if (doneHead) doneHead.focus();
 
+    // 복사 결과를 사실대로 알린다 — 실패했는데 '복사됨'이라고 하면 손님은
+    // 빈 카톡을 보내고 기다린다. 실패하면 위 본문을 직접 긁으라고 안내한다.
     const dk = $('doneKakao');
     if (dk) dk.addEventListener('click', () => {
-      copyToClipboard(text);
-      if (kakaoUrl) window.open(kakaoUrl, '_blank', 'noopener');
-      dk.textContent = '✓ 내용 복사됨 · 채널 열림 (붙여넣기 전송)';
+      copyToClipboard(text).then((ok) => {
+        if (kakaoUrl) window.open(kakaoUrl, '_blank', 'noopener');
+        dk.textContent = ok ? '✓ 내용 복사됨 · 채널 열림 (붙여넣기 전송)'
+          : '채널만 열었습니다 — 복사가 막혀 위 내용을 직접 붙여 주세요';
+      });
     });
     const copy = $('doneCopy');
     if (copy) copy.addEventListener('click', () => {
-      copyToClipboard(text);
-      copy.textContent = '✓ 문의 내용을 복사했습니다';
+      copyToClipboard(text).then((ok) => {
+        copy.textContent = ok ? '✓ 문의 내용을 복사했습니다'
+          : '복사가 막혔습니다 — 위 내용을 직접 선택해 복사해 주세요';
+      });
     });
     const rt = $('doneRetry');
     if (rt) rt.addEventListener('click', () => { retryVisibleFailure(); });

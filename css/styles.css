@@ -496,6 +496,12 @@ body.content-preview .site-header { top: 46px; }
 .done-eta { font-weight: 700; color: var(--brand-dark) !important; }
 .done-note { font-size: 13px; }
 .inquiry-done .btn { margin-top: 10px; }
+.done-text { white-space: pre-wrap; word-break: break-word; text-align: left; font: inherit; font-size: 14px;
+  color: var(--ink-soft); background: var(--bg-alt); border: 1px solid var(--line);
+  border-radius: 14px; padding: 16px 18px; margin: 16px 0 4px; line-height: 1.7;
+  max-height: 240px; overflow: auto; user-select: text; }
+.done-followup { font-weight: 700; }
+.done-followup a { color: var(--link-strong); text-decoration: underline; white-space: nowrap; }
 .done-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 18px 0 6px; }
 .done-actions .btn { margin-top: 0; }
 @media (max-width: 520px) { .done-actions { flex-direction: column; } .done-actions .btn { width: 100%; } }
