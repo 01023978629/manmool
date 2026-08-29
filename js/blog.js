@@ -15,8 +15,20 @@
   }
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const cover = (a) => `linear-gradient(150deg, ${a.cover || '#d8c3a5'}, ${shade(a.cover || '#d8c3a5', -16)})`;
+  // 사례 사진은 resized/ 축소본(480w/960w)을 srcset 으로 — 원본(최대 1800px)을
+  // 목록 카드에 그대로 내보내면 휴대폰에서 카드 한 칸에 400KB 넘게 받는다.
+  const caseExtra = (src, wide) => {
+    const m = /^assets\/cases\/([A-Za-z0-9._-]+)\.jpg$/.exec(String(src || ''));
+    if (!m) return '';
+    const p = 'assets/cases/resized/' + m[1];
+    // wide = 대표(featured) 카드 — 한 칸이 아니라 전체 폭이라 sizes 가 다르다
+    //        (prerender-posts.py 의 featured 와 같은 값이어야 로드 후 마크업이 안 어긋난다)
+    const sizes = wide ? '(max-width: 1160px) 94vw, 1112px'
+      : '(max-width: 720px) 94vw, (max-width: 1130px) 46vw, 356px';
+    return ` srcset="${p}-480w.jpg 480w, ${p}-960w.jpg 960w" sizes="${sizes}"`;
+  };
   const image = (a, className, priority) => a.image
-    ? `<img class="${className}" src="${esc(a.image)}" alt="${esc(a.imageAlt || a.title)}"${priority ? ' loading="eager" fetchpriority="high"' : ' loading="lazy"'} decoding="async">`
+    ? `<img class="${className}" src="${esc(a.image)}"${caseExtra(a.image, priority)} alt="${esc(a.imageAlt || a.title)}"${priority ? ' loading="eager" fetchpriority="high"' : ' loading="lazy"'} decoding="async">`
     : '';
   const absoluteImage = (a) => a.image
     ? 'https://01023978629.github.io/manmool/' + String(a.image).replace(/^\.\//, '')

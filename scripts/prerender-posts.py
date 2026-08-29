@@ -11,6 +11,7 @@
 """
 import html
 import json
+import re
 from urllib.parse import quote
 import os
 from datetime import datetime, timezone, timedelta
@@ -27,6 +28,23 @@ def esc(s):
 
 def shade_cover(hexv):
     return hexv or '#d8c3a5'
+
+
+# 사례 사진 축소본 srcset — scripts/build-image-variants.py 가 만드는
+# assets/cases/resized/<이름>-480w·960w.jpg 를 쓴다. 원본(최대 1800px·480KB)을
+# 그대로 내보내면 휴대폰 LTE에서 LCP가 5초를 넘는다(종합평가 ⑤).
+# 칸 폭: 목록 카드 356px(3열), 본문 칼럼 712px — js/main.js·blog.js 와 같은 값.
+SIZES_CARD = '(max-width: 720px) 94vw, (max-width: 1130px) 46vw, 356px'
+SIZES_POST = '(max-width: 800px) 94vw, 712px'
+CASE_RE = re.compile(r'^assets/cases/([A-Za-z0-9._-]+)\.jpg$')
+
+
+def case_extra(src, sizes, prefix=''):
+    m = CASE_RE.match(str(src or ''))
+    if not m:
+        return ''
+    p = f'{prefix}assets/cases/resized/{m.group(1)}'
+    return f' srcset="{p}-480w.jpg 480w, {p}-960w.jpg 960w" sizes="{sizes}"'
 
 
 def article_service(a):
@@ -97,7 +115,7 @@ def article_html(a, insights):
     url = f'{BASE}/posts/{a["slug"]}.html'
     img_abs = f'{BASE}/{a["image"]}' if a.get('image') else f'{BASE}/og-image.png'
     cover_img = (
-        f'<img class="post-cover-image" src="../{esc(a["image"])}" alt="{esc(a.get("imageAlt") or a["title"])}" loading="eager" fetchpriority="high" decoding="async">'
+        f'<img class="post-cover-image" src="../{esc(a["image"])}"{case_extra(a.get("image"), SIZES_POST, "../")} alt="{esc(a.get("imageAlt") or a["title"])}" loading="eager" fetchpriority="high" decoding="async">'
         if a.get('image') else '')
     # 문단마다 사진을 한 장 붙일 수 있다(선택). 표지 한 장만으로는 '무엇을 갈았는지'가
     # 안 보이는 현장 기록이 있어서, 해당 문단 바로 아래에 근거 사진을 둔다.
@@ -105,7 +123,7 @@ def article_html(a, insights):
         out = f'<h2>{esc(s.get("h"))}</h2><p>{esc(s.get("p"))}</p>'
         if s.get('img'):
             cap = f'<figcaption>{esc(s["imgCaption"])}</figcaption>' if s.get('imgCaption') else ''
-            out += (f'<figure class="post-figure"><img src="../{esc(s["img"])}" '
+            out += (f'<figure class="post-figure"><img src="../{esc(s["img"])}"{case_extra(s.get("img"), SIZES_POST, "../")} '
                     f'alt="{esc(s.get("imgAlt") or s.get("h"))}" loading="lazy" decoding="async">{cap}</figure>')
         return out
 
@@ -132,7 +150,7 @@ def article_html(a, insights):
         body = place_html + body
     related = [x for x in insights if x['slug'] != a['slug']][:3]
     related_html = '\n'.join(f'''          <a class="insight-card" href="{esc(x['slug'])}.html">
-            <span class="ic-cover" style="background:{shade_cover(x.get('cover'))}">{f'<img class="ic-image" src="../{esc(x["image"])}" alt="{esc(x.get("imageAlt") or x["title"])}" loading="lazy" decoding="async">' if x.get('image') else ''}<span class="ic-cat">{esc(x.get('category'))}</span></span>
+            <span class="ic-cover" style="background:{shade_cover(x.get('cover'))}">{f'<img class="ic-image" src="../{esc(x["image"])}"{case_extra(x.get("image"), SIZES_CARD, "../")} alt="{esc(x.get("imageAlt") or x["title"])}" loading="lazy" decoding="async">' if x.get('image') else ''}<span class="ic-cat">{esc(x.get('category'))}</span></span>
             <span class="ic-body"><b>{esc(x['title'])}</b><span class="ic-meta">{esc(x.get('date'))} · {esc(x.get('readMin'))}분 읽기</span></span>
           </a>''' for x in related)
     ld_obj = {
@@ -295,9 +313,11 @@ def list_markup(insights):
     if featured:
         featured_image = ''
         if featured.get('image'):
-            featured_image = ('<img class="ic-image" src="%s" alt="%s" loading="eager" '
+            featured_image = ('<img class="ic-image" src="%s"%s alt="%s" loading="eager" '
                               'fetchpriority="high" decoding="async">'
-                              % (esc(featured['image']), esc(featured.get('imageAlt') or featured.get('title'))))
+                              % (esc(featured['image']),
+                                 case_extra(featured.get('image'), '(max-width: 1160px) 94vw, 1112px'),
+                                 esc(featured.get('imageAlt') or featured.get('title'))))
         featured_html = (
             '        <a class="insight-featured" href="posts/%s.html" data-group="%s">\n'
             '          <span class="ic-cover" style="background:%s">%s<span class="ic-cat">최신 현장 · %s</span></span>\n'
@@ -313,8 +333,9 @@ def list_markup(insights):
         img = ''
         if a.get('image'):
             priority = ' loading="lazy"'
-            img = ('<img class="ic-image" src="%s" alt="%s"%s decoding="async">'
-                   % (esc(a['image']), esc(a.get('imageAlt') or a.get('title')), priority))
+            img = ('<img class="ic-image" src="%s"%s alt="%s"%s decoding="async">'
+                   % (esc(a['image']), case_extra(a.get('image'), SIZES_CARD),
+                      esc(a.get('imageAlt') or a.get('title')), priority))
         cards.append(
             '          <a class="insight-card" href="posts/%s.html" data-group="%s">\n'
             '            <span class="ic-cover" style="background:%s">%s<span class="ic-cat">%s</span></span>\n'
