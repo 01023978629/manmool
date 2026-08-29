@@ -41,8 +41,8 @@ check(/"@type": "FAQPage"/.test(leakHead), 'leak.html FAQ 구조화 데이터가
 check(/og:image/.test(leakHead) && /case-hanbat-drain\.jpg/.test(leakHead), 'leak.html 공유용 실제 현장 이미지가 없다');
 // 카드 수는 이번 공개분에 못박는다 — 사례를 추가·정리할 때 이 숫자도 같이 올려야
 // 한다(카드가 조용히 사라지거나 중복 복사되는 사고를 잡는 핀이다).
-check((leak.match(/class="case-card registered-case"/g) || []).length === 6,
-  'leak.html 실제 사례·공정 카드가 6개가 아니다');
+check((leak.match(/class="case-card registered-case"/g) || []).length === 8,
+  'leak.html 실제 사례·공정 카드가 8개가 아니다');
 check((leak.match(/assets\/cases\/(?:case-(?:hanbat-drain|blue-floor)|samsung-apartment-drain-(?:before|after-wide)|geumseong-basement-pipe-valve-cover)\.jpg/g) || []).length >= 5,
   'leak.html 사례 카드가 검증한 실제 공정 사진을 사용하지 않는다');
 // 금성백조 사례는 카드에서 글로 이어져야 한다. 사진만 있고 링크가 끊기면
