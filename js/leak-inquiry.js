@@ -110,7 +110,10 @@
       status: '신규',
     });
 
+    // 버튼 글자로도 '눌렸다'를 알린다 — 12초 대기 중 재클릭(중복 접수)을 막는다.
+    const submitLabel = submitBtn.textContent;
     submitBtn.disabled = true;
+    submitBtn.textContent = '접수 중입니다…';
     status.className = 'leak-status';
     status.textContent = '접수 중입니다...';
 
@@ -134,7 +137,10 @@
       if (attempt !== leakSubmitAttemptEpoch) return;
       rememberAndShowFailure(payload, hasBackend);
     } finally {
-      if (attempt === leakSubmitAttemptEpoch) submitBtn.disabled = false;
+      if (attempt === leakSubmitAttemptEpoch) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = submitLabel;
+      }
     }
   });
 
@@ -219,8 +225,11 @@
     if (retry) retry.addEventListener('click', () => { retryVisibleFailure(); });
     const copy = $('lkCopy');
     if (copy) copy.addEventListener('click', () => {
-      LEAD.copyToClipboard(text);
-      copy.textContent = '✓ 복사했습니다';
+      // 복사 성공 여부를 그대로 말한다 — 실패를 '복사됨'으로 덮으면
+      // 손님이 빈 문자를 보내고 회신을 기다린다. 본문은 위에 이미 펼쳐져 있다.
+      LEAD.copyToClipboard(text).then((ok) => {
+        copy.textContent = ok ? '✓ 복사했습니다' : '복사가 막혔습니다 — 위 내용을 직접 선택해 주세요';
+      });
     });
     doneBox.scrollIntoView({ behavior: SCROLL, block: 'center' });
   }

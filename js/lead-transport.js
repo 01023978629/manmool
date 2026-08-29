@@ -183,19 +183,23 @@
     return promise;
   }
 
+  // 복사가 됐는지 **사실대로** 알려준다. 예전에는 성공/실패와 무관하게
+  // 화면이 '복사했습니다'를 띄웠다 — 붙여넣기 하면 빈 채로 카톡이 나가고,
+  // 손님은 보냈다고 믿고 기다린다. 그래서 항상 boolean 을 돌려준다.
   function copyToClipboard(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+      return navigator.clipboard.writeText(text).then(() => true, () => fallbackCopy(text));
     }
-    fallbackCopy(text);
-    return Promise.resolve();
+    return Promise.resolve(fallbackCopy(text));
   }
   function fallbackCopy(text) {
     const ta = document.createElement('textarea');
     ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
     document.body.appendChild(ta); ta.focus(); ta.select();
-    try { document.execCommand('copy'); } catch (e) {}
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
     document.body.removeChild(ta);
+    return !!ok;
   }
 
   window.ManmulLead = {

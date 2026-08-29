@@ -126,10 +126,17 @@ if (!/최신\s*문의\s*1건/.test(doneBody) || !/현재\s*탭\s*메모리/.test
     !/새로고침/.test(doneBody) || !/탭을\s*닫으면\s*사라/.test(doneBody)) {
   fail.push('누수 실패 안내에 현재 탭 최신 1건·새로고침/탭 닫기 소멸 설명이 없다.');
 }
+// 버튼 복구는 '최신 시도만' 이어야 하고(지난 시도가 끝나며 버튼을 되살리면 중복 접수),
+// 누른 표시로 바꾼 글자도 같이 되돌려야 한다 — 안 되돌리면 버튼이 '접수 중입니다…'에
+// 굳은 채로 다시 눌리게 된다.
 if (!/const\s+attempt\s*=\s*\+\+leakSubmitAttemptEpoch/.test(submitBody) ||
     !/if\s*\(attempt\s*!==\s*leakSubmitAttemptEpoch\)\s*return/.test(submitBody) ||
-    !/finally\s*\{\s*if\s*\(attempt\s*===\s*leakSubmitAttemptEpoch\)\s*submitBtn\.disabled\s*=\s*false/.test(submitBody)) {
+    !/finally\s*\{\s*if\s*\(attempt\s*===\s*leakSubmitAttemptEpoch\)\s*\{[\s\S]{0,200}?submitBtn\.disabled\s*=\s*false;[\s\S]{0,200}?submitBtn\.textContent\s*=\s*submitLabel;/.test(submitBody)) {
   fail.push('누수 제출의 attempt epoch 또는 최신 시도만 버튼을 복구하는 finally 가드가 없다.');
+}
+// 눌렸다는 표시를 버튼 자체에 남기는가 — status 문구만으로는 화면 밖이라 안 보인다.
+if (!/submitBtn\.textContent\s*=\s*'접수 중입니다…'/.test(submitBody)) {
+  fail.push('누수 제출 버튼이 전송 중에도 원래 글자 그대로다 — 손님이 안 눌린 줄 알고 다시 누른다.');
 }
 if (!/window\.addEventListener\(\s*['"]online['"]\s*,\s*\(\)\s*=>\s*\{\s*retryVisibleFailure\(\);\s*\}\s*\)/.test(leakJs)) {
   fail.push('누수 온라인 복귀 이벤트가 현재 탭 재시도 함수에 연결되지 않았다.');
