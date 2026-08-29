@@ -135,7 +135,7 @@ check(/portfolioSpriteMarkup\(item, 'scene', true\)/.test(main),
 // 메모리 보관·재시도 함수를 실제 실패/온라인 복귀 경로에 연결해야 한다.
 const expectedLeadExports = [
   'backendConfigured', 'fetchWithTimeout', 'buildLeadText', 'deliver',
-  'rememberFailure', 'retryLatest', 'clearFailure', 'copyToClipboard'
+  'rememberFailure', 'retryLatest', 'clearFailure', 'copyToClipboard', 'loadConfig'
 ];
 check(JSON.stringify(leadExports(transport)) === JSON.stringify(expectedLeadExports),
   '공용 전송 모듈의 export 계약이 달라졌다 — 메모리 재시도/삭제 함수가 빠졌거나 이름만 비슷한 decoy가 생겼다',
@@ -192,6 +192,26 @@ for (const [file, src] of [['js/inquiry.js', inquiry], ['js/leak-inquiry.js', re
     `${file} 의 복사 호출 ${copyCalls}건 중 ${branched}건만 성공 여부로 분기한다 — 실패를 '복사됨'으로 알린다`,
     `${file} 복사 성공 여부로 분기 (${branched}/${copyCalls})`);
 }
+
+/* ⑧-2b 설정을 못 읽은 것과 '접수 경로가 없는 것'을 구분하는가 ---------
+   config.json 요청이 한 번 실패하면 backendConfigured() 가 false 가 되어,
+   경로는 멀쩡한데 화면이 "이 업체는 온라인 접수를 안 받는다"처럼 말했다.
+   다시 시도 버튼도 안 나온다. 공용 로더가 한 번 더 시도하고, 그래도 안 되면
+   configLoadFailed 표시를 남겨 화면이 '새로고침하시라'고 말하게 한다. */
+check(/function loadConfig/.test(transport) && /configLoadFailed/.test(transport),
+  '공용 전송 모듈에 재시도·실패표시가 있는 설정 로더가 없다', '공용 설정 로더에 재시도·실패 표시');
+for (const [file, src] of [['js/inquiry.js', inquiry], ['js/leak-inquiry.js', read('js/leak-inquiry.js')], ['js/main.js', main]]) {
+  const ownFetch = /fetch\(\s*['"]data\/config\.json['"]/.test(src);
+  const usesShared = /(?:LEAD|window\.ManmulLead)\.loadConfig\(/.test(src);
+  // main.js 는 공용 모듈보다 먼저 로드되므로 폴백 fetch 를 남겨 둔다(공용 호출이 우선).
+  check(file === 'js/main.js' ? usesShared : (usesShared || !ownFetch),
+    `${file} 이 공용 설정 로더를 쓰지 않는다 — 설정 로드 실패가 '접수 경로 없음'으로 잘못 표시된다`,
+    `${file} 공용 설정 로더 사용`);
+}
+check(/configLoadFailed/.test(inquiry) && /설정을 잠시 못 읽어/.test(inquiry),
+  '일반 상담 실패 화면이 설정 로드 실패를 구분해 말하지 않는다', '일반 상담이 설정 로드 실패를 구분해 안내');
+check(/CONFIG\.configLoadFailed/.test(read('js/leak-inquiry.js')) && /설정을 잠시 못 읽어/.test(read('js/leak-inquiry.js')),
+  '누수 상담 실패 화면이 설정 로드 실패를 구분해 말하지 않는다', '누수 상담이 설정 로드 실패를 구분해 안내');
 
 /* ⑧-3 폼이 무엇을 꼭 답해야 하는지 밝히는가 --------------------------- */
 // 손님이 이탈하는 가장 흔한 이유는 '어디까지 답해야 하는지 몰라서'다.

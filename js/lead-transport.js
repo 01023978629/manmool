@@ -186,6 +186,25 @@
   // 복사가 됐는지 **사실대로** 알려준다. 예전에는 성공/실패와 무관하게
   // 화면이 '복사했습니다'를 띄웠다 — 붙여넣기 하면 빈 채로 카톡이 나가고,
   // 손님은 보냈다고 믿고 기다린다. 그래서 항상 boolean 을 돌려준다.
+  // 설정 파일(data/config.json)을 못 읽으면 '자동 접수 경로가 없다'와 구분이 안 된다.
+  // 실제로는 경로가 멀쩡한데 요청 하나를 놓친 것뿐인데, 손님 화면에는 "이 업체는
+  // 온라인 접수를 안 받는다"처럼 보이고 다시 시도 버튼도 안 나온다.
+  // 한 번 더 시도하고, 그래도 안 되면 '못 읽었다'는 사실 자체를 표시로 남긴다.
+  function loadConfig(opts) {
+    const retryDelayMs = (opts && typeof opts.retryDelayMs === 'number') ? opts.retryDelayMs : 400;
+    // 본문 해석은 전송 응답과 같은 parseJsonObject 를 쓴다 — 배열·문자열·null 처럼
+    // 설정으로 쓸 수 없는 응답을 '읽었다'고 넘기지 않는다.
+    const once = () => fetch('data/config.json', { cache: 'no-cache' })
+      .then((r) => {
+        if (!r.ok) throw new Error('config-http-' + r.status);
+        return Promise.resolve(r.text()).then(parseJsonObject);
+      });
+    const failed = () => ({ configLoadFailed: true });
+    return once().catch(() => new Promise((resolve) => setTimeout(resolve, retryDelayMs))
+      .then(once)
+      .catch(failed));
+  }
+
   function copyToClipboard(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       return navigator.clipboard.writeText(text).then(() => true, () => fallbackCopy(text));
@@ -204,6 +223,6 @@
 
   window.ManmulLead = {
     backendConfigured, fetchWithTimeout, buildLeadText,
-    deliver, rememberFailure, retryLatest, clearFailure, copyToClipboard,
+    deliver, rememberFailure, retryLatest, clearFailure, copyToClipboard, loadConfig,
   };
 })();

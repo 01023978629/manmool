@@ -82,7 +82,7 @@ order(index, 'js/lead-transport.js', 'js/inquiry.js', 'index.html');
 /* ③ 전송·현재 탭 재시도는 공용 모듈 한 곳에만 둔다 --------------------- */
 const expectedExports = [
   'backendConfigured', 'fetchWithTimeout', 'buildLeadText', 'deliver',
-  'rememberFailure', 'retryLatest', 'clearFailure', 'copyToClipboard'
+  'rememberFailure', 'retryLatest', 'clearFailure', 'copyToClipboard', 'loadConfig'
 ];
 if (JSON.stringify(leadExports(transport)) !== JSON.stringify(expectedExports)) {
   fail.push('js/lead-transport.js 의 공용 export 계약이 정확하지 않다.');

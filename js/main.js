@@ -1288,12 +1288,17 @@ function renderContact(company) {
 /* 간편 예상견적은 js/estimate.js에서 처리합니다. */
 
 /* ---------- 연동 설정 로드 + 카카오톡 버튼 연결 ---------- */
+// 상담 전송 설정은 공용 로더(js/lead-transport.js)를 쓴다 — 한 번 더 시도하고,
+// 그래도 못 읽으면 configLoadFailed 표시가 붙어 접수 화면이 사실대로 말할 수 있다.
 async function loadConfig() {
+  if (window.ManmulLead && typeof window.ManmulLead.loadConfig === 'function') {
+    return await window.ManmulLead.loadConfig();
+  }
   try {
     const res = await fetch('data/config.json', { cache: 'no-cache' });
     if (res.ok) return await res.json();
   } catch (e) { /* noop */ }
-  return null;
+  return { configLoadFailed: true };
 }
 
 // 카카오 채널이 실제 개설(ready)되면 카카오 버튼을 노출, 아니면 전화가 기본 CTA.

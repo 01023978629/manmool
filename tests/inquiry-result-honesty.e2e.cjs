@@ -51,11 +51,25 @@ after(async () => {
 
 /* opts.deliver: 'ok' | 'fail' | 'slow'
    opts.clipboard: 'ok' | 'blocked'  (blocked = writeText 거부 + execCommand false)
+    opts.config: 'ok' | 'dead' | 'flaky'
+     dead  = data/config.json 이 계속 실패
+     flaky = 처음 두 요청만 실패. 이 페이지에서 config.json 을 읽는 스크립트가
+             둘(lead-transport·hj-link)이라, '첫 요청만'으로 잡으면 어느 쪽이
+             먼저 나가느냐에 따라 재시도가 시험되지 않을 수 있다 — 둘을 다 떨궈
+             lead-transport 가 반드시 한 번은 실패하고 재시도하게 만든다.
    4단계까지 몰고 가서 제출한다. 반환: 결과 화면을 볼 수 있는 page */
 async function submitInquiry(opts) {
   opts = opts || {};
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
+  page.__configHits = 0;
+  if (opts.config === 'dead' || opts.config === 'flaky') {
+    await page.route('**/data/config.json*', (route) => {
+      page.__configHits += 1;
+      if (opts.config === 'dead' || page.__configHits <= 2) return route.fulfill({ status: 503, body: 'nope' });
+      return route.continue();
+    });
+  }
   // 실제 전송은 절대 나가지 않는다(대표 메일함 보호)
   await page.route('https://api.web3forms.com/**', async (route) => {
     if (opts.deliver === 'fail') return route.fulfill({ status: 500, contentType: 'application/json', body: '{"success":false}' });
@@ -167,5 +181,33 @@ test('④ 전송 중에는 제출 버튼이 눌린 상태로 바뀐다(중복 �
   assert.match(mid.label, /접수 중/, '전송 중인데 버튼 글자가 그대로다 — 손님이 안 눌린 줄 안다: ' + mid.label);
 
   await page.waitForSelector('.inquiry-done', { timeout: 9000 });
+  await page.context().close();
+});
+
+test('⑤ 설정을 못 읽었을 때는 "접수 경로가 없다"가 아니라 "새로고침하시라"고 말한다', async () => {
+  const page = await submitInquiry({ config: 'dead' });
+  await page.click('#submitInquiry');
+  await page.waitForSelector('.inquiry-done', { timeout: 9000 });
+  await page.waitForTimeout(300);
+
+  const t = await doneText(page);
+  assert.match(t, /설정을 잠시 못 읽어/,
+    '설정 로드 실패인데 일반 실패 문구가 나온다 — 손님은 이 업체가 온라인 접수를 안 받는 줄 안다: ' + t);
+  assert.match(t, /새로고침/, '손님이 무엇을 하면 되는지(새로고침) 안내가 없다: ' + t);
+  // 실패해도 연락 경로는 그대로 있어야 한다
+  assert.ok(await page.evaluate(() => !!document.querySelector('.done-actions a[href^="tel:"]')),
+    '설정 로드 실패 화면에 전화 경로가 없다');
+  await page.context().close();
+});
+
+test('⑤-2 설정 요청이 한 번 실패해도 재시도가 살려낸다', async () => {
+  const page = await submitInquiry({ config: 'flaky' });
+  await page.click('#submitInquiry');
+  await page.waitForSelector('.inquiry-done', { timeout: 9000 });
+  await page.waitForTimeout(300);
+
+  const t = await doneText(page);
+  assert.match(t, /전달되었습니다/,
+    '첫 요청만 실패했는데 재시도가 살려내지 못했다 — 멀쩡한 접수가 통째로 실패로 떨어진다: ' + t);
   await page.context().close();
 });
