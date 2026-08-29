@@ -47,6 +47,19 @@ function safeContentUrl(value, fallback) {
   return url;
 }
 
+/* 사례 사진 축소본 — assets/cases/ 원본(최대 1800px·480KB)을 카드·본문에 그대로
+   내보내면 휴대폰 LTE에서 LCP가 5초를 넘는다. scripts/build-image-variants.py 가
+   만든 resized/<이름>-480w·960w.jpg 를 srcset 으로 걸어 브라우저가 칸 폭에 맞는
+   쪽을 받게 한다. 규칙에 안 맞는 경로(외부 URL·jpg 아님)는 조용히 원본만 쓴다. */
+const CASE_SIZES_CARD = '(max-width: 720px) 94vw, (max-width: 1130px) 46vw, 356px';
+const CASE_SIZES_HALF = '(max-width: 720px) 47vw, 178px';
+function caseImgExtra(src, sizes) {
+  const m = /^assets\/cases\/([A-Za-z0-9._-]+)\.jpg$/.exec(String(src || ''));
+  if (!m) return '';
+  const p = 'assets/cases/resized/' + m[1];
+  return ` srcset="${p}-480w.jpg 480w, ${p}-960w.jpg 960w" sizes="${sizes}"`;
+}
+
 function previewRequested() {
   try { return new URLSearchParams(location.search).get('preview') === '1'; } catch (e) { return false; }
 }
@@ -147,8 +160,8 @@ function renderActualWork(items) {
     const photo = beforeImage && afterImage
       // 뒷사진 alt 는 imageAlt(그 사진을 실제로 설명하는 문장)를 쓴다. 제목에 이어
       // 붙이면 "…배관 교체 교체 완료" 처럼 읽혀 화면 낭독이 이상해진다.
-      ? `<span class="real-work-before-after"><span><img src="${escapeContent(beforeImage)}" loading="lazy" decoding="async" alt="${escapeContent(`${item.title} 작업 전`)}" /><i>작업 전</i></span><span><img src="${escapeContent(afterImage)}" loading="lazy" decoding="async" alt="${escapeContent(item.imageAlt || `${item.title} 작업 후`)}" /><i>교체 완료</i></span></span>`
-      : (image ? `<img src="${escapeContent(image)}" loading="lazy" decoding="async" alt="${escapeContent(item.imageAlt || item.title)}" />` : '');
+      ? `<span class="real-work-before-after"><span><img src="${escapeContent(beforeImage)}"${caseImgExtra(beforeImage, CASE_SIZES_HALF)} loading="lazy" decoding="async" alt="${escapeContent(`${item.title} 작업 전`)}" /><i>작업 전</i></span><span><img src="${escapeContent(afterImage)}"${caseImgExtra(afterImage, CASE_SIZES_HALF)} loading="lazy" decoding="async" alt="${escapeContent(item.imageAlt || `${item.title} 작업 후`)}" /><i>교체 완료</i></span></span>`
+      : (image ? `<img src="${escapeContent(image)}"${caseImgExtra(image, CASE_SIZES_CARD)} loading="lazy" decoding="async" alt="${escapeContent(item.imageAlt || item.title)}" />` : '');
     return `
       <a class="real-work-card" href="${escapeContent(href)}">
         <span class="real-work-photo">${photo}<em>${escapeContent(item.label || '실제 현장')}</em></span>
@@ -1202,7 +1215,7 @@ function renderInsights(insights) {
   grid.innerHTML = latest.slice(0, 3).map((a) => `
     <a class="insight-card reveal" href="posts/${encodeURIComponent(a.slug)}.html">
       <span class="ic-cover" style="background:linear-gradient(150deg, ${a.cover || '#d8c3a5'}, ${shade(a.cover || '#d8c3a5', -16)})">
-        ${a.image ? `<img class="ic-image" src="${a.image}" alt="${a.imageAlt || a.title}" loading="lazy" decoding="async">` : ''}
+        ${a.image ? `<img class="ic-image" src="${a.image}"${caseImgExtra(a.image, CASE_SIZES_CARD)} alt="${a.imageAlt || a.title}" loading="lazy" decoding="async">` : ''}
         <span class="ic-cat">${a.category}</span>
       </span>
       <span class="ic-body">
