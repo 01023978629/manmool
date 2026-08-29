@@ -521,6 +521,7 @@
           <!-- Step 1 -->
           <fieldset class="step" data-step="1">
             <legend>1단계 · 공간 · 지역 · 평수</legend>
+            <p class="step-note">아는 만큼만 적으셔도 됩니다. <b>필수는 이름·연락처·동의</b> 셋뿐입니다.</p>
             <div class="field">
               <label for="iType">공간 유형</label>
               <select id="iType" name="type">
@@ -529,6 +530,12 @@
                 <option value="리모델링">리모델링</option>
                 <option value="누수">누수탐지·누수수리</option>
               </select>
+              <!-- 누수는 급한 일이다. 평수·범위·항목·예산·시기를 다 지나야 연락처가 나오면
+                   그 전에 손님이 나간다. 유형을 누수로 고르면 연락처 단계로 바로 보낸다. -->
+              <p class="type-shortcut" id="leakShortcut" hidden>
+                누수는 급하실 겁니다 —
+                <button type="button" class="btn btn-ghost btn-sm" id="leakShortcutGo">연락처만 남기고 바로 접수</button>
+              </p>
             </div>
             <div class="field">
               <label for="iRegion">지역 (시/구)</label>
@@ -571,7 +578,7 @@
             <div class="field">
               <label id="scopeLabel">공사 범위</label>
               <div class="chip-group" role="radiogroup" aria-labelledby="scopeLabel">
-                <label class="chip"><input type="radio" name="scope" value="전체" checked /><span>전체 공사</span></label>
+                <label class="chip"><input type="radio" name="scope" value="전체" /><span>전체 공사</span></label>
                 <label class="chip"><input type="radio" name="scope" value="부분" /><span>부분 공사</span></label>
               </div>
             </div>
@@ -597,8 +604,9 @@
             <div class="field">
               <label for="iWhen">희망 시기</label>
               <select id="iWhen" name="movein">
+                <option value="미정" selected>미정 / 상담 후 결정</option>
                 <option>1개월 이내</option>
-                <option selected>1~3개월</option>
+                <option>1~3개월</option>
                 <option>3~6개월</option>
                 <option>6개월 이후 / 미정</option>
               </select>
@@ -606,17 +614,17 @@
             <div class="field">
               <label id="liveLabel">거주 여부</label>
               <div class="chip-group" role="radiogroup" aria-labelledby="liveLabel">
-                <label class="chip"><input type="radio" name="live" value="거주중" checked /><span>거주 중</span></label>
+                <label class="chip"><input type="radio" name="live" value="거주중" /><span>거주 중</span></label>
                 <label class="chip"><input type="radio" name="live" value="공실" /><span>공실</span></label>
               </div>
             </div>
             <div class="field-row">
               <div class="field">
-                <label for="iName">이름</label>
+                <label for="iName">이름 <em class="req" aria-hidden="true">필수</em></label>
                 <input type="text" id="iName" name="name" required autocomplete="name" placeholder="홍길동" />
               </div>
               <div class="field">
-                <label for="iPhone">연락처</label>
+                <label for="iPhone">연락처 <em class="req" aria-hidden="true">필수</em></label>
                 <input type="tel" id="iPhone" name="phone" required autocomplete="tel" inputmode="numeric" maxlength="13" placeholder="010-0000-0000" />
               </div>
             </div>
@@ -631,8 +639,8 @@
               <textarea id="iMemo" name="memo" rows="3" placeholder="원하시는 스타일, 특이사항 등을 알려주세요."></textarea>
             </div>
             <label class="consent">
-              <input type="checkbox" id="iConsent" name="consent" />
-              <span>개인정보 수집·이용에 동의합니다. (상담 목적, 보유기간 1년 · <a href="privacy.html" target="_blank" rel="noopener">처리방침</a>)</span>
+              <input type="checkbox" id="iConsent" name="consent" required />
+              <span><em class="req" aria-hidden="true">필수</em> 개인정보 수집·이용에 동의합니다. (상담 목적, 보유기간 1년 · <a href="privacy.html" target="_blank" rel="noopener">처리방침</a>)</span>
             </label>
           </fieldset>
 

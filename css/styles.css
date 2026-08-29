@@ -507,6 +507,16 @@ body.content-preview .site-header { top: 46px; }
 @media (max-width: 520px) { .done-actions { flex-direction: column; } .done-actions .btn { width: 100%; } }
 .done-check.warn { background: #d98a3c; }
 .done-check.send { background: var(--brand); }
+/* 필수 표시 — 실제로 제출을 막는 칸(이름·연락처·동의)에만 붙인다.
+   아무 데나 붙이면 손님은 폼 전체가 필수인 줄 알고 시작조차 안 한다.
+   화면낭독기에는 required 속성이 이미 말해주므로 이 배지는 숨긴다. */
+.req { font-style: normal; font-size: 12px; font-weight: 800; color: var(--link-strong);
+  background: var(--brand-soft); border-radius: 999px; padding: 3px 9px; margin-left: 7px;
+  vertical-align: middle; }
+.step-note { font-size: 14px; color: var(--ink-soft); margin: -4px 0 16px; }
+.step-note b { color: var(--ink); }
+.type-shortcut { display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  font-size: 14px; color: var(--ink-soft); margin: 10px 0 0; }
 .field-error { color: #b5443a; font-size: 13px; font-weight: 700; margin-top: 6px; }
 .inquiry-form [aria-invalid="true"] { border-color: #d98a7f; box-shadow: 0 0 0 3px rgba(217,138,127,.18); }
 

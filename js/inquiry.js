@@ -140,6 +140,14 @@
       <label class="chip"><input type="checkbox" name="works" value="${w}" /><span>${w}</span></label>`).join('');
   }
 
+  // 유형이 '누수'일 때만 지름길 안내를 띄운다. 시안 선택처럼 코드가 유형을
+  // 바꾸는 경로는 change 이벤트가 안 나므로 그 자리에서도 직접 부른다.
+  function syncLeakShortcut() {
+    const sel = $('iType');
+    const box = $('leakShortcut');
+    if (box) box.hidden = !sel || sel.value !== '누수';
+  }
+
   function showStep(n) {
     step = Math.min(Math.max(n, 1), TOTAL_STEPS);
     document.querySelectorAll('.inquiry-form .step').forEach((f) => {
@@ -200,11 +208,11 @@
       ['공간 유형', d.type],
       ['지역', d.region || '-'],
       ['평수', d.area ? d.area + '평' : '-'],
-      ['공사 범위', d.scope],
+      ['공사 범위', d.scope || '아직 선택 안 함'],
       ['희망 항목', d.works.length ? d.works.join(', ') : '-'],
       ['예상 예산', d.budget],
       ['희망 시기', d.movein],
-      ['거주 여부', d.live],
+      ['거주 여부', d.live || '아직 선택 안 함'],
       ['선택 디자인', d.selectedDesign || '-'],
       ['참고 견적', d.estimateHint || '-']
     ];
@@ -490,6 +498,7 @@
         if (scopeInput) scopeInput.checked = true;
       }
     } catch (e) { /* 오래된 브라우저에서는 기본값을 유지 */ }
+    syncLeakShortcut();
 
     // 선택한 디자인 반영(초기값 + 이후 선택 이벤트)
     if (ctx && typeof ctx.getDesign === 'function') SELECTED_DESIGN = ctx.getDesign();
@@ -516,13 +525,21 @@
       if (SELECTED_DESIGN) {
         // 누수 전용 링크에서 들어온 뒤 디자인을 선택했다면 인테리어 상담으로 전환한다.
         const typeSel = document.querySelector('#inquiry select[name="type"]');
-        if (typeSel && typeSel.value === '누수') typeSel.value = '주거';
+        if (typeSel && typeSel.value === '누수') { typeSel.value = '주거'; syncLeakShortcut(); }
         if (SELECTED_DESIGN.area) setAreaValue(SELECTED_DESIGN.area);
         if (SELECTED_DESIGN.budget) setBudgetValue(SELECTED_DESIGN.budget);
         const sec = $('inquiry');
         if (sec) setTimeout(() => sec.scrollIntoView({ behavior: SCROLL, block: 'start' }), 60);
       }
     });
+
+    // 누수는 급한 일이다. 평수·범위·항목·예산·시기를 다 지나야 연락처가 나오면
+    // 그 전에 손님이 나간다 — 유형이 누수면 연락처 단계(3)로 바로 갈 길을 연다.
+    const typeSel = $('iType');
+    if (typeSel) typeSel.addEventListener('change', syncLeakShortcut);
+    syncLeakShortcut();
+    const shortcutGo = $('leakShortcutGo');
+    if (shortcutGo) shortcutGo.addEventListener('click', () => { showStep(3); });
 
     $('nextStep').addEventListener('click', advance);
     $('prevStep').addEventListener('click', () => showStep(step - 1));

@@ -57,6 +57,7 @@ jobs:
           tests/lead-privacy.e2e.cjs
           tests/inquiry-phone.e2e.cjs
           tests/inquiry-result-honesty.e2e.cjs
+          tests/inquiry-usability.e2e.cjs
 
       - name: Run management office artifact mutation tests
         shell: bash

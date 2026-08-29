@@ -193,6 +193,50 @@ for (const [file, src] of [['js/inquiry.js', inquiry], ['js/leak-inquiry.js', re
     `${file} 복사 성공 여부로 분기 (${branched}/${copyCalls})`);
 }
 
+/* ⑧-3 폼이 무엇을 꼭 답해야 하는지 밝히는가 --------------------------- */
+// 손님이 이탈하는 가장 흔한 이유는 '어디까지 답해야 하는지 몰라서'다.
+// 실제로 막는 칸은 이름·연락처·동의 셋뿐인데 표시가 없었다.
+const inquiryFormHtml = (index.split('id="inquiryForm"')[1] || '').split('</form>')[0];
+for (const [id, what] of [['iName', '이름'], ['iPhone', '연락처'], ['iConsent', '개인정보 동의']]) {
+  const near = id === 'iConsent'
+    ? (inquiryFormHtml.split('id="iConsent"')[1] || '').slice(0, 400)
+    : (inquiryFormHtml.split(`for="${id}"`)[1] || '').slice(0, 200);
+  check(/class="req"/.test(near), `상담 폼의 ${what}(#${id})에 필수 표시가 없다`,
+    `상담 폼 ${what} 필수 표시`);
+}
+// 반대쪽도 막는다 — 필수 배지가 번지면 손님은 폼 전체가 필수인 줄 알고 시작을 안 한다.
+const reqBadges = (inquiryFormHtml.match(/class="req"/g) || []).length;
+check(reqBadges === 3, `상담 폼 필수 표시가 ${reqBadges}개다 — 실제로 막는 칸(이름·연락처·동의) 셋뿐이어야 한다`,
+  '상담 폼 필수 표시는 막는 칸 셋뿐');
+check(/class="req"/.test((read('leak.html').split('id="lkConsent"')[1] || '').slice(0, 400)),
+  '누수 폼의 동의(#lkConsent)에 필수 표시가 없다 — 유일하게 제출을 막는 칸인데 표시가 없다',
+  '누수 폼 동의 필수 표시');
+
+/* ⑧-4 안 고른 것을 고른 것처럼 대표에게 보내지 않는가 ------------------ */
+// 라디오에 checked 가 박혀 있으면 손님이 손도 안 댄 '전체 공사 · 거주중'이
+// 사실처럼 리드에 실린다. 대표는 그걸 보고 방문 준비를 한다.
+for (const [name, what] of [['scope', '공사 범위'], ['live', '거주 여부']]) {
+  const radios = inquiryFormHtml.match(new RegExp(`<input type="radio" name="${name}"[^>]*>`, 'g')) || [];
+  check(radios.length >= 2 && !radios.some((r) => /\bchecked\b/.test(r)),
+    `상담 폼 ${what}(${name})에 기본 선택이 박혀 있다 — 손님이 안 고른 값이 사실처럼 전달된다`,
+    `상담 폼 ${what} 기본 선택 없음`);
+}
+check(/<option value="미정" selected>[^<]*<\/option>\s*<option>1개월 이내<\/option>/.test(inquiryFormHtml),
+  '상담 폼 희망 시기의 기본값이 미정이 아니다 — 손님이 안 고른 시기가 사실처럼 전달된다',
+  '상담 폼 희망 시기 기본값 미정');
+check(/d\.scope \|\| '아직 선택 안 함'/.test(inquiry) && /d\.live \|\| '아직 선택 안 함'/.test(inquiry),
+  '확인 화면이 안 고른 항목을 그대로 말하지 않는다(undefined 노출 또는 지어낸 기본값)',
+  '확인 화면이 안 고른 항목을 그대로 표기');
+
+/* ⑧-5 누수 손님이 연락처까지 가는 길이 짧은가 ------------------------- */
+// 누수는 급한 일이다. 평수·범위·항목·예산·시기를 다 지나야 연락처가 나오면
+// 그 전에 손님이 나간다.
+check(/id="leakShortcut"/.test(inquiryFormHtml) && /id="leakShortcutGo"/.test(inquiryFormHtml),
+  '상담 폼에 누수 손님용 연락처 지름길이 없다', '상담 폼 누수 지름길 존재');
+check(/function syncLeakShortcut/.test(inquiry)
+  && /shortcutGo\.addEventListener\('click', \(\) => \{ showStep\(3\); \}\)/.test(inquiry),
+  '누수 지름길이 연락처 단계로 이어지지 않는다', '누수 지름길이 연락처 단계로 연결');
+
 /* ⑨ 블로그 목록이 JS 없이도 보인다 ------------------------------------ */
 // blog.html 은 sitemap 에 홈 다음 순위로 올라 있는데, 정적 HTML 에 h1 도 글 링크도 없으면
 // 크롤러에겐 빈 페이지고 8편으로 넘어갈 경로 자체가 없다.
@@ -265,6 +309,40 @@ check(/const WORKS = \[[^\]]*'누수탐지·누수수리'/.test(inquiry) && /fd\
   check(/Web3Forms/.test(privacy) && /010-2397-8629/.test(privacy),
     'privacy.html 의 외부 처리 안내 또는 개인정보 문의 연락처가 빠졌다',
     '처리방침 외부 처리·연락처 유지');
+
+  /* ⑩-2 실제로 나가는 항목이 전부 처리방침에 적혀 있는가 ---------------
+     collect() 가 payload 에 싣는 값이 늘어날 때마다 처리방침이 뒤처졌다.
+     '시안 담기'나 '우리집 사양서'를 쓰면 그 요약이 통째로 대표에게 가는데,
+     방침의 수집 항목 목록에는 한 줄도 없었다. 여기서는 코드가 싣는 키마다
+     방침에 있어야 할 말을 못 박는다 — 항목을 새로 실으면 이 목록부터 늘려라.
+     (source·submittedAt·status·consent 는 전송 메타·동의 자체라 대상이 아니다) */
+  const LEAD_FIELD_NOTICE = {
+    type: /공간\s*종류/, region: /지역/, area: /평수/, scope: /공사\s*범위/,
+    works: /희망\s*공사\s*항목/, budget: /예산/, movein: /희망\s*시기/,
+    live: /거주\s*여부/, name: /성함/, phone: /연락처/, memo: /메모/,
+    estimateHint: /참고\s*견적/, simSpec: /사양서/, lookSpec: /시안/,
+    selectedDesign: /시안/,
+  };
+  const collectBody = functionBody(inquiry, 'collect') || '';
+  // 축약 속성(works,)은 콜론이 없다. 콜론만 찾으면 그 항목이 통째로 감시망 밖에 남는다.
+  const sentKeys = (collectBody.match(/^\s{6}([A-Za-z][A-Za-z0-9_]*)\s*[:,]/gm) || [])
+    .map((m) => m.trim().replace(/[:,]$/, ''));
+  const META_KEYS = new Set(['consent']);
+  const unlisted = sentKeys.filter((k) => !META_KEYS.has(k)
+    && !(LEAD_FIELD_NOTICE[k] && LEAD_FIELD_NOTICE[k].test(privacy)));
+  check(sentKeys.length >= 10 && unlisted.length === 0,
+    `상담에 실려 나가는 항목이 처리방침에 없다: ${unlisted.join(', ') || '(collect() 를 읽지 못했다)'}`,
+    `처리방침이 전송 항목 ${sentKeys.length}개를 모두 밝힘`);
+  // 누수 폼도 같은 규칙 — 증상 체크박스가 방침에 없었다.
+  const leakCollect = functionBody(read('js/leak-inquiry.js'), 'collect') || '';
+  const leakNotice = paragraphTextById(privacy, 'privacy-leak-items');
+  check(/symptoms:/.test(leakCollect) ? /증상/.test(leakNotice) : true,
+    '누수 상담이 증상 항목을 보내는데 처리방침의 누수 문단(#privacy-leak-items)에 증상 수집이 없다',
+    '처리방침 누수 문단이 증상 수집을 밝힘');
+  // 유선번호도 받게 됐다 — '휴대폰 번호'만 적혀 있으면 방침이 실제와 어긋난다.
+  check(!/연락처\(휴대폰\s*번호\)/.test(privacy),
+    '처리방침이 연락처를 휴대폰 번호로만 적고 있다 — 유선(042·02·070)도 받는다',
+    '처리방침 연락처 표기가 유선까지 포함');
 
   const handoffPrivacySummary = handoff.split(/\r?\n/)
     .find((line) => /^\|\s*개인정보처리방침\s*\|/.test(line)) || '';

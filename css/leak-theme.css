@@ -612,7 +612,7 @@ footer { padding: 49px 24px 54px; background: #071a29; color: #76909f; }
 .leak-field { display: grid; gap: 9px; border: 0; padding: 0; margin: 0; min-width: 0; }
 .leak-field > label, .leak-field > legend { font-size: 15px; font-weight: 800; color: var(--navy); padding: 0; }
 .leak-field > label small, .leak-field > legend small { font-weight: 650; color: #8c9aa5; font-size: 13px; margin-left: 6px; }
-.leak-field .req { font-style: normal; font-size: 12px; font-weight: 800; color: #0d7f93;
+.leak-field .req, .leak-consent .req { font-style: normal; font-size: 12px; font-weight: 800; color: #0d7f93;
   background: rgba(7,159,184,.12); border-radius: 999px; padding: 3px 9px; margin-left: 7px; }
 .leak-field input[type="text"], .leak-field input[type="tel"], .leak-field textarea {
   width: 100%; font: inherit; font-size: 16px; color: var(--navy);
