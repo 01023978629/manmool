@@ -74,8 +74,8 @@ const expectedContent = [
     slug: 'apartment-upper-lower-rain-pipe-repair',
     date: '2026-08-28',
     title: '대전 목양마을아파트 상·하층 우수관 보수 — 우수 배수부품 교체',
+    excerpt: '대전 목양마을아파트에서 바닥 배수구와 위·아래층을 잇는 우수관 관통부를 차례로 확인한 현장입니다. 기존 마감과 원형 부속을 살핀 뒤, 우수관 연결 부품을 교체하고 배수구 그릴을 설치해 마무리했습니다.',
     publicApartmentName: '목양마을아파트',
-    publicApartmentFollowers: ['상·하층'],
     coverAlt: '수직 우수관과 천장 관통부 현장 상태',
     finalHeading: '우수 배수부품 교체를 마쳤습니다',
     finalText: '우수관 하부 연결 부품을 교체하고 배수구 그릴을 설치한 뒤의 모습입니다. 수직관과 하부 연결 부품, 배수구 그릴이 함께 보이도록 마무리 상태를 기록했습니다.',
@@ -95,9 +95,8 @@ const phonePattern = /01[016789](?:[ .-]?\d){7,8}\b/;
 const unitPattern = /(?:\d{1,4}\s*(?:동|호)|\d{1,3}\s*[-/]\s*\d{3,4})/;
 const detailedAddressPattern = /(?:[가-힣]+(?:로|길)\s*\d+(?:-\d+)?|[가-힣]+(?:동|리|읍|면)\s*\d+(?:-\d+)?|\d+(?:-\d+)?번지)/;
 const namedBuildingPattern = /[가-힣]{2,}(?:아파트|빌딩)/;
-const allowedBuildingParticlePattern = /^(?:에게서|에서의|에서는|에서|께서는|께서|으로는|으로|로는|로|에는|에|의|은|는|이|가|을|를|과|와|도|만|부터|까지|처럼|보다)(?=$|[\s.,!?…·—:;()[\]{}])/u;
 
-function hasAllowedBuildingBoundaryViolation(value, allowedName, allowedFollowers = []) {
+function hasAllowedBuildingBoundaryViolation(value, allowedName, allowedSuffixes = []) {
   let searchFrom = 0;
   while (searchFrom < value.length) {
     const index = value.indexOf(allowedName, searchFrom);
@@ -106,20 +105,14 @@ function hasAllowedBuildingBoundaryViolation(value, allowedName, allowedFollower
     if (previous && /[\p{L}\p{N}]/u.test(previous)) return true;
 
     const suffix = value.slice(index + allowedName.length);
-    if (suffix && /^[\p{L}\p{N}]/u.test(suffix)) {
-      if (!allowedBuildingParticlePattern.test(suffix)) return true;
-    } else if (/^\s/u.test(suffix)) {
-      const nextToken = suffix.trimStart().match(/^[^\s.,!?…—:;()[\]{}]+/u)?.[0] || '';
-      if (nextToken && !allowedFollowers.includes(nextToken)) return true;
-    } else if (suffix && !/^[.!?…]+\s*$/u.test(suffix)) {
-      return true;
-    }
+    const isApprovedSuffix = !suffix || allowedSuffixes.includes(suffix) || /^[.!?…]+\s*$/u.test(suffix);
+    if (!isApprovedSuffix) return true;
     searchFrom = index + allowedName.length;
   }
   return false;
 }
 
-function privacyViolations(value, { allowedBuildingNames = [], allowedBuildingFollowers = {} } = {}) {
+function privacyViolations(value, { allowedBuildingNames = [], allowedBuildingSuffixes = {} } = {}) {
   const violations = [];
   const allowedBuildingNameSet = new Set(
     allowedBuildingNames.filter((name) => typeof name === 'string' && name.trim()).map((name) => name.trim())
@@ -145,7 +138,7 @@ function privacyViolations(value, { allowedBuildingNames = [], allowedBuildingFo
     const buildingNames = node.match(new RegExp(namedBuildingPattern.source, 'g')) || [];
     const hasUnknownBuilding = buildingNames.some((name) => !allowedBuildingNameSet.has(name));
     const hasExtendedAllowedBuilding = [...allowedBuildingNameSet].some((name) => (
-      hasAllowedBuildingBoundaryViolation(node, name, allowedBuildingFollowers[name] || [])
+      hasAllowedBuildingBoundaryViolation(node, name, allowedBuildingSuffixes[name] || [])
     ));
     if (hasUnknownBuilding || hasExtendedAllowedBuilding) violations.push(`${keyPath}: 단지·건물 고유명`);
   }
@@ -258,7 +251,9 @@ for (const [label, fixture] of privacyFixtures) {
 if (privacyViolations({ title: '대전 아파트 배관 보수' }).length) failures.push('개인정보 차단 fixture가 일반적인 대전 아파트 표현을 막는다');
 const allowedApartment = {
   allowedBuildingNames: ['목양마을아파트'],
-  allowedBuildingFollowers: { 목양마을아파트: ['상·하층'] }
+  allowedBuildingSuffixes: {
+    목양마을아파트: [' 상·하층 배관 보수', '에서 배관을 확인했다', '의 배관을 확인했다']
+  }
 };
 if (privacyViolations({ title: '목양마을아파트 상·하층 배관 보수' }, allowedApartment).length) failures.push('정확히 허용한 아파트명과 승인 문맥이 차단된다');
 if (privacyViolations({ title: '목양마을아파트에서 배관을 확인했다' }, allowedApartment).length) failures.push('허용 아파트명 뒤 조사 "에서"가 차단된다');
@@ -278,6 +273,10 @@ if (!privacyViolations({ title: '목양마을아파트(제2단지)' }, allowedAp
 if (!privacyViolations({ title: '목양마을아파트·제2단지' }, allowedApartment).length) failures.push('허용 아파트명의 가운뎃점 단지 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트-제2단지' }, allowedApartment).length) failures.push('허용 아파트명의 하이픈 단지 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트, 제2단지' }, allowedApartment).length) failures.push('허용 아파트명의 쉼표 단지 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트 (제2단지)' }, allowedApartment).length) failures.push('허용 아파트명의 공백 괄호 단지 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트 , 제2단지' }, allowedApartment).length) failures.push('허용 아파트명의 공백 쉼표 단지 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트 — 제2단지' }, allowedApartment).length) failures.push('허용 아파트명의 공백 대시 단지 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트에서(제2단지)' }, allowedApartment).length) failures.push('허용 아파트명의 조사 뒤 괄호 단지 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트 가람아파트 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명과 다른 단지명이 함께 통과한다');
 
 for (const expected of expectedContent) {
@@ -287,6 +286,7 @@ for (const expected of expectedContent) {
   const media = [item.image, ...(item.body || []).filter((section) => section.img).map((section) => section.img)];
   const wantedMedia = WEEKLY_CASES.find((entry) => entry.slug === expected.slug).images;
   if (item.title !== expected.title || item.date !== expected.date) failures.push(`${expected.slug}: 제목 또는 날짜가 다르다`);
+  if (expected.excerpt && item.excerpt !== expected.excerpt) failures.push(`${expected.slug}: 첫 설명이 다르다`);
   if (expected.publicApartmentName && !item.excerpt.startsWith(`대전 ${expected.publicApartmentName}에서`)) failures.push(`${expected.slug}: 첫 설명에 공개 아파트명이 없다`);
   if (item.imageAlt !== expected.coverAlt) failures.push(`${expected.slug}: 표지 사진 설명이 다르다`);
   if (expected.finalImage) {
@@ -299,10 +299,15 @@ for (const expected of expectedContent) {
   if (item.category !== '방수·설비' || item.service !== 'leak') failures.push(`${expected.slug}: 누수 서비스 분류가 아니다`);
   if ((item.body || []).length < 4 || item.body.length > 6) failures.push(`${expected.slug}: 본문 소제목이 4~6개가 아니다`);
   if (JSON.stringify(media) !== JSON.stringify(wantedMedia)) failures.push(`${expected.slug}: 사진 순서 또는 수가 다르다`);
+  const approvedApartmentSuffixes = expected.publicApartmentName
+    ? [expected.title, expected.excerpt]
+        .filter((value) => typeof value === 'string' && value.includes(expected.publicApartmentName))
+        .map((value) => value.slice(value.indexOf(expected.publicApartmentName) + expected.publicApartmentName.length))
+    : [];
   const publicPrivacy = privacyViolations(item, {
     allowedBuildingNames: expected.publicApartmentName ? [expected.publicApartmentName] : [],
-    allowedBuildingFollowers: expected.publicApartmentName
-      ? { [expected.publicApartmentName]: expected.publicApartmentFollowers || [] }
+    allowedBuildingSuffixes: expected.publicApartmentName
+      ? { [expected.publicApartmentName]: approvedApartmentSuffixes }
       : {}
   });
   if (publicPrivacy.length) failures.push(`${expected.slug}: 공개 데이터에 개인정보가 있다 (${publicPrivacy.join(', ')})`);
