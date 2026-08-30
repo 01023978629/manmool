@@ -38,6 +38,29 @@
     : a.service === 'interior'
       ? 'interior'
       : (a.category === '방수·설비' || a.category === '누수탐지·수리') ? 'leak' : 'interior';
+  const caseSummaryFields = [
+    ['site', '현장'],
+    ['issue', '문제'],
+    ['work', '작업'],
+    ['result', '결과']
+  ];
+  const caseSummaryMarkup = (a) => {
+    const summary = a.caseSummary;
+    if (!summary || typeof summary !== 'object'
+      || !caseSummaryFields.every(([key]) => typeof summary[key] === 'string' && summary[key].trim())) return '';
+    const items = caseSummaryFields.map(([key, label]) => `
+      <div class="post-summary-item"><dt>${label}</dt><dd>${esc(summary[key]).replace(/\r?\n/g, '<br>')}</dd></div>`).join('');
+    return `<section class="post-summary" aria-labelledby="caseSummaryTitle">
+      <div class="post-summary-head"><span class="post-summary-kicker">작업 핵심</span><h2 id="caseSummaryTitle">현장 작업 한눈에 보기</h2></div>
+      <dl class="post-summary-grid">${items}</dl>
+    </section>`;
+  };
+  const selectRelated = (a, list) => {
+    const others = list.filter((item) => item.slug !== a.slug);
+    const sameService = others.filter((item) => articleService(item) === articleService(a));
+    const otherService = others.filter((item) => articleService(item) !== articleService(a));
+    return sameService.concat(otherService).slice(0, 3);
+  };
 
   function renderList(list) {
     document.title = '누수·배관 사례와 인테리어 기록 · 만물인테리어';
@@ -78,7 +101,7 @@
   function renderArticle(a, list) {
     document.title = `${a.title} · 만물인테리어`;
     applyPostSeo(a);
-    const related = list.filter((x) => x.slug !== a.slug).slice(0, 3);
+    const related = selectRelated(a, list);
     const leakArticle = articleService(a) === 'leak';
     const sourceMarkup = Array.isArray(a.sources) && a.sources.length
       ? `<aside class="post-sources" aria-label="공식 출처">
@@ -104,6 +127,7 @@
         <h1 class="post-title">${esc(a.title)}</h1>
         <p class="post-meta">${esc(a.date)} · ${esc(a.readMin)}분 읽기</p>
         <div class="post-cover" style="background:${cover(a)}">${image(a, 'post-cover-image', true)}</div>
+        ${caseSummaryMarkup(a)}
         <div class="post-body">
           <p class="post-excerpt">${esc(a.excerpt)}</p>
           ${(a.body || []).map((s) => `<h2>${esc(s.h)}</h2><p>${esc(s.p)}</p>`).join('')}

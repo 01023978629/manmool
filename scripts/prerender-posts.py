@@ -19,7 +19,7 @@ from email.utils import format_datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE = 'https://01023978629.github.io/manmool'
-V = '20260823-brand1'  # css 캐시버스터 — 루트 html들과 동일하게 유지
+V = '20260830-case-summary1'  # 정적 글 스타일 캐시버스터
 
 
 def esc(s):
@@ -129,6 +129,32 @@ def article_html(a, insights):
 
     body = '\n'.join(section_html(s) for s in (a.get('body') or []))
 
+    summary_labels = (
+        ('site', '현장'),
+        ('issue', '문제'),
+        ('work', '작업'),
+        ('result', '결과'),
+    )
+    summary = a.get('caseSummary') or {}
+    summary_html = ''
+    if isinstance(summary, dict) and all(str(summary.get(key) or '').strip() for key, _ in summary_labels):
+        summary_items = ''.join(
+            '<div class="post-summary-item">'
+            f'<dt>{label}</dt><dd>{esc(summary[key]).replace(chr(10), "<br>")}</dd>'
+            '</div>'
+            for key, label in summary_labels
+        )
+        summary_html = (
+            '<section class="post-summary" aria-labelledby="caseSummaryTitle">'
+            '<div class="post-summary-head">'
+            '<span class="post-summary-kicker">작업 핵심</span>'
+            '<h2 id="caseSummaryTitle">현장 작업 한눈에 보기</h2>'
+            '</div>'
+            f'<dl class="post-summary-grid">{summary_items}</dl>'
+            '</section>'
+        )
+    summary_slot = f'\n          {summary_html}' if summary_html else ''
+
     # 현장 위치 — 단지 단위까지만 적는다. 동·호수는 고객 집을 특정하므로 넣지 않는다.
     # 지도 링크는 대표가 넣은 값을 그대로 쓰고, 없으면 단지명으로 네이버 지도 검색을
     # 걸어 준다(좌표를 지어내지 않는다).
@@ -148,7 +174,11 @@ def article_html(a, insights):
             f'<a class="pp-map" href="{esc(map_url)}" target="_blank" rel="noopener">네이버 지도에서 보기</a>'
             '</aside>')
         body = place_html + body
-    related = [x for x in insights if x['slug'] != a['slug']][:3]
+    service = article_service(a)
+    other_insights = [x for x in insights if x['slug'] != a['slug']]
+    same_service = [x for x in other_insights if article_service(x) == service]
+    other_service = [x for x in other_insights if article_service(x) != service]
+    related = (same_service + other_service)[:3]
     related_html = '\n'.join(f'''          <a class="insight-card" href="{esc(x['slug'])}.html">
             <span class="ic-cover" style="background:{shade_cover(x.get('cover'))}">{f'<img class="ic-image" src="../{esc(x["image"])}"{case_extra(x.get("image"), SIZES_CARD, "../")} alt="{esc(x.get("imageAlt") or x["title"])}" loading="lazy" decoding="async">' if x.get('image') else ''}<span class="ic-cat">{esc(x.get('category'))}</span></span>
             <span class="ic-body"><b>{esc(x['title'])}</b><span class="ic-meta">{esc(x.get('date'))} · {esc(x.get('readMin'))}분 읽기</span></span>
@@ -188,7 +218,6 @@ def article_html(a, insights):
             f'<p>확인일 {esc(a.get("sourcesChecked"))}</p>'
             f'<ul>{items}</ul>'
             '</aside>')
-    service = article_service(a)
     if service == 'leak':
         cta_html = '''<div class="post-cta">
             <p data-service="leak">누수 원인과 필요한 공사 범위는 현장 확인 후 안내합니다.</p>
@@ -252,7 +281,7 @@ def article_html(a, insights):
           <span class="post-cat">{esc(a.get('category'))}</span>
           <h1 class="post-title">{esc(a['title'])}</h1>
           <p class="post-meta">{esc(a.get('date'))} · {esc(a.get('readMin'))}분 읽기</p>
-          <div class="post-cover" style="background:{shade_cover(a.get('cover'))}">{cover_img}</div>
+          <div class="post-cover" style="background:{shade_cover(a.get('cover'))}">{cover_img}</div>{summary_slot}
           <div class="post-body">
             <p class="post-excerpt">{esc(a.get('excerpt'))}</p>
             {body}{sources_html}
