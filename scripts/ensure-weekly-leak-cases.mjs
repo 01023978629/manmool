@@ -154,6 +154,102 @@ function escapeMarkup(value) {
     .replaceAll('"', '&quot;');
 }
 
+const caseSummaryFields = [
+  ['site', '현장'],
+  ['issue', '문제'],
+  ['work', '작업'],
+  ['result', '결과']
+];
+
+function articleService(item) {
+  if (item.service === 'leak' || item.service === 'interior') return item.service;
+  return item.category === '방수·설비' || item.category === '누수탐지·수리' ? 'leak' : 'interior';
+}
+
+function caseSummaryViolations({ item, post }) {
+  const violations = [];
+  const summary = item.caseSummary;
+  if (!summary || typeof summary !== 'object' || Array.isArray(summary)) {
+    return ['사례 핵심 요약 데이터가 없다'];
+  }
+
+  const expectedKeys = caseSummaryFields.map(([key]) => key);
+  const actualKeys = Object.keys(summary);
+  if (JSON.stringify(actualKeys) !== JSON.stringify(expectedKeys)) {
+    violations.push('사례 핵심 요약 필드가 site·issue·work·result 순서가 아니다');
+  }
+  for (const [key, label] of caseSummaryFields) {
+    const value = summary[key];
+    if (typeof value !== 'string' || !value.trim()) {
+      violations.push(`사례 핵심 요약 ${label}이 비어 있다`);
+      continue;
+    }
+    if (value.length > 90) violations.push(`사례 핵심 요약 ${label}이 90자를 넘는다`);
+  }
+
+  const coverStart = post.indexOf('<div class="post-cover"');
+  const coverEnd = coverStart < 0 ? -1 : post.indexOf('</div>', coverStart);
+  const summaryStart = post.indexOf('<section class="post-summary"');
+  const summaryEnd = summaryStart < 0 ? -1 : post.indexOf('</section>', summaryStart);
+  const bodyStart = post.indexOf('<div class="post-body">');
+  if (summaryStart < 0 || summaryEnd < 0) {
+    violations.push('정적 글에 사례 핵심 요약 카드가 없다');
+    return violations;
+  }
+  if ((post.match(/<section class="post-summary"/g) || []).length !== 1) {
+    violations.push('정적 글에 사례 핵심 요약 카드가 한 번만 나오지 않는다');
+  }
+  if (coverEnd < 0 || summaryStart <= coverEnd || bodyStart <= summaryEnd) {
+    violations.push('사례 핵심 요약 카드가 표지와 본문 사이에 있지 않다');
+  }
+
+  const summaryMarkup = post.slice(summaryStart, summaryEnd + 10);
+  if (!summaryMarkup.includes('aria-labelledby="caseSummaryTitle"')) {
+    violations.push('사례 핵심 요약 카드에 접근 가능한 제목 연결이 없다');
+  }
+  for (const [key, label] of caseSummaryFields) {
+    const value = summary[key];
+    if (typeof value !== 'string' || !value.trim()) continue;
+    if (!summaryMarkup.includes(`<dt>${label}</dt>`)) {
+      violations.push(`정적 글 사례 핵심 요약에 ${label} 라벨이 없다`);
+    }
+    const renderedValue = escapeMarkup(value).replace(/\r?\n/g, '<br>');
+    if (!summaryMarkup.includes(`<dd>${renderedValue}</dd>`)) {
+      violations.push(`정적 글 사례 핵심 요약 ${label} 내용이 데이터와 다르다`);
+    }
+  }
+  return violations;
+}
+
+function relatedServiceViolations({ item, post, insights }) {
+  const violations = [];
+  const relatedStart = post.indexOf('<div class="post-related">');
+  const relatedEnd = relatedStart < 0 ? -1 : post.indexOf('<footer class="site-footer">', relatedStart);
+  const relatedMarkup = relatedStart < 0 || relatedEnd < 0 ? '' : post.slice(relatedStart, relatedEnd);
+  if (!relatedMarkup) return ['다른 인사이트 영역이 없다'];
+
+  const links = [...relatedMarkup.matchAll(/<a class="insight-card" href="([^"/]+)\.html">/g)]
+    .map((match) => match[1]);
+  const expectedCount = Math.min(3, insights.filter((entry) => entry.slug !== item.slug).length);
+  if (links.length !== expectedCount) violations.push(`관련 사례가 ${expectedCount}건이 아니다`);
+  if (links.includes(item.slug)) violations.push('관련 사례에 현재 글이 포함됐다');
+  if (new Set(links).size !== links.length) violations.push('관련 사례가 중복 노출된다');
+
+  const bySlug = new Map(insights.map((entry) => [entry.slug, entry]));
+  const currentService = articleService(item);
+  const sameServiceCount = insights.filter((entry) => entry.slug !== item.slug && articleService(entry) === currentService).length;
+  const priorityCount = Math.min(expectedCount, sameServiceCount);
+  links.slice(0, priorityCount).forEach((slug) => {
+    if (!bySlug.has(slug) || articleService(bySlug.get(slug)) !== currentService) {
+      violations.push('같은 서비스 사례보다 다른 서비스 사례가 먼저 노출된다');
+    }
+  });
+  if (sameServiceCount >= expectedCount && links.some((slug) => !bySlug.has(slug) || articleService(bySlug.get(slug)) !== currentService)) {
+    violations.push('같은 서비스 사례가 충분한데 다른 서비스 사례가 노출된다');
+  }
+  return violations;
+}
+
 function artifactParityViolations({ item, expected, post, blog, rss }) {
   const violations = [];
   const title = escapeMarkup(item.title);
@@ -317,6 +413,12 @@ for (const expected of expectedContent) {
   for (const violation of artifactParityViolations({ item, expected, post, blog, rss })) {
     failures.push(`${expected.slug}: ${violation}`);
   }
+  for (const violation of caseSummaryViolations({ item, post })) {
+    failures.push(`${expected.slug}: ${violation}`);
+  }
+  for (const violation of relatedServiceViolations({ item, post, insights: site.insights || [] })) {
+    failures.push(`${expected.slug}: ${violation}`);
+  }
 
   if (expected.finalImage) {
     const titleMarkup = `<h1 class="post-title">${escapeMarkup(item.title)}</h1>`;
@@ -371,6 +473,11 @@ for (const expected of expectedContent) {
   }
   if (!blog.includes(expected.slug) || !rss.includes(expected.slug) || !sitemap.includes(expected.slug)) failures.push(`${expected.slug}: 목록·RSS·sitemap 연결이 빠졌다`);
 }
+
+const legacyWithoutSummary = (site.insights || []).find((item) => item.slug === 'yeolmae-waterproof-screed');
+const legacyPost = fs.readFileSync(path.join(ROOT, 'posts', 'yeolmae-waterproof-screed.html'), 'utf8');
+if (legacyWithoutSummary?.caseSummary) failures.push('요약 미지정 레거시 글에 사례 핵심 요약 데이터가 생겼다');
+if (legacyPost.includes('<section class="post-summary"')) failures.push('요약 미지정 레거시 글에 빈 사례 핵심 요약 카드가 생겼다');
 
 if (failures.length) {
   console.error(`최근 누수 사례 검사 실패 ${failures.length}건`);
