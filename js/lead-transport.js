@@ -79,9 +79,35 @@
   function buildLeadText(d) {
     d = d || {};
     const L = ['[만물인테리어 상담 신청]'];
+    const isOfficePilot = d.source === 'office-pilot' || !!d.complexName ||
+      !!d.officeContactName || Array.isArray(d.pilotInterest);
+    const purposeLabels = {
+      'phone-consult': '전화로 증상 상담',
+      'paid-device-diagnosis': '유상 장비진단·방문 일정 상담'
+    };
+    const visitWindowLabels = {
+      morning: '오전',
+      afternoon: '오후',
+      any: '시간 협의'
+    };
+    const pilotInterestLabels = {
+      'leak-piping': '누수·배관',
+      'common-repair': '공용부 보수',
+      'preventive-inspection': '예방점검',
+      other: '기타'
+    };
     if (d.name) L.push('이름: ' + d.name);
     if (d.phone) L.push('연락처: ' + d.phone);
-    const space = [d.type, d.area ? d.area + '평' : '', d.region].filter(Boolean).join(' · ');
+    if (d.complexName) L.push('단지명: ' + d.complexName);
+    if (d.officeContactName) L.push('관리사무소 담당자: ' + d.officeContactName);
+    if (isOfficePilot && d.region) L.push('지역: ' + d.region);
+    const interest = Array.isArray(d.pilotInterest)
+      ? d.pilotInterest.map(value => pilotInterestLabels[value]).filter(Boolean)
+      : [];
+    if (interest.length) L.push('관심 업무: ' + interest.join(', '));
+    if (d.desiredStart) L.push('도입 희망 시점: ' + d.desiredStart);
+    const space = [d.type, d.area ? d.area + '평' : '', isOfficePilot ? '' : d.region]
+      .filter(Boolean).join(' · ');
     if (space) L.push('공간: ' + space);
     if (d.symptoms && d.symptoms.length) L.push('증상: ' + d.symptoms.join(', '));
     const scope = [d.scope, (d.works || []).join(',')].filter(Boolean).join(' · ');
@@ -92,13 +118,33 @@
     if (d.simSpec) L.push(d.simSpec);
     if (d.lookSpec) L.push(d.lookSpec);
     if (d.estimateHint) L.push('참고 견적: ' + d.estimateHint);
-    const reference = d.referenceCase && typeof d.referenceCase === 'object' ? d.referenceCase : null;
-    if (reference) {
+    if (d.inquiryPurpose) {
+      L.push('신청 목적: ' + (purposeLabels[d.inquiryPurpose] || d.inquiryPurpose));
+    }
+    const schedule = [
+      d.preferredVisitDate,
+      visitWindowLabels[d.preferredVisitWindow] || d.preferredVisitWindow
+    ].filter(Boolean).join(' · ');
+    if (schedule) L.push('희망 일정: ' + schedule);
+    if (d.bookingStatus === 'inquiry-only') L.push('예약 상태: inquiry-only');
+    if (typeof d.referenceCase === 'string' && d.referenceCase.trim()) {
+      L.push('참고 사례: ' + d.referenceCase.trim());
+    } else if (d.referenceCase && typeof d.referenceCase === 'object') {
+      const reference = d.referenceCase;
       const title = typeof reference.title === 'string' ? reference.title.trim() : '';
       const slug = typeof reference.slug === 'string' ? reference.slug.trim() : '';
       if (title || slug) L.push('참고 사례: ' + (title && slug ? `${title} (${slug})` : title || slug));
     }
-    if (d.memo) L.push('메모: ' + d.memo);
+    if (d.source) L.push('접수 경로: ' + d.source);
+    if (d.sourcePage) L.push('유입 페이지: ' + d.sourcePage);
+    if (d.ctaId) L.push('신청 진입점: ' + d.ctaId);
+    if (d.utmSource) L.push('UTM Source: ' + d.utmSource);
+    if (d.utmMedium) L.push('UTM Medium: ' + d.utmMedium);
+    if (d.utmCampaign) L.push('UTM Campaign: ' + d.utmCampaign);
+    if (typeof d.privacyConsent === 'boolean') {
+      L.push('개인정보 수집·이용 동의: ' + (d.privacyConsent ? '동의' : '미동의'));
+    }
+    if (d.memo) L.push((isOfficePilot ? '문의 내용: ' : '메모: ') + d.memo);
     return L.join('\n');
   }
 

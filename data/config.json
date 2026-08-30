@@ -30,6 +30,11 @@
     "accessKey": "ab68147a-a9e0-4f54-b791-2d3f06e83f70",
     "_help": "n8n 없이도 상담 신청을 대표 이메일로 바로 받는 무료 경로. Web3Forms(https://web3forms.com, 가입 없이 access_key 발급) 또는 Formspree를 추천. endpoint에 서비스 URL, accessKey에 발급키를 넣고 enabled:true. n8n(inquiryWebhookUrl)이 켜져 있으면 그쪽이 우선합니다. 둘 다 없으면 고객이 접수 후 전화·문자·카카오로 직접 보낼 수 있게 안내됩니다(리드 유실 0)."
   },
+  "naver": {
+    "ready": false,
+    "bookingUrl": "",
+    "_help": "대표가 네이버 스마트플레이스에서 만든 공식 예약 URL을 입력하고 검증한 뒤에만 ready를 true로 바꾸세요. false이거나 URL이 유효하지 않으면 공개 예약 버튼은 숨겨지고 상담 폼과 전화만 제공됩니다."
+  },
   "hyeonjang": {
     "appUrl": "https://01023978629.github.io/hyeonjang/",
     "_help": "내부 운영앱(현장/hyeonjang) 배포 URL. 공개 페이지의 '현장 운영 앱' 링크(상단 유틸리티 바·푸터·데모 배너)가 이 주소로 열립니다(js/hj-link.js). 예전에 있던 관리자 대시보드의 '현장 앱으로 보내기'(#lead= 딥링크)는 지금 없습니다 — 리드를 브라우저에 보관하지 않도록 바꾸면서 함께 내렸고, 상담은 폼에서 바로 외부 접수 경로로 전송됩니다."

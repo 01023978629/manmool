@@ -311,6 +311,117 @@ test('신뢰된 공개 누수 사례는 n8n 원문과 Web3Forms 메시지에 같
   assert.deepEqual(formRequests[0].referenceCase, referenceCase);
 });
 
+test('공개 전환 메타데이터와 문자열 사례는 n8n 원문과 Web3Forms 본문에 모두 보존된다', async () => {
+  const payload = {
+    source: 'leak-page',
+    sourcePage: '/leak.html',
+    ctaId: 'leak-inquiry-submit',
+    inquiryPurpose: 'paid-device-diagnosis',
+    preferredVisitDate: '2026-09-15',
+    preferredVisitWindow: 'afternoon',
+    bookingStatus: 'inquiry-only',
+    utmSource: 'naver',
+    utmMedium: 'organic',
+    utmCampaign: 'rainy-2026',
+    referenceCase: 'apartment-upper-lower-rain-pipe-repair'
+  };
+
+  let n8nRequest;
+  const n8n = loadLead({
+    fetch: async (url, options) => {
+      n8nRequest = JSON.parse(options.body);
+      return response(200, '{"ok":true}');
+    }
+  });
+  assert.equal(await n8n.lead.deliver(n8nConfig(), payload), true);
+  assert.deepEqual(n8nRequest, payload);
+
+  let formsRequest;
+  const forms = loadLead({
+    fetch: async (url, options) => {
+      formsRequest = JSON.parse(options.body);
+      return response(200, '{"success":true}');
+    }
+  });
+  assert.equal(await forms.lead.deliver(formsConfig('web3forms'), payload), true);
+  for (const [key, value] of Object.entries(payload)) assert.deepEqual(formsRequest[key], value, key);
+  assert.match(formsRequest.message, /접수 경로: leak-page/);
+  assert.match(formsRequest.message, /유입 페이지: \/leak\.html/);
+  assert.match(formsRequest.message, /신청 진입점: leak-inquiry-submit/);
+  assert.match(formsRequest.message, /신청 목적: 유상 장비진단·방문 일정 상담/);
+  assert.match(formsRequest.message, /희망 일정: 2026-09-15 · 오후/);
+  assert.match(formsRequest.message, /예약 상태: inquiry-only/);
+  assert.match(formsRequest.message, /UTM Source: naver/);
+  assert.match(formsRequest.message, /UTM Medium: organic/);
+  assert.match(formsRequest.message, /UTM Campaign: rainy-2026/);
+  assert.match(formsRequest.message, /참고 사례: apartment-upper-lower-rain-pipe-repair/);
+});
+
+test('관리사무소 파일럿 필드는 전송 원문을 바꾸지 않고 Web3Forms 본문에 업무 표시명으로 보존된다', async () => {
+  const payload = {
+    source: 'office-pilot',
+    complexName: 'SAFE_COMPLEX',
+    officeContactName: 'SAFE_CONTACT',
+    region: 'SAFE_REGION',
+    pilotInterest: ['leak-piping', 'common-repair', 'preventive-inspection', 'other'],
+    desiredStart: 'SAFE_START',
+    memo: 'SAFE_INQUIRY'
+  };
+
+  let n8nRequest;
+  let n8nBody;
+  const n8n = loadLead({
+    fetch: async (url, options) => {
+      n8nBody = options.body;
+      n8nRequest = JSON.parse(options.body);
+      return response(200, '{"ok":true}');
+    }
+  });
+  assert.equal(await n8n.lead.deliver(n8nConfig(), payload), true);
+  assert.equal(n8nBody, JSON.stringify(payload));
+  assert.deepEqual(n8nRequest, payload);
+
+  let formsRequest;
+  const forms = loadLead({
+    fetch: async (url, options) => {
+      formsRequest = JSON.parse(options.body);
+      return response(200, '{"success":true}');
+    }
+  });
+  assert.equal(await forms.lead.deliver(formsConfig('web3forms'), payload), true);
+  for (const [key, value] of Object.entries(payload)) assert.deepEqual(formsRequest[key], value, key);
+  assert.match(formsRequest.message, /단지명: SAFE_COMPLEX/);
+  assert.match(formsRequest.message, /관리사무소 담당자: SAFE_CONTACT/);
+  assert.match(formsRequest.message, /지역: SAFE_REGION/);
+  assert.match(formsRequest.message, /관심 업무: 누수·배관, 공용부 보수, 예방점검, 기타/);
+  assert.match(formsRequest.message, /도입 희망 시점: SAFE_START/);
+  assert.match(formsRequest.message, /문의 내용: SAFE_INQUIRY/);
+  assert.doesNotMatch(formsRequest.message, /메모: SAFE_INQUIRY/);
+  assert.doesNotMatch(formsRequest.message, /leak-piping|common-repair|preventive-inspection/);
+});
+
+test('누수 상담 목적과 희망 시간대의 사람용 표시명을 모두 보존한다', () => {
+  const { lead } = loadLead();
+  const purposeCases = [
+    ['phone-consult', '전화로 증상 상담'],
+    ['paid-device-diagnosis', '유상 장비진단·방문 일정 상담']
+  ];
+  for (const [value, label] of purposeCases) {
+    assert.match(lead.buildLeadText({ inquiryPurpose: value }), new RegExp('신청 목적: ' + label));
+  }
+  const windowCases = [
+    ['morning', '오전'],
+    ['afternoon', '오후'],
+    ['any', '시간 협의']
+  ];
+  for (const [value, label] of windowCases) {
+    assert.match(
+      lead.buildLeadText({ preferredVisitDate: '2026-09-15', preferredVisitWindow: value }),
+      new RegExp('희망 일정: 2026-09-15 · ' + label)
+    );
+  }
+});
+
 test('HTTP 500은 성공 JSON이어도 제출 성공이 아니다', async () => {
   for (const config of [n8nConfig(), formsConfig('web3forms')]) {
     const loaded = loadLead({ fetch: async () => response(500, '{"success":true,"ok":true}') });

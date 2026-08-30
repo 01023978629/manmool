@@ -104,3 +104,17 @@ test('isolated artifact 검증은 stale output-only 파일을 거절하고 sourc
   const failures = verifyPagesArtifact(tempRoot, artifactRoot);
   assert.equal(failures.some((item) => /output-only/.test(item)), true);
 });
+
+test('공개 전환 스크립트는 명시 허용목록과 artifact에 정확히 한 번, byte-exact로 존재한다', () => {
+  const relative = 'js/revenue-conversion.js';
+  assert.equal(policy.PUBLIC_JS_FILES.filter(name => name === 'revenue-conversion.js').length, 1);
+  const expected = policy.expectedPublicFiles(ROOT).filter(item => item.relative === relative);
+  assert.equal(expected.length, 1);
+  assert.equal(expected[0].source, path.join(ROOT, 'js', 'revenue-conversion.js'));
+
+  buildPagesArtifact(tempRoot, artifactRoot);
+  const sourceBytes = fs.readFileSync(path.join(tempRoot, 'js', 'revenue-conversion.js'));
+  const artifactBytes = fs.readFileSync(path.join(artifactRoot, 'js', 'revenue-conversion.js'));
+  assert.equal(Buffer.compare(artifactBytes, sourceBytes), 0);
+  assert.deepEqual(verifyPagesArtifact(tempRoot, artifactRoot), []);
+});
