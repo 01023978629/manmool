@@ -2,14 +2,16 @@
 
 ## 문서 상태
 
-- 상태: 독립 검토 통과 · 사용자 검토 대기
+- 상태: 독립 검토 통과 · 사용자 승인 완료
 - 작성일: 2026-08-30
 - 최종 보완일: 2026-08-31
 - 검토 결과: 구현 전 P0/P1 blocker 없음
 - 대상 저장소:
   - 공개 영업 사이트 `manmool`
   - 내부 현장 운영 PWA `hyeonjang`
-  - 기존 Google Apps Script 중계 서버
+  - 신규 분리형 Google Apps Script 상업 승인 relay
+  - 신규 분리형 Google Apps Script OfficeOps relay
+- 구현 분리 원칙: 기존 `hyeonjang/apps-script/` 사진·OfficeIntake relay는 변경하지 않고, 상업 승인과 OfficeOps는 서로 다른 새 Apps Script 프로젝트·배포·토큰으로 구성한다.
 - 사용자 결정:
   - 관리사무소 프로그램 사용료는 무료다.
   - 현장진단·출동·공사·정기점검 등 실제 업무는 별도 유료다.
@@ -100,7 +102,7 @@
 
 조건 변경과 유료 실행은 서로 다른 명령으로만 처리한다. `updateCommercialTerms`는 범위·제외사항·금액·부가세·유효기간·일정 중 하나라도 바뀌면 조건을 저장하고 현재 `commercialApproval`을 `null`로 만들며 이전 승인은 감사기록에만 남긴다. `executePaidWorkGate`는 저장된 현재 조건 또는 저장 전 `createDraft`의 조건을 검증한 뒤 생성·상태전이 중 하나만 수행한다. 한 요청에 조건 변경과 유료 실행을 함께 넣으면 전체 무변경으로 `compound-command-not-allowed`를 반환한다. 무료 예외는 `free-phone-photo-consultation`과 `free-interior-first-measurement` 두 종류뿐이며 자재·장비탐지·수리 범위를 포함할 수 없다. 새 전자서명·결제 기능은 만들지 않는다.
 
-신뢰 시각과 승인 검증은 OfficeOps 기능 스위치와 독립된 기존 내부 relay의 `commercialNow`, `commercialApprovalIssue`, `commercialApprovalVerify` 액션으로 제공한다. 세 액션은 별도 `COMMERCIAL_APPROVAL_TOKEN`을 요구하고 HMAC 비밀키는 Script Properties에만 둔다. `getTrustedCommercialNowKst()`는 응답 왕복이 10초 이하이고 수신 후 60초 이내인 `serverNowKst`만 허용한다. 이 시각이나 승인 검증을 받지 못하면 해당 유료 전이만 무변경으로 차단하고 사진·견적·기존 자료 조회와 무료 포털은 계속 동작한다.
+신뢰 시각과 승인 검증은 OfficeOps 기능 스위치 및 기존 사진·OfficeIntake relay와 독립된 새 상업 승인 relay의 `commercialNow`, `commercialApprovalIssue`, `commercialApprovalVerify` 액션으로 제공한다. 세 액션은 별도 `COMMERCIAL_APPROVAL_TOKEN`을 요구하고 HMAC 비밀키는 해당 Apps Script 프로젝트의 Script Properties에만 둔다. `getTrustedCommercialNowKst()`는 응답 왕복이 10초 이하이고 수신 후 60초 이내인 `serverNowKst`만 허용한다. 이 시각이나 승인 검증을 받지 못하면 해당 유료 전이만 무변경으로 차단하고 사진·견적·기존 자료 조회와 무료 포털은 계속 동작한다.
 
 현재 `office.html`의 `표준 패키지 500만원 이하` 문구는 판매 가격으로 오해될 수 있으므로 `프로그램 무료 · 실제 작업은 건별 견적` 안내로 교체한다. 계약·입찰 기준 금액은 영업 문구가 아니라 대표의 내부 확인사항으로 유지한다.
 
@@ -618,7 +620,7 @@ OfficeOps 서버 액션과 저장소는 기존 `load`, `save`, `OfficeIntake`, �
 - Apps Script 배포, `hyeonjang` Pages 배포, `manmool` Pages 배포를 각각 독립 게이트로 다룬다.
 - 정적 사이트를 배포했다고 Apps Script가 배포된 것으로 간주하지 않는다.
 - push, PR, main 병합, Pages 공개, 네이버 설정은 변경 파일과 테스트 결과를 보고한 뒤 별도 승인을 받아 실행한다.
-- 배포 순서는 `상업 승인 relay와 OfficeOps 서버 코드·테스트 → Script Properties와 새 파일 ID 확인 → Apps Script 새 버전 → hyeonjang → manmool → PC·휴대전화 검증`이다. 앞 단계가 실패하면 다음 단계를 공개하지 않는다.
+- 배포 순서는 `상업 승인 relay 코드·테스트 → OfficeOps relay 코드·테스트 → 각 프로젝트의 Script Properties와 OfficeOps 새 파일 ID 확인 → 상업 승인 Apps Script 새 배포 → OfficeOps Apps Script 새 배포 → hyeonjang → manmool → PC·휴대전화 검증`이다. 앞 단계가 실패하면 다음 단계를 공개하지 않는다.
 - `manmool` 원복은 이전 커밋과 `naver.ready=false`, `hyeonjang` 원복은 이전 커밋, Apps Script 원복은 이전 배포 버전과 `OFFICE_OPS_ENABLED=0`, `COMMERCIAL_APPROVAL_ENABLED=0`으로 수행한다.
 - 데이터 원복은 마지막 정상 backup pair의 manifest에 기록된 `sourceFileId`·`backupFileId`·`schemaVersion`·revision·byteLength·SHA-256을 백업 bytes에서 다시 검사한 뒤 새 파일로 복원하고, 기존 file ID를 덮어쓰거나 삭제하지 않는다. migration 실패 시 `OFFICE_OPS_FILE_ID`를 이전 file ID로 되돌린다.
 - 기능 비활성화 중에는 OfficeOps 데이터의 읽기 전용 내보내기만 허용한다. 복구 검증이 끝나기 전 생성·수정·오더 전환·연락 초안을 재개하지 않는다.
