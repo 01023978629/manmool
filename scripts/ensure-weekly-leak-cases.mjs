@@ -75,6 +75,7 @@ const expectedContent = [
     date: '2026-08-28',
     title: '대전 목양마을아파트 상·하층 우수관 보수 — 우수 배수부품 교체',
     publicApartmentName: '목양마을아파트',
+    publicApartmentFollowers: ['상·하층'],
     coverAlt: '수직 우수관과 천장 관통부 현장 상태',
     finalHeading: '우수 배수부품 교체를 마쳤습니다',
     finalText: '우수관 하부 연결 부품을 교체하고 배수구 그릴을 설치한 뒤의 모습입니다. 수직관과 하부 연결 부품, 배수구 그릴이 함께 보이도록 마무리 상태를 기록했습니다.',
@@ -93,9 +94,29 @@ const absolutePathPattern = /(?:\b[A-Za-z]:[\\/]|^\\\\|\bfile:\/\/)/i;
 const phonePattern = /01[016789](?:[ .-]?\d){7,8}\b/;
 const unitPattern = /(?:\d{1,4}\s*(?:동|호)|\d{1,3}\s*[-/]\s*\d{3,4})/;
 const detailedAddressPattern = /(?:[가-힣]+(?:로|길)\s*\d+(?:-\d+)?|[가-힣]+(?:동|리|읍|면)\s*\d+(?:-\d+)?|\d+(?:-\d+)?번지)/;
-const namedBuildingPattern = /[가-힣]{2,}(?:아파트|빌딩)(?:(?:\s*\d+(?:\s*(?:단지|차))?)|(?:\s*(?:별관|본관|신관|상가)))?/;
+const namedBuildingPattern = /[가-힣]{2,}(?:아파트|빌딩)/;
+const allowedBuildingParticlePattern = /^(?:에게서|에서의|에서는|에서|께서는|께서|으로는|으로|로는|로|에는|에|의|은|는|이|가|을|를|과|와|도|만|부터|까지|처럼|보다)(?=$|[\s.,!?…·—:;()[\]{}])/u;
 
-function privacyViolations(value, { allowedBuildingNames = [] } = {}) {
+function hasAllowedBuildingBoundaryViolation(value, allowedName, allowedFollowers = []) {
+  let searchFrom = 0;
+  while (searchFrom < value.length) {
+    const index = value.indexOf(allowedName, searchFrom);
+    if (index < 0) return false;
+    const previous = index > 0 ? value[index - 1] : '';
+    if (previous && /[\p{L}\p{N}]/u.test(previous)) return true;
+
+    const suffix = value.slice(index + allowedName.length);
+    if (suffix && /^[\p{L}\p{N}]/u.test(suffix) && !allowedBuildingParticlePattern.test(suffix)) return true;
+    if (/^\s/u.test(suffix)) {
+      const nextToken = suffix.trimStart().match(/^[^\s.,!?…—:;()[\]{}]+/u)?.[0] || '';
+      if (nextToken && !allowedFollowers.includes(nextToken)) return true;
+    }
+    searchFrom = index + allowedName.length;
+  }
+  return false;
+}
+
+function privacyViolations(value, { allowedBuildingNames = [], allowedBuildingFollowers = {} } = {}) {
   const violations = [];
   const allowedBuildingNameSet = new Set(
     allowedBuildingNames.filter((name) => typeof name === 'string' && name.trim()).map((name) => name.trim())
@@ -119,7 +140,11 @@ function privacyViolations(value, { allowedBuildingNames = [] } = {}) {
     if (unitPattern.test(node)) violations.push(`${keyPath}: 동호수`);
     if (detailedAddressPattern.test(node)) violations.push(`${keyPath}: 상세 주소`);
     const buildingNames = node.match(new RegExp(namedBuildingPattern.source, 'g')) || [];
-    if (buildingNames.some((name) => !allowedBuildingNameSet.has(name))) violations.push(`${keyPath}: 단지·건물 고유명`);
+    const hasUnknownBuilding = buildingNames.some((name) => !allowedBuildingNameSet.has(name));
+    const hasExtendedAllowedBuilding = [...allowedBuildingNameSet].some((name) => (
+      hasAllowedBuildingBoundaryViolation(node, name, allowedBuildingFollowers[name] || [])
+    ));
+    if (hasUnknownBuilding || hasExtendedAllowedBuilding) violations.push(`${keyPath}: 단지·건물 고유명`);
   }
   walk(value);
   return violations;
@@ -228,12 +253,23 @@ for (const [label, fixture] of privacyFixtures) {
   if (!privacyViolations(fixture).length) failures.push(`개인정보 차단 fixture가 통과했다: ${label}`);
 }
 if (privacyViolations({ title: '대전 아파트 배관 보수' }).length) failures.push('개인정보 차단 fixture가 일반적인 대전 아파트 표현을 막는다');
-const allowedApartment = { allowedBuildingNames: ['목양마을아파트'] };
-if (privacyViolations({ title: '목양마을아파트 배관 보수' }, allowedApartment).length) failures.push('정확히 허용한 아파트명이 차단된다');
+const allowedApartment = {
+  allowedBuildingNames: ['목양마을아파트'],
+  allowedBuildingFollowers: { 목양마을아파트: ['상·하층'] }
+};
+if (privacyViolations({ title: '목양마을아파트 상·하층 배관 보수' }, allowedApartment).length) failures.push('정확히 허용한 아파트명과 승인 문맥이 차단된다');
+if (privacyViolations({ title: '목양마을아파트에서 배관을 확인했다' }, allowedApartment).length) failures.push('허용 아파트명 뒤 조사 "에서"가 차단된다');
+if (privacyViolations({ title: '목양마을아파트의 배관을 확인했다' }, allowedApartment).length) failures.push('허용 아파트명 뒤 조사 "의"가 차단된다');
 if (!privacyViolations({ title: '새목양마을아파트 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 접두 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트2단지 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 숫자 접미 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트 2단지 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 공백 숫자 접미 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트 제2단지 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 제2단지 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트 제이단지 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 한글 단지 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트별관 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 별관 접미 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트동관 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 동관 접미 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트 동관 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 공백 동관 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트타워 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 타워 접미 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트 타워 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 공백 타워 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트 가람아파트 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명과 다른 단지명이 함께 통과한다');
 
 for (const expected of expectedContent) {
@@ -256,7 +292,10 @@ for (const expected of expectedContent) {
   if ((item.body || []).length < 4 || item.body.length > 6) failures.push(`${expected.slug}: 본문 소제목이 4~6개가 아니다`);
   if (JSON.stringify(media) !== JSON.stringify(wantedMedia)) failures.push(`${expected.slug}: 사진 순서 또는 수가 다르다`);
   const publicPrivacy = privacyViolations(item, {
-    allowedBuildingNames: expected.publicApartmentName ? [expected.publicApartmentName] : []
+    allowedBuildingNames: expected.publicApartmentName ? [expected.publicApartmentName] : [],
+    allowedBuildingFollowers: expected.publicApartmentName
+      ? { [expected.publicApartmentName]: expected.publicApartmentFollowers || [] }
+      : {}
   });
   if (publicPrivacy.length) failures.push(`${expected.slug}: 공개 데이터에 개인정보가 있다 (${publicPrivacy.join(', ')})`);
   const postPath = path.join(ROOT, 'posts', `${expected.slug}.html`);
