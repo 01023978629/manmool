@@ -29,6 +29,10 @@
       </section>
       <section id="officeLoginView" class="office-view" hidden aria-labelledby="officeLoginTitle">
         <span class="request-eyebrow">관리사무소 전용</span><h1 id="officeLoginTitle">시설보수 접수 관리</h1><p class="office-intro">단지 담당자에게 전달받은 6자리 비밀번호로 로그인해 주세요.</p>
+        <aside id="officeRequestCommercialNotice" class="office-request-commercial-notice" role="note">
+          <strong>접수 프로그램 이용료 0원</strong>
+          <p>실제 작업은 별도 견적입니다. 출동·진단·공사 범위와 일정은 현장 확인 후 안내드립니다.</p>
+        </aside>
         <form id="officeLoginForm" class="office-login-form" novalidate>
           <label for="officeComplex">접속 단지<input id="officeComplex" type="text" readonly placeholder="단지 전용 주소 확인 중" /></label>
           <label for="officePin">6자리 비밀번호<input id="officePin" name="pin" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" aria-describedby="officePinHelp" /></label>

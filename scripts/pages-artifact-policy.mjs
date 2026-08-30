@@ -9,7 +9,7 @@ export const PUBLIC_ROOT_FILES = Object.freeze([
 export const PUBLIC_DATA_FILES = Object.freeze(['config.json', 'leak-case-index.json', 'material-catalog.json', 'project.json', 'site.json']);
 export const PUBLIC_JS_FILES = Object.freeze([
   'admin.js', 'as.js', 'bathroom-check.js', 'blog.js', 'case-new.js', 'case-store.js', 'content-editor.js', 'design-bom.js', 'estimate.js',
-  'field.js', 'hj-link.js', 'inquiry.js', 'revenue-conversion.js', 'lead-transport.js', 'leak-inquiry.js', 'leak.js', 'lookbook.js', 'main.js', 'mypage.js',
+  'field.js', 'hj-link.js', 'inquiry.js', 'revenue-conversion.js', 'lead-transport.js', 'office-pilot.js', 'leak-inquiry.js', 'leak.js', 'lookbook.js', 'main.js', 'mypage.js',
   'office-request-api.js', 'office-request-core.js', 'office-request-photo.js', 'office-request.js', 'pii-rules.js', 'project-state.js',
   'public-nav.js', 'simulator.js',
 ]);

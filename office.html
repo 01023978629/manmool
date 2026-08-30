@@ -7,7 +7,7 @@
   <meta name="description" content="만물인테리어가 대전·세종·충남 아파트 관리사무소 담당자에게 제공하는 누수·배관·공용부 보수 상담 안내 페이지입니다. 대표 전화·문자로 상담하고 현장 확인 후 견적과 작업 범위를 안내합니다." />
   <link rel="canonical" href="https://01023978629.github.io/manmool/office.html" />
   <meta name="theme-color" content="#103b4d" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; frame-src 'none'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; frame-src 'none'; connect-src 'self' https://api.web3forms.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="만물인테리어 | 아파트 관리사무소 공사·보수 상담" />
   <meta property="og:description" content="만물인테리어가 운영하는 관리사무소 담당자용 공사·보수 상담 안내 페이지입니다." />
@@ -68,7 +68,7 @@
             <p>이 페이지는 아파트 관리사무소의 공식 홈페이지가 아니라, 만물인테리어가 관리사무소 담당자를 위해 운영하는 공사·보수 상담 안내 페이지입니다.</p>
           </aside>
           <div class="office-hero-actions">
-            <a href="#officeInquiry" class="office-button office-button-primary">업무 문의</a>
+            <a href="#officePilot" class="office-button office-button-primary">30일 시험운영 신청</a>
             <a href="tel:01023978629" class="office-button office-button-ghost">대표에게 전화</a>
             <a href="office-request.html" class="office-button office-button-ghost">관리사무소 직원 포털</a>
           </div>
@@ -128,11 +128,30 @@
             <ul><li>공사·소음 안내문</li><li>작업 일정 협의</li><li>공사 범위 전달</li></ul>
           </article>
         </div>
-        <aside class="office-package-note" aria-label="관리사무소 표준 패키지 정책">
-          <span>표준 업무 패키지</span>
-          <div><h3>표준 패키지 500만원 이하</h3><p>누수·방수·부분복구를 한 범위로 검토하기 위한 기준입니다.</p></div>
-          <small>초과분은 별도 견적과 관리사무소 승인 후 진행합니다.</small>
+        <aside class="office-package-note" aria-label="프로그램 이용료와 실제 작업 견적 안내">
+          <span>관리사무소 시험운영</span>
+          <div><h3>접수 프로그램 이용료 0원</h3><p>첫 1건의 접수·진행 현황 확인 흐름을 30일 동안 함께 확인합니다.</p></div>
+          <small>실제 작업은 별도 견적 · 출동·진단·공사는 현장 확인 후 안내</small>
         </aside>
+      </div>
+    </section>
+
+    <section class="office-section office-pilot-section" id="officePilot" aria-labelledby="officePilotTitle">
+      <div class="container office-pilot-grid">
+        <div class="office-section-head office-section-head-left">
+          <span class="office-eyebrow">관리사무소 30일 파일럿</span><h2 id="officePilotTitle">첫 접수 흐름을 부담 없이 확인해 보세요</h2><p>단지명과 담당자 연락처, 관심 업무만 남기면 대표가 시험운영 방법을 안내합니다.</p>
+          <ul class="office-inspection-list office-preventive-grid" aria-label="예방점검 예시"><li><b>우기 전</b><span>옥상·외벽 접합부·우수관·트렌치·배수구</span></li><li><b>동절기 전</b><span>급수·난방 배관·밸브·보온 상태</span></li><li><b>반기 공용부</b><span>지하 배관·펌프 주변·공용 화장실·누수 흔적</span></li></ul>
+          <p>점검 결과는 체크리스트, 위험항목 요약, 현장사진, 보수 권고로 정리하며 실제 범위는 현장 확인 후 정합니다.</p>
+        </div>
+        <form id="officePilotForm" class="office-pilot-form" novalidate>
+          <label for="pilotComplexName">단지명 <input id="pilotComplexName" name="complexName" maxlength="80" autocomplete="organization" /></label><label for="pilotOfficeContactName">관리사무소 담당자 <input id="pilotOfficeContactName" name="officeContactName" maxlength="50" autocomplete="name" /></label>
+          <div class="office-pilot-row"><label for="pilotPhone">연락처 <input id="pilotPhone" name="phone" maxlength="30" inputmode="tel" autocomplete="tel" /></label><label for="pilotRegion">지역 <input id="pilotRegion" name="region" maxlength="80" autocomplete="address-level1" /></label></div>
+          <fieldset><legend>관심 업무</legend><div class="office-pilot-checks"><label><input type="checkbox" name="pilotInterest" value="leak-piping" /> 누수·배관</label><label><input type="checkbox" name="pilotInterest" value="common-repair" /> 공용부 보수</label><label><input type="checkbox" name="pilotInterest" value="preventive-inspection" /> 예방점검</label><label><input type="checkbox" name="pilotInterest" value="other" /> 기타</label></div></fieldset>
+          <label for="pilotDesiredStart">도입 희망 시점 (선택) <input id="pilotDesiredStart" name="desiredStart" maxlength="80" /></label><label for="pilotMemo">문의 내용 (선택) <textarea id="pilotMemo" name="memo" maxlength="500" aria-describedby="pilotMemoHelp"></textarea></label><small id="pilotMemoHelp">입주민 이름·전화번호·동호수·현장사진 또는 사진 링크는 적지 마세요.</small>
+          <label class="office-pilot-consent"><input id="pilotPrivacyConsent" name="privacyConsent" type="checkbox" /> 개인정보 수집·이용에 동의합니다.</label><p id="officePilotStatus" class="office-pilot-status" role="alert" aria-live="polite"></p>
+          <div class="office-pilot-submit"><button id="officePilotSubmit" class="office-button office-button-primary" type="submit">30일 시험운영 신청</button><p id="officePilotStaticNotice">접수 프로그램 이용료 0원 · 실제 작업은 별도 견적</p></div><p class="office-pilot-explanation">30일은 접수·현황 확인 흐름을 시험하는 기간이며, 무제한 보수계약이나 무료 출동·공사를 뜻하지 않습니다.</p>
+          <section id="officePilotDone" class="office-pilot-result office-pilot-done" hidden aria-live="polite"></section>
+        </form>
       </div>
     </section>
 
@@ -259,5 +278,8 @@
 
   <script src="js/public-nav.js?v=20260824-office1"></script>
   <script>document.getElementById('officeYear').textContent = new Date().getFullYear();</script>
+  <script src="js/revenue-conversion.js?v=20260831-revenue1"></script>
+  <script src="js/lead-transport.js?v=20260831-revenue1"></script>
+  <script src="js/office-pilot.js?v=20260831-revenue1"></script>
 </body>
 </html>

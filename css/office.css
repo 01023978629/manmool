@@ -550,6 +550,33 @@ body.office-page .site-header .header-cta { background: var(--office-navy); }
 
 body.office-page .site-footer { background: #071f29; }
 
+.office-pilot-section { background: #f1f6f5; }
+.office-pilot-grid { display:grid; grid-template-columns:minmax(0,.85fr) minmax(420px,1.15fr); gap:48px; align-items:start; }
+.office-inspection-list { display:grid; gap:10px; margin:24px 0; padding:0; list-style:none; }
+.office-inspection-list li { display:grid; grid-template-columns:90px 1fr; gap:12px; padding:14px; border:1px solid #d5e3df; border-radius:12px; background:#fff; }
+.office-inspection-list b { color:var(--office-navy); }
+.office-inspection-list span { color:var(--office-muted); line-height:1.55; }
+.office-pilot-form { display:grid; gap:16px; padding:28px; border:1px solid #cfddda; border-radius:18px; background:#fff; box-shadow:0 16px 40px rgba(16,59,77,.08); }
+.office-pilot-form label, .office-pilot-form legend { color:var(--office-navy); font-weight:800; font-size:14px; }
+.office-pilot-form input:not([type="checkbox"]), .office-pilot-form textarea { width:100%; min-height:48px; margin-top:7px; padding:11px 13px; border:1px solid #b9cac8; border-radius:9px; color:#172f37; background:#fff; font:inherit; }
+.office-pilot-form textarea { min-height:110px; resize:vertical; }
+.office-pilot-form input:focus-visible, .office-pilot-form textarea:focus-visible, .office-pilot-form button:focus-visible, .office-pilot-form a:focus-visible { outline:3px solid rgba(23,123,126,.3); outline-offset:2px; }
+.office-pilot-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.office-pilot-form fieldset { margin:0; padding:0; border:0; }
+.office-pilot-checks { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:9px; }
+.office-pilot-checks label, .office-pilot-consent { display:flex; align-items:center; min-height:44px; gap:9px; }
+.office-pilot-checks input, .office-pilot-consent input { width:20px; height:20px; flex:0 0 auto; }
+#pilotMemoHelp, .office-pilot-explanation { color:#667b82; line-height:1.55; }
+.office-pilot-status { min-height:24px; margin:0; color:#a12b24; font-weight:800; }
+.office-pilot-status.err { color:#a12b24; }
+.office-pilot-submit { display:flex; align-items:center; gap:16px; }
+.office-pilot-submit p { margin:0; color:var(--office-navy); font-size:13px; font-weight:900; }
+.office-pilot-result { padding:18px; border:1px solid #9bc9bc; border-radius:12px; background:#effaf5; }
+.office-pilot-result strong { color:var(--office-navy); }
+.office-pilot-done[hidden], .office-pilot-result[hidden] { display:none; }
+.office-pilot-result-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+.office-pilot-result-actions button, .office-pilot-result-actions a { min-height:44px; display:inline-flex; align-items:center; justify-content:center; padding:9px 14px; border:1px solid var(--office-teal); border-radius:8px; color:var(--office-navy); background:#fff; font:inherit; font-weight:800; cursor:pointer; }
+
 @media (max-width: 1080px) {
   .office-hero-grid { grid-template-columns: minmax(0, 1fr) 400px; gap: 38px; }
   .office-hero-points { grid-template-columns: 1fr; gap: 12px; }
@@ -570,6 +597,7 @@ body.office-page .site-footer { background: #071f29; }
   .office-case-grid { grid-template-columns: 1fr 1fr; }
   .office-inquiry-grid { gap: 36px; }
   .office-request-intro-grid { grid-template-columns: 1fr; }
+  .office-pilot-grid { grid-template-columns:1fr; }
   .office-request-intro-actions { min-width: 0; }
 }
 
@@ -619,6 +647,9 @@ body.office-page .site-footer { background: #071f29; }
   .office-mobile-dock { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .office-mobile-dock a:first-child { color: #fff; background: var(--office-navy); }
   .office-mobile-dock a:last-child { color: #fff; background: var(--office-teal); }
+  .office-pilot-form { padding:20px 16px; }
+  .office-pilot-row, .office-pilot-checks { grid-template-columns:1fr; }
+  .office-pilot-submit { align-items:stretch; flex-direction:column; }
 }
 
 @media (prefers-reduced-motion: reduce) {

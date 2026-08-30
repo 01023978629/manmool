@@ -53,10 +53,22 @@ const handoff = read('integrations/인수인계서.md');
 const main = read('js/main.js');
 const blogJs = read('js/blog.js');
 const office = read('office.html');
+const officePilot = read('js/office-pilot.js');
+const officeRequest = read('office-request.html');
 
-check(/표준 패키지 500만원 이하/.test(office) && /초과분은 별도 견적과 관리사무소 승인 후 진행/.test(office),
-  '관리사무소 표준 500만원 이하 정책이 office.html에 정확히 안내되지 않는다',
-  '관리사무소 표준 500만원 이하 정책 공개');
+const officePackage = /<aside class="office-package-note"[\s\S]*?<\/aside>/.exec(office)?.[0] || '';
+const pilotSuccessBody = functionBody(officePilot, 'showSuccess') || '';
+const officeRequestNotice = /<aside id="officeRequestCommercialNotice"[\s\S]*?<\/aside>/.exec(officeRequest)?.[0] || '';
+const hasCommercialBoundary = (value) => /접수 프로그램 이용료 0원/.test(value) && /실제 작업은 별도 견적/.test(value);
+check(hasCommercialBoundary(officePackage),
+  'office.html 패키지 안내에 접수 프로그램 이용료 0원과 실제 작업 별도 견적이 함께 없다',
+  'office.html 패키지 0원·별도 견적 경계 공개');
+check(hasCommercialBoundary(pilotSuccessBody),
+  '파일럿 성공 결과에 접수 프로그램 이용료 0원과 실제 작업 별도 견적이 함께 없다',
+  '파일럿 성공 결과 0원·별도 견적 경계 공개');
+check(hasCommercialBoundary(officeRequestNotice),
+  'office-request.html 정적 안내에 접수 프로그램 이용료 0원과 실제 작업 별도 견적이 함께 없다',
+  'office-request.html 정적 안내 0원·별도 견적 경계 공개');
 
 /* ① 손님에게 "데모"라고 말하지 않는다 --------------------------------- */
 // 문의를 넣을지 망설이는 사람이 페이지 맨 아래에서 마지막으로 읽는 문장이었다.
