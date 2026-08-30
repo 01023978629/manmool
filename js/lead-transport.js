@@ -92,6 +92,12 @@
     if (d.simSpec) L.push(d.simSpec);
     if (d.lookSpec) L.push(d.lookSpec);
     if (d.estimateHint) L.push('참고 견적: ' + d.estimateHint);
+    const reference = d.referenceCase && typeof d.referenceCase === 'object' ? d.referenceCase : null;
+    if (reference) {
+      const title = typeof reference.title === 'string' ? reference.title.trim() : '';
+      const slug = typeof reference.slug === 'string' ? reference.slug.trim() : '';
+      if (title || slug) L.push('참고 사례: ' + (title && slug ? `${title} (${slug})` : title || slug));
+    }
     if (d.memo) L.push('메모: ' + d.memo);
     return L.join('\n');
   }

@@ -12,6 +12,22 @@ const PHONE = '010-1234-5678';
 const MEMO = 'TEST_MEMO_MARK<svg onload="window.__xss=(window.__xss||0)+1"></svg>';
 const SYMPTOM = 'TEST_SYMPTOM_MARK<img src=x onerror="window.__xss=(window.__xss||0)+1">';
 const PII_MARKERS = ['TEST_NAME_XSS', PHONE, '01012345678', 'TEST_MEMO_MARK', 'TEST_SYMPTOM_MARK'];
+const PUBLIC_LEAK_CASE = Object.freeze({
+  slug: 'apartment-upper-lower-rain-pipe-repair',
+  title: '대전 아파트 상·하층 우수관 보수 — 배수구 테두리와 관통부 마감',
+  service: 'leak', published: true,
+});
+const INTERIOR_CASE = Object.freeze({
+  slug: 'interior-waterproof-case',
+  title: '일반 욕실 방수 공정',
+  service: 'interior', category: '방수·설비', published: true,
+});
+const DRAFT_LEAK_CASE = Object.freeze({
+  slug: 'draft-leak-case',
+  title: '비공개 누수 초안',
+  service: 'leak', published: false,
+});
+const REFERENCE_MARKERS = [PUBLIC_LEAK_CASE.slug, PUBLIC_LEAK_CASE.title];
 const ADMIN_THROW_MARKER = 'TASK4_REMOVE_THROWN_ONCE';
 const ADMIN_CONFIG_MARKERS = [
   'TASK4_N8N_ENDPOINT_MARKER',
@@ -965,6 +981,7 @@ async function openForm(kind, options = {}) {
     responses: [...(options.responses || [json({ ok: false })])],
     requests: [],
     urls: [],
+    siteResponse: options.siteResponse || (options.site ? json(options.site) : null),
   };
 
   await context.addInitScript((privacyBootstrapSource) => {
@@ -1078,6 +1095,20 @@ async function openForm(kind, options = {}) {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(config) });
       return;
     }
+    if (url.origin === origin && url.pathname === '/data/site.json' && controller.siteResponse) {
+      const response = controller.siteResponse;
+      if (response.kind === 'abort') {
+        await route.abort('failed');
+        return;
+      }
+      const resolved = response.kind === 'deferred' ? await response.promise : response;
+      await route.fulfill({
+        status: resolved.status == null ? 200 : resolved.status,
+        contentType: 'application/json',
+        body: resolved.body == null ? '' : resolved.body,
+      });
+      return;
+    }
     if (url.origin === origin && url.pathname === '/__lead') {
       controller.requests.push({ url: request.url(), method: request.method(), body: request.postData() || '' });
       const response = controller.responses.shift() || json({ ok: false });
@@ -1102,7 +1133,10 @@ async function openForm(kind, options = {}) {
 
   const page = await context.newPage();
   page.setDefaultTimeout(4000);
-  await page.goto(`${origin}/${kind === 'general' ? 'index.html' : 'leak.html'}`, { waitUntil: 'networkidle' });
+  const caseQuery = kind === 'leak' && options.case != null
+    ? `?case=${encodeURIComponent(options.case)}#leakInquiry`
+    : '';
+  await page.goto(`${origin}/${kind === 'general' ? 'index.html' : 'leak.html'}${caseQuery}`, { waitUntil: options.waitUntil || 'networkidle' });
   if (kind === 'general') {
     await page.waitForFunction(() => window.MANMUL && document.querySelectorAll('#worksGroup input').length > 0);
   } else {
@@ -1112,6 +1146,9 @@ async function openForm(kind, options = {}) {
 }
 
 async function closeForm(handle) {
+  if (handle.controller.siteResponse && handle.controller.siteResponse.kind === 'deferred') {
+    handle.controller.siteResponse.resolve(json({ insights: [] }));
+  }
   for (const response of handle.controller.responses) {
     if (response && response.kind === 'deferred') response.resolve(json({ ok: false }));
   }
@@ -1350,6 +1387,11 @@ async function assertNotDelivered(handle, timeout) {
 function containsPii(value) {
   const text = typeof value === 'string' ? value : JSON.stringify(value);
   return PII_MARKERS.some((marker) => text.includes(marker));
+}
+
+function containsReference(value) {
+  const text = typeof value === 'string' ? value : JSON.stringify(value);
+  return REFERENCE_MARKERS.some((marker) => text.includes(marker));
 }
 
 function privacyAuditReasons(value) {
@@ -2063,6 +2105,22 @@ async function assertNoPersistentPii(handle) {
   assert.equal(state.xss, 0, 'untrusted inquiry text executed as HTML');
 }
 
+async function assertNoPersistentReference(handle) {
+  const state = await handle.page.evaluate(async () => {
+    await window.__leadAwaitPrivacyInspections();
+    return {
+      local: Object.fromEntries(Object.keys(localStorage).map((key) => [key, localStorage.getItem(key)])),
+      session: Object.fromEntries(Object.keys(sessionStorage).map((key) => [key, sessionStorage.getItem(key)])),
+      sinks: window.__leadSinks,
+    };
+  });
+  assert.equal(containsReference(state.local), false, 'localStorage retained the case reference');
+  assert.equal(containsReference(state.session), false, 'sessionStorage retained the case reference');
+  for (const sink of ['storage', 'idb', 'cache', 'console']) {
+    assert.equal(containsReference(state.sinks[sink]), false, `${sink} retained the case reference`);
+  }
+}
+
 test('전송 실패 시 두 폼 모두 PII를 저장하지 않고 현재 탭 재시도와 직접 연락 행동을 제공한다', async () => {
   const probe = await openForm('general');
   try {
@@ -2158,6 +2216,171 @@ test('전송 실패 시 두 폼 모두 PII를 저장하지 않고 현재 탭 재
     } finally {
       await closeForm(handle);
     }
+  }
+});
+
+test('공개 누수 사례 참조만 화면·n8n JSON·Web3Forms message·실패 복사에 전달한다', async () => {
+  const site = { insights: [PUBLIC_LEAK_CASE, INTERIOR_CASE, DRAFT_LEAK_CASE] };
+  const n8n = await openForm('leak', {
+    case: PUBLIC_LEAK_CASE.slug,
+    site,
+    config: n8nConfig(),
+    responses: [json({ ok: true })],
+  });
+  try {
+    await n8n.page.locator('#lkCaseReference').waitFor({ state: 'visible' });
+    assert.match(await n8n.page.locator('#lkCaseReference').innerText(), new RegExp(PUBLIC_LEAK_CASE.title));
+    await prepare(n8n);
+    await submit(n8n);
+    await waitForRequestCount(n8n, 1);
+    assert.deepEqual(JSON.parse(n8n.controller.requests[0].body).referenceCase, {
+      slug: PUBLIC_LEAK_CASE.slug, title: PUBLIC_LEAK_CASE.title,
+    });
+    await assertNoPersistentPii(n8n);
+    await assertNoPersistentReference(n8n);
+  } finally {
+    await closeForm(n8n);
+  }
+
+  const forms = await openForm('leak', {
+    case: PUBLIC_LEAK_CASE.slug,
+    site,
+    config: formsConfig('web3forms'),
+    responses: [json({ success: true })],
+  });
+  try {
+    await prepare(forms);
+    await submit(forms);
+    await waitForRequestCount(forms, 1);
+    const body = JSON.parse(forms.controller.requests[0].body);
+    assert.deepEqual(body.referenceCase, { slug: PUBLIC_LEAK_CASE.slug, title: PUBLIC_LEAK_CASE.title });
+    assert.match(body.message, new RegExp(PUBLIC_LEAK_CASE.title));
+    assert.match(body.message, new RegExp(PUBLIC_LEAK_CASE.slug));
+  } finally {
+    await closeForm(forms);
+  }
+
+  const failed = await openForm('leak', {
+    case: PUBLIC_LEAK_CASE.slug,
+    site,
+    config: n8nConfig(),
+    responses: [json({ ok: false })],
+  });
+  try {
+    await prepare(failed);
+    await submit(failed);
+    await assertNotDelivered(failed);
+    await failed.page.click('#lkCopy');
+    const copied = await failed.page.evaluate(() => window.__leadSinks.clipboard.slice());
+    assert.equal(copied.some((text) => text.includes(PUBLIC_LEAK_CASE.title) && text.includes(PUBLIC_LEAK_CASE.slug)), true);
+    await assertNoPersistentPii(failed);
+    await assertNoPersistentReference(failed);
+  } finally {
+    await closeForm(failed);
+  }
+});
+
+test('알 수 없거나 신뢰되지 않은 사례 query는 화면·전송·복사에 넣지 않고 URL을 다시 쓰지 않는다', async () => {
+  const site = { insights: [PUBLIC_LEAK_CASE, INTERIOR_CASE, DRAFT_LEAK_CASE] };
+  const rejected = [
+    'unknown-case',
+    '<img src=x data-untrusted-case="CASE_QUERY_XSS">',
+    INTERIOR_CASE.slug,
+    DRAFT_LEAK_CASE.slug,
+  ];
+  for (const caseValue of rejected) {
+    const handle = await openForm('leak', {
+      case: caseValue, site, config: n8nConfig(), responses: [json({ ok: false })],
+    });
+    try {
+      assert.equal(await handle.page.locator('#lkCaseReference').isHidden(), true, `${caseValue} was displayed`);
+      await prepare(handle);
+      await submit(handle);
+      await waitForRequestCount(handle, 1);
+      const body = JSON.parse(handle.controller.requests[0].body);
+      assert.equal(Object.hasOwn(body, 'referenceCase'), false, `${caseValue} reached n8n payload`);
+      await assertNotDelivered(handle);
+      await handle.page.click('#lkCopy');
+      const copied = await handle.page.evaluate(() => window.__leadSinks.clipboard.slice());
+      assert.equal(copied.some((text) => text.includes(caseValue)), false, `${caseValue} reached failure copy`);
+      const state = await handle.page.evaluate(() => ({
+        local: Object.keys(localStorage), session: Object.keys(sessionStorage),
+        urlWrites: window.__leadSinks.urls.filter((entry) => /history\.|location/.test(String(entry[0]))),
+        xss: window.__xss,
+      }));
+      assert.deepEqual(state.local, []);
+      assert.deepEqual(state.session, []);
+      assert.deepEqual(state.urlWrites, []);
+      assert.equal(state.xss, 0);
+      await assertNoPersistentPii(handle);
+    } finally {
+      await closeForm(handle);
+    }
+  }
+});
+
+test('중복 사례와 사례 목록 abort·500·malformed는 사례 없이 일반 접수를 계속한다', async () => {
+  const fixtures = [
+    {
+      label: 'duplicate',
+      response: json({ insights: [PUBLIC_LEAK_CASE, { ...PUBLIC_LEAK_CASE }] }),
+    },
+    { label: 'abort', response: { kind: 'abort' } },
+    { label: '500', response: raw('{"error":"server"}', 500) },
+    { label: 'malformed', response: raw('{not-json') },
+  ];
+  for (const fixture of fixtures) {
+    const handle = await openForm('leak', {
+      case: PUBLIC_LEAK_CASE.slug,
+      siteResponse: fixture.response,
+      config: n8nConfig(),
+      responses: [json({ ok: true })],
+    });
+    try {
+      assert.equal(await handle.page.locator('#lkCaseReference').isHidden(), true, `${fixture.label} displayed a reference`);
+      await prepare(handle);
+      await submit(handle);
+      await waitForRequestCount(handle, 1);
+      assert.equal(Object.hasOwn(JSON.parse(handle.controller.requests[0].body), 'referenceCase'), false,
+        `${fixture.label} reached the provider payload`);
+      await assertNoPersistentReference(handle);
+    } finally {
+      await closeForm(handle);
+    }
+  }
+});
+
+test('사례 목록 조회가 멈춰도 짧은 제한 후 일반 접수를 한 번만 전송한다', async () => {
+  const pendingSite = deferredResponse();
+  const handle = await openForm('leak', {
+    case: PUBLIC_LEAK_CASE.slug,
+    siteResponse: pendingSite,
+    waitUntil: 'load',
+    config: n8nConfig(),
+    responses: [json({ ok: true }), json({ ok: true })],
+  });
+  try {
+    await prepare(handle);
+    const started = Date.now();
+    await handle.page.evaluate(() => {
+      const form = document.querySelector('#leakForm');
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+    await waitForRequestCount(handle, 1);
+    assert.equal(Date.now() - started < 3500, true, 'hung case lookup blocked the general inquiry');
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    assert.equal(handle.controller.requests.length, 1, 'double submit sent duplicate inquiries');
+    assert.equal(Object.hasOwn(JSON.parse(handle.controller.requests[0].body), 'referenceCase'), false);
+    assert.equal(await handle.page.locator('#lkCaseReference').isHidden(), true);
+    pendingSite.resolve(json({ insights: [PUBLIC_LEAK_CASE] }));
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    assert.equal(await handle.page.locator('#lkCaseReference').isHidden(), true, 'late case lookup changed the page');
+    assert.equal(Object.hasOwn(JSON.parse(handle.controller.requests[0].body), 'referenceCase'), false,
+      'late case lookup changed the submitted payload');
+    await assertNoPersistentReference(handle);
+  } finally {
+    await closeForm(handle);
   }
 });
 

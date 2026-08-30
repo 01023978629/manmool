@@ -112,7 +112,7 @@
     const articleCta = leakArticle
       ? `<div class="post-cta">
           <p data-service="leak">누수 원인과 필요한 공사 범위는 현장 확인 후 안내합니다.</p>
-          <a href="leak.html#leakInquiry" class="btn btn-primary">누수 증상 남기기</a>
+          <a href="leak.html?case=${encodeURIComponent(a.slug)}#leakInquiry" class="btn btn-primary">누수 증상 남기기</a>
           <a href="tel:01023978629" class="btn btn-ghost">전화 상담</a>
         </div>`
       : `<div class="post-cta">

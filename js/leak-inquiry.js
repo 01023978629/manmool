@@ -15,7 +15,10 @@
   const doneBox = $('lkDone');
   const submitBtn = $('lkSubmit');
   const fillBtn = $('lkFillFromChecklist');
+  const referenceHost = $('leakCaseContext');
+  const referenceTitle = $('lkCaseReference');
   const PHONE = '01023978629';
+  const REFERENCE_LOOKUP_TIMEOUT_MS = 1500;
   const SCROLL = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
 
   let CONFIG = {};
@@ -24,9 +27,61 @@
   let visibleFailurePayload = null;
   let activeRetryTransport = null;
   let activeRetryUiPromise = null;
+  let referenceCase = null;
+  let referenceSubmitPending = false;
   // 공용 로더 — 한 번 더 시도하고, 실패하면 configLoadFailed 표시를 남긴다.
   // 설정을 못 읽은 것과 '접수 경로가 아예 없는 것'은 손님에게 다른 말이어야 한다.
   LEAD.loadConfig().then((c) => { CONFIG = c; });
+
+  /* 사례 글 CTA의 query는 신뢰하지 않는다. 공개된 누수 사례 목록과 slug가 정확히
+     한 건 일치할 때만 제목·식별자를 메모리에서 사용한다. 원문 query를 표시하거나
+     저장하지 않으며, 목록을 읽지 못하면 사례 없이 일반 누수 접수로 계속한다. */
+  async function resolveReferenceCase() {
+    const requestedSlug = new URLSearchParams(window.location.search).get('case');
+    if (!requestedSlug) return null;
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    let timer = null;
+    try {
+      const lookup = fetch('data/site.json', {
+        headers: { Accept: 'application/json' },
+        signal: controller ? controller.signal : undefined,
+      }).then(async (response) => {
+        if (!response.ok) return null;
+        return response.json();
+      });
+      const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          if (controller) controller.abort();
+          reject(new Error('reference-lookup-timeout'));
+        }, REFERENCE_LOOKUP_TIMEOUT_MS);
+      });
+      const site = await Promise.race([lookup, timeout]);
+      if (!site) return null;
+      const insights = site && Array.isArray(site.insights) ? site.insights : [];
+      const matches = insights.filter((item) => {
+        if (!item || item.published === false || item.slug !== requestedSlug) return false;
+        const service = item.service;
+        const leakService = service === 'leak'
+          || (!service && ['방수·설비', '누수탐지·수리'].includes(item.category));
+        return leakService && typeof item.title === 'string' && item.title.trim();
+      });
+      if (matches.length !== 1) return null;
+      referenceCase = Object.freeze({
+        slug: String(matches[0].slug),
+        title: matches[0].title.trim(),
+      });
+      if (referenceHost && referenceTitle) {
+        referenceTitle.textContent = referenceCase.title;
+        referenceHost.hidden = false;
+      }
+      return referenceCase;
+    } catch (_) {
+      return null;
+    } finally {
+      if (timer !== null) clearTimeout(timer);
+    }
+  }
+  const referenceReady = resolveReferenceCase();
 
   const esc = (s) => String(s == null ? '' : s)
     .replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -68,7 +123,7 @@
 
   function collect() {
     const fd = new FormData(form);
-    return {
+    const data = {
       type: '누수',
       region: (fd.get('region') || '').trim(),
       name: (fd.get('name') || '').trim(),
@@ -77,6 +132,10 @@
       memo: (fd.get('memo') || '').trim(),
       consent: fd.get('consent') === 'on',
     };
+    if (referenceCase) {
+      data.referenceCase = { slug: referenceCase.slug, title: referenceCase.title };
+    }
+    return data;
   }
 
   function fail(msg, focusId) {
@@ -87,20 +146,55 @@
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const data = collect();
 
     // 봇 방어(허니팟): 전송하거나 기억하지 않고 직접 연락 경로만 남긴다.
-    const hp = $('lkCompanyUrl');
+    let hp = $('lkCompanyUrl');
     if (hp && hp.value) {
       leakSubmitAttemptEpoch += 1;
       submitBtn.disabled = false;
+      showDone(collect(), { delivered: false, hasBackend: LEAD.backendConfigured(CONFIG), honeypot: true });
+      return;
+    }
+
+    // 사례 목록이 느려도 동일한 submit 이벤트를 쌓아 두지 않는다. 조회가 실패하거나
+    // 제한 시간을 넘으면 사례 정보 없이 일반 접수를 계속한다.
+    if (referenceSubmitPending) return;
+    referenceSubmitPending = true;
+    const preflightEpoch = leakSubmitAttemptEpoch;
+    const submitWasDisabled = submitBtn.disabled;
+    const submitLabel = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = '접수 준비 중입니다…';
+    try {
+      await referenceReady;
+    } finally {
+      referenceSubmitPending = false;
+    }
+    if (preflightEpoch !== leakSubmitAttemptEpoch) return;
+
+    const data = collect();
+    hp = $('lkCompanyUrl');
+    if (hp && hp.value) {
+      leakSubmitAttemptEpoch += 1;
+      submitBtn.disabled = false;
+      submitBtn.textContent = submitLabel;
       showDone(data, { delivered: false, hasBackend: LEAD.backendConfigured(CONFIG), honeypot: true });
       return;
     }
 
     const phone = normalizePhone(data.phone);
-    if (!phone) { fail('연락처를 010-0000-0000 형식으로 입력해 주세요.', 'lkPhone'); return; }
-    if (!data.consent) { fail('개인정보 수집·이용에 동의해 주세요.', 'lkConsent'); return; }
+    if (!phone) {
+      submitBtn.disabled = submitWasDisabled;
+      submitBtn.textContent = submitLabel;
+      fail('연락처를 010-0000-0000 형식으로 입력해 주세요.', 'lkPhone');
+      return;
+    }
+    if (!data.consent) {
+      submitBtn.disabled = submitWasDisabled;
+      submitBtn.textContent = submitLabel;
+      fail('개인정보 수집·이용에 동의해 주세요.', 'lkConsent');
+      return;
+    }
 
     const payload = Object.assign({}, data, {
       phone,
@@ -110,8 +204,6 @@
     });
 
     // 버튼 글자로도 '눌렸다'를 알린다 — 12초 대기 중 재클릭(중복 접수)을 막는다.
-    const submitLabel = submitBtn.textContent;
-    submitBtn.disabled = true;
     submitBtn.textContent = '접수 중입니다…';
     status.className = 'leak-status';
     status.textContent = '접수 중입니다...';

@@ -63,19 +63,30 @@ for (const relative of allImages) {
   if (buffer.includes(Buffer.from('Exif\0\0', 'binary'))) failures.push(`EXIF가 남음: ${relative}`);
   const size = jpegSize(buffer);
   if (!size) failures.push(`JPEG 치수를 읽을 수 없음: ${relative}`);
-  else if (size.width > 1600 || size.height > 1600) failures.push(`1600px를 넘음: ${relative} ${size.width}x${size.height}`);
+  else if (size.width !== 1200 || size.height !== 1600) failures.push(`사진 실측 치수가 1200x1600이 아님: ${relative} ${size.width}x${size.height}`);
 }
 
 const expectedContent = [
   // 제목 정정(2026-08-29): 사진 4장 전부 수직관은 기존 관이고 새것은 하부 연결
   // 부속뿐이다 — "우수관 교체"는 사진이 뒷받침하지 않아 "보수·부속 교체"로 내렸다.
-  { slug: 'apartment-balcony-rain-pipe-replacement', date: '2026-08-28', title: '대전 아파트 베란다 우수관 보수 — 바닥 배수구와 하부 연결 부속 교체', coverAlt: '수직 우수관 하부 연결부와 바닥 마감 상태' },
+  {
+    slug: 'apartment-balcony-rain-pipe-replacement',
+    date: '2026-08-28',
+    updated: '2026-08-30',
+    title: '대전 한밭우성아파트 베란다 우수관 보수 — 바닥 배수구와 하부 연결 부속 교체',
+    excerpt: '대전 한밭우성아파트 베란다에서 바닥 배수구를 열어 처음 상태를 남긴 뒤, 수직 우수관을 따라 천장 관통부까지 살폈습니다. 마지막에는 다시 바닥으로 내려와 하부 연결 부속을 설치하고 마감 범위를 확인했습니다.',
+    publicApartmentName: '한밭우성아파트',
+    caseSummarySite: '대전 한밭우성아파트 베란다',
+    coverAlt: '수직 우수관 하부 연결부와 바닥 마감 상태'
+  },
   {
     slug: 'apartment-upper-lower-rain-pipe-repair',
     date: '2026-08-28',
+    updated: '2026-08-30',
     title: '대전 목양마을아파트 상·하층 우수관 보수 — 우수 배수부품 교체',
     excerpt: '대전 목양마을아파트에서 바닥 배수구와 위·아래층을 잇는 우수관 관통부를 차례로 확인한 현장입니다. 기존 마감과 원형 부속을 살핀 뒤, 우수관 연결 부품을 교체하고 배수구 그릴을 설치해 마무리했습니다.',
     publicApartmentName: '목양마을아파트',
+    caseSummarySite: '대전 목양마을아파트',
     coverAlt: '수직 우수관과 천장 관통부 현장 상태',
     finalHeading: '우수 배수부품 교체를 마쳤습니다',
     finalText: '우수관 하부 연결 부품을 교체하고 배수구 그릴을 설치한 뒤의 모습입니다. 수직관과 하부 연결 부품, 배수구 그릴이 함께 보이도록 마무리 상태를 기록했습니다.',
@@ -83,17 +94,30 @@ const expectedContent = [
     finalAlt: '우수관 하부 연결 부속과 원형 배수구 그릴 설치 상태',
     finalCaption: '우수관 하부 연결 부속과 바닥 배수구 그릴을 설치한 모습'
   },
-  { slug: 'apartment-basement-cast-iron-pipe-repair', date: '2026-08-26', title: '대전 아파트 지하실 주철관 보수 — 부식 구간부터 슬리브 마감까지', coverAlt: '지하실 주철관 두 라인에 슬리브 보수를 마친 상태' }
+  {
+    slug: 'apartment-basement-cast-iron-pipe-repair',
+    date: '2026-08-26',
+    updated: '2026-08-30',
+    title: '대전 유원아파트 지하실 주철관 보수 — 부식 구간부터 슬리브 마감까지',
+    excerpt: '대전 유원아파트 지하실에서 나란히 이어진 주철관 가운데 관벽이 벌어지고 부식이 두드러진 구간을 확인했습니다. 절개된 관 내부를 살핀 뒤 손상 구간에 보수 슬리브를 설치하고, 두 배관의 작업 후 모습까지 순서대로 기록했습니다.',
+    publicApartmentName: '유원아파트',
+    caseSummarySite: '대전 유원아파트 지하실',
+    coverAlt: '지하실 주철관 두 라인에 슬리브 보수를 마친 상태'
+  }
 ];
 const site = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'site.json'), 'utf8'));
 const blog = fs.readFileSync(path.join(ROOT, 'blog.html'), 'utf8');
 const rss = fs.readFileSync(path.join(ROOT, 'rss.xml'), 'utf8');
 const sitemap = fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8');
-const forbiddenPrivacyFields = new Set(['place', 'address', 'location', 'source', 'sourcePath', 'project', 'apartment', 'building', 'unit', 'unitNo']);
+const styles = fs.readFileSync(path.join(ROOT, 'css', 'styles.css'), 'utf8');
+const leak = fs.readFileSync(path.join(ROOT, 'leak.html'), 'utf8');
+const privacy = fs.readFileSync(path.join(ROOT, 'privacy.html'), 'utf8');
+const forbiddenPrivacyFields = new Set(['place', 'address', 'location', 'source', 'sourcePath', 'project', 'apartment', 'building', 'unit', 'unitNo', 'gps', 'coordinates', 'latitude', 'longitude']);
 const absolutePathPattern = /(?:\b[A-Za-z]:[\\/]|^\\\\|\bfile:\/\/)/i;
 const phonePattern = /01[016789](?:[ .-]?\d){7,8}\b/;
 const unitPattern = /(?:\d{1,4}\s*(?:동|호)|\d{1,3}\s*[-/]\s*\d{3,4})/;
 const detailedAddressPattern = /(?:[가-힣]+(?:로|길)\s*\d+(?:-\d+)?|[가-힣]+(?:동|리|읍|면)\s*\d+(?:-\d+)?|\d+(?:-\d+)?번지)/;
+const coordinatePattern = /(?:위도|경도|좌표|GPS|latitude|longitude)\s*[:=]?\s*[+-]?\d{1,3}(?:\.\d+)?/i;
 const namedBuildingPattern = /[가-힣]{2,}(?:아파트|빌딩)/;
 
 function hasAllowedBuildingBoundaryViolation(value, allowedName, allowedSuffixes = []) {
@@ -135,6 +159,7 @@ function privacyViolations(value, { allowedBuildingNames = [], allowedBuildingSu
     if (phonePattern.test(node)) violations.push(`${keyPath}: 전화번호`);
     if (unitPattern.test(node)) violations.push(`${keyPath}: 동호수`);
     if (detailedAddressPattern.test(node)) violations.push(`${keyPath}: 상세 주소`);
+    if (coordinatePattern.test(node)) violations.push(`${keyPath}: 좌표`);
     const buildingNames = node.match(new RegExp(namedBuildingPattern.source, 'g')) || [];
     const hasUnknownBuilding = buildingNames.some((name) => !allowedBuildingNameSet.has(name));
     const hasExtendedAllowedBuilding = [...allowedBuildingNameSet].some((name) => (
@@ -262,11 +287,24 @@ function artifactParityViolations({ item, expected, post, blog, rss }) {
   const title = escapeMarkup(item.title);
   const excerpt = escapeMarkup(item.excerpt);
   const coverAlt = escapeMarkup(item.imageAlt);
+  const imageUrl = `https://01023978629.github.io/manmool/${item.image}`;
   const postTitle = `<h1 class="post-title">${title}</h1>`;
   const postExcerpt = `<p class="post-excerpt">${excerpt}</p>`;
 
   if (!post.includes(postTitle)) violations.push('정적 글 제목 불일치');
   if (!post.includes(postExcerpt)) violations.push('정적 글 요약 불일치');
+  if (!post.includes(`<title>${title} · 만물인테리어</title>`)) violations.push('SEO title 불일치');
+  if (!post.includes(`<meta name="description" content="${excerpt}" />`)) violations.push('SEO description 불일치');
+  if (!post.includes(`<meta property="og:title" content="${title} · 만물인테리어" />`)) violations.push('OG title 불일치');
+  if (!post.includes(`<meta property="og:description" content="${excerpt}" />`)) violations.push('OG description 불일치');
+  if (!post.includes(`<meta property="og:image" content="${imageUrl}" />`)) violations.push('OG image 불일치');
+  if (!post.includes(`<meta name="twitter:card" content="summary_large_image" />`)) violations.push('Twitter card 불일치');
+  if (!post.includes(`<meta name="twitter:title" content="${title} · 만물인테리어" />`)) violations.push('Twitter title 불일치');
+  if (!post.includes(`<meta name="twitter:description" content="${excerpt}" />`)) violations.push('Twitter description 불일치');
+  if (!post.includes(`<meta name="twitter:image" content="${imageUrl}" />`)) violations.push('Twitter image 불일치');
+  if (!post.includes(`"headline": "${title}"`)) violations.push('JSON-LD headline 불일치');
+  if (!post.includes(`"description": "${excerpt}"`)) violations.push('JSON-LD description 불일치');
+  if (!post.includes(`"dateModified": "${expected.updated}"`)) violations.push('JSON-LD dateModified 불일치');
 
   const coverStart = post.indexOf('<div class="post-cover"');
   const coverEnd = coverStart < 0 ? -1 : post.indexOf('</div>', coverStart);
@@ -345,6 +383,9 @@ const privacyFixtures = [
   ['동호수 조합', { note: '101-1203' }],
   ['도로명 주소', { note: '가람로 12-3' }],
   ['지번 주소', { note: '푸른동 123-4' }],
+  ['GPS 필드', { gps: '36.3504, 127.3845' }],
+  ['좌표 필드', { coordinates: { latitude: 36.3504, longitude: 127.3845 } }],
+  ['좌표 문자열', { note: 'GPS: 36.3504, 127.3845' }],
   ['단지 고유명', { note: '가람아파트' }],
   ['건물 고유명', { note: '푸른빌딩' }]
 ];
@@ -381,6 +422,28 @@ if (!privacyViolations({ title: '목양마을아파트 , 제2단지' }, allowedA
 if (!privacyViolations({ title: '목양마을아파트 — 제2단지' }, allowedApartment).length) failures.push('허용 아파트명의 공백 대시 단지 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트에서(제2단지)' }, allowedApartment).length) failures.push('허용 아파트명의 조사 뒤 괄호 단지 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트 가람아파트 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명과 다른 단지명이 함께 통과한다');
+if (!/\.nav-toggle\s*\{[^}]*min-width:\s*44px;[^}]*min-height:\s*44px;/s.test(styles)) failures.push('메뉴 토글 44px 터치 영역 CSS 계약이 없다');
+
+const leakHeroRelative = 'assets/cases/case-hanbat-drain.jpg';
+const leakHeroSize = jpegSize(fs.readFileSync(path.join(ROOT, leakHeroRelative)));
+if (!leakHeroSize || leakHeroSize.width !== 1400 || leakHeroSize.height !== 1050) {
+  failures.push(`누수 대표 사진 실측 치수가 1400x1050이 아니다: ${leakHeroSize?.width || 0}x${leakHeroSize?.height || 0}`);
+}
+const leakHeroTag = leak.match(/<img[^>]+src="assets\/cases\/case-hanbat-drain\.jpg"[^>]*>/)?.[0] || '';
+if (!/width="1400"\s+height="1050"/.test(leakHeroTag)) failures.push('누수 대표 사진 HTML 치수가 실측 1400x1050과 다르다');
+if (!/<meta property="og:image:width" content="1400" \/>/.test(leak)
+    || !/<meta property="og:image:height" content="1050" \/>/.test(leak)) {
+  failures.push('누수 대표 사진 OG 치수가 실측 1400x1050과 다르다');
+}
+
+if (!/시행일 2026-08-30/.test(privacy)) failures.push('개인정보처리방침 시행일이 2026-08-30이 아니다');
+for (const page of ['privacy', 'leak', 'blog']) {
+  const entry = sitemap.match(new RegExp(`<url>\\s*<loc>https://01023978629\\.github\\.io/manmool/${page}\\.html</loc>\\s*<lastmod>([^<]+)</lastmod>`));
+  if (entry?.[1] !== '2026-08-30') failures.push(`${page}.html sitemap lastmod가 2026-08-30이 아니다`);
+}
+if (!/<lastBuildDate>Sun, 30 Aug 2026 00:00:00 \+0900<\/lastBuildDate>/.test(rss)) {
+  failures.push('RSS lastBuildDate가 가장 최근 updated 날짜 2026-08-30이 아니다');
+}
 
 for (const expected of expectedContent) {
   const matches = (site.insights || []).filter((item) => item && item.slug === expected.slug);
@@ -388,9 +451,10 @@ for (const expected of expectedContent) {
   const item = matches[0];
   const media = [item.image, ...(item.body || []).filter((section) => section.img).map((section) => section.img)];
   const wantedMedia = WEEKLY_CASES.find((entry) => entry.slug === expected.slug).images;
-  if (item.title !== expected.title || item.date !== expected.date) failures.push(`${expected.slug}: 제목 또는 날짜가 다르다`);
+  if (item.title !== expected.title || item.date !== expected.date || item.updated !== expected.updated) failures.push(`${expected.slug}: 제목·날짜·수정일이 다르다`);
   if (expected.excerpt && item.excerpt !== expected.excerpt) failures.push(`${expected.slug}: 첫 설명이 다르다`);
-  if (expected.publicApartmentName && !item.excerpt.startsWith(`대전 ${expected.publicApartmentName}에서`)) failures.push(`${expected.slug}: 첫 설명에 공개 아파트명이 없다`);
+  if (expected.caseSummarySite && !item.excerpt.startsWith(`${expected.caseSummarySite}에서`)) failures.push(`${expected.slug}: 첫 설명에 공개 아파트명이 없다`);
+  if (expected.caseSummarySite && item.caseSummary?.site !== expected.caseSummarySite) failures.push(`${expected.slug}: 사례 핵심 요약 현장명이 다르다`);
   if (item.imageAlt !== expected.coverAlt) failures.push(`${expected.slug}: 표지 사진 설명이 다르다`);
   if (expected.finalImage) {
     const finalSection = (item.body || []).at(-1);
@@ -403,7 +467,7 @@ for (const expected of expectedContent) {
   if ((item.body || []).length < 4 || item.body.length > 6) failures.push(`${expected.slug}: 본문 소제목이 4~6개가 아니다`);
   if (JSON.stringify(media) !== JSON.stringify(wantedMedia)) failures.push(`${expected.slug}: 사진 순서 또는 수가 다르다`);
   const approvedApartmentSuffixes = expected.publicApartmentName
-    ? [expected.title, expected.excerpt]
+    ? [expected.title, expected.excerpt, expected.caseSummarySite]
         .filter((value) => typeof value === 'string' && value.includes(expected.publicApartmentName))
         .map((value) => value.slice(value.indexOf(expected.publicApartmentName) + expected.publicApartmentName.length))
     : [];
@@ -421,6 +485,9 @@ for (const expected of expectedContent) {
     failures.push(`${expected.slug}: ${violation}`);
   }
   for (const violation of caseSummaryViolations({ item, post })) {
+    failures.push(`${expected.slug}: ${violation}`);
+  }
+  for (const violation of accessibilityViolations(post)) {
     failures.push(`${expected.slug}: ${violation}`);
   }
   for (const violation of relatedServiceViolations({ item, post, insights: site.insights || [] })) {
@@ -479,6 +546,24 @@ for (const expected of expectedContent) {
     if (typeof section.imgCaption === 'string' && section.imgCaption.trim() && !post.includes(`<figcaption>${section.imgCaption}</figcaption>`)) failures.push(`${expected.slug}: 정적 글에 사진 캡션이 없다 ${section.img}`);
   }
   if (!blog.includes(expected.slug) || !rss.includes(expected.slug) || !sitemap.includes(expected.slug)) failures.push(`${expected.slug}: 목록·RSS·sitemap 연결이 빠졌다`);
+  if (sitemapLastmod(sitemap, expected.slug) !== expected.updated) failures.push(`${expected.slug}: sitemap lastmod가 수정일과 다르다`);
+}
+
+function accessibilityViolations(post) {
+  const violations = [];
+  if (!post.includes('<a class="skip-link" href="#main">본문으로 건너뛰기</a>')) violations.push('skip-link가 없다');
+  if (!post.includes('<main id="main">')) violations.push('본문 main 랜드마크가 없다');
+  if (!post.includes('id="navToggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mainNav"')) violations.push('메뉴 토글 aria-controls가 없다');
+  return violations;
+}
+
+function sitemapLastmod(sitemapXml, slug) {
+  const canonical = `https://01023978629.github.io/manmool/posts/${slug}.html`;
+  const start = sitemapXml.indexOf(`<loc>${canonical}</loc>`);
+  const end = start < 0 ? -1 : sitemapXml.indexOf('</url>', start);
+  const entry = start < 0 || end < 0 ? '' : sitemapXml.slice(sitemapXml.lastIndexOf('<url>', start), end + 6);
+  const match = entry.match(/<lastmod>([^<]+)<\/lastmod>/);
+  return match?.[1] || '';
 }
 
 const legacyWithoutSummary = (site.insights || []).find((item) => item.slug === 'yeolmae-waterproof-screed');

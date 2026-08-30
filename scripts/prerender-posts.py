@@ -19,7 +19,7 @@ from email.utils import format_datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE = 'https://01023978629.github.io/manmool'
-V = '20260830-case-summary1'  # 정적 글 스타일 캐시버스터
+V = '20260830-followup1'  # 정적 글 스타일 캐시버스터
 
 
 def esc(s):
@@ -37,6 +37,67 @@ def shade_cover(hexv):
 SIZES_CARD = '(max-width: 720px) 94vw, (max-width: 1130px) 46vw, 356px'
 SIZES_POST = '(max-width: 800px) 94vw, 712px'
 CASE_RE = re.compile(r'^assets/cases/([A-Za-z0-9._-]+)\.jpg$')
+IMAGE_SIZE_CACHE = {}
+JPEG_SOF_MARKERS = {
+    0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7,
+    0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF,
+}
+
+
+def image_dimensions(src):
+    """사례 JPEG의 실제 치수를 외부 라이브러리 없이 읽는다.
+
+    CI에 Pillow를 추가하지 않고도 img·OG 메타의 치수를 원본과 맞춘다.
+    읽을 수 없는 파일은 추측하지 않고 None으로 닫는다.
+    """
+    value = str(src or '')
+    if value in IMAGE_SIZE_CACHE:
+        return IMAGE_SIZE_CACHE[value]
+    if not CASE_RE.match(value):
+        IMAGE_SIZE_CACHE[value] = None
+        return None
+    path = os.path.join(ROOT, *value.split('/'))
+    result = None
+    try:
+        with open(path, 'rb') as image:
+            if image.read(2) != b'\xff\xd8':
+                IMAGE_SIZE_CACHE[value] = None
+                return None
+            while True:
+                prefix = image.read(1)
+                if not prefix:
+                    break
+                if prefix != b'\xff':
+                    continue
+                marker_byte = image.read(1)
+                while marker_byte == b'\xff':
+                    marker_byte = image.read(1)
+                if not marker_byte:
+                    break
+                marker = marker_byte[0]
+                if marker in (0xD8, 0xD9):
+                    continue
+                if marker == 0xDA:
+                    break
+                raw_length = image.read(2)
+                if len(raw_length) != 2:
+                    break
+                segment_length = int.from_bytes(raw_length, 'big')
+                if segment_length < 2:
+                    break
+                if marker in JPEG_SOF_MARKERS:
+                    payload = image.read(5)
+                    if len(payload) == 5:
+                        height = int.from_bytes(payload[1:3], 'big')
+                        width = int.from_bytes(payload[3:5], 'big')
+                        if width > 0 and height > 0:
+                            result = (width, height)
+                    break
+                image.seek(segment_length - 2, os.SEEK_CUR)
+    except (OSError, ValueError):
+        result = None
+    IMAGE_SIZE_CACHE[value] = result
+    return result
 
 
 def case_extra(src, sizes, prefix=''):
@@ -44,7 +105,9 @@ def case_extra(src, sizes, prefix=''):
     if not m:
         return ''
     p = f'{prefix}assets/cases/resized/{m.group(1)}'
-    return f' srcset="{p}-480w.jpg 480w, {p}-960w.jpg 960w" sizes="{sizes}"'
+    size = image_dimensions(src)
+    dimensions = f' width="{size[0]}" height="{size[1]}"' if size else ''
+    return f'{dimensions} srcset="{p}-480w.jpg 480w, {p}-960w.jpg 960w" sizes="{sizes}"'
 
 
 def article_service(a):
@@ -78,6 +141,19 @@ def rss_date(value):
     return format_datetime(day.replace(tzinfo=timezone(timedelta(hours=9))))
 
 
+def latest_article_date(insights):
+    """공개 글의 수정일(없으면 발행일) 중 가장 최근의 유효한 ISO 날짜를 고른다."""
+    values = []
+    for article in insights:
+        value = str(article.get('updated') or article.get('date') or '')
+        try:
+            datetime.strptime(value, '%Y-%m-%d')
+        except ValueError:
+            continue
+        values.append(value)
+    return max(values) if values else None
+
+
 def write_rss(insights):
     """네이버가 새 인사이트 글을 발견할 수 있도록 RSS 2.0 피드를 만든다."""
     items = []
@@ -91,7 +167,8 @@ def write_rss(insights):
             f'      <description>{esc(a.get("excerpt"))}</description>\n'
             f'      <pubDate>{rss_date(a.get("date"))}</pubDate>\n'
             '    </item>')
-    built = rss_date(insights[0].get('date')) if insights else format_datetime(datetime.now(timezone(timedelta(hours=9))))
+    freshness = latest_article_date(insights)
+    built = rss_date(freshness) if freshness else format_datetime(datetime.now(timezone(timedelta(hours=9))))
     feed = f'''<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
@@ -114,6 +191,13 @@ def write_rss(insights):
 def article_html(a, insights):
     url = f'{BASE}/posts/{a["slug"]}.html'
     img_abs = f'{BASE}/{a["image"]}' if a.get('image') else f'{BASE}/og-image.png'
+    img_alt = a.get('imageAlt') or a['title']
+    img_size = image_dimensions(a.get('image'))
+    image_dimension_meta = (
+        f'\n  <meta property="og:image:width" content="{img_size[0]}" />'
+        f'\n  <meta property="og:image:height" content="{img_size[1]}" />'
+        if img_size else ''
+    )
     cover_img = (
         f'<img class="post-cover-image" src="../{esc(a["image"])}"{case_extra(a.get("image"), SIZES_POST, "../")} alt="{esc(a.get("imageAlt") or a["title"])}" loading="eager" fetchpriority="high" decoding="async">'
         if a.get('image') else '')
@@ -219,9 +303,10 @@ def article_html(a, insights):
             f'<ul>{items}</ul>'
             '</aside>')
     if service == 'leak':
-        cta_html = '''<div class="post-cta">
+        case_query = quote(str(a['slug']), safe='')
+        cta_html = f'''<div class="post-cta">
             <p data-service="leak">누수 원인과 필요한 공사 범위는 현장 확인 후 안내합니다.</p>
-            <a href="../leak.html#leakInquiry" class="btn btn-primary">누수 증상 남기기</a>
+            <a href="../leak.html?case={case_query}#leakInquiry" class="btn btn-primary">누수 증상 남기기</a>
             <a href="tel:01023978629" class="btn btn-ghost">전화 상담</a>
           </div>'''
     else:
@@ -241,17 +326,25 @@ def article_html(a, insights):
   <meta name="theme-color" content="#b8895a" />
   <link rel="canonical" href="{url}" />
   <meta property="og:type" content="article" />
+  <meta property="og:locale" content="ko_KR" />
   <meta property="og:site_name" content="만물인테리어" />
   <meta property="og:url" content="{url}" />
   <meta property="og:title" content="{esc(a['title'])} · 만물인테리어" />
   <meta property="og:description" content="{esc(a.get('excerpt'))}" />
-  <meta property="og:image" content="{img_abs}" />
+  <meta property="og:image" content="{img_abs}" />{image_dimension_meta}
+  <meta property="og:image:alt" content="{esc(img_alt)}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{esc(a['title'])} · 만물인테리어" />
+  <meta name="twitter:description" content="{esc(a.get('excerpt'))}" />
+  <meta name="twitter:image" content="{img_abs}" />
+  <meta name="twitter:image:alt" content="{esc(img_alt)}" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23b8895a'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="../css/styles.css?v={V}" />
   <link rel="stylesheet" href="../css/brand-system.css?v={V}" />
   <script type="application/ld+json">{ld}</script>
 </head>
 <body class="story-page">
+  <a class="skip-link" href="#main">본문으로 건너뛰기</a>
   <header class="site-header" id="siteHeader">
     <div class="container header-inner">
       <a href="../index.html#top" class="logo" aria-label="만물인테리어 홈">
@@ -267,13 +360,13 @@ def article_html(a, insights):
         <a href="../index.html#inquiry">상담</a>
       </nav>
       <a href="../index.html#inquiry" class="btn btn-primary btn-sm header-cta">상담 신청</a>
-      <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기" aria-expanded="false">
+      <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mainNav">
         <span></span><span></span><span></span>
       </button>
     </div>
   </header>
 
-  <main id="top">
+  <main id="main">
     <section class="section">
       <div class="container">
         <article class="post">

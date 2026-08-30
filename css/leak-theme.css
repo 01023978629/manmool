@@ -31,6 +31,12 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 svg { width: 1.25rem; height: 1.25rem; flex: 0 0 auto; }
+.skip-link {
+  position: fixed; top: 8px; left: 8px; z-index: 1000; padding: 10px 14px;
+  border-radius: 8px; color: #071b2d; background: #9ee4e9;
+  font-size: 14px; font-weight: 850; transform: translateY(-150%);
+}
+.skip-link:focus-visible { transform: translateY(0); outline: 3px solid #fff; outline-offset: 2px; }
 
 .site-header {
   height: 82px;
@@ -115,6 +121,7 @@ svg { width: 1.25rem; height: 1.25rem; flex: 0 0 auto; }
 .trust-row { display: flex; flex-wrap: wrap; align-items: center; gap: 22px; margin-top: 42px; color: #a7bdc9; font-size: 12px; }
 .trust-row span { display: flex; align-items: center; gap: 6px; }
 .trust-row svg { width: 16px; height: 16px; color: #44d5df; }
+.hero-safety { max-width: 720px; margin: 18px 0 0; color: #c9dbe2; font-size: 12px; line-height: 1.65; }
 
 .hero-visual { min-width: 0; }
 .scan-card { border: 1px solid rgba(129, 214, 225, .24); border-radius: 20px; overflow: hidden; background: rgba(6, 25, 41, .72); box-shadow: 0 36px 70px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08); backdrop-filter: blur(14px); }
@@ -622,6 +629,9 @@ footer { padding: 49px 24px 54px; background: #071a29; color: #76909f; }
 .leak-field input:focus-visible, .leak-field textarea:focus-visible {
   outline: 3px solid rgba(7,159,184,.25); outline-offset: 2px; border-color: #079fb8; }
 .leak-hint { font-size: 13px; color: #7d8b96; line-height: 1.6; }
+.leak-case-context { margin: 0; padding: 13px 15px; border: 1px solid #b9dce2; border-radius: 10px; color: #173b4d; background: #edf9fa; font-size: 14px; line-height: 1.6; }
+.leak-case-context strong { color: #087f98; }
+.leak-case-context[hidden] { display: none; }
 .leak-row { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
 
 .leak-chips { display: flex; flex-wrap: wrap; gap: 10px; }

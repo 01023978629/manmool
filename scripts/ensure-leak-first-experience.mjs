@@ -76,7 +76,9 @@ for (const item of published) {
   const dock = elementBlock(post, '<nav class="mobile-service-dock"', 'nav');
   const mainNav = elementBlock(post, '<nav class="main-nav"', 'nav');
   const expectedService = articleService(item);
-  const expectedHref = expectedService === 'leak' ? '../leak.html#leakInquiry' : '../index.html#inquiry';
+  const expectedHref = expectedService === 'leak'
+    ? `../leak.html?case=${item.slug}#leakInquiry`
+    : '../index.html#inquiry';
   check(cta.includes(`data-service="${expectedService}"`) && cta.includes(`href="${expectedHref}"`),
     `${item.slug}: ${item.category} 글의 본문 CTA가 ${expectedService} 상담 경로가 아니다`,
     `${item.slug}: 본문 CTA 서비스 경로 정상`);
@@ -86,6 +88,18 @@ for (const item of published) {
   check(/href="\.\.\/leak\.html"/.test(mainNav),
     `${item.slug}: 글 상단 주요 메뉴에 누수 전용 진입이 없다`,
     `${item.slug}: 글 상단 누수 전용 진입 정상`);
+  if (expectedService === 'leak') {
+    check(cta.includes(`href="../leak.html?case=${item.slug}#leakInquiry"`),
+      `${item.slug}: 누수 상세 CTA가 사례 문맥을 누수 접수 화면으로 넘기지 않는다`,
+      `${item.slug}: 누수 상세 CTA가 사례 문맥을 전달`);
+  } else {
+    check(!/[?&]case=/.test(cta) && !/[?&]case=/.test(dock),
+      `${item.slug}: 인테리어 글의 CTA 또는 빠른 상담에 누수 사례 문맥이 섞였다`,
+      `${item.slug}: 인테리어 CTA·빠른 상담은 사례 문맥 없이 유지`);
+  }
+  check(!/[?&]case=/.test(dock),
+    `${item.slug}: 빠른 상담 dock이 특정 사례를 고정해 일반 상담을 오염시킨다`,
+    `${item.slug}: 빠른 상담 dock은 일반 상담 경로 유지`);
 }
 
 // 4. 목록 첫 핵심 이미지만 우선 로딩하고 나머지는 스크롤 시점에 받는다.
@@ -136,6 +150,21 @@ check(/누수 지점 미확인 시 탐지비/.test(leak),
   '탐지비 0원 조건이 "누수 지점 미확인 시"로 함께 표시되지 않는다',
   '탐지비 안내가 조건형으로 표시됨');
 
+// 5-1. 사례 글에서 넘어온 고객은 첫 화면에서 맥락을 확인하고, 키보드·보조기술
+// 사용자도 본문과 접수 안내로 바로 갈 수 있어야 한다.
+const leakHero = elementBlock(leak, '<section class="hero"', 'section');
+check(/<a[^>]+class="skip-link"[^>]+href="#main-content"/.test(leak)
+    && /<main\s+id="main-content"/.test(leak)
+    && /<button[^>]+id="navToggle"[^>]+aria-controls="mainNav"/.test(leak),
+  '누수 첫 화면에 skip link·본문 landmark·메뉴 제어 연결이 완전하지 않다',
+  '누수 첫 화면의 skip link·본문 landmark·메뉴 제어 연결');
+check(/<[^>]+id="leakCaseContext"[^>]+(?:role="status"|aria-live="polite")[^>]*>/.test(leak),
+  '누수 접수 화면에 선택한 참고 사례를 알릴 live region이 없다',
+  '누수 접수 화면의 참고 사례 live region 존재');
+check(/(?:콘센트|전기 설비)/.test(leakHero) && /분전반/.test(leakHero),
+  '누수 첫 화면에 전기 설비 접촉 시 안전 안내가 없다',
+  '누수 첫 화면의 전기 설비 안전 안내');
+
 // 6. 보험 안내는 계약별 심사임을 분명히 하고 공식 출처·확인일을 글에 표시한다.
 const insurance = published.find((item) => item.slug === 'leak-insurance-guide');
 const insurancePost = read('posts/leak-insurance-guide.html');
@@ -180,14 +209,14 @@ check(/"datePublished":\s*"2026-08-09"/.test(insurancePost)
     && /<loc>https:\/\/01023978629\.github\.io\/manmool\/posts\/leak-insurance-guide\.html<\/loc>\s*<lastmod>2026-08-23<\/lastmod>/.test(sitemap),
   '누수 보험 글의 구조화 수정일 또는 sitemap lastmod가 2026-08-23으로 갱신되지 않았다',
   '누수 보험 글의 구조화 수정일·sitemap 갱신일 일치');
-check(/styles\.css\?v=20260830-case-summary1/.test(index)
-    && /brand-system\.css\?v=20260830-case-summary1/.test(index)
-    && /main\.js\?v=20260830-case-summary1/.test(index)
-    && /styles\.css\?v=20260830-case-summary1/.test(blog)
-    && /brand-system\.css\?v=20260830-case-summary1/.test(blog)
-    && /blog\.js\?v=20260830-case-summary1/.test(blog)
-    && /styles\.css\?v=20260830-case-summary1/.test(insurancePost)
-    && /brand-system\.css\?v=20260830-case-summary1/.test(insurancePost),
+check(/styles\.css\?v=20260830-followup1/.test(index)
+    && /brand-system\.css\?v=20260830-followup1/.test(index)
+    && /main\.js\?v=20260830-followup1/.test(index)
+    && /styles\.css\?v=20260830-followup1/.test(blog)
+    && /brand-system\.css\?v=20260830-followup1/.test(blog)
+    && /blog\.js\?v=20260830-followup1/.test(blog)
+    && /styles\.css\?v=20260830-followup1/.test(insurancePost)
+    && /brand-system\.css\?v=20260830-followup1/.test(insurancePost),
   '변경된 CSS/JS의 캐시 버전이 갱신되지 않아 기존 방문자에게 이전 화면이 남을 수 있다',
   '누수 우선 CSS/JS 캐시 버전 갱신');
 

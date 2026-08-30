@@ -279,6 +279,38 @@ test('공개 API는 legacy key나 영구 보관 helper를 노출하지 않는다
   }
 });
 
+test('신뢰된 공개 누수 사례는 n8n 원문과 Web3Forms 메시지에 같은 제목과 slug로 전달된다', async () => {
+  const referenceCase = {
+    slug: 'apartment-upper-lower-rain-pipe-repair',
+    title: '대전 아파트 상·하층 우수관 보수 — 배수구 테두리와 관통부 마감'
+  };
+  const payload = {
+    type: '누수', name: 'SAFE_NAME', phone: '01012345678', referenceCase
+  };
+
+  const n8nRequests = [];
+  const n8n = loadLead({
+    fetch: async (url, options) => {
+      n8nRequests.push(JSON.parse(options.body));
+      return response(200, '{"ok":true}');
+    }
+  });
+  assert.equal(await n8n.lead.deliver(n8nConfig(), payload), true);
+  assert.deepEqual(n8nRequests, [payload]);
+
+  const formRequests = [];
+  const forms = loadLead({
+    fetch: async (url, options) => {
+      formRequests.push(JSON.parse(options.body));
+      return response(200, '{"success":true}');
+    }
+  });
+  assert.equal(await forms.lead.deliver(formsConfig('web3forms'), payload), true);
+  assert.match(formRequests[0].message, new RegExp(referenceCase.title));
+  assert.match(formRequests[0].message, new RegExp(referenceCase.slug));
+  assert.deepEqual(formRequests[0].referenceCase, referenceCase);
+});
+
 test('HTTP 500은 성공 JSON이어도 제출 성공이 아니다', async () => {
   for (const config of [n8nConfig(), formsConfig('web3forms')]) {
     const loaded = loadLead({ fetch: async () => response(500, '{"success":true,"ok":true}') });
