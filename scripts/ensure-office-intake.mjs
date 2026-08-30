@@ -30,6 +30,7 @@ check(
 );
 check(/id="officeRefreshRequests"/.test(request) && /id="officeRecentChanges"/.test(request), '최근 변경 또는 수동 새로고침 UI가 없다');
 check(!/(setInterval|visibilitychange|Notification\s*\(|serviceWorker\.register)/.test(controller), 'R1 포털에 자동 조회 또는 외부 브라우저 알림이 있다');
+check(!/(?:\b(?:[\w$]+(?:\s*\.\s*[\w$]+)*)\s*\.\s*)?addEventListener\s*(?:\?\.)?\s*\(\s*['"]online['"]|(?:\b(?:[\w$]+(?:\s*\.\s*[\w$]+)*)\s*\.\s*)?ononline\s*=/.test(controller), 'R1 포털에 online 이벤트 기반 자동 재조회가 있다');
 check(/20260830-office-recent1/.test(request), 'R1 변경 자산 cache marker가 없다');
 check(
   /sessionStorage/.test(controller) && !/(localStorage|indexedDB)/.test(request + core + controller + apiClient + photoClient),

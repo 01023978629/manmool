@@ -18,6 +18,11 @@ test('배포 게이트의 공개 포털 소스 계약은 설정 CLI와 fail-clos
   const config = read('office-api.json');
   const policy = read('scripts/pages-artifact-policy.mjs');
   const workflow = read('.github/workflows/deploy-pages.yml');
+  const expectedPortalRegressionRun = [
+    '          set -euo pipefail',
+    '          node --test --test-concurrency=1 tests/office-request.logic.test.cjs tests/office-request-api.test.cjs tests/office-request-auth.e2e.cjs tests/office-request-workflow.e2e.cjs tests/office-request-recent-changes.e2e.cjs tests/office-intake.e2e.cjs',
+  ].join('\n');
+  const portalRegressionRun = workflow.match(/      - name: Run management office portal regression\r?\n[\s\S]*?        run: \|\r?\n([\s\S]*?)(?=\r?\n      - name:|\s*$)/);
   assert.equal(fs.existsSync(path.join(ROOT, 'scripts', 'configure-office-api.mjs')), true);
   assert.equal(fs.existsSync(path.join(ROOT, 'tests', 'configure-office-api.test.cjs')), true);
   assert.deepEqual(Object.keys(JSON.parse(config)).sort(), ['apiUrl', 'enabled']);
@@ -27,11 +32,13 @@ test('배포 게이트의 공개 포털 소스 계약은 설정 CLI와 fail-clos
   assert.match(portal, /sessionStorage/);
   assert.doesNotMatch(portal, /(localStorage|indexedDB|APP_TOKEN|OFFICE_SESSION_SECRET|pinHash|pinSalt)/);
   assert.match(workflow, /node --test --test-concurrency=1 tests\/configure-office-api\.test\.cjs tests\/pages-artifact-policy\.test\.cjs/);
-  assert.match(workflow, /node --test --test-concurrency=1 tests\/office-request\.logic\.test\.cjs tests\/office-request-api\.test\.cjs tests\/office-request-auth\.e2e\.cjs tests\/office-request-workflow\.e2e\.cjs tests\/office-request-recent-changes\.e2e\.cjs tests\/office-intake\.e2e\.cjs/);
+  assert.ok(portalRegressionRun);
+  assert.equal(portalRegressionRun[1].replace(/\r\n/g, '\n').trimEnd(), expectedPortalRegressionRun);
   assert.match(request, /css\/office-request\.css\?v=20260830-office-recent1/);
   assert.match(request, /js\/office-request-core\.js\?v=20260830-office-recent1/);
   assert.match(request, /js\/office-request\.js\?v=20260830-office-recent1/);
   assert.doesNotMatch(controller, /(setInterval|visibilitychange|Notification\s*\(|serviceWorker\.register)/);
+  assert.doesNotMatch(controller, /(?:\b(?:[\w$]+(?:\s*\.\s*[\w$]+)*)\s*\.\s*)?addEventListener\s*(?:\?\.)?\s*\(\s*['"]online['"]|(?:\b(?:[\w$]+(?:\s*\.\s*[\w$]+)*)\s*\.\s*)?ononline\s*=/);
   assert.ok(workflow.indexOf('Run management office portal regression') < workflow.indexOf('Build public allowlist artifact'));
 });
 
