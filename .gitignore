@@ -21,3 +21,7 @@ apps-script-contract/tools/install/node_modules/
 # 운영체제·편집기 부스러기
 .DS_Store
 Thumbs.db
+
+# Python 검사 캐시
+__pycache__/
+*.py[cod]

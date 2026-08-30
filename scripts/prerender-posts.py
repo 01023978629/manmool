@@ -4,9 +4,11 @@
 왜: blog.html?post=<slug>는 서버 HTML의 canonical이 목록을 가리키고 본문이
 비어 있어, JS 렌더링이 불안정한 네이버 크롤러가 글을 개별 색인하지 못한다.
 이 스크립트가 data/site.json의 insights를 읽어 posts/<slug>.html 정적
-페이지(본문·canonical·OG·BlogPosting 포함)를 만들어 그 문제를 해소한다.
+페이지(본문·canonical·OG·BlogPosting 포함), RSS, 누수 접수용 경량 사례 색인을
+만들어 그 문제를 해소한다.
 
-사용: data/site.json의 insights를 수정할 때마다 실행 후 함께 커밋한다.
+사용: data/site.json의 insights를 수정할 때마다 실행 후 posts/·rss.xml·
+data/leak-case-index.json을 함께 커밋한다.
   python3 scripts/prerender-posts.py
 """
 import html
@@ -116,9 +118,11 @@ def article_service(a):
     새 누수 사례는 명시적 service를 쓰고, 기존 글은 category로 하위 호환한다.
     제목 키워드 추측은 하지 않으므로 일반 보증·계약 글을 누수로 잘못 보내지 않는다.
     """
-    explicit = a.get('service')
-    if explicit in ('leak', 'interior'):
-        return explicit
+    if 'service' in a:
+        explicit = a.get('service')
+        # service 키가 있으면 그 값을 우선한다. 오타·빈 값을
+        # category로 누수 접수에 보내지 않고 안전한 기본값으로 보낸다.
+        return explicit if explicit in ('leak', 'interior') else 'interior'
     return 'leak' if a.get('category') in ('방수·설비', '누수탐지·수리') else 'interior'
 
 
@@ -519,6 +523,34 @@ def write_blog_list(insights):
     return True
 
 
+def write_leak_case_index(insights):
+    """누수 접수 폼이 500KB가 넘는 site.json 전체를 받지 않도록
+    공개 누수 사례의 식별자와 제목만 따로 제공한다.
+    """
+    leak_cases = [a for a in insights if article_service(a) == 'leak']
+    # Python의 안정 정렬로 동일 날짜에서는 slug 오름차순,
+    # 날짜는 최신순으로 고정해 재생성해도 파일이 바뀌지 않게 한다.
+    leak_cases.sort(key=lambda a: str(a.get('slug') or ''))
+    leak_cases.sort(key=lambda a: str(a.get('date') or ''), reverse=True)
+    payload = {
+        'version': 1,
+        'cases': [
+            {
+                'slug': str(a.get('slug') or ''),
+                'title': str(a.get('title') or ''),
+                'service': 'leak',
+                'published': True,
+            }
+            for a in leak_cases
+        ],
+    }
+    path = os.path.join(ROOT, 'data', 'leak-case-index.json')
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+        f.write('\n')
+    print('생성: data/leak-case-index.json(%d건)' % len(leak_cases))
+
+
 def main():
     with open(os.path.join(ROOT, 'data', 'site.json'), encoding='utf-8') as f:
         insights = json.load(f).get('insights', [])
@@ -542,6 +574,7 @@ def main():
             print('삭제(글 없음):', 'posts/' + fn)
     write_blog_list(insights)
     write_rss(insights)
+    write_leak_case_index(insights)
     print(f'완료 · {len(insights)}건')
 
 

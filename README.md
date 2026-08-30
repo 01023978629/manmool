@@ -125,7 +125,7 @@ integrations/n8n/*.workflow.json        n8n 워크플로(import용)
   `verify-space-cost-estimates`(시안 300개·예상비용 불변)
   진단 도구(검증기 아님): `report-photo-duplicates`(사진 겹침 현황, `--ids` 로 대상 목록)
 - **예외 1가지**: `insights`(블로그 글)를 수정했으면 `python3 scripts/prerender-posts.py`를
-  실행해 `posts/` 정적 페이지를 재생성한 뒤 함께 커밋하세요. (네이버 등 JS 렌더링이
+  실행해 `posts/` 정적 페이지·`rss.xml`·`data/leak-case-index.json`을 재생성한 뒤 함께 커밋하세요. (네이버 등 JS 렌더링이
   불안정한 검색엔진이 글을 개별 색인하도록 글마다 정적 페이지를 둡니다 — sitemap도 이 주소 기준)
 
 ## 로컬 실행

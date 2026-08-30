@@ -14,7 +14,7 @@ const SYMPTOM = 'TEST_SYMPTOM_MARK<img src=x onerror="window.__xss=(window.__xss
 const PII_MARKERS = ['TEST_NAME_XSS', PHONE, '01012345678', 'TEST_MEMO_MARK', 'TEST_SYMPTOM_MARK'];
 const PUBLIC_LEAK_CASE = Object.freeze({
   slug: 'apartment-upper-lower-rain-pipe-repair',
-  title: '대전 아파트 상·하층 우수관 보수 — 배수구 테두리와 관통부 마감',
+  title: '대전 목양마을아파트 상·하층 우수관 보수 — 우수 배수부품 교체',
   service: 'leak', published: true,
 });
 const INTERIOR_CASE = Object.freeze({
@@ -981,7 +981,9 @@ async function openForm(kind, options = {}) {
     responses: [...(options.responses || [json({ ok: false })])],
     requests: [],
     urls: [],
-    siteResponse: options.siteResponse || (options.site ? json(options.site) : null),
+    configRequests: [],
+    configResponse: options.configResponse || null,
+    caseIndexResponse: options.caseIndexResponse || (options.caseIndex ? json(options.caseIndex) : null),
   };
 
   await context.addInitScript((privacyBootstrapSource) => {
@@ -1092,11 +1094,22 @@ async function openForm(kind, options = {}) {
     controller.urls.push(request.url());
     const url = new URL(request.url());
     if (url.origin === origin && url.pathname === '/data/config.json') {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(config) });
+      controller.configRequests.push(request.url());
+      const response = controller.configResponse;
+      if (response && response.kind === 'abort') {
+        await route.abort('failed');
+        return;
+      }
+      const resolved = response && response.kind === 'deferred' ? await response.promise : response;
+      await route.fulfill({
+        status: resolved && resolved.status != null ? resolved.status : 200,
+        contentType: 'application/json',
+        body: resolved && resolved.body != null ? resolved.body : JSON.stringify(config),
+      });
       return;
     }
-    if (url.origin === origin && url.pathname === '/data/site.json' && controller.siteResponse) {
-      const response = controller.siteResponse;
+    if (url.origin === origin && url.pathname === '/data/leak-case-index.json' && controller.caseIndexResponse) {
+      const response = controller.caseIndexResponse;
       if (response.kind === 'abort') {
         await route.abort('failed');
         return;
@@ -1146,8 +1159,11 @@ async function openForm(kind, options = {}) {
 }
 
 async function closeForm(handle) {
-  if (handle.controller.siteResponse && handle.controller.siteResponse.kind === 'deferred') {
-    handle.controller.siteResponse.resolve(json({ insights: [] }));
+  if (handle.controller.configResponse && handle.controller.configResponse.kind === 'deferred') {
+    handle.controller.configResponse.resolve(json({}));
+  }
+  if (handle.controller.caseIndexResponse && handle.controller.caseIndexResponse.kind === 'deferred') {
+    handle.controller.caseIndexResponse.resolve(json({ version: 1, cases: [] }));
   }
   for (const response of handle.controller.responses) {
     if (response && response.kind === 'deferred') response.resolve(json({ ok: false }));
@@ -1369,6 +1385,14 @@ async function waitForRequestCount(handle, count) {
     await new Promise((resolve) => setTimeout(resolve, 20));
   }
   assert.equal(handle.controller.requests.length, count, `expected ${count} provider requests`);
+}
+
+async function waitForConfigRequest(handle, count = 1) {
+  const started = Date.now();
+  while (handle.controller.configRequests.length < count && Date.now() - started < 5000) {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  assert.equal(handle.controller.configRequests.length, count, `expected ${count} config requests`);
 }
 
 async function resultText(handle, timeout = 4000) {
@@ -2220,16 +2244,20 @@ test('전송 실패 시 두 폼 모두 PII를 저장하지 않고 현재 탭 재
 });
 
 test('공개 누수 사례 참조만 화면·n8n JSON·Web3Forms message·실패 복사에 전달한다', async () => {
-  const site = { insights: [PUBLIC_LEAK_CASE, INTERIOR_CASE, DRAFT_LEAK_CASE] };
+  const caseIndex = { version: 1, cases: [PUBLIC_LEAK_CASE, INTERIOR_CASE, DRAFT_LEAK_CASE] };
   const n8n = await openForm('leak', {
     case: PUBLIC_LEAK_CASE.slug,
-    site,
+    caseIndex,
     config: n8nConfig(),
     responses: [json({ ok: true })],
   });
   try {
     await n8n.page.locator('#lkCaseReference').waitFor({ state: 'visible' });
     assert.match(await n8n.page.locator('#lkCaseReference').innerText(), new RegExp(PUBLIC_LEAK_CASE.title));
+    assert.equal(n8n.controller.urls.some((value) => new URL(value).pathname === '/data/leak-case-index.json'), true,
+      '누수 사례 참조는 경량 색인을 요청해야 한다');
+    assert.equal(n8n.controller.urls.some((value) => new URL(value).pathname === '/data/site.json'), false,
+      '누수 접수에서 전체 site.json을 다운로드하면 안 된다');
     await prepare(n8n);
     await submit(n8n);
     await waitForRequestCount(n8n, 1);
@@ -2244,7 +2272,7 @@ test('공개 누수 사례 참조만 화면·n8n JSON·Web3Forms message·실패
 
   const forms = await openForm('leak', {
     case: PUBLIC_LEAK_CASE.slug,
-    site,
+    caseIndex,
     config: formsConfig('web3forms'),
     responses: [json({ success: true })],
   });
@@ -2262,7 +2290,7 @@ test('공개 누수 사례 참조만 화면·n8n JSON·Web3Forms message·실패
 
   const failed = await openForm('leak', {
     case: PUBLIC_LEAK_CASE.slug,
-    site,
+    caseIndex,
     config: n8nConfig(),
     responses: [json({ ok: false })],
   });
@@ -2281,7 +2309,7 @@ test('공개 누수 사례 참조만 화면·n8n JSON·Web3Forms message·실패
 });
 
 test('알 수 없거나 신뢰되지 않은 사례 query는 화면·전송·복사에 넣지 않고 URL을 다시 쓰지 않는다', async () => {
-  const site = { insights: [PUBLIC_LEAK_CASE, INTERIOR_CASE, DRAFT_LEAK_CASE] };
+  const caseIndex = { version: 1, cases: [PUBLIC_LEAK_CASE, INTERIOR_CASE, DRAFT_LEAK_CASE] };
   const rejected = [
     'unknown-case',
     '<img src=x data-untrusted-case="CASE_QUERY_XSS">',
@@ -2290,7 +2318,7 @@ test('알 수 없거나 신뢰되지 않은 사례 query는 화면·전송·복�
   ];
   for (const caseValue of rejected) {
     const handle = await openForm('leak', {
-      case: caseValue, site, config: n8nConfig(), responses: [json({ ok: false })],
+      case: caseValue, caseIndex, config: n8nConfig(), responses: [json({ ok: false })],
     });
     try {
       assert.equal(await handle.page.locator('#lkCaseReference').isHidden(), true, `${caseValue} was displayed`);
@@ -2323,7 +2351,7 @@ test('중복 사례와 사례 목록 abort·500·malformed는 사례 없이 일�
   const fixtures = [
     {
       label: 'duplicate',
-      response: json({ insights: [PUBLIC_LEAK_CASE, { ...PUBLIC_LEAK_CASE }] }),
+      response: json({ version: 1, cases: [PUBLIC_LEAK_CASE, { ...PUBLIC_LEAK_CASE }] }),
     },
     { label: 'abort', response: { kind: 'abort' } },
     { label: '500', response: raw('{"error":"server"}', 500) },
@@ -2332,7 +2360,7 @@ test('중복 사례와 사례 목록 abort·500·malformed는 사례 없이 일�
   for (const fixture of fixtures) {
     const handle = await openForm('leak', {
       case: PUBLIC_LEAK_CASE.slug,
-      siteResponse: fixture.response,
+      caseIndexResponse: fixture.response,
       config: n8nConfig(),
       responses: [json({ ok: true })],
     });
@@ -2351,10 +2379,10 @@ test('중복 사례와 사례 목록 abort·500·malformed는 사례 없이 일�
 });
 
 test('사례 목록 조회가 멈춰도 짧은 제한 후 일반 접수를 한 번만 전송한다', async () => {
-  const pendingSite = deferredResponse();
+  const pendingCaseIndex = deferredResponse();
   const handle = await openForm('leak', {
     case: PUBLIC_LEAK_CASE.slug,
-    siteResponse: pendingSite,
+    caseIndexResponse: pendingCaseIndex,
     waitUntil: 'load',
     config: n8nConfig(),
     responses: [json({ ok: true }), json({ ok: true })],
@@ -2373,13 +2401,68 @@ test('사례 목록 조회가 멈춰도 짧은 제한 후 일반 접수를 한 �
     assert.equal(handle.controller.requests.length, 1, 'double submit sent duplicate inquiries');
     assert.equal(Object.hasOwn(JSON.parse(handle.controller.requests[0].body), 'referenceCase'), false);
     assert.equal(await handle.page.locator('#lkCaseReference').isHidden(), true);
-    pendingSite.resolve(json({ insights: [PUBLIC_LEAK_CASE] }));
+    pendingCaseIndex.resolve(json({ version: 1, cases: [PUBLIC_LEAK_CASE] }));
     await new Promise((resolve) => setTimeout(resolve, 150));
     assert.equal(await handle.page.locator('#lkCaseReference').isHidden(), true, 'late case lookup changed the page');
     assert.equal(Object.hasOwn(JSON.parse(handle.controller.requests[0].body), 'referenceCase'), false,
       'late case lookup changed the submitted payload');
     await assertNoPersistentReference(handle);
   } finally {
+    await closeForm(handle);
+  }
+});
+
+test('누수 폼은 설정 조회가 1초 안에 늦게 완료돼도 첫 제출을 n8n에 한 번만 전송한다', async () => {
+  const pendingConfig = deferredResponse();
+  const handle = await openForm('leak', {
+    waitUntil: 'load',
+    config: n8nConfig(),
+    configResponse: pendingConfig,
+    responses: [json({ ok: true }), json({ ok: true })],
+  });
+  try {
+    await waitForConfigRequest(handle);
+    await prepare(handle);
+    await handle.page.evaluate(() => {
+      const form = document.querySelector('#leakForm');
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    pendingConfig.resolve(json(n8nConfig()));
+
+    await waitForRequestCount(handle, 1);
+    const text = await resultText(handle);
+    assert.match(text, /접수됐습니다\./);
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    assert.equal(handle.controller.requests.length, 1, 'consecutive submits duplicated the n8n delivery');
+  } finally {
+    pendingConfig.resolve(json({}));
+    await closeForm(handle);
+  }
+});
+
+test('누수 폼은 설정 조회가 계속 멈추면 약 1.5초 안에 직접 연락 실패 화면으로 끝내고 provider에 전송하지 않는다', async () => {
+  const pendingConfig = deferredResponse();
+  const handle = await openForm('leak', {
+    waitUntil: 'load',
+    config: n8nConfig(),
+    configResponse: pendingConfig,
+    responses: [json({ ok: true })],
+  });
+  try {
+    await waitForConfigRequest(handle);
+    await prepare(handle);
+    const started = Date.now();
+    await handle.page.locator('#leakForm').dispatchEvent('submit');
+    const text = await assertNotDelivered(handle, 2800);
+    const elapsed = Date.now() - started;
+    assert.equal(elapsed >= 1200 && elapsed < 2300, true, `config timeout took ${elapsed}ms instead of about 1.5s`);
+    assert.match(text, /홈페이지 설정을 잠시 못 읽어/);
+    assert.equal(await handle.page.locator('#lkDone a[href^="tel:"]').count() > 0, true);
+    assert.equal(handle.controller.requests.length, 0, 'a stuck config lookup reached the provider');
+  } finally {
+    pendingConfig.resolve(json({}));
     await closeForm(handle);
   }
 });

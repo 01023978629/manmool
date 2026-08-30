@@ -38,7 +38,10 @@ check(
 );
 let parsedApiConfig = null;
 try { parsedApiConfig = JSON.parse(apiConfig); } catch (_) { /* checked below */ }
-check(isExactOfficeApiConfig(parsedApiConfig) && apiConfig === `${JSON.stringify(parsedApiConfig, null, 2)}\n`, 'office-api.json은 exact disabled 형식 또는 유효한 Apps Script /exec enabled 형식이어야 한다');
+// Git이 Windows checkout에서 LF를 CRLF로 바꾸어도 JSON 내용 계약은 같다.
+// 줄바꿈만 정규화하고 공백·키·값의 exact 형식은 그대로 검사한다.
+const normalizedApiConfig = apiConfig.replace(/\r\n/g, '\n');
+check(isExactOfficeApiConfig(parsedApiConfig) && normalizedApiConfig === `${JSON.stringify(parsedApiConfig, null, 2)}\n`, 'office-api.json은 exact disabled 형식 또는 유효한 Apps Script /exec enabled 형식이어야 한다');
 check(publicFiles.includes('office-api.json'), 'Pages 공개 허용목록에 office-api.json이 없다');
 check(publicFiles.includes('js/office-request-api.js') && publicFiles.includes('js/office-request-photo.js'), 'Pages 공개 허용목록에 포털 API 또는 사진 파일이 없다');
 check(!/office-request\.html/.test(sitemap), 'noindex 접수 페이지가 sitemap에 들어갔다');

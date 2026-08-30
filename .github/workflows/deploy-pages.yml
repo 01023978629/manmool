@@ -39,8 +39,9 @@ jobs:
       - name: Verify generated blog is current
         shell: bash
         run: |
+          git ls-files --error-unmatch data/leak-case-index.json
           python3 scripts/prerender-posts.py
-          git diff --exit-code -- blog.html posts rss.xml
+          git diff --exit-code -- blog.html posts rss.xml data/leak-case-index.json
 
       - name: Install browser test runtime
         shell: bash
@@ -88,6 +89,7 @@ jobs:
             fi
             node "$check"
           done
+          python3 -m unittest tests/test_prerender_posts.py
           node --test tests/unified-brand-design.e2e.cjs
           node --test scripts/new-case-post.test.mjs
           node --test apps-script-contract/test/*.mjs

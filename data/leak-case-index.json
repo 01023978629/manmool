@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "slug": "apartment-balcony-rain-pipe-replacement",
+      "title": "대전 한밭우성아파트 베란다 우수관 보수 — 바닥 배수구와 하부 연결 부속 교체",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "apartment-upper-lower-rain-pipe-repair",
+      "title": "대전 목양마을아파트 상·하층 우수관 보수 — 우수 배수부품 교체",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "apartment-basement-cast-iron-pipe-repair",
+      "title": "대전 유원아파트 지하실 주철관 보수 — 부식 구간부터 슬리브 마감까지",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "mugunghwa-pipe-replacement",
+      "title": "대전 무궁화아파트 배관 교체 — 연결부와 관통부를 기록했습니다",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "geumseong-basement-pipe-valve",
+      "title": "대전 금성백조아파트 지하 공용배관 교체 — 세대 계량기 밸브까지 함께 정리했습니다",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "samsung-apartment-drain-pipe-replacement",
+      "title": "욕실 천장 배관에서 물이 샜습니다 — 대전 삼성아파트 오수관·생활하수 배관 교체",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "hanbat-drain-replacement",
+      "title": "한밭유성아파트 생활하수관 교체 — 물 테스트까지 확인하고 마무리했습니다",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "seonbi-pipe-replacement",
+      "title": "대전 선비마을3단지 세대 배관 교체 — 문제 구간을 확인하고 갈았습니다",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "leak-insurance-guide",
+      "title": "아랫집 천장에 물자국 — 누수, 보험으로 처리될까요?",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "rainy-season-waterproof-check",
+      "title": "장마철 앞두고 봐야 할 욕실·베란다 방수 점검 포인트",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "mokdong-trench-drain",
+      "title": "대전 목동 트렌치 배수 시공 — 비만 오면 고이던 물길을 잡았습니다",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "bathroom-waterproof-signs",
+      "title": "욕실 방수, 언제 다시 해야 할까? 누수 징후 5가지와 비용",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "beomjigi-bathroom-waterproof",
+      "title": "세종 범지기마을 욕실 방수 1·2차 — 두 세대를 같은 기간에 시공했습니다",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "taesan-rain-pipe-replacement",
+      "title": "대전 태산그린아파트 우수관 교체 — 비 올 때만 새는 물의 원인을 잡았습니다",
+      "service": "leak",
+      "published": true
+    }
+  ]
+}

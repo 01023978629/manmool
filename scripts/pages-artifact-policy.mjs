@@ -6,7 +6,7 @@ export const PUBLIC_ROOT_FILES = Object.freeze([
   'field.html', 'index.html', 'leak.html', 'mypage.html', 'office.html', 'office-request.html', 'office-api.json', 'privacy.html',
   'google11dc37fbc3ab6e98.html', 'og-image.png', 'robots.txt', 'rss.xml', 'sitemap.xml',
 ]);
-export const PUBLIC_DATA_FILES = Object.freeze(['config.json', 'material-catalog.json', 'project.json', 'site.json']);
+export const PUBLIC_DATA_FILES = Object.freeze(['config.json', 'leak-case-index.json', 'material-catalog.json', 'project.json', 'site.json']);
 export const PUBLIC_JS_FILES = Object.freeze([
   'admin.js', 'as.js', 'bathroom-check.js', 'blog.js', 'case-new.js', 'case-store.js', 'content-editor.js', 'design-bom.js', 'estimate.js',
   'field.js', 'hj-link.js', 'inquiry.js', 'lead-transport.js', 'leak-inquiry.js', 'leak.js', 'lookbook.js', 'main.js', 'mypage.js',

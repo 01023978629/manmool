@@ -226,6 +226,20 @@ test('390px 화면에서 가로 넘침 없이 핵심 행동영역을 누를 수 
   }
 });
 
+test('모바일 누수 사례의 상담 바로가기 제목을 고정 헤더 아래에 보여 준다', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(`${origin}/leak.html?case=apartment-balcony-rain-pipe-replacement#leakInquiry`, { waitUntil: 'networkidle' });
+  const geometry = await page.evaluate(() => {
+    const header = document.querySelector('.site-header').getBoundingClientRect();
+    const heading = document.querySelector('#leakInquiry h2').getBoundingClientRect();
+    return { headerBottom: Math.round(header.bottom), headingTop: Math.round(heading.top) };
+  });
+  assert.equal(geometry.headingTop >= geometry.headerBottom,
+    true, `상담 제목 top ${geometry.headingTop}px이 헤더 bottom ${geometry.headerBottom}px 뒤에 가려짐`);
+  await page.close();
+});
+
 test('공통 버튼은 플랫폼 글꼴 줄높이와 무관하게 44px을 유지한다', async () => {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
   await page.goto(`${origin}/index.html`, { waitUntil: 'networkidle' });

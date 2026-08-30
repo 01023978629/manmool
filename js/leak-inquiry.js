@@ -18,6 +18,7 @@
   const referenceHost = $('leakCaseContext');
   const referenceTitle = $('lkCaseReference');
   const PHONE = '01023978629';
+  const CONFIG_LOOKUP_TIMEOUT_MS = 1500;
   const REFERENCE_LOOKUP_TIMEOUT_MS = 1500;
   const SCROLL = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
 
@@ -29,9 +30,30 @@
   let activeRetryUiPromise = null;
   let referenceCase = null;
   let referenceSubmitPending = false;
-  // 공용 로더 — 한 번 더 시도하고, 실패하면 configLoadFailed 표시를 남긴다.
-  // 설정을 못 읽은 것과 '접수 경로가 아예 없는 것'은 손님에게 다른 말이어야 한다.
-  LEAD.loadConfig().then((c) => { CONFIG = c; });
+  // 첫 제출이 설정보다 먼저 진행되면 정상 접수 경로도 '미전송'으로 보인다.
+  // 다만 설정 요청 하나가 끝없이 멈추는 경우를 막기 위해 제출 대기는 1.5초로 제한한다.
+  const configReady = Promise.resolve()
+    .then(() => LEAD.loadConfig())
+    .then((config) => {
+      CONFIG = config && typeof config === 'object' && !Array.isArray(config)
+        ? config
+        : { configLoadFailed: true };
+      return CONFIG;
+    }, () => {
+      CONFIG = { configLoadFailed: true };
+      return CONFIG;
+    });
+
+  async function waitForConfig() {
+    let timer = null;
+    const timeout = new Promise((resolve) => {
+      timer = setTimeout(() => resolve(null), CONFIG_LOOKUP_TIMEOUT_MS);
+    });
+    const config = await Promise.race([configReady, timeout]);
+    if (timer !== null) clearTimeout(timer);
+    if (config === null) CONFIG = { configLoadFailed: true };
+    return CONFIG;
+  }
 
   /* 사례 글 CTA의 query는 신뢰하지 않는다. 공개된 누수 사례 목록과 slug가 정확히
      한 건 일치할 때만 제목·식별자를 메모리에서 사용한다. 원문 query를 표시하거나
@@ -42,7 +64,7 @@
     const controller = typeof AbortController === 'function' ? new AbortController() : null;
     let timer = null;
     try {
-      const lookup = fetch('data/site.json', {
+      const lookup = fetch('data/leak-case-index.json', {
         headers: { Accept: 'application/json' },
         signal: controller ? controller.signal : undefined,
       }).then(async (response) => {
@@ -55,15 +77,11 @@
           reject(new Error('reference-lookup-timeout'));
         }, REFERENCE_LOOKUP_TIMEOUT_MS);
       });
-      const site = await Promise.race([lookup, timeout]);
-      if (!site) return null;
-      const insights = site && Array.isArray(site.insights) ? site.insights : [];
-      const matches = insights.filter((item) => {
-        if (!item || item.published === false || item.slug !== requestedSlug) return false;
-        const service = item.service;
-        const leakService = service === 'leak'
-          || (!service && ['방수·설비', '누수탐지·수리'].includes(item.category));
-        return leakService && typeof item.title === 'string' && item.title.trim();
+      const index = await Promise.race([lookup, timeout]);
+      if (!index || index.version !== 1 || !Array.isArray(index.cases)) return null;
+      const matches = index.cases.filter((item) => {
+        if (!item || item.published !== true || item.service !== 'leak' || item.slug !== requestedSlug) return false;
+        return typeof item.title === 'string' && item.title.trim();
       });
       if (matches.length !== 1) return null;
       referenceCase = Object.freeze({
@@ -166,7 +184,7 @@
     submitBtn.disabled = true;
     submitBtn.textContent = '접수 준비 중입니다…';
     try {
-      await referenceReady;
+      await Promise.all([referenceReady, waitForConfig()]);
     } finally {
       referenceSubmitPending = false;
     }
