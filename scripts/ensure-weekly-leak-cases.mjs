@@ -22,7 +22,8 @@ export const WEEKLY_CASES = [
     'assets/cases/apartment-upper-lower-rain-pipe-repair-1.jpg',
     'assets/cases/apartment-upper-lower-rain-pipe-repair-2.jpg',
     'assets/cases/apartment-upper-lower-rain-pipe-repair-3.jpg',
-    'assets/cases/apartment-upper-lower-rain-pipe-repair-4.jpg'
+    'assets/cases/apartment-upper-lower-rain-pipe-repair-4.jpg',
+    'assets/cases/apartment-upper-lower-rain-pipe-repair-5.jpg'
   ]}
 ];
 
@@ -51,8 +52,8 @@ function jpegSize(buffer) {
   return null;
 }
 
-if (WEEKLY_CASES.map((item) => item.images.length).join(',') !== '6,4,5') failures.push('사례별 사진 수는 6,4,5여야 한다');
-if (allImages.length !== 15) failures.push(`전체 사진 수가 ${allImages.length}장이다`);
+if (WEEKLY_CASES.map((item) => item.images.length).join(',') !== '6,4,6') failures.push('사례별 사진 수는 6,4,6이어야 한다');
+if (allImages.length !== 16) failures.push(`전체 사진 수가 ${allImages.length}장이다`);
 if (new Set(allImages).size !== allImages.length) failures.push('새 사례 사진 경로가 중복된다');
 for (const relative of allImages) {
   const absolute = path.join(ROOT, relative);
@@ -69,7 +70,17 @@ const expectedContent = [
   // 제목 정정(2026-08-29): 사진 4장 전부 수직관은 기존 관이고 새것은 하부 연결
   // 부속뿐이다 — "우수관 교체"는 사진이 뒷받침하지 않아 "보수·부속 교체"로 내렸다.
   { slug: 'apartment-balcony-rain-pipe-replacement', date: '2026-08-28', title: '대전 아파트 베란다 우수관 보수 — 바닥 배수구와 하부 연결 부속 교체', coverAlt: '수직 우수관 하부 연결부와 바닥 마감 상태' },
-  { slug: 'apartment-upper-lower-rain-pipe-repair', date: '2026-08-28', title: '대전 아파트 상·하층 우수관 보수 — 배수구 테두리와 관통부 마감', coverAlt: '보수 후 수직 우수관과 천장 관통부 전경' },
+  {
+    slug: 'apartment-upper-lower-rain-pipe-repair',
+    date: '2026-08-28',
+    title: '대전 목양마을아파트 상·하층 우수관 보수 — 우수 배수부품 교체',
+    publicApartmentName: '목양마을아파트',
+    coverAlt: '수직 우수관과 천장 관통부 현장 상태',
+    finalHeading: '우수 배수부품 교체를 마쳤습니다',
+    finalImage: 'assets/cases/apartment-upper-lower-rain-pipe-repair-5.jpg',
+    finalAlt: '우수관 하부 연결 부속과 원형 배수구 그릴 설치 상태',
+    finalCaption: '우수관 하부 연결 부속과 바닥 배수구 그릴을 설치한 모습'
+  },
   { slug: 'apartment-basement-cast-iron-pipe-repair', date: '2026-08-26', title: '대전 아파트 지하실 주철관 보수 — 부식 구간부터 슬리브 마감까지', coverAlt: '지하실 주철관 두 라인에 슬리브 보수를 마친 상태' }
 ];
 const site = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'site.json'), 'utf8'));
@@ -83,7 +94,7 @@ const unitPattern = /(?:\d{1,4}\s*(?:동|호)|\d{1,3}\s*[-/]\s*\d{3,4})/;
 const detailedAddressPattern = /(?:[가-힣]+(?:로|길)\s*\d+(?:-\d+)?|[가-힣]+(?:동|리|읍|면)\s*\d+(?:-\d+)?|\d+(?:-\d+)?번지)/;
 const namedBuildingPattern = /[가-힣]{2,}(?:아파트|빌딩)/;
 
-function privacyViolations(value) {
+function privacyViolations(value, { allowedBuildingNames = [] } = {}) {
   const violations = [];
   function walk(node, keyPath = '') {
     if (Array.isArray(node)) {
@@ -103,7 +114,11 @@ function privacyViolations(value) {
     if (phonePattern.test(node)) violations.push(`${keyPath}: 전화번호`);
     if (unitPattern.test(node)) violations.push(`${keyPath}: 동호수`);
     if (detailedAddressPattern.test(node)) violations.push(`${keyPath}: 상세 주소`);
-    if (namedBuildingPattern.test(node)) violations.push(`${keyPath}: 단지·건물 고유명`);
+    let buildingScan = node;
+    for (const allowedName of allowedBuildingNames) {
+      if (typeof allowedName === 'string' && allowedName.trim()) buildingScan = buildingScan.split(allowedName).join('');
+    }
+    if (namedBuildingPattern.test(buildingScan)) violations.push(`${keyPath}: 단지·건물 고유명`);
   }
   walk(value);
   return violations;
@@ -136,11 +151,20 @@ for (const expected of expectedContent) {
   const media = [item.image, ...(item.body || []).filter((section) => section.img).map((section) => section.img)];
   const wantedMedia = WEEKLY_CASES.find((entry) => entry.slug === expected.slug).images;
   if (item.title !== expected.title || item.date !== expected.date) failures.push(`${expected.slug}: 제목 또는 날짜가 다르다`);
+  if (expected.publicApartmentName && !item.excerpt.startsWith(`대전 ${expected.publicApartmentName}에서`)) failures.push(`${expected.slug}: 첫 설명에 공개 아파트명이 없다`);
   if (item.imageAlt !== expected.coverAlt) failures.push(`${expected.slug}: 표지 사진 설명이 다르다`);
+  if (expected.finalImage) {
+    const finalSection = (item.body || []).at(-1);
+    if (!finalSection || finalSection.h !== expected.finalHeading || finalSection.img !== expected.finalImage) failures.push(`${expected.slug}: 완료 사진이 본문 마지막에 없다`);
+    if (finalSection?.imgAlt !== expected.finalAlt) failures.push(`${expected.slug}: 완료 사진 alt가 다르다`);
+    if (finalSection?.imgCaption !== expected.finalCaption) failures.push(`${expected.slug}: 완료 사진 캡션이 다르다`);
+  }
   if (item.category !== '방수·설비' || item.service !== 'leak') failures.push(`${expected.slug}: 누수 서비스 분류가 아니다`);
   if ((item.body || []).length < 4 || item.body.length > 6) failures.push(`${expected.slug}: 본문 소제목이 4~6개가 아니다`);
   if (JSON.stringify(media) !== JSON.stringify(wantedMedia)) failures.push(`${expected.slug}: 사진 순서 또는 수가 다르다`);
-  const publicPrivacy = privacyViolations(item);
+  const publicPrivacy = privacyViolations(item, {
+    allowedBuildingNames: expected.publicApartmentName ? [expected.publicApartmentName] : []
+  });
   if (publicPrivacy.length) failures.push(`${expected.slug}: 공개 데이터에 개인정보가 있다 (${publicPrivacy.join(', ')})`);
   const postPath = path.join(ROOT, 'posts', `${expected.slug}.html`);
   if (!fs.existsSync(postPath)) { failures.push(`${expected.slug}: 정적 글이 없다`); continue; }
@@ -163,4 +187,4 @@ if (failures.length) {
   failures.forEach((message) => console.error('  - ' + message));
   process.exit(1);
 }
-console.log('PASS 최근 누수 사례 3건 · 사진 15장');
+console.log('PASS 최근 누수 사례 3건 · 사진 16장');
