@@ -3,7 +3,9 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const http = require('node:http');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
 const ROOT = path.resolve(__dirname, '..');
 const MIME = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.json':'application/json; charset=utf-8' };
@@ -29,6 +31,43 @@ async function fillValid(page) {
   await page.check('input[name="pilotInterest"][value="preventive-inspection"]'); await page.fill('#pilotDesiredStart','2026년 9월');
   await page.fill('#pilotMemo','공용부 우수관 상담'); await page.check('#pilotPrivacyConsent');
 }
+
+test('정적 전환 게이트는 공개 수익 경계 변이를 각각 좁은 한국어 오류로 거절한다', async () => {
+  const modulePath = path.join(ROOT, 'scripts', 'ensure-revenue-operations.mjs');
+  const { verifyRevenueOperations } = await import(`${pathToFileURL(modulePath).href}?test=${Date.now()}`);
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'manmool-revenue-gate-'));
+  try {
+    fs.cpSync(ROOT, temp, { recursive: true, filter: source => !/(?:^|[\\/])(?:\.git|_site)(?:[\\/]|$)/.test(source) });
+    assert.deepEqual(verifyRevenueOperations(temp), []);
+    const mutate = (relative, replaceFrom, replaceTo, expected) => {
+      const file = path.join(temp, ...relative.split('/'));
+      const original = fs.readFileSync(file, 'utf8');
+      const changed = original.replace(replaceFrom, replaceTo);
+      assert.notEqual(changed, original, `mutation did not apply: ${relative}`);
+      fs.writeFileSync(file, changed, 'utf8');
+      assert.match(verifyRevenueOperations(temp).join('\n'), expected);
+      fs.writeFileSync(file, original, 'utf8');
+      assert.deepEqual(verifyRevenueOperations(temp), []);
+    };
+    mutate('office.html', '접수 프로그램 이용료 0원', '접수 프로그램 이용료', /0원 프로그램/);
+    mutate('js/office-pilot.js', "source:'office-pilot',", "source:'office-pilot',officeRequest:true,", /직원 포털/);
+    mutate('js/office-pilot.js', "privacyConsent:fd.get('privacyConsent') === 'on'", "residentPhone:fd.get('phone'),privacyConsent:fd.get('privacyConsent') === 'on'", /금지된 입주민 정보/);
+    mutate('office.html', "connect-src 'self' https://api.web3forms.com", "connect-src 'self' https://api.web3forms.com *", /와일드카드/);
+    mutate('office.html', "https://api.web3forms.com", "https://api.web3forms.com.evil.example", /정확한 활성 provider origin/);
+    mutate('office.html', "connect-src 'self' https://api.web3forms.com", "connect-src 'self' https://api.web3forms.com https://extra.example", /정확한 활성 provider origin/);
+    mutate('office.html', "connect-src 'self' https://api.web3forms.com", "connect-src 'self' https://%", /origin/);
+    mutate('privacy.html', '관리사무소 30일 파일럿 신청', '관리사무소 30일 시험운영 신청', /파일럿/);
+    mutate('privacy.html', '관리사무소 담당자명', '관리사무소 담당자', /파일럿 개인정보 항목/);
+    mutate('privacy.html', '신청 목적, 선택 입력한 희망 방문일·희망 시간대', '상담 분류, 선택 입력한 방문 날짜·시간', /누수 개인정보 항목/);
+    mutate('js/leak-inquiry.js', 'naver.ready === true', 'naver.ready !== true', /ready/);
+    mutate('js/revenue-conversion.js', 'NAVER_HOSTS.has(url.hostname)', 'url.hostname.endsWith("naver.com")', /공식 네이버 host/);
+    mutate('scripts/pages-artifact-policy.mjs', "'office-pilot.js', ", '', /artifact allowlist/);
+    mutate('posts/apartment-basement-cast-iron-pipe-repair.html', '</body>', '<p>500만원 이하 표준 패키지</p></body>', /공개 artifact 판매 문구/);
+    mutate('integrations/인수인계서.md', '# ', '# 500만원 이하 맞춤 표준 패키지\n\n# ', /운영 문서 판매 문구/);
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+});
 
 test('pilot Web3Forms success sends one minimal lead and shows exact commercial boundary', async () => {
   const page=await newPage(); const posted=[]; const requests=[];

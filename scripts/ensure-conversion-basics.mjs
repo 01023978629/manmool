@@ -353,24 +353,45 @@ check(/const WORKS = \[[^\]]*'누수탐지·누수수리'/.test(inquiry) && /fd\
     works: /희망\s*공사\s*항목/, budget: /예산/, movein: /희망\s*시기/,
     live: /거주\s*여부/, name: /성함/, phone: /연락처/, memo: /메모/,
     estimateHint: /참고\s*견적/, simSpec: /사양서/, lookSpec: /시안/,
-    selectedDesign: /시안/,
+    selectedDesign: /시안/, complexName: /단지명/,
+    officeContactName: /관리사무소 담당자명/, pilotInterest: /관심 업무/,
+    desiredStart: /도입 희망 시점/, inquiryPurpose: /신청 목적/,
+    preferredVisitDate: /희망 방문일/, preferredVisitWindow: /희망 시간대/,
+    symptoms: /증상/,
   };
-  const collectBody = functionBody(inquiry, 'collect') || '';
+  const pilotPrivacyNotice = paragraphTextById(privacy, 'privacy-office-pilot-items');
+  const leakPrivacyNotice = paragraphTextById(privacy, 'privacy-leak-items');
+  const PILOT_NOTICE_KEYS = new Set(['complexName', 'officeContactName', 'pilotInterest', 'desiredStart']);
+  const LEAK_NOTICE_KEYS = new Set(['inquiryPurpose', 'preferredVisitDate', 'preferredVisitWindow', 'symptoms']);
+  const collectBodies = [inquiry, officePilot, leakInquiry]
+    .map((source) => functionBody(source, 'collect') || '');
   // 축약 속성(works,)은 콜론이 없다. 콜론만 찾으면 그 항목이 통째로 감시망 밖에 남는다.
-  const sentKeys = (collectBody.match(/^\s{6}([A-Za-z][A-Za-z0-9_]*)\s*[:,]/gm) || [])
-    .map((m) => m.trim().replace(/[:,]$/, ''));
-  const META_KEYS = new Set(['consent']);
+  const sentKeys = [...new Set(collectBodies.flatMap((collectBody) =>
+    (collectBody.match(/^\s{6}([A-Za-z][A-Za-z0-9_]*)\s*[:,]/gm) || [])
+      .map((m) => m.trim().replace(/[:,]$/, ''))))];
+  const META_KEYS = new Set(['consent', 'privacyConsent', 'source', 'sourcePage', 'ctaId', 'submittedAt', 'status', 'bookingStatus']);
+  const noticeFor = (key) => PILOT_NOTICE_KEYS.has(key) ? pilotPrivacyNotice : LEAK_NOTICE_KEYS.has(key) ? leakPrivacyNotice : privacy;
   const unlisted = sentKeys.filter((k) => !META_KEYS.has(k)
-    && !(LEAD_FIELD_NOTICE[k] && LEAD_FIELD_NOTICE[k].test(privacy)));
+    && !(LEAD_FIELD_NOTICE[k] && LEAD_FIELD_NOTICE[k].test(noticeFor(k))));
   check(sentKeys.length >= 10 && unlisted.length === 0,
     `상담에 실려 나가는 항목이 처리방침에 없다: ${unlisted.join(', ') || '(collect() 를 읽지 못했다)'}`,
     `처리방침이 전송 항목 ${sentKeys.length}개를 모두 밝힘`);
   // 누수 폼도 같은 규칙 — 증상 체크박스가 방침에 없었다.
   const leakCollect = functionBody(read('js/leak-inquiry.js'), 'collect') || '';
-  const leakNotice = paragraphTextById(privacy, 'privacy-leak-items');
+  const leakNotice = leakPrivacyNotice;
   check(/symptoms:/.test(leakCollect) ? /증상/.test(leakNotice) : true,
     '누수 상담이 증상 항목을 보내는데 처리방침의 누수 문단(#privacy-leak-items)에 증상 수집이 없다',
     '처리방침 누수 문단이 증상 수집을 밝힘');
+  check(/bookingStatus\s*:\s*['"]inquiry-only['"]/.test(leakInquiry) && /방문이나 금액이 확정된 것은 아닙니다/.test(leakInquiry),
+    '누수 문의가 inquiry-only 고정값 또는 예약 미확정 성공 안내를 잃었다',
+    '누수 문의는 inquiry-only이며 예약 확정이 아님을 안내');
+  const pilotPrivacy = pilotPrivacyNotice;
+  check(/관리사무소 30일 파일럿 신청/.test(pilotPrivacy) && /최대 1년/.test(pilotPrivacy) &&
+        /삭제 요청/.test(pilotPrivacy) && /010-2397-8629/.test(pilotPrivacy) &&
+        /입주민/.test(pilotPrivacy) && /자유입력란/.test(pilotPrivacy) && /패턴/.test(pilotPrivacy) && /차단/.test(pilotPrivacy) &&
+        !/(?:모든|어떠한|임의의)\s*(?:개인정보|PII).{0,20}(?:차단|포함되지)/.test(pilotPrivacy),
+    '파일럿 처리방침의 명칭·1년·삭제 연락·입주민 경고·명시적 패턴 차단 경계가 정확하지 않다',
+    '파일럿 처리방침 경계 공개');
   // 유선번호도 받게 됐다 — '휴대폰 번호'만 적혀 있으면 방침이 실제와 어긋난다.
   check(!/연락처\(휴대폰\s*번호\)/.test(privacy),
     '처리방침이 연락처를 휴대폰 번호로만 적고 있다 — 유선(042·02·070)도 받는다',

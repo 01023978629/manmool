@@ -165,7 +165,7 @@ test('관리사무소 페이지는 발주 판단 정보와 전화·직원 포털
 
   assert.equal(await page.locator('body.office-page').count(), 1);
   assert.equal(await page.locator('.office-hero h1').count(), 1);
-  assert.equal(await page.locator('.office-hero a[href="#officeInquiry"]').count(), 1);
+  assert.equal(await page.locator('.office-hero a[href="#officePilot"]').count(), 1);
   assert.equal(await page.locator('.office-hero a[href^="tel:"]').count(), 1);
   assert.equal(await page.locator('#officeServices .office-service-card').count() >= 4, true);
   assert.deepEqual(
