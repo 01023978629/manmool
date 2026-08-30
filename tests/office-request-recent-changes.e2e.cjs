@@ -12,6 +12,12 @@ let browser;
 let origin;
 let server;
 
+test('목록 응답을 적용하기 직전에 최신 list generation을 확인한다', () => {
+  const controller = fs.readFileSync(path.join(ROOT, 'js', 'office-request.js'), 'utf8');
+  assert.match(controller, /listGeneration\s*\+=\s*1/);
+  assert.match(controller, /listAttempt\s*!==\s*listGeneration/);
+});
+
 function serveStatic(req, res) {
   const relative = decodeURIComponent(new URL(req.url, 'http://127.0.0.1').pathname).replace(/^\/+/, '') || 'index.html';
   const target = path.resolve(ROOT, relative);
@@ -123,6 +129,31 @@ test('첫 조회는 기준만 만들고 수동 새로고침 한 번은 officeLis
   await page.close();
 });
 
+test('최근 변경의 개인정보는 저장소와 URL에 남지 않고 hard reload는 새 기준을 만든다', async () => {
+  let listCall = 0;
+  const baseline = [request('private-1', 'pending_review', '2026-08-30T09:00:00.000Z')];
+  const changed = [request('private-1', 'needs_info', '2026-08-30T10:00:00.000Z')];
+  const { page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: listCall++ === 0 ? baseline : changed };
+    throw new Error(`unexpected action ${body.action}`);
+  });
+  await login(page);
+  await page.getByRole('button', { name: '목록 새로고침' }).click();
+  await page.getByText('최근 변경 1건').waitFor();
+  const leaked = await page.evaluate(() => ({
+    local: JSON.stringify(localStorage),
+    session: JSON.stringify(sessionStorage),
+    url: location.href,
+  }));
+  assert.doesNotMatch(JSON.stringify(leaked), /010-1111-2222|최근 변경 화면에는 나오면 안 되는 설명|987654/);
+  await page.reload();
+  await page.getByText('다음 새로고침부터 변경을 확인합니다.').waitFor();
+  assert.equal(await page.locator('#officeRecentList li').count(), 0);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
 test('최근 변경은 최신순 10건과 초과 건수를 유지하고 필터와 URL 변경 없이 상세로 이동한다', async () => {
   let listCall = 0;
   const baseline = Array.from({ length: 12 }, (_, index) => request(
@@ -188,6 +219,147 @@ test('공백이 있는 canonical 또는 legacy ID 변경은 카드 수와 요약
     await page.getByRole('button', { name: '목록으로' }).click();
   }
   assert.deepEqual(calls.filter((entry) => entry.action === 'officeGet').map((entry) => entry.payload.requestId), ['legacy-3', 'req-2']);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('새로고침 실패는 직전 성공 목록과 변경 카드를 보존하고 다음 성공은 비교 결과를 교체한다', async () => {
+  let listCall = 0;
+  const baseline = [request('req-1', 'pending_review', '2026-08-30T09:00:00.000Z')];
+  const changed = [request('req-1', 'needs_info', '2026-08-30T10:00:00.000Z')];
+  const { page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') {
+      listCall += 1;
+      if (listCall === 1) return { ok: true, requests: baseline };
+      if (listCall === 2) return { ok: true, requests: changed };
+      if (listCall === 3) return { ok: false, error: 'server-error' };
+      return { ok: true, requests: changed };
+    }
+    throw new Error(`unexpected action ${body.action}`);
+  });
+  await login(page);
+  await page.getByRole('button', { name: '목록 새로고침' }).click();
+  await page.getByText('최근 변경 1건').waitFor();
+  const beforeFailure = {
+    list: await page.locator('#officeRequestList').innerText(),
+    recent: await page.locator('#officeRecentChanges').innerText(),
+    checked: await page.locator('#officeLastChecked').innerText(),
+  };
+  await page.getByRole('button', { name: '목록 새로고침' }).click();
+  await page.getByText(/서버 처리 중 문제가 발생했습니다/).waitFor();
+  assert.equal(await page.locator('#officeRequestList').innerText(), beforeFailure.list);
+  assert.equal(await page.locator('#officeRecentChanges').innerText(), beforeFailure.recent);
+  assert.equal(await page.locator('#officeLastChecked').innerText(), beforeFailure.checked);
+  assert.match(await page.locator('#officeSyncStatus').innerText(), /마지막 성공/);
+  const callsAfterFailure = listCall;
+  await page.waitForTimeout(80);
+  assert.equal(listCall, callsAfterFailure);
+  await page.getByRole('button', { name: '목록 새로고침' }).click();
+  await page.getByText('이번 새로고침에서 확인된 변경이 없습니다.').waitFor();
+  assert.equal(await page.locator('#officeRecentList li').count(), 0);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('첫 목록 실패는 기준을 만들지 않고 빈 목록과 오류만 표시한다', async () => {
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: false, error: 'server-error' };
+    throw new Error(`unexpected action ${body.action}`);
+  });
+  await login(page);
+  await page.getByText(/서버 처리 중 문제가 발생했습니다/).waitFor();
+  assert.equal(await page.locator('#officeRequestList article').count(), 0);
+  assert.match(await page.locator('#officeRequestList').innerText(), /표시할 접수가 없습니다/);
+  assert.match(await page.locator('#officeRecentSummary').innerText(), /첫 목록을 기준으로 준비/);
+  const listCalls = calls.filter((entry) => entry.action === 'officeList').length;
+  await page.waitForTimeout(80);
+  assert.equal(calls.filter((entry) => entry.action === 'officeList').length, listCalls);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('진행 중 중복 클릭을 막고 로그아웃 전 늦은 목록이 새 로그인 목록을 덮지 않는다', async () => {
+  let loginCall = 0;
+  let listCall = 0;
+  let resolveLate;
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') {
+      loginCall += 1;
+      return { ...loginResult(), sessionToken: `session-recent-${loginCall}` };
+    }
+    if (body.action === 'officeList') {
+      listCall += 1;
+      if (listCall === 1) return { ok: true, requests: [request('initial', 'accepted', '2026-08-30T09:00:00.000Z')] };
+      if (listCall === 2) return new Promise((resolve) => { resolveLate = resolve; });
+      return { ok: true, requests: [request('new-session', 'accepted', '2026-08-30T11:00:00.000Z')] };
+    }
+    throw new Error(`unexpected action ${body.action}`);
+  });
+  await login(page);
+  await page.getByRole('button', { name: '목록 새로고침' }).click();
+  await page.waitForFunction(() => document.getElementById('officeRefreshRequests').disabled);
+  assert.equal(await page.locator('#officeRefreshRequests').getAttribute('aria-busy'), 'true');
+  await page.dispatchEvent('#officeRefreshRequests', 'click');
+  assert.equal(calls.filter((entry) => entry.action === 'officeList').length, 2);
+  await page.getByRole('button', { name: '로그아웃' }).click();
+  await page.locator('#officePin').fill('123456');
+  await page.getByRole('button', { name: '로그인' }).click();
+  await page.getByText('MM-new-session').waitFor();
+  resolveLate({ ok: true, requests: [request('late-old-session', 'completed', '2026-08-30T12:00:00.000Z')] });
+  await page.waitForTimeout(80);
+  const visible = await page.locator('#officeRequestList').innerText();
+  assert.match(visible, /MM-new-session/);
+  assert.doesNotMatch(visible, /late-old-session/);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('잘못된 시각과 목록은 허위 변경을 만들지 않고 사라진 상세 참조는 API를 호출하지 않는다', async () => {
+  let listCall = 0;
+  const baseline = [
+    request('future-status', 'accepted', '2026-08-30T09:00:00.000Z'),
+    request('no-zone-status', 'accepted', '2026-08-30T09:00:00.000Z'),
+    request('invalid-transition', 'accepted', 'not-a-time'),
+  ];
+  const malformedTimes = [
+    request('future-status', 'needs_info', '2999-01-01T00:00:00.000Z'),
+    request('no-zone-status', 'visit_scheduled', '2026-08-30T10:00:00'),
+    request('invalid-transition', 'accepted', '2026-08-30T10:00:00.000Z'),
+  ];
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') {
+      listCall += 1;
+      if (listCall === 1) return { ok: true, requests: baseline };
+      if (listCall === 2) return { ok: true, requests: malformedTimes };
+      if (listCall === 3) return { ok: true, requests: {} };
+      if (listCall === 4) return { ok: true, requests: [{ requestId: '', status: '' }] };
+      return { ok: true, requests: [] };
+    }
+    if (body.action === 'officeGet') return { ok: true, request: malformedTimes[0] };
+    throw new Error(`unexpected action ${body.action}`);
+  });
+  await login(page);
+  await page.getByRole('button', { name: '목록 새로고침' }).click();
+  await page.getByText('최근 변경 2건').waitFor();
+  assert.equal((await page.locator('#officeRecentChanges').innerText().then((text) => text.match(/시간 확인 필요/g) || [])).length, 2);
+  const getCount = calls.filter((entry) => entry.action === 'officeGet').length;
+  await page.locator('#officeRecentList button').first().evaluate((button) => { button.dataset.officeRecentDetail = 'missing-request'; });
+  await page.locator('#officeRecentList button').first().click();
+  assert.match(await page.locator('#officeSyncStatus').innerText(), /현재 목록에서 접수를 찾을 수 없습니다/);
+  assert.equal(calls.filter((entry) => entry.action === 'officeGet').length, getCount);
+  const preserved = await page.locator('#officeRecentChanges').innerText();
+  await page.getByRole('button', { name: '목록 새로고침' }).click();
+  await page.getByText(/서버 응답을 확인할 수 없습니다/).waitFor();
+  assert.equal(await page.locator('#officeRecentChanges').innerText(), preserved);
+  await page.getByRole('button', { name: '목록 새로고침' }).click();
+  await page.getByText(/서버 응답을 확인할 수 없습니다/).waitFor();
+  assert.equal(await page.locator('#officeRecentChanges').innerText(), preserved);
+  await page.getByRole('button', { name: '목록 새로고침' }).click();
+  await page.getByText('이번 새로고침에서 확인된 변경이 없습니다.').waitFor();
+  assert.equal(await page.locator('#officeRequestList article').count(), 0);
   assert.deepEqual(pageErrors, []);
   await page.close();
 });

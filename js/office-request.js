@@ -12,7 +12,7 @@
   const detailBack = byId('officeDetailBack'), detailReceipt = byId('officeDetailReceipt'), detailStatus = byId('officeDetailStatus'), detailLocation = byId('officeDetailLocation'), detailVisitRow = byId('officeDetailVisitRow'), detailVisit = byId('officeDetailVisit'), detailAmountRow = byId('officeDetailAmountRow'), detailAmount = byId('officeDetailAmount'), detailTimeline = byId('officeStatusTimeline'), completionSummary = byId('officeCompletionSummary'), completionPhotoStatus = byId('officeCompletionPhotoStatus'), completionPhotos = byId('officeCompletionPhotos');
   const year = byId('requestYear'), filters = [...document.querySelectorAll('[data-office-filter]')], views = [routeError, loginView, dashboardView, createView, detailView];
   let session = null, requests = [], activeFilter = 'all', loginPending = false, formPending = false, editingRequest = null, photoGeneration = 0, detailGeneration = 0, detailActivator = null, createActivator = null, sessionGeneration = 0;
-  let listSnapshot = null, recentRows = [], recentChanges = [], recentTotal = 0, lastSuccessfulRefreshAt = null, refreshPending = false;
+  let listSnapshot = null, recentRows = [], recentChanges = [], recentTotal = 0, lastSuccessfulRefreshAt = null, refreshPending = false, listGeneration = 0;
   let currentDraft = blankDraft();
 
   function blankDraft() { return { idempotencyKey: null, createPayload: null, requestId: null, receiptNo: null, photoSlots: [], photoError: '', photoPending: false }; }
@@ -27,7 +27,7 @@
   function focusPin() { if (pin) pin.focus(); }
   function focusTitle(id) { const title = byId(id); if (!title) return; title.setAttribute('tabindex', '-1'); try { title.focus({ preventScroll: true }); } catch (_) { title.focus(); } }
   function showLogin(message) { if (loginError) loginError.textContent = message || ''; if (requestList) requestList.textContent = ''; if (syncStatus) syncStatus.textContent = ''; setView(loginView); focusPin(); }
-  function errorMessage(error) { if (error && error.code === 'rate-limited') return '시도가 많습니다. 10분 후 다시 시도해 주세요.'; if (error && ['invalid-session', 'invalid-response', 'stale-session'].includes(error.code || error.message)) return '처리 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.'; return error && typeof error.message === 'string' ? error.message : '처리 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.'; }
+  function errorMessage(error) { if (error && error.code === 'rate-limited') return '시도가 많습니다. 10분 후 다시 시도해 주세요.'; if (error instanceof api.ManmulOfficeApiError) return error.message; if (error && ['invalid-session', 'invalid-response', 'stale-session'].includes(error.code || error.message)) return '처리 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.'; return error && typeof error.message === 'string' ? error.message : '처리 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.'; }
   function focusControl(target) { if (!target || typeof target.focus !== 'function') return false; try { target.focus({ preventScroll: true }); } catch (_) { target.focus(); } return true; }
   function mutable(item) { return !Boolean(item && item._officeUiBlocked) && ['pending_review', 'needs_info'].includes(String(item && item.status || '')); }
   function requestId(item) {
@@ -37,6 +37,10 @@
   }
   function formatCheckedTime(value) {
     return new Intl.DateTimeFormat('ko-KR', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+  }
+  function refreshFailureMessage(error) {
+    const message = errorMessage(error);
+    return lastSuccessfulRefreshAt ? `${message} · 마지막 성공 ${formatCheckedTime(lastSuccessfulRefreshAt)}` : message;
   }
   function formatChangedTime(value) {
     return value === null ? '시간 확인 필요' : new Intl.DateTimeFormat('ko-KR', {
@@ -54,11 +58,13 @@
     return parts.join(' · ') || '위치 확인 필요';
   }
   function clearRecentState() {
+    listGeneration += 1;
     listSnapshot = null; recentRows = []; recentChanges = []; recentTotal = 0; lastSuccessfulRefreshAt = null;
     if (recentList) recentList.textContent = '';
     if (recentOverflow) recentOverflow.textContent = '';
     if (recentSummary) recentSummary.textContent = '첫 목록을 기준으로 준비합니다.';
     if (lastChecked) lastChecked.textContent = '';
+    setRefreshBusy(false);
   }
   function setRefreshBusy(value) {
     refreshPending = value;
@@ -193,6 +199,7 @@
   async function loadDashboard({ focus = false, manual = false } = {}) {
     const candidate = session, generation = sessionGeneration;
     if (!candidate || refreshPending) return;
+    const listAttempt = ++listGeneration;
     if (officeName) officeName.textContent = officeLabel(candidate.office);
     setView(dashboardView);
     if (focus) focusTitle('officeDashboardTitle');
@@ -200,10 +207,10 @@
     if (syncStatus) syncStatus.textContent = manual ? '접수 목록을 새로고침하는 중입니다.' : '접수 목록을 불러오는 중입니다.';
     try {
       const response = await authenticatedCall('officeList', {});
-      if (!isCurrentSession(candidate, generation)) return;
+      if (!isCurrentSession(candidate, generation) || listAttempt !== listGeneration) return;
       const validationNow = Date.now();
       const normalized = core.normalizeRecentList(response.requests, validationNow);
-      if (!normalized.ok) throw Object.assign(new Error('invalid-response'), { code: 'invalid-response' });
+      if (!normalized.ok) throw new api.ManmulOfficeApiError('invalid-response');
       const compared = listSnapshot === null ? { total: 0, changes: [] } : core.diffRecentSnapshots(listSnapshot, normalized.snapshot);
       requests = response.requests.filter((item) => item && typeof item === 'object' && !Array.isArray(item) && requestId(item));
       recentRows = normalized.rows;
@@ -217,16 +224,20 @@
       if (syncStatus) syncStatus.textContent = manual ? '접수 목록을 새로고침했습니다.' : '접수 목록을 최신 상태로 불러왔습니다.';
     } catch (error) {
       if (error.code === 'stale-session' || error.officeSessionHandled) return;
-      if (!isCurrentSession(candidate, generation)) return;
-      if (syncStatus) syncStatus.textContent = errorMessage(error);
+      if (!isCurrentSession(candidate, generation) || listAttempt !== listGeneration) return;
+      if (listSnapshot === null) {
+        requests = [];
+        renderRequests();
+      }
+      if (syncStatus) syncStatus.textContent = refreshFailureMessage(error);
     } finally {
-      if (isCurrentSession(candidate, generation)) {
+      if (isCurrentSession(candidate, generation) && listAttempt === listGeneration) {
         setRefreshBusy(false);
         if (manual) focusControl(refreshRequests);
       }
     }
   }
-  async function submitLogin(event, slug) { event.preventDefault(); if (loginPending) return; const validation = core.validateLogin({ pin: pin && pin.value }); if (!validation.ok) { if (loginError) loginError.textContent = validation.message; focusPin(); return; } if (loginError) loginError.textContent = ''; loginPending = true; if (loginSubmit) loginSubmit.disabled = true; try { const response = await api.call('officeLogin', { payload: { slug, pin: pin.value } }); const saved = saveSession(response, slug); pin.value = ''; if (!saved) { clearSession(); throw new Error('invalid-session'); } session = saved; await loadDashboard({ focus: true }); } catch (error) { if (pin) pin.value = ''; if (loginError) loginError.textContent = errorMessage(error); focusPin(); } finally { loginPending = false; if (loginSubmit) loginSubmit.disabled = false; } }
+  async function submitLogin(event, slug) { event.preventDefault(); if (loginPending) return; const validation = core.validateLogin({ pin: pin && pin.value }); if (!validation.ok) { if (loginError) loginError.textContent = validation.message; focusPin(); return; } if (loginError) loginError.textContent = ''; loginPending = true; if (loginSubmit) loginSubmit.disabled = true; try { const response = await api.call('officeLogin', { payload: { slug, pin: pin.value } }); const saved = saveSession(response, slug); pin.value = ''; if (!saved) { clearSession(); throw new Error('invalid-session'); } clearRecentState(); session = saved; await loadDashboard({ focus: true }); } catch (error) { if (pin) pin.value = ''; if (loginError) loginError.textContent = errorMessage(error); focusPin(); } finally { loginPending = false; if (loginSubmit) loginSubmit.disabled = false; } }
   function dataFromForm(form) { const source = form && typeof form.elements === 'object' ? form : createForm; const get = (name) => source.elements.namedItem(name); return { unit: get('unit').value, location: get('location').value, issueType: get('issueType').value, pipeType: get('pipeType').value, urgency: get('urgency').value, description: get('description').value, officeContactName: get('officeContactName').value, officeContactPhone: get('officeContactPhone').value, residentName: get('residentName').value, residentPhone: get('residentPhone').value, preferredVisitDate: get('preferredVisitDate').value, privacyConsent: get('privacyConsent').checked }; }
   function focusField(field) { const name = field === 'residentContact' ? 'residentName' : field; const input = createForm && createForm.elements.namedItem(name); if (input && typeof input.focus === 'function') input.focus(); }
   function setCreateError(message) { if (createError) createError.textContent = message || ''; }

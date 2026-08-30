@@ -142,6 +142,9 @@ test('로그아웃 뒤 늦게 도착한 목록 응답은 접수 목록에 개인
   await page.waitForTimeout(100);
   assert.equal(await page.locator('#officeLoginView').isVisible(), true);
   assert.equal(await page.locator('#officeRequestList').innerText(), '');
+  assert.equal(await page.locator('#officeRecentList li').count(), 0);
+  assert.equal(await page.locator('#officeLastChecked').innerText(), '');
+  assert.match(await page.locator('#officeRecentSummary').innerText(), /첫 목록을 기준으로 준비/);
   assert.equal((await page.content()).includes('반환된 접수 설명'), false);
   assert.deepEqual(pageErrors, []);
   await page.close();
@@ -211,6 +214,9 @@ test('서버가 세션 만료를 반환하면 저장소를 지우고 PIN 입력�
   assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_KEY), null);
   assert.equal(calls.filter((call) => call.action === 'officeList').length, 1);
   assert.equal(await page.evaluate(() => document.activeElement.id), 'officePin');
+  assert.equal(await page.locator('#officeRecentList li').count(), 0);
+  assert.equal(await page.locator('#officeLastChecked').innerText(), '');
+  assert.match(await page.locator('#officeRecentSummary').innerText(), /첫 목록을 기준으로 준비/);
   assert.deepEqual(pageErrors, []);
   await page.close();
 });
