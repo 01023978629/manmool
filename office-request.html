@@ -10,7 +10,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src 'none'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'" />
   <link rel="stylesheet" href="css/styles.css?v=20260827-office-request2" />
   <link rel="stylesheet" href="css/brand-system.css?v=20260827-office-request2" />
-  <link rel="stylesheet" href="css/office-request.css?v=20260827-office-request3" />
+  <link rel="stylesheet" href="css/office-request.css?v=20260830-office-recent1" />
 </head>
 <body class="request-page">
   <header class="site-header" id="siteHeader">
@@ -38,7 +38,22 @@
       </section>
       <section id="officeDashboardView" class="office-view" hidden aria-labelledby="officeDashboardTitle">
         <div class="office-dashboard-head"><div><span class="request-eyebrow">관리사무소 전용</span><h1 id="officeDashboardTitle" tabindex="-1">시설보수 접수</h1><p id="officeName" class="office-name"></p></div><button id="officeLogout" class="office-action request-secondary" type="button">로그아웃</button></div>
-        <div class="office-dashboard-actions"><button id="officeNewRequest" class="office-action request-primary" type="button">새 접수 등록</button><p id="officeSyncStatus" class="office-sync-status" role="status" aria-live="polite"></p></div>
+        <div class="office-dashboard-actions">
+          <div class="office-dashboard-buttons">
+            <button id="officeNewRequest" class="office-action request-primary" type="button">새 접수 등록</button>
+            <button id="officeRefreshRequests" class="office-action request-secondary" type="button">목록 새로고침</button>
+          </div>
+          <p id="officeSyncStatus" class="office-sync-status" role="status" aria-live="polite"></p>
+        </div>
+        <section id="officeRecentChanges" class="office-recent" aria-labelledby="officeRecentTitle">
+          <div class="office-recent-head">
+            <h2 id="officeRecentTitle">🔔 최근 변경</h2>
+            <p id="officeLastChecked" class="office-recent-checked"></p>
+          </div>
+          <p id="officeRecentSummary" class="office-recent-summary" role="status" aria-live="polite">첫 목록을 기준으로 준비합니다.</p>
+          <ul id="officeRecentList" class="office-recent-list"></ul>
+          <p id="officeRecentOverflow" class="office-recent-overflow"></p>
+        </section>
         <div class="office-filters" role="group" aria-label="접수 상태 필터"><button class="office-action office-filter is-active" type="button" data-office-filter="all" aria-pressed="true">전체</button><button class="office-action office-filter" type="button" data-office-filter="pending" aria-pressed="false">확인 대기</button><button class="office-action office-filter" type="button" data-office-filter="progress" aria-pressed="false">진행 중</button><button class="office-action office-filter" type="button" data-office-filter="completed" aria-pressed="false">완료</button></div>
         <div id="officeRequestList" class="office-request-list" aria-live="polite"></div>
       </section>
@@ -76,9 +91,9 @@
   </main>
   <footer class="site-footer"><div class="container footer-inner"><p class="footer-note">만물인테리어 · 대표 전병덕 · 사업자등록번호 895-48-01132<br />대전광역시 중구 돌다리로19번길 9, 1층(석교동) · <a href="tel:01023978629">010-2397-8629</a></p><p class="footer-links"><a href="office.html">관리사무소 안내</a> · <a href="privacy.html">개인정보처리방침</a></p><p class="footer-copy">© <span id="requestYear"></span> 만물인테리어. All rights reserved.</p></div></footer>
   <script src="js/public-nav.js?v=20260824-office1"></script>
-  <script src="js/office-request-core.js?v=20260827-office-request2"></script>
+  <script src="js/office-request-core.js?v=20260830-office-recent1"></script>
   <script src="js/office-request-api.js?v=20260827-office-request2"></script>
   <script src="js/office-request-photo.js?v=20260827-office-request3"></script>
-  <script src="js/office-request.js?v=20260827-office-request5"></script>
+  <script src="js/office-request.js?v=20260830-office-recent1"></script>
 </body>
 </html>
