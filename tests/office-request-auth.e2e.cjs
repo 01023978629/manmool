@@ -58,6 +58,15 @@ function requestList() {
   }];
 }
 
+function recentRequest(requestId, status, updatedAt, extra = {}) {
+  return {
+    requestId, receiptNo: `MMO-${requestId}`, unit: '101동 1203호', location: '공용 배관실',
+    issueType: '누수', status, updatedAt, description: '합성 개인정보 설명',
+    officeContact: { name: '합성 관리자', phone: '010-0000-0000' },
+    ...extra,
+  };
+}
+
 before(async () => {
   server = http.createServer(serveStatic);
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -150,6 +159,43 @@ test('로그아웃 뒤 늦게 도착한 목록 응답은 접수 목록에 개인
   await page.close();
 });
 
+test('변경 카드가 채워진 로그아웃은 최근 상태와 private DOM을 지우고 재로그인은 새 기준을 만든다', async () => {
+  let loginCall = 0;
+  let listCall = 0;
+  const { page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return { ...loginResult(), sessionToken: `session-cleanup-${++loginCall}` };
+    if (body.action === 'officeList') {
+      listCall += 1;
+      if (listCall === 1) return { ok: true, requests: [recentRequest('logout-old', 'pending_review', '2026-08-30T09:00:00.000Z')] };
+      if (listCall === 2) return { ok: true, requests: [recentRequest('logout-old', 'needs_info', '2026-08-30T10:00:00.000Z')] };
+      return { ok: true, requests: [recentRequest('logout-new', 'accepted', '2026-08-30T11:00:00.000Z')] };
+    }
+    throw new Error(`unexpected action ${body.action}`);
+  });
+  await page.goto(`${origin}/office-request.html?office=test-complex`);
+  await page.locator('#officePin').fill('123456');
+  await page.getByRole('button', { name: '로그인' }).click();
+  await page.getByRole('button', { name: '목록 새로고침' }).click();
+  await page.getByText('최근 변경 1건').waitFor();
+  assert.equal(await page.locator('#officeRecentList li').count(), 1);
+  assert.match(await page.locator('#officeLastChecked').innerText(), /마지막 확인/);
+  assert.match(await page.locator('#officeRequestList').innerText(), /MMO-logout-old/);
+  await page.getByRole('button', { name: '로그아웃' }).click();
+  assert.equal(await page.locator('#officeRequestList').innerText(), '');
+  assert.equal(await page.locator('#officeRecentList li').count(), 0);
+  assert.equal(await page.locator('#officeLastChecked').innerText(), '');
+  assert.match(await page.locator('#officeRecentSummary').innerText(), /첫 목록을 기준으로 준비/);
+  assert.doesNotMatch(await page.locator('body').innerText(), /MMO-logout-old/);
+  await page.locator('#officePin').fill('123456');
+  await page.getByRole('button', { name: '로그인' }).click();
+  await page.getByText('다음 새로고침부터 변경을 확인합니다.').waitFor();
+  assert.match(await page.locator('#officeRequestList').innerText(), /MMO-logout-new/);
+  assert.equal(await page.locator('#officeRecentList li').count(), 0);
+  assert.doesNotMatch(await page.locator('body').innerText(), /MMO-logout-old/);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
 test('로그인과 새 접수 및 목록 복귀는 각각 화면 제목과 원래 버튼에 초점을 둔다', async () => {
   const { page, pageErrors } = await openPortal(async (body) => body.action === 'officeLogin' ? loginResult() : { ok: true, requests: [] });
   await page.goto(`${origin}/office-request.html?office=test-complex`);
@@ -217,6 +263,46 @@ test('서버가 세션 만료를 반환하면 저장소를 지우고 PIN 입력�
   assert.equal(await page.locator('#officeRecentList li').count(), 0);
   assert.equal(await page.locator('#officeLastChecked').innerText(), '');
   assert.match(await page.locator('#officeRecentSummary').innerText(), /첫 목록을 기준으로 준비/);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('변경 카드가 채워진 세션 만료는 최근 상태와 private DOM을 지우고 재로그인은 새 기준을 만든다', async () => {
+  let loginCall = 0;
+  let listCall = 0;
+  const { page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return { ...loginResult(), sessionToken: `session-expiry-${++loginCall}` };
+    if (body.action === 'officeList') {
+      listCall += 1;
+      if (listCall === 1) return { ok: true, requests: [recentRequest('expiry-old', 'pending_review', '2026-08-30T09:00:00.000Z')] };
+      if (listCall === 2) return { ok: true, requests: [recentRequest('expiry-old', 'needs_info', '2026-08-30T10:00:00.000Z')] };
+      if (listCall === 3) return { ok: false, error: 'session-expired' };
+      return { ok: true, requests: [recentRequest('expiry-new', 'accepted', '2026-08-30T11:00:00.000Z')] };
+    }
+    throw new Error(`unexpected action ${body.action}`);
+  });
+  await page.goto(`${origin}/office-request.html?office=test-complex`);
+  await page.locator('#officePin').fill('123456');
+  await page.getByRole('button', { name: '로그인' }).click();
+  await page.getByRole('button', { name: '목록 새로고침' }).click();
+  await page.getByText('최근 변경 1건').waitFor();
+  assert.equal(await page.locator('#officeRecentList li').count(), 1);
+  assert.match(await page.locator('#officeLastChecked').innerText(), /마지막 확인/);
+  assert.match(await page.locator('#officeRequestList').innerText(), /MMO-expiry-old/);
+  await page.getByRole('button', { name: '목록 새로고침' }).click();
+  await page.locator('#officeLoginView').waitFor({ state: 'visible' });
+  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_KEY), null);
+  assert.equal(await page.locator('#officeRequestList').innerText(), '');
+  assert.equal(await page.locator('#officeRecentList li').count(), 0);
+  assert.equal(await page.locator('#officeLastChecked').innerText(), '');
+  assert.match(await page.locator('#officeRecentSummary').innerText(), /첫 목록을 기준으로 준비/);
+  assert.doesNotMatch(await page.locator('body').innerText(), /MMO-expiry-old/);
+  await page.locator('#officePin').fill('123456');
+  await page.getByRole('button', { name: '로그인' }).click();
+  await page.getByText('다음 새로고침부터 변경을 확인합니다.').waitFor();
+  assert.match(await page.locator('#officeRequestList').innerText(), /MMO-expiry-new/);
+  assert.equal(await page.locator('#officeRecentList li').count(), 0);
+  assert.doesNotMatch(await page.locator('body').innerText(), /MMO-expiry-old/);
   assert.deepEqual(pageErrors, []);
   await page.close();
 });

@@ -131,8 +131,8 @@ test('첫 조회는 기준만 만들고 수동 새로고침 한 번은 officeLis
 
 test('최근 변경의 개인정보는 저장소와 URL에 남지 않고 hard reload는 새 기준을 만든다', async () => {
   let listCall = 0;
-  const baseline = [request('private-1', 'pending_review', '2026-08-30T09:00:00.000Z')];
-  const changed = [request('private-1', 'needs_info', '2026-08-30T10:00:00.000Z')];
+  const baseline = [request('private-1', 'pending_review', '2026-08-30T09:00:00.000Z', { receiptNo: 'MM-PRIVATE-001' })];
+  const changed = [request('private-1', 'needs_info', '2026-08-30T10:00:00.000Z', { receiptNo: 'MM-PRIVATE-001' })];
   const { page, pageErrors } = await openPortal(async (body) => {
     if (body.action === 'officeLogin') return loginResult();
     if (body.action === 'officeList') return { ok: true, requests: listCall++ === 0 ? baseline : changed };
@@ -142,11 +142,17 @@ test('최근 변경의 개인정보는 저장소와 URL에 남지 않고 hard re
   await page.getByRole('button', { name: '목록 새로고침' }).click();
   await page.getByText('최근 변경 1건').waitFor();
   const leaked = await page.evaluate(() => ({
-    local: JSON.stringify(localStorage),
-    session: JSON.stringify(sessionStorage),
+    local: JSON.stringify(Object.fromEntries(Object.entries(localStorage))),
+    session: JSON.stringify(Object.fromEntries(Object.entries(sessionStorage))),
     url: location.href,
+    history: JSON.stringify(history.state),
+    title: document.title,
+    visible: document.body.innerText,
   }));
   assert.doesNotMatch(JSON.stringify(leaked), /010-1111-2222|최근 변경 화면에는 나오면 안 되는 설명|987654/);
+  assert.doesNotMatch(JSON.stringify(leaked), /private-1/);
+  const stored = await page.evaluate((key) => JSON.parse(sessionStorage.getItem(key)), 'manmul_office_session_v1');
+  assert.deepEqual(Object.keys(stored).sort(), ['expiresAt', 'office', 'token']);
   await page.reload();
   await page.getByText('다음 새로고침부터 변경을 확인합니다.').waitFor();
   assert.equal(await page.locator('#officeRecentList li').count(), 0);
@@ -284,6 +290,7 @@ test('진행 중 중복 클릭을 막고 로그아웃 전 늦은 목록이 새 �
   let loginCall = 0;
   let listCall = 0;
   let resolveLate;
+  let resolveNew;
   const { calls, page, pageErrors } = await openPortal(async (body) => {
     if (body.action === 'officeLogin') {
       loginCall += 1;
@@ -293,7 +300,7 @@ test('진행 중 중복 클릭을 막고 로그아웃 전 늦은 목록이 새 �
       listCall += 1;
       if (listCall === 1) return { ok: true, requests: [request('initial', 'accepted', '2026-08-30T09:00:00.000Z')] };
       if (listCall === 2) return new Promise((resolve) => { resolveLate = resolve; });
-      return { ok: true, requests: [request('new-session', 'accepted', '2026-08-30T11:00:00.000Z')] };
+      return new Promise((resolve) => { resolveNew = resolve; });
     }
     throw new Error(`unexpected action ${body.action}`);
   });
@@ -306,12 +313,27 @@ test('진행 중 중복 클릭을 막고 로그아웃 전 늦은 목록이 새 �
   await page.getByRole('button', { name: '로그아웃' }).click();
   await page.locator('#officePin').fill('123456');
   await page.getByRole('button', { name: '로그인' }).click();
-  await page.getByText('MM-new-session').waitFor();
+  await page.waitForFunction(() => document.getElementById('officeRefreshRequests').disabled);
+  assert.equal(calls.filter((entry) => entry.action === 'officeList').length, 3);
+  assert.equal(await page.locator('#officeRefreshRequests').getAttribute('aria-busy'), 'true');
   resolveLate({ ok: true, requests: [request('late-old-session', 'completed', '2026-08-30T12:00:00.000Z')] });
   await page.waitForTimeout(80);
+  assert.equal(await page.locator('#officeRefreshRequests').isDisabled(), true);
+  assert.equal(await page.locator('#officeRefreshRequests').getAttribute('aria-busy'), 'true');
+  assert.equal(await page.locator('#officeRefreshRequests').innerText(), '목록 확인 중');
+  assert.equal(await page.locator('#officeRequestList').innerText(), '');
+  assert.equal(await page.locator('#officeRecentList li').count(), 0);
+  assert.equal(await page.locator('#officeLastChecked').innerText(), '');
+  resolveNew({ ok: true, requests: [request('new-session', 'accepted', '2026-08-30T11:00:00.000Z')] });
+  await page.getByText('MM-new-session').waitFor();
   const visible = await page.locator('#officeRequestList').innerText();
   assert.match(visible, /MM-new-session/);
   assert.doesNotMatch(visible, /late-old-session/);
+  assert.equal(await page.locator('#officeRefreshRequests').isEnabled(), true);
+  assert.equal(await page.locator('#officeRefreshRequests').getAttribute('aria-busy'), 'false');
+  assert.equal(await page.locator('#officeRecentList li').count(), 0);
+  assert.match(await page.locator('#officeLastChecked').innerText(), /마지막 확인/);
+  assert.match(await page.locator('#officeRecentSummary').innerText(), /다음 새로고침부터 변경을 확인/);
   assert.deepEqual(pageErrors, []);
   await page.close();
 });
