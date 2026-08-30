@@ -106,10 +106,13 @@ function hasAllowedBuildingBoundaryViolation(value, allowedName, allowedFollower
     if (previous && /[\p{L}\p{N}]/u.test(previous)) return true;
 
     const suffix = value.slice(index + allowedName.length);
-    if (suffix && /^[\p{L}\p{N}]/u.test(suffix) && !allowedBuildingParticlePattern.test(suffix)) return true;
-    if (/^\s/u.test(suffix)) {
+    if (suffix && /^[\p{L}\p{N}]/u.test(suffix)) {
+      if (!allowedBuildingParticlePattern.test(suffix)) return true;
+    } else if (/^\s/u.test(suffix)) {
       const nextToken = suffix.trimStart().match(/^[^\s.,!?…—:;()[\]{}]+/u)?.[0] || '';
       if (nextToken && !allowedFollowers.includes(nextToken)) return true;
+    } else if (suffix && !/^[.!?…]+\s*$/u.test(suffix)) {
+      return true;
     }
     searchFrom = index + allowedName.length;
   }
@@ -260,6 +263,7 @@ const allowedApartment = {
 if (privacyViolations({ title: '목양마을아파트 상·하층 배관 보수' }, allowedApartment).length) failures.push('정확히 허용한 아파트명과 승인 문맥이 차단된다');
 if (privacyViolations({ title: '목양마을아파트에서 배관을 확인했다' }, allowedApartment).length) failures.push('허용 아파트명 뒤 조사 "에서"가 차단된다');
 if (privacyViolations({ title: '목양마을아파트의 배관을 확인했다' }, allowedApartment).length) failures.push('허용 아파트명 뒤 조사 "의"가 차단된다');
+if (privacyViolations({ title: '목양마을아파트.' }, allowedApartment).length) failures.push('허용 아파트명 뒤 문장 종료가 차단된다');
 if (!privacyViolations({ title: '새목양마을아파트 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 접두 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트2단지 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 숫자 접미 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트 2단지 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 공백 숫자 접미 변형이 통과한다');
@@ -270,6 +274,10 @@ if (!privacyViolations({ title: '목양마을아파트동관 배관 보수' }, a
 if (!privacyViolations({ title: '목양마을아파트 동관 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 공백 동관 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트타워 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 타워 접미 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트 타워 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 공백 타워 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트(제2단지)' }, allowedApartment).length) failures.push('허용 아파트명의 괄호 단지 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트·제2단지' }, allowedApartment).length) failures.push('허용 아파트명의 가운뎃점 단지 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트-제2단지' }, allowedApartment).length) failures.push('허용 아파트명의 하이픈 단지 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트, 제2단지' }, allowedApartment).length) failures.push('허용 아파트명의 쉼표 단지 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트 가람아파트 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명과 다른 단지명이 함께 통과한다');
 
 for (const expected of expectedContent) {
