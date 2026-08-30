@@ -13,12 +13,12 @@
 ## Global Constraints
 
 - 이 계획의 수정 범위는 `manmool` 공개 사이트뿐이며 `hyeonjang`, Google Apps Script, `apps-script-contract/`, `js/office-request-*.js`, `office-api.json`은 수정하지 않는다. `office-request.html`에는 프로그램 이용료·별도 견적을 설명하는 정적 HTML만 추가할 수 있고, form field, script tag, inline script, event handler, endpoint, 포털 인증/접수 동작은 변경하지 않는다.
-- 공개 루트 전체가 GitHub Pages로 제공되므로 API 키, 토큰, 고객 원문 연락처, 테스트 fixture, 내부 승인 자료를 새 파일·로그·문서에 넣지 않는다.
+- 공개 루트 전체가 GitHub Pages로 제공되므로 비밀 API 키, 토큰, 고객 원문 연락처, 테스트 fixture, 내부 승인 자료를 새 파일·로그·문서에 넣지 않는다. 기존 `data/config.json`의 `forms.accessKey`는 Web3Forms 공식 FAQ가 클라이언트 공개를 전제로 한 public form identifier로 정의하므로 이 금지의 비밀값이 아니다. 현재 값은 byte-exact로 보존하고 채팅·로그·fixture·테스트 실패 메시지에 출력하지 않으며, 이 예외를 다른 provider 키나 토큰에 확대하지 않는다.
 - 관리사무소 화면의 정해진 문구는 `접수 프로그램 이용료 0원`과 `실제 출동·진단·공사는 현장 확인 후 별도 견적`을 함께 사용한다. 이 문구는 무료 진단·무료 수리·무료 출동·24시간 대응·우선 출동 보장을 뜻하지 않는다.
 - 공개 파일럿 신청과 누수 문의는 작업 오더, 방문확정, 작업확정, 작업중, 청구, 예약번호 또는 결제를 만들지 않는다. 누수 payload의 `bookingStatus`는 항상 `inquiry-only`다.
 - 네이버 버튼은 `data/config.json`의 `naver.ready === true`이고 검증된 공식 URL이 있을 때만 보인다. 허용 host는 정확히 `booking.naver.com` 또는 `m.booking.naver.com`이고 HTTPS·기본 포트·자격정보 없음·비어 있지 않은 식별 경로만 허용하며 query는 보존하고 fragment는 제거한다.
 - 공개 폼은 기존 `window.ManmulLead`의 `loadConfig()`, `backendConfigured()`, `deliver()`, `rememberFailure()`, `retryLatest()`, `clearFailure()`, `copyToClipboard()`, `buildLeadText()` 계약을 사용한다. 전송 실패 데이터는 최신 1건의 현재 탭 메모리에만 두며 `localStorage`, `sessionStorage`, IndexedDB, Cache Storage, URL query/fragment, console에 저장·출력하지 않는다. 새로고침 뒤 실패 초안이 복원되거나 자동 재전송되어서는 안 된다.
-- `sourcePage`는 query와 fragment가 없는 `location.pathname`이고, `ctaId`는 구현 코드의 고정 식별자다. `utmSource`, `utmMedium`, `utmCampaign`은 각각 최대 80자이며 영문·숫자·한글·공백·`-_.` 외 문자가 있거나 길이를 넘으면 payload에서 제외한다. 전화번호·이름·주소·증상은 URL이나 UTM 메타데이터로 옮기지 않는다. `referenceCase`는 slug 형식만으로 허용하지 않고 `data/leak-case-index.json`에서 `version === 1`, `published === true`, `service === 'leak'`, 정확히 한 건 일치한 slug일 때만 넣는다.
+- `sourcePage`는 query와 fragment가 없는 `location.pathname`이고, `ctaId`는 구현 코드의 고정 식별자다. `utmSource`, `utmMedium`, `utmCampaign`은 각각 최대 80자이며 영문·숫자·한글·공백·`-_.` 외 문자가 있거나 길이를 넘으면 payload에서 제외한다. sanitizer는 URL query만 입력으로 받고, 허용문자를 통과해도 국내 전화번호처럼 보이는 값은 세 UTM 필드 모두에서 제외한다. 폼의 전화번호·이름·주소·증상을 URL이나 UTM 메타데이터로 복사하지 않는다. `referenceCase`는 slug 형식만으로 허용하지 않고 `data/leak-case-index.json`에서 `version === 1`, `published === true`, `service === 'leak'`, 정확히 한 건 일치한 slug일 때만 넣는다.
 - 파일럿 폼은 단지명, 관리사무소 담당자명, 회신 전화번호, 지역, 관심 업무, 개인정보 수집·이용 동의만 필수로 받고, 도입 희망 시점과 문의 내용만 선택으로 받는다. 입주민 이름·전화번호·동호수·현장사진 필드는 만들지 않는다.
 - 누수 폼의 신청 목적은 `phone-consult` 또는 `paid-device-diagnosis`이며, 희망 방문일과 시간대(`morning|afternoon|any`)는 선택이다. 기존 `1차 인테리어 방문 실측 무료`, `누수 장비 탐지는 착수부터 유료` 정책과 충돌하는 카피를 추가하지 않는다.
 - 예방점검 공개 안내는 점검 대상과 산출물(체크리스트·위험항목 요약·현장사진·보수 권고)만 설명하며 고정가격, 안전진단 확정, 하자 판정, 무조건 수리 표현을 쓰지 않는다.
@@ -42,6 +42,7 @@
 | `leak.html` | 목적·희망일·시간대 입력과 조건부 네이버 핸드오프 버튼의 DOM 앵커를 제공한다. |
 | `js/leak-inquiry.js` | 누수 payload에 목적·희망 일정·고정 `inquiry-only`·정제된 공개 메타데이터를 넣고 조건부 예약 링크를 렌더한다. |
 | `privacy.html` | 파일럿 신청과 누수 유상 진단 상담의 수집 목적·항목·보존·철회/삭제 경로를 기존 직원 포털과 구분해 공개한다. |
+| `tests/fixtures/public-config-invariants.json` | 실제 값을 담지 않고 기존 Web3Forms public form identifier의 SHA-256만 고정해 의도치 않은 설정 교체를 차단한다. |
 | `tests/revenue-metadata.test.cjs` | DOM 없이 `ManmulRevenue`의 URL·UTM 경계를 단위 검증한다. |
 | `tests/revenue-conversion.e2e.cjs` | 실제 브라우저 상호작용으로 파일럿·누수 payload, 실패 폴백, 예약 링크, 개인정보 경계를 검증한다. |
 | `tests/fixtures/office-request-commercial-baseline.json` | 작업 전 `office-request.html`과 포털 JS/API/CSS의 SHA-256만 보관해, 소스 복제 없이 정적 안내 외 변경을 거절한다. |
@@ -86,6 +87,8 @@ window.ManmulRevenue = {
 - Modify: `js/lead-transport.js`
 - Modify: `scripts/pages-artifact-policy.mjs`
 - Modify: `tests/lead-transport.test.cjs`
+- Modify: `tests/pages-artifact-policy.test.cjs`
+- Create: `tests/fixtures/public-config-invariants.json`
 
 **Interfaces:**
 - Consumes: existing `window.ManmulLead` provider-selection contract and `data/config.json`.
@@ -113,6 +116,10 @@ test('공식 네이버 예약 URL만 query를 보존하고 fragment를 제거한
   assert.equal(
     api.validateNaverBookingUrl('https://booking.naver.com/booking/13/bizes/42?ref=office#ignore'),
     'https://booking.naver.com/booking/13/bizes/42?ref=office'
+  );
+  assert.equal(
+    api.validateNaverBookingUrl('https://m.booking.naver.com/booking/13/bizes/42?ref=mobile#ignore'),
+    'https://m.booking.naver.com/booking/13/bizes/42?ref=mobile'
   );
   for (const raw of [
     'http://booking.naver.com/booking/13/bizes/42',
@@ -143,8 +150,43 @@ test('CTA/UTM 메타데이터는 pathname과 허용 문자만 보존한다', () 
   );
   assert.equal(api.sanitizeUtmValue('x'.repeat(81)), null);
   assert.equal(api.sanitizeUtmValue('name@example.com'), null);
+  assert.equal(api.sanitizeUtmValue('010-1234-5678'), null);
+  for (const param of ['utm_source', 'utm_medium', 'utm_campaign']) {
+    const blocked = api.captureLeadMetadata(
+      { pathname: '/leak.html', search: '?' + param + '=010-1234-5678' },
+      'leak-inquiry-submit', null
+    );
+    assert.deepEqual(blocked, { sourcePage: '/leak.html', ctaId: 'leak-inquiry-submit' });
+  }
+});
+
+test('네이버 예약 설정은 계정 승인 전 정확히 비활성 상태다', () => {
+  const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'config.json'), 'utf8'));
+  assert.deepEqual(Object.keys(config.naver).sort(), ['_help', 'bookingUrl', 'ready']);
+  assert.equal(config.naver.ready, false);
+  assert.equal(config.naver.bookingUrl, '');
+  assert.equal(config.naver._help, '대표가 네이버 스마트플레이스에서 만든 공식 예약 URL을 입력하고 검증한 뒤에만 ready를 true로 바꾸세요. false이거나 URL이 유효하지 않으면 공개 예약 버튼은 숨겨지고 상담 폼과 전화만 제공됩니다.');
+
+  // fixture에는 실제 값이 아니라 승인 기준의 SHA-256만 있다.
+  // 값 자체는 assertion message, fixture 또는 console에 절대 출력하지 않는다.
+  const invariant = JSON.parse(fs.readFileSync(
+    path.join(__dirname, 'fixtures', 'public-config-invariants.json'), 'utf8'
+  ));
+  assert.deepEqual(Object.keys(invariant).sort(), ['formsAccessKeySha256', 'schemaVersion']);
+  assert.equal(invariant.schemaVersion, 1);
+  assert.match(invariant.formsAccessKeySha256, /^[a-f0-9]{64}$/);
+  const baselineDigest = Buffer.from(invariant.formsAccessKeySha256, 'hex');
+  assert.equal(baselineDigest.length, 32);
+  const digest = value => createHash('sha256').update(String(value), 'utf8').digest();
+  assert.equal(
+    timingSafeEqual(digest(config.forms.accessKey), baselineDigest),
+    true,
+    '기존 Web3Forms public form identifier가 변경되었습니다.'
+  );
 });
 ```
+
+The test imports `createHash`/`timingSafeEqual` from `node:crypto`. Before changing `data/config.json`, create `tests/fixtures/public-config-invariants.json` with exact keys `{ "schemaVersion":1, "formsAccessKeySha256":"<64 lowercase hex>" }`, where the digest is computed from the existing UTF-8 identifier without printing the identifier. Reject extra/missing fixture keys, a non-64-lowercase-hex digest, or a non-32-byte decoded buffer before `timingSafeEqual`. The digest is not an account credential and cannot submit a form. The comparison uses only fixed-length buffers and a constant failure message, so neither success nor failure output can disclose the identifier. The exact three-key Naver object and literal `_help` make any extra/missing/config-drift mutation fail.
 
 Extend `tests/lead-transport.test.cjs` so both n8n JSON and Web3Forms `message` retain all new non-empty fields:
 
@@ -153,19 +195,25 @@ const payload = {
   source: 'leak-page', sourcePage: '/leak.html', ctaId: 'leak-inquiry-submit',
   inquiryPurpose: 'paid-device-diagnosis', preferredVisitDate: '2026-09-15',
   preferredVisitWindow: 'afternoon', bookingStatus: 'inquiry-only',
-  utmSource: 'naver', utmMedium: 'organic', utmCampaign: 'rainy-2026'
+  utmSource: 'naver', utmMedium: 'organic', utmCampaign: 'rainy-2026',
+  referenceCase: 'apartment-upper-lower-rain-pipe-repair'
 };
 assert.match(formsRequest.message, /신청 목적: 유상 장비진단·방문 일정 상담/);
 assert.match(formsRequest.message, /희망 일정: 2026-09-15 · 오후/);
 assert.match(formsRequest.message, /예약 상태: inquiry-only/);
+assert.match(formsRequest.message, /참고 사례: apartment-upper-lower-rain-pipe-repair/);
 assert.deepEqual(n8nRequest, payload);
 ```
 
+Keep the existing object-shaped `referenceCase:{slug,title}` message behavior for backward compatibility, and add a separate string-shaped assertion for the new public metadata contract. Web3Forms human text must include the verified slug in both cases; n8n preserves the payload value exactly.
+
+Before modifying `PUBLIC_JS_FILES`, extend `tests/pages-artifact-policy.test.cjs` with a RED assertion that `revenue-conversion.js` occurs exactly once, `expectedPublicFiles(ROOT)` resolves that exact source file, and an isolated build/verify round trip contains byte-identical `js/revenue-conversion.js` with no output-only file.
+
 - [ ] **Step 2: Run the new tests to verify they fail**
 
-Run: `node --test tests/revenue-metadata.test.cjs tests/lead-transport.test.cjs`
+Run: `node --test tests/revenue-metadata.test.cjs tests/lead-transport.test.cjs tests/pages-artifact-policy.test.cjs`
 
-Expected: FAIL because `js/revenue-conversion.js` does not exist and `buildLeadText()` does not emit the new purpose, date/window, booking status, or attribution fields.
+Expected: FAIL because `js/revenue-conversion.js` does not exist, the Pages allowlist does not contain it, `data/config.json` has no default-off `naver` object, and `buildLeadText()` does not emit the new purpose, date/window, booking status, or string attribution fields.
 
 - [ ] **Step 3: Implement the smallest pure interface and default-off config**
 
@@ -174,13 +222,14 @@ Create `js/revenue-conversion.js` as an IIFE with no storage, network, DOM write
 ```js
 (function () {
   const UTM_VALUE = /^[A-Za-z0-9가-힣 ._-]{1,80}$/;
+  const PHONE_LIKE = /(?:^|[^0-9])0(?:1[016789]|2|[3-6][1-5]|70)[ ._-]?\d{3,4}[ ._-]?\d{4}(?:$|[^0-9])/;
   const CTA_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
   const CASE_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   const NAVER_HOSTS = new Set(['booking.naver.com', 'm.booking.naver.com']);
 
   function sanitizeUtmValue(value) {
     const text = typeof value === 'string' ? value.trim() : '';
-    return UTM_VALUE.test(text) ? text : null;
+    return UTM_VALUE.test(text) && !PHONE_LIKE.test(text) ? text : null;
   }
 
   function validateNaverBookingUrl(rawUrl) {
@@ -234,20 +283,20 @@ Add this public, inert configuration next to the existing top-level integrations
 }
 ```
 
-Extend `buildLeadText(d)` with explicit labels only when values are present. Map `phone-consult` to `전화로 증상 상담`, `paid-device-diagnosis` to `유상 장비진단·방문 일정 상담`, and `morning|afternoon|any` to `오전|오후|시간 협의`; emit `예약 상태: inquiry-only` literally. Preserve existing n8n payload passthrough and provider response checks.
+Extend `buildLeadText(d)` with explicit labels only when values are present. Map `phone-consult` to `전화로 증상 상담`, `paid-device-diagnosis` to `유상 장비진단·방문 일정 상담`, and `morning|afternoon|any` to `오전|오후|시간 협의`; emit `예약 상태: inquiry-only` literally. Treat a string `referenceCase` as the verified slug and retain the existing `{slug,title}` rendering for backward compatibility. Preserve existing n8n payload passthrough and provider response checks.
 
 Add `revenue-conversion.js` to `PUBLIC_JS_FILES` in `scripts/pages-artifact-policy.mjs` immediately before `lead-transport.js`; do not broaden directory scanning.
 
 - [ ] **Step 4: Run the focused tests to verify they pass**
 
-Run: `node --test tests/revenue-metadata.test.cjs tests/lead-transport.test.cjs`
+Run: `node --test tests/revenue-metadata.test.cjs tests/lead-transport.test.cjs tests/pages-artifact-policy.test.cjs`
 
-Expected: PASS. The URL test accepts only the two exact Naver hosts, strips only fragments, and every provider contract preserves the new payload fields.
+Expected: PASS. The URL test accepts both exact Naver hosts, strips only fragments, all three phone-shaped UTM values are omitted, the config is default-off without printing the existing public form identifier, every provider preserves the string/object reference contracts, and the isolated Pages artifact contains the new script byte-exactly.
 
 - [ ] **Step 5: Commit the independent conversion boundary**
 
 ```bash
-git add data/config.json js/revenue-conversion.js js/lead-transport.js scripts/pages-artifact-policy.mjs tests/revenue-metadata.test.cjs tests/lead-transport.test.cjs
+git add data/config.json js/revenue-conversion.js js/lead-transport.js scripts/pages-artifact-policy.mjs tests/fixtures/public-config-invariants.json tests/revenue-metadata.test.cjs tests/lead-transport.test.cjs tests/pages-artifact-policy.test.cjs
 git commit -m "feat: add public conversion metadata boundary"
 ```
 

@@ -21,6 +21,10 @@
 
 1. **비밀값을 어디에도 넣지 마라.** `ADMIN_TOKEN`·`PEPPER`·API 키·고객 전화번호
    원문은 Script Properties 에만 산다. 루트는 통째로 공개된다.
+   단, `data/config.json`의 `forms.accessKey`는 Web3Forms가 정적 웹 클라이언트에
+   공개하도록 설계한 **public form identifier**이며 비밀 API 키가 아니다
+   (`https://docs.web3forms.com/getting-started/faq`). 이 예외를 다른 키·토큰에
+   확대하지 말고, 기존 값은 채팅·로그·테스트 fixture에 복사하거나 출력하지 않는다.
 2. **고객 서명 토큰은 해시만 저장.** 원문 저장 코드를 만들지 마라.
 3. **고객 경로에 계약 ID 를 받는 코드를 만들지 마라.** 토큰만 받는다 —
    ID 추측으로 남의 계약이 열리면 끝이다.

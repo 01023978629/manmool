@@ -241,6 +241,12 @@ Web3Forms·n8n 이메일 리드는 자동으로 현장 앱에 들어오지 않�
 
 `data/config.json`에 공개 설정값 `naver.bookingUrl`과 `naver.ready`를 둔다.
 
+기존 `forms.accessKey`는 Web3Forms 공식 문서가 정적 브라우저 코드에 공개해도 된다고
+정의한 public form identifier이며, 관리자 권한이나 저장 데이터 읽기 권한을 주는
+비밀 API 키가 아니다. 이번 작업에서는 현재 값을 바꾸거나 fixture·로그·보고서에
+복사하지 않는다. 이 분류는 Web3Forms의 해당 필드에만 적용하며 다른 API 키·토큰은
+계속 공개 루트에서 금지한다.
+
 - `ready=false` 또는 공식 URL이 없으면 네이버 예약 버튼을 숨기고 기존 상담 폼과 전화만 제공한다.
 - 설정된 URL은 HTTPS, 기본 포트, 사용자명·비밀번호 없음, host가 정확히 `booking.naver.com` 또는 `m.booking.naver.com`, 비어 있지 않은 path 조건을 모두 만족해야 한다. query는 공식 예약 식별자 전달을 위해 유지하고 fragment는 제거한다. 유사 도메인, 커스텀 포트, 자격정보가 들어간 URL은 거절한다.
 - 버튼은 네이버 예약 화면을 여는 역할만 한다. 내부 사이트는 예약번호·결제완료·일정확정을 생성하지 않는다.
@@ -261,10 +267,14 @@ Web3Forms·n8n 이메일 리드는 자동으로 현장 앱에 들어오지 않�
 
 - `sourcePage`: query와 fragment가 없는 현재 페이지의 `location.pathname`
 - `ctaId`: 사용자가 누른 신청 진입점
-- `referenceCase`: 공개 사례 slug가 검증된 경우
+- `referenceCase`: 공개 사례 slug가 검증된 경우의 slug 문자열. 기존 객체형
+  `{slug,title}` 입력은 `LeadTransport.buildLeadText()`에서만 하위 호환으로 읽는다.
 - `utmSource`, `utmMedium`, `utmCampaign`: 길이와 허용문자 제한을 통과한 값
 
-전화번호, 주소, 증상, 이름은 URL, UTM 또는 분석 이벤트에 넣지 않는다. UTM 값은 각각 최대 80자, 영문·숫자·한글·공백·`-_.`만 허용하고 그 밖의 값은 버린다.
+폼에서 받은 전화번호, 주소, 증상, 이름은 URL, UTM 또는 분석 이벤트로 복사하지
+않는다. UTM sanitizer는 URL query만 입력으로 받고, 각 값은 최대 80자이며
+영문·숫자·한글·공백·`-_.`만 허용한다. 허용문자를 통과해도 국내 전화번호처럼
+보이는 값은 버리며 이 규칙을 세 UTM 필드에 동일하게 적용한다.
 
 ## 7. `hyeonjang` 내부 OfficeOps 구성
 
@@ -538,7 +548,8 @@ OfficeOps 서버 액션과 저장소는 기존 `load`, `save`, `OfficeIntake`, �
 - 누수 유상 진단 신청이 예약·결제·방문 확정으로 표시되지 않는다.
 - 유상 장비진단 문의는 이메일에서 자동 수입되지 않는다. `createPaidDiagnosisOrderFromManualLead()`가 증빙 영수증·공통 게이트를 통과할 때만 기존 오더 한 건을 만들고, 실패하면 프로젝트·일정·오더 변경이 0건이다.
 - `naver.ready=false`, 비공식 host, 유사 도메인, credentials, 커스텀 포트이면 예약 버튼이 노출되지 않는다. 허용 URL은 query를 유지하고 fragment를 제거한다.
-- UTM·CTA 항목은 길이·허용문자 제한을 거치며 개인정보가 URL·분석값에 들어가지 않는다.
+- UTM·CTA 항목은 길이·허용문자 제한을 거치고 세 UTM 필드의 전화번호 형태를
+  거절하며, 폼 개인정보를 URL·분석값으로 복사하지 않는다.
 - `scripts/ensure-conversion-basics.mjs`의 기존 `표준 패키지 500만원 이하` 고정문구 검사를 `접수 프로그램 이용료 0원`과 `실제 작업은 별도 견적` 동시 검사로 교체한다.
 - `tests/revenue-conversion.e2e.cjs`, `tests/lead-transport.test.cjs`, `scripts/ensure-revenue-operations.mjs`와 기존 인테리어·누수·관리사무소 문의 폴백·포털 인증 회귀검사가 통과한다.
 - 무료 정책 변경 후 `rg`로 공개 HTML·구조화데이터·운영문서의 `500만원 이하 표준 패키지` 판매 문구가 0건인지 확인한다. 내부 계약선정 참고문구는 공개 판매가가 아님을 표시한다.
