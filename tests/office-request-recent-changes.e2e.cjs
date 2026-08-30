@@ -23,6 +23,19 @@ test('목록 응답을 적용하기 직전에 최신 list generation을 확인�
   assert.match(successResponse, /const response\s*=\s*await authenticatedCall\('officeList', \{\}\);\s*if\s*\(\s*!isCurrentSession\(\s*candidate\s*,\s*generation\s*\)\s*\|\|\s*listAttempt\s*!==\s*listGeneration\s*\)\s*return\s*;\s*const validationNow\s*=\s*Date\.now\(\)\s*;\s*const normalized\s*=\s*core\.normalizeRecentList/);
 });
 
+test('최근 변경 표시용 전체 행은 성공 응답 적용 중 렌더에 한 번만 전달한다', () => {
+  const controller = fs.readFileSync(path.join(ROOT, 'js', 'office-request.js'), 'utf8');
+  const rowReferences = [...controller.matchAll(/\bnormalized\.rows\b/g)];
+  assert.equal(rowReferences.length, 1, 'normalized recent rows must have a single one-shot consumer');
+  const rowIndex = rowReferences[0].index;
+  const statement = controller.slice(controller.lastIndexOf('\n', rowIndex) + 1, controller.indexOf('\n', rowIndex));
+  assert.match(
+    statement,
+    /^\s*[A-Za-z_$][\w$]*\(\s*normalized\.rows\s*\);\s*$/,
+    'normalized recent rows must flow directly into rendering instead of module-level state',
+  );
+});
+
 function serveStatic(req, res) {
   const relative = decodeURIComponent(new URL(req.url, 'http://127.0.0.1').pathname).replace(/^\/+/, '') || 'index.html';
   const target = path.resolve(ROOT, relative);
@@ -90,6 +103,24 @@ test('390px 대시보드에 수동 새로고침과 접근 가능한 최근 변�
   assert.equal(await page.locator('#officeRecentSummary').getAttribute('role'), 'status');
   assert.equal(await page.locator('#officeRecentSummary').getAttribute('aria-live'), 'polite');
   assert.equal(await page.locator('#officeRecentList').getAttribute('aria-live'), null);
+  const liveContract = await page.locator('#officeRecentList').evaluate((list) => {
+    const activeLive = (element) => {
+      const ariaLive = String(element.getAttribute('aria-live') || '').trim().toLowerCase();
+      const role = String(element.getAttribute('role') || '').trim().toLowerCase();
+      return (ariaLive && ariaLive !== 'off') || ['status', 'alert', 'log'].includes(role);
+    };
+    const ancestors = [];
+    for (let element = list; element; element = element.parentElement) {
+      if (activeLive(element)) ancestors.push(element.id || element.tagName.toLowerCase());
+    }
+    const region = list.closest('#officeRecentChanges');
+    const regionLive = [...region.querySelectorAll('*')]
+      .filter(activeLive)
+      .map((element) => element.id || element.tagName.toLowerCase());
+    return { ancestors, regionLive };
+  });
+  assert.deepEqual(liveContract.ancestors, []);
+  assert.deepEqual(liveContract.regionLive, ['officeRecentSummary']);
   const metrics = await page.evaluate(() => ({
     width: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth,
@@ -97,6 +128,39 @@ test('390px 대시보드에 수동 새로고침과 접근 가능한 최근 변�
   }));
   assert.equal(metrics.scrollWidth, metrics.width);
   assert.ok(metrics.refreshHeight >= 44);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
+test('지연된 수동 새로고침 완료는 사용자가 옮긴 필터 포커스를 빼앗지 않는다', async () => {
+  let listCall = 0;
+  let resolveRefresh;
+  const baseline = [request('focus-1', 'pending_review', '2026-08-30T09:00:00.000Z')];
+  const changed = [request('focus-1', 'accepted', '2026-08-30T10:00:00.000Z')];
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') {
+      listCall += 1;
+      if (listCall === 1) return { ok: true, requests: baseline };
+      return new Promise((resolve) => { resolveRefresh = resolve; });
+    }
+    throw new Error(`unexpected action ${body.action}`);
+  });
+  await login(page);
+  await page.getByRole('button', { name: '목록 새로고침' }).click();
+  await page.waitForFunction(() => document.getElementById('officeRefreshRequests').disabled);
+  assert.equal(await page.locator('#officeRefreshRequests').getAttribute('aria-busy'), 'true');
+  const progressFilter = page.getByRole('button', { name: '진행 중' });
+  await progressFilter.click();
+  await progressFilter.focus();
+  assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.dataset.officeFilter), 'progress');
+  assert.equal(calls.filter((entry) => entry.action === 'officeList').length, 2);
+  resolveRefresh({ ok: true, requests: changed });
+  await page.getByText('최근 변경 1건').waitFor();
+  assert.equal(await page.locator('#officeRefreshRequests').isEnabled(), true);
+  assert.equal(await page.locator('#officeRefreshRequests').getAttribute('aria-busy'), 'false');
+  assert.equal(calls.filter((entry) => entry.action === 'officeList').length, 2);
+  assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.dataset.officeFilter), 'progress');
   assert.deepEqual(pageErrors, []);
   await page.close();
 });
@@ -129,7 +193,6 @@ test('첫 조회는 기준만 만들고 수동 새로고침 한 번은 officeLis
   assert.match(text, /접수번호 확인 필요/);
   assert.match(text, /위치 확인 필요/);
   assert.doesNotMatch(text, /010-1111-2222|최근 변경 화면에는 나오면 안 되는 설명|987654/);
-  assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.id), 'officeRefreshRequests');
   assert.deepEqual(pageErrors, []);
   await page.close();
 });
@@ -317,7 +380,12 @@ test('진행 중 중복 클릭을 막고 로그아웃 전 늦은 목록이 새 �
   assert.equal(calls.filter((entry) => entry.action === 'officeList').length, 2);
   await page.getByRole('button', { name: '로그아웃' }).click();
   await page.locator('#officePin').fill('123456');
+  const newSessionList = page.waitForRequest((request) => {
+    if (request.url() !== API_URL) return false;
+    try { return request.postDataJSON().action === 'officeList'; } catch (_) { return false; }
+  });
   await page.getByRole('button', { name: '로그인' }).click();
+  await newSessionList;
   await page.waitForFunction(() => document.getElementById('officeRefreshRequests').disabled);
   assert.equal(calls.filter((entry) => entry.action === 'officeList').length, 3);
   assert.equal(await page.locator('#officeRefreshRequests').getAttribute('aria-busy'), 'true');

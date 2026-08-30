@@ -12,7 +12,7 @@
   const detailBack = byId('officeDetailBack'), detailReceipt = byId('officeDetailReceipt'), detailStatus = byId('officeDetailStatus'), detailLocation = byId('officeDetailLocation'), detailVisitRow = byId('officeDetailVisitRow'), detailVisit = byId('officeDetailVisit'), detailAmountRow = byId('officeDetailAmountRow'), detailAmount = byId('officeDetailAmount'), detailTimeline = byId('officeStatusTimeline'), completionSummary = byId('officeCompletionSummary'), completionPhotoStatus = byId('officeCompletionPhotoStatus'), completionPhotos = byId('officeCompletionPhotos');
   const year = byId('requestYear'), filters = [...document.querySelectorAll('[data-office-filter]')], views = [routeError, loginView, dashboardView, createView, detailView];
   let session = null, requests = [], activeFilter = 'all', loginPending = false, formPending = false, editingRequest = null, photoGeneration = 0, detailGeneration = 0, detailActivator = null, createActivator = null, sessionGeneration = 0;
-  let listSnapshot = null, recentRows = [], recentChanges = [], recentTotal = 0, lastSuccessfulRefreshAt = null, refreshPending = false, listGeneration = 0;
+  let listSnapshot = null, recentChanges = [], recentTotal = 0, lastSuccessfulRefreshAt = null, refreshPending = false, listGeneration = 0;
   let currentDraft = blankDraft();
 
   function blankDraft() { return { idempotencyKey: null, createPayload: null, requestId: null, receiptNo: null, photoSlots: [], photoError: '', photoPending: false }; }
@@ -59,7 +59,7 @@
   }
   function clearRecentState() {
     listGeneration += 1;
-    listSnapshot = null; recentRows = []; recentChanges = []; recentTotal = 0; lastSuccessfulRefreshAt = null;
+    listSnapshot = null; recentChanges = []; recentTotal = 0; lastSuccessfulRefreshAt = null;
     if (recentList) recentList.textContent = '';
     if (recentOverflow) recentOverflow.textContent = '';
     if (recentSummary) recentSummary.textContent = '첫 목록을 기준으로 준비합니다.';
@@ -172,10 +172,10 @@
   function matchesFilter(item) { const status = String(item && item.status || ''); if (activeFilter === 'pending') return ['pending_review', 'needs_info', 'on_hold'].includes(status); if (activeFilter === 'progress') return ['accepted', 'visit_scheduled', 'in_progress'].includes(status); if (activeFilter === 'completed') return ['completed', 'billed', 'paid', 'cancelled'].includes(status); return true; }
   function addText(parent, className, value) { const element = document.createElement('p'); element.className = className; element.textContent = String(value || ''); parent.appendChild(element); }
   function actionButton(label, attribute, id) { const button = document.createElement('button'); button.type = 'button'; button.className = 'office-action request-secondary'; button.textContent = label; button.setAttribute(attribute, id); return button; }
-  function renderRecentChanges() {
+  function renderRecentChanges(displayRows) {
     if (!recentList || !recentSummary || !recentOverflow) return;
     recentList.textContent = '';
-    const byRequestId = new Map(recentRows.map((item) => [requestId(item), item]));
+    const byRequestId = new Map(displayRows.map((item) => [requestId(item), item]));
     recentChanges.forEach((change) => {
       const item = byRequestId.get(change.requestId);
       if (!item) return;
@@ -213,13 +213,12 @@
       if (!normalized.ok) throw new api.ManmulOfficeApiError('invalid-response');
       const compared = listSnapshot === null ? { total: 0, changes: [] } : core.diffRecentSnapshots(listSnapshot, normalized.snapshot);
       requests = response.requests.filter((item) => item && typeof item === 'object' && !Array.isArray(item) && requestId(item));
-      recentRows = normalized.rows;
       recentChanges = compared.changes;
       recentTotal = compared.total;
       listSnapshot = normalized.snapshot;
       lastSuccessfulRefreshAt = validationNow;
       renderRequests();
-      renderRecentChanges();
+      renderRecentChanges(normalized.rows);
       if (recentSummary && compared.total === 0 && !manual) recentSummary.textContent = '다음 새로고침부터 변경을 확인합니다.';
       if (syncStatus) syncStatus.textContent = manual ? '접수 목록을 새로고침했습니다.' : '접수 목록을 최신 상태로 불러왔습니다.';
     } catch (error) {
@@ -233,7 +232,6 @@
     } finally {
       if (isCurrentSession(candidate, generation) && listAttempt === listGeneration) {
         setRefreshBusy(false);
-        if (manual) focusControl(refreshRequests);
       }
     }
   }
