@@ -96,6 +96,9 @@ const namedBuildingPattern = /[가-힣]{2,}(?:아파트|빌딩)/;
 
 function privacyViolations(value, { allowedBuildingNames = [] } = {}) {
   const violations = [];
+  const allowedBuildingNameSet = new Set(
+    allowedBuildingNames.filter((name) => typeof name === 'string' && name.trim()).map((name) => name.trim())
+  );
   function walk(node, keyPath = '') {
     if (Array.isArray(node)) {
       node.forEach((entry, index) => walk(entry, `${keyPath}[${index}]`));
@@ -114,13 +117,71 @@ function privacyViolations(value, { allowedBuildingNames = [] } = {}) {
     if (phonePattern.test(node)) violations.push(`${keyPath}: 전화번호`);
     if (unitPattern.test(node)) violations.push(`${keyPath}: 동호수`);
     if (detailedAddressPattern.test(node)) violations.push(`${keyPath}: 상세 주소`);
-    let buildingScan = node;
-    for (const allowedName of allowedBuildingNames) {
-      if (typeof allowedName === 'string' && allowedName.trim()) buildingScan = buildingScan.split(allowedName).join('');
-    }
-    if (namedBuildingPattern.test(buildingScan)) violations.push(`${keyPath}: 단지·건물 고유명`);
+    const buildingNames = node.match(new RegExp(namedBuildingPattern.source, 'g')) || [];
+    if (buildingNames.some((name) => !allowedBuildingNameSet.has(name))) violations.push(`${keyPath}: 단지·건물 고유명`);
   }
   walk(value);
+  return violations;
+}
+
+function escapeMarkup(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+function artifactParityViolations({ item, expected, post, blog, rss }) {
+  const violations = [];
+  const title = escapeMarkup(item.title);
+  const excerpt = escapeMarkup(item.excerpt);
+  const coverAlt = escapeMarkup(item.imageAlt);
+  const postTitle = `<h1 class="post-title">${title}</h1>`;
+  const postExcerpt = `<p class="post-excerpt">${excerpt}</p>`;
+
+  if (!post.includes(postTitle)) violations.push('정적 글 제목 불일치');
+  if (!post.includes(postExcerpt)) violations.push('정적 글 요약 불일치');
+
+  const coverStart = post.indexOf('<div class="post-cover"');
+  const coverEnd = coverStart < 0 ? -1 : post.indexOf('</div>', coverStart);
+  const cover = coverStart < 0 || coverEnd < 0 ? '' : post.slice(coverStart, coverEnd + 6);
+  if (!cover.includes(`alt="${coverAlt}"`)) violations.push('정적 글 표지 설명 불일치');
+
+  if (expected.finalImage) {
+    const heading = `<h2>${escapeMarkup(expected.finalHeading)}</h2>`;
+    const headings = [...post.matchAll(/<h2>[\s\S]*?<\/h2>/g)];
+    const lastHeading = headings.at(-1);
+    if (!lastHeading || lastHeading[0] !== heading) violations.push('정적 글 마지막 소제목 불일치');
+
+    const figureStart = post.lastIndexOf('<figure class="post-figure">');
+    const figureEnd = figureStart < 0 ? -1 : post.indexOf('</figure>', figureStart);
+    const finalFigure = figureStart < 0 || figureEnd < 0 ? '' : post.slice(figureStart, figureEnd + 9);
+    const expectedImage = `../${expected.finalImage}`;
+    if (!finalFigure.includes(`src="${expectedImage}"`)) violations.push('정적 글 마지막 사진 불일치');
+    if (!finalFigure.includes(`alt="${escapeMarkup(expected.finalAlt)}"`)) violations.push('정적 글 마지막 사진 설명 불일치');
+    if (!finalFigure.includes(`<figcaption>${escapeMarkup(expected.finalCaption)}</figcaption>`)) violations.push('정적 글 마지막 사진 캡션 불일치');
+    if (!lastHeading || figureStart < lastHeading.index + lastHeading[0].length) violations.push('정적 글 마지막 소제목·사진 순서 불일치');
+  }
+
+  const cardMarker = `href="posts/${expected.slug}.html"`;
+  const cardLinkStart = blog.indexOf(cardMarker);
+  const cardStart = cardLinkStart < 0 ? -1 : blog.lastIndexOf('<a ', cardLinkStart);
+  const cardEnd = cardStart < 0 ? -1 : blog.indexOf('</a>', cardStart);
+  const card = cardStart < 0 || cardEnd < 0 ? '' : blog.slice(cardStart, cardEnd + 4);
+  if (!card.includes(`<b>${title}</b>`)) violations.push('블로그 카드 제목 불일치');
+  if (!card.includes(`<span class="ic-excerpt">${excerpt}</span>`)) violations.push('블로그 카드 요약 불일치');
+  if (!card.includes(`alt="${coverAlt}"`)) violations.push('블로그 카드 표지 설명 불일치');
+
+  const canonical = `https://01023978629.github.io/manmool/posts/${expected.slug}.html`;
+  const rssLink = `<link>${canonical}</link>`;
+  const rssLinkStart = rss.indexOf(rssLink);
+  const rssItemStart = rssLinkStart < 0 ? -1 : rss.lastIndexOf('<item>', rssLinkStart);
+  const rssItemEnd = rssLinkStart < 0 ? -1 : rss.indexOf('</item>', rssLinkStart);
+  const rssItem = rssItemStart < 0 || rssItemEnd < 0 ? '' : rss.slice(rssItemStart, rssItemEnd + 7);
+  if (!rssItem.includes(`<title>${title}</title>`)) violations.push('RSS 제목 불일치');
+  if (!rssItem.includes(`<description>${excerpt}</description>`)) violations.push('RSS 요약 불일치');
+
   return violations;
 }
 
@@ -143,6 +204,10 @@ for (const [label, fixture] of privacyFixtures) {
   if (!privacyViolations(fixture).length) failures.push(`개인정보 차단 fixture가 통과했다: ${label}`);
 }
 if (privacyViolations({ title: '대전 아파트 배관 보수' }).length) failures.push('개인정보 차단 fixture가 일반적인 대전 아파트 표현을 막는다');
+const allowedApartment = { allowedBuildingNames: ['목양마을아파트'] };
+if (privacyViolations({ title: '목양마을아파트 배관 보수' }, allowedApartment).length) failures.push('정확히 허용한 아파트명이 차단된다');
+if (!privacyViolations({ title: '새목양마을아파트 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 접두 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트 가람아파트 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명과 다른 단지명이 함께 통과한다');
 
 for (const expected of expectedContent) {
   const matches = (site.insights || []).filter((item) => item && item.slug === expected.slug);
@@ -169,6 +234,40 @@ for (const expected of expectedContent) {
   const postPath = path.join(ROOT, 'posts', `${expected.slug}.html`);
   if (!fs.existsSync(postPath)) { failures.push(`${expected.slug}: 정적 글이 없다`); continue; }
   const post = fs.readFileSync(postPath, 'utf8');
+  for (const violation of artifactParityViolations({ item, expected, post, blog, rss })) {
+    failures.push(`${expected.slug}: ${violation}`);
+  }
+
+  if (expected.finalImage) {
+    const titleMarkup = `<h1 class="post-title">${escapeMarkup(item.title)}</h1>`;
+    const excerptMarkup = `<p class="post-excerpt">${escapeMarkup(item.excerpt)}</p>`;
+    const headingMarkup = `<h2>${escapeMarkup(expected.finalHeading)}</h2>`;
+    const blogTitleMarkup = `<b>${escapeMarkup(item.title)}</b>`;
+    const blogExcerptMarkup = `<span class="ic-excerpt">${escapeMarkup(item.excerpt)}</span>`;
+    const rssTitleMarkup = `<title>${escapeMarkup(item.title)}</title>`;
+    const rssExcerptMarkup = `<description>${escapeMarkup(item.excerpt)}</description>`;
+    const mutationFixtures = [
+      { label: '정적 글 제목', source: 'post', original: post, mutated: post.replace(titleMarkup, '<h1 class="post-title">오염된 사례 제목</h1>'), expectedViolation: '정적 글 제목 불일치' },
+      { label: '정적 글 요약', source: 'post', original: post, mutated: post.replace(excerptMarkup, '<p class="post-excerpt">오염된 사례 요약</p>'), expectedViolation: '정적 글 요약 불일치' },
+      { label: '정적 글 마지막 소제목', source: 'post', original: post, mutated: post.replace(headingMarkup, '<h2>오염된 마지막 소제목</h2>'), expectedViolation: '정적 글 마지막 소제목 불일치' },
+      { label: '블로그 카드 제목', source: 'blog', original: blog, mutated: blog.replace(blogTitleMarkup, '<b>오염된 블로그 카드 제목</b>'), expectedViolation: '블로그 카드 제목 불일치' },
+      { label: '블로그 카드 요약', source: 'blog', original: blog, mutated: blog.replace(blogExcerptMarkup, '<span class="ic-excerpt">오염된 블로그 카드 요약</span>'), expectedViolation: '블로그 카드 요약 불일치' },
+      { label: 'RSS 제목', source: 'rss', original: rss, mutated: rss.replace(rssTitleMarkup, '<title>오염된 RSS 제목</title>'), expectedViolation: 'RSS 제목 불일치' },
+      { label: 'RSS 요약', source: 'rss', original: rss, mutated: rss.replace(rssExcerptMarkup, '<description>오염된 RSS 요약</description>'), expectedViolation: 'RSS 요약 불일치' }
+    ];
+    for (const fixture of mutationFixtures) {
+      if (fixture.mutated === fixture.original) {
+        failures.push(`${expected.slug}: 생성물 오염 fixture 대상을 찾지 못했다 (${fixture.label})`);
+        continue;
+      }
+      const artifacts = { item, expected, post, blog, rss, [fixture.source]: fixture.mutated };
+      const mutationViolations = artifactParityViolations(artifacts);
+      if (!mutationViolations.includes(fixture.expectedViolation)) {
+        failures.push(`${expected.slug}: 생성물 오염 fixture가 통과했다 (${fixture.label})`);
+      }
+    }
+  }
+
   const canonical = `https://01023978629.github.io/manmool/posts/${expected.slug}.html`;
   if (!post.includes(`<link rel="canonical" href="${canonical}"`)) failures.push(`${expected.slug}: canonical이 없다`);
   if (!post.includes('data-service="leak"')) failures.push(`${expected.slug}: 누수 상담 CTA가 없다`);
