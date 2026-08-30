@@ -30,7 +30,11 @@
   function errorMessage(error) { if (error && error.code === 'rate-limited') return '시도가 많습니다. 10분 후 다시 시도해 주세요.'; if (error && ['invalid-session', 'invalid-response', 'stale-session'].includes(error.code || error.message)) return '처리 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.'; return error && typeof error.message === 'string' ? error.message : '처리 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.'; }
   function focusControl(target) { if (!target || typeof target.focus !== 'function') return false; try { target.focus({ preventScroll: true }); } catch (_) { target.focus(); } return true; }
   function mutable(item) { return !Boolean(item && item._officeUiBlocked) && ['pending_review', 'needs_info'].includes(String(item && item.status || '')); }
-  function requestId(item) { return String(item && (item.requestId || item.id) || ''); }
+  function requestId(item) {
+    const primary = item && typeof item.requestId === 'string' ? item.requestId.trim() : '';
+    const fallback = item && typeof item.id === 'string' ? item.id.trim() : '';
+    return primary || fallback;
+  }
   function formatCheckedTime(value) {
     return new Intl.DateTimeFormat('ko-KR', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
   }

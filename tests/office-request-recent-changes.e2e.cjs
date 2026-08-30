@@ -159,3 +159,35 @@ test('최근 변경은 최신순 10건과 초과 건수를 유지하고 필터�
   assert.deepEqual(pageErrors, []);
   await page.close();
 });
+
+test('공백이 있는 canonical 또는 legacy ID 변경은 카드 수와 요약을 맞추고 상세로 연다', async () => {
+  let listCall = 0;
+  const baseline = [request('req-1', 'pending_review', '2026-08-30T09:00:00.000Z')];
+  const canonical = request(' req-2 ', 'accepted', '2026-08-30T11:00:00.000Z', { receiptNo: 'MM-002' });
+  const legacy = { ...request('discarded', 'completed', '2026-08-30T11:01:00.000Z', { receiptNo: '', unit: '', location: '' }), requestId: undefined, id: ' legacy-3 ' };
+  const changed = [canonical, legacy];
+  const { calls, page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: listCall++ === 0 ? baseline : changed };
+    if (body.action === 'officeGet') return { ok: true, request: body.payload.requestId === 'req-2' ? canonical : legacy };
+    throw new Error(`unexpected action ${body.action}`);
+  });
+  await login(page);
+  await page.getByRole('button', { name: '목록 새로고침' }).click();
+  await page.getByText('최근 변경 2건').waitFor();
+  assert.equal(await page.locator('#officeRecentList li').count(), 2);
+  const recentText = await page.locator('#officeRecentChanges').innerText();
+  assert.match(recentText, /MM-002/);
+  assert.match(recentText, /접수번호 확인 필요/);
+  assert.doesNotMatch(recentText, /req-2|legacy-3/);
+  const beforeUrl = page.url();
+  for (const button of await page.locator('#officeRecentList button').all()) {
+    await button.click();
+    await page.locator('#officeDetailView').waitFor({ state: 'visible' });
+    assert.equal(page.url(), beforeUrl);
+    await page.getByRole('button', { name: '목록으로' }).click();
+  }
+  assert.deepEqual(calls.filter((entry) => entry.action === 'officeGet').map((entry) => entry.payload.requestId), ['legacy-3', 'req-2']);
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
