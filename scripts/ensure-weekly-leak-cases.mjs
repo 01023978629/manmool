@@ -77,6 +77,7 @@ const expectedContent = [
     publicApartmentName: '목양마을아파트',
     coverAlt: '수직 우수관과 천장 관통부 현장 상태',
     finalHeading: '우수 배수부품 교체를 마쳤습니다',
+    finalText: '우수관 하부 연결 부품을 교체하고 배수구 그릴을 설치한 뒤의 모습입니다. 수직관과 하부 연결 부품, 배수구 그릴이 함께 보이도록 마무리 상태를 기록했습니다.',
     finalImage: 'assets/cases/apartment-upper-lower-rain-pipe-repair-5.jpg',
     finalAlt: '우수관 하부 연결 부속과 원형 배수구 그릴 설치 상태',
     finalCaption: '우수관 하부 연결 부속과 바닥 배수구 그릴을 설치한 모습'
@@ -92,7 +93,7 @@ const absolutePathPattern = /(?:\b[A-Za-z]:[\\/]|^\\\\|\bfile:\/\/)/i;
 const phonePattern = /01[016789](?:[ .-]?\d){7,8}\b/;
 const unitPattern = /(?:\d{1,4}\s*(?:동|호)|\d{1,3}\s*[-/]\s*\d{3,4})/;
 const detailedAddressPattern = /(?:[가-힣]+(?:로|길)\s*\d+(?:-\d+)?|[가-힣]+(?:동|리|읍|면)\s*\d+(?:-\d+)?|\d+(?:-\d+)?번지)/;
-const namedBuildingPattern = /[가-힣]{2,}(?:아파트|빌딩)/;
+const namedBuildingPattern = /[가-힣]{2,}(?:아파트|빌딩)(?:(?:\s*\d+(?:\s*(?:단지|차))?)|(?:\s*(?:별관|본관|신관|상가)))?/;
 
 function privacyViolations(value, { allowedBuildingNames = [] } = {}) {
   const violations = [];
@@ -149,19 +150,42 @@ function artifactParityViolations({ item, expected, post, blog, rss }) {
   if (!cover.includes(`alt="${coverAlt}"`)) violations.push('정적 글 표지 설명 불일치');
 
   if (expected.finalImage) {
+    const bodyMarker = '<div class="post-body">';
+    const bodyStart = post.indexOf(bodyMarker);
+    const bodyContentStart = bodyStart < 0 ? -1 : bodyStart + bodyMarker.length;
+    const bodyEnd = bodyContentStart < 0 ? -1 : post.indexOf('</div>', bodyContentStart);
+    const postBody = bodyContentStart < 0 || bodyEnd < 0 ? '' : post.slice(bodyContentStart, bodyEnd);
+    if (!postBody) violations.push('정적 글 본문 영역 없음');
+
     const heading = `<h2>${escapeMarkup(expected.finalHeading)}</h2>`;
-    const headings = [...post.matchAll(/<h2>[\s\S]*?<\/h2>/g)];
+    const paragraph = `<p>${escapeMarkup(expected.finalText)}</p>`;
+    const headings = [...postBody.matchAll(/<h2>[\s\S]*?<\/h2>/g)];
     const lastHeading = headings.at(-1);
     if (!lastHeading || lastHeading[0] !== heading) violations.push('정적 글 마지막 소제목 불일치');
+    const headingEnd = lastHeading ? lastHeading.index + lastHeading[0].length : -1;
+    const paragraphStart = headingEnd < 0 ? -1 : postBody.indexOf(paragraph, headingEnd);
+    if (paragraphStart !== headingEnd) violations.push('정적 글 마지막 설명 불일치');
 
-    const figureStart = post.lastIndexOf('<figure class="post-figure">');
-    const figureEnd = figureStart < 0 ? -1 : post.indexOf('</figure>', figureStart);
-    const finalFigure = figureStart < 0 || figureEnd < 0 ? '' : post.slice(figureStart, figureEnd + 9);
+    const figureStart = postBody.lastIndexOf('<figure class="post-figure">');
+    const figureEnd = figureStart < 0 ? -1 : postBody.indexOf('</figure>', figureStart);
+    const finalFigure = figureStart < 0 || figureEnd < 0 ? '' : postBody.slice(figureStart, figureEnd + 9);
     const expectedImage = `../${expected.finalImage}`;
     if (!finalFigure.includes(`src="${expectedImage}"`)) violations.push('정적 글 마지막 사진 불일치');
     if (!finalFigure.includes(`alt="${escapeMarkup(expected.finalAlt)}"`)) violations.push('정적 글 마지막 사진 설명 불일치');
     if (!finalFigure.includes(`<figcaption>${escapeMarkup(expected.finalCaption)}</figcaption>`)) violations.push('정적 글 마지막 사진 캡션 불일치');
-    if (!lastHeading || figureStart < lastHeading.index + lastHeading[0].length) violations.push('정적 글 마지막 소제목·사진 순서 불일치');
+    const paragraphEnd = paragraphStart < 0 ? -1 : paragraphStart + paragraph.length;
+    if (paragraphEnd < 0 || figureStart !== paragraphEnd) violations.push('정적 글 마지막 소제목·설명·사진 순서 불일치');
+    if (figureEnd < 0 || postBody.slice(figureEnd + 9).trim()) violations.push('정적 글 마지막 사진 뒤에 본문이 남아 있음');
+
+    const expectedImageMarker = `src="${expectedImage}"`;
+    const globalExpectedImageStart = post.lastIndexOf(expectedImageMarker);
+    if (globalExpectedImageStart >= 0 && (bodyContentStart < 0 || globalExpectedImageStart < bodyContentStart || globalExpectedImageStart >= bodyEnd)) {
+      violations.push('정적 글 마지막 사진이 본문 밖에 있음');
+    }
+    const absoluteFigureStart = figureStart < 0 || bodyContentStart < 0 ? -1 : bodyContentStart + figureStart;
+    if (absoluteFigureStart < 0 || post.lastIndexOf('<figure class="post-figure">') !== absoluteFigureStart) {
+      violations.push('정적 글 마지막 사진이 본문 마지막이 아님');
+    }
   }
 
   const cardMarker = `href="posts/${expected.slug}.html"`;
@@ -207,6 +231,9 @@ if (privacyViolations({ title: '대전 아파트 배관 보수' }).length) failu
 const allowedApartment = { allowedBuildingNames: ['목양마을아파트'] };
 if (privacyViolations({ title: '목양마을아파트 배관 보수' }, allowedApartment).length) failures.push('정확히 허용한 아파트명이 차단된다');
 if (!privacyViolations({ title: '새목양마을아파트 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 접두 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트2단지 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 숫자 접미 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트 2단지 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 공백 숫자 접미 변형이 통과한다');
+if (!privacyViolations({ title: '목양마을아파트별관 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명의 별관 접미 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트 가람아파트 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명과 다른 단지명이 함께 통과한다');
 
 for (const expected of expectedContent) {
@@ -221,6 +248,7 @@ for (const expected of expectedContent) {
   if (expected.finalImage) {
     const finalSection = (item.body || []).at(-1);
     if (!finalSection || finalSection.h !== expected.finalHeading || finalSection.img !== expected.finalImage) failures.push(`${expected.slug}: 완료 사진이 본문 마지막에 없다`);
+    if (finalSection?.p !== expected.finalText) failures.push(`${expected.slug}: 완료 작업 설명이 다르다`);
     if (finalSection?.imgAlt !== expected.finalAlt) failures.push(`${expected.slug}: 완료 사진 alt가 다르다`);
     if (finalSection?.imgCaption !== expected.finalCaption) failures.push(`${expected.slug}: 완료 사진 캡션이 다르다`);
   }
@@ -242,14 +270,25 @@ for (const expected of expectedContent) {
     const titleMarkup = `<h1 class="post-title">${escapeMarkup(item.title)}</h1>`;
     const excerptMarkup = `<p class="post-excerpt">${escapeMarkup(item.excerpt)}</p>`;
     const headingMarkup = `<h2>${escapeMarkup(expected.finalHeading)}</h2>`;
+    const paragraphMarkup = `<p>${escapeMarkup(expected.finalText)}</p>`;
     const blogTitleMarkup = `<b>${escapeMarkup(item.title)}</b>`;
     const blogExcerptMarkup = `<span class="ic-excerpt">${escapeMarkup(item.excerpt)}</span>`;
     const rssTitleMarkup = `<title>${escapeMarkup(item.title)}</title>`;
     const rssExcerptMarkup = `<description>${escapeMarkup(item.excerpt)}</description>`;
+    const finalFigureStart = post.lastIndexOf('<figure class="post-figure">');
+    const finalFigureEnd = finalFigureStart < 0 ? -1 : post.indexOf('</figure>', finalFigureStart);
+    const finalFigureMarkup = finalFigureStart < 0 || finalFigureEnd < 0 ? '' : post.slice(finalFigureStart, finalFigureEnd + 9);
+    const postWithoutFinalFigure = finalFigureMarkup ? post.slice(0, finalFigureStart) + post.slice(finalFigureEnd + 9) : post;
+    const ctaStart = postWithoutFinalFigure.indexOf('<div class="post-cta">');
+    const figureOutsideBody = !finalFigureMarkup || ctaStart < 0
+      ? post
+      : postWithoutFinalFigure.slice(0, ctaStart) + finalFigureMarkup + '\n          ' + postWithoutFinalFigure.slice(ctaStart);
     const mutationFixtures = [
       { label: '정적 글 제목', source: 'post', original: post, mutated: post.replace(titleMarkup, '<h1 class="post-title">오염된 사례 제목</h1>'), expectedViolation: '정적 글 제목 불일치' },
       { label: '정적 글 요약', source: 'post', original: post, mutated: post.replace(excerptMarkup, '<p class="post-excerpt">오염된 사례 요약</p>'), expectedViolation: '정적 글 요약 불일치' },
       { label: '정적 글 마지막 소제목', source: 'post', original: post, mutated: post.replace(headingMarkup, '<h2>오염된 마지막 소제목</h2>'), expectedViolation: '정적 글 마지막 소제목 불일치' },
+      { label: '정적 글 마지막 설명', source: 'post', original: post, mutated: post.replace(paragraphMarkup, '<p>오염된 마지막 작업 설명</p>'), expectedViolation: '정적 글 마지막 설명 불일치' },
+      { label: '정적 글 본문 밖 마지막 사진', source: 'post', original: post, mutated: figureOutsideBody, expectedViolation: '정적 글 마지막 사진이 본문 밖에 있음' },
       { label: '블로그 카드 제목', source: 'blog', original: blog, mutated: blog.replace(blogTitleMarkup, '<b>오염된 블로그 카드 제목</b>'), expectedViolation: '블로그 카드 제목 불일치' },
       { label: '블로그 카드 요약', source: 'blog', original: blog, mutated: blog.replace(blogExcerptMarkup, '<span class="ic-excerpt">오염된 블로그 카드 요약</span>'), expectedViolation: '블로그 카드 요약 불일치' },
       { label: 'RSS 제목', source: 'rss', original: rss, mutated: rss.replace(rssTitleMarkup, '<title>오염된 RSS 제목</title>'), expectedViolation: 'RSS 제목 불일치' },
