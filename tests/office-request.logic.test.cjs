@@ -107,3 +107,132 @@ test('상태와 보완 사유 표시 계약을 제공하고 SMS helpers는 노�
   assert.equal('buildSmsHref' in api, false);
   assert.equal('formatRequestMessage' in api, false);
 });
+
+const RECENT_NOW = Date.parse('2026-08-30T12:00:00.000Z');
+const recentRow = (requestId, status, updatedAt, extra = {}) => ({
+  requestId, receiptNo: `MM-${requestId}`, unit: '101동 1203호', location: '공용 배관실',
+  status, updatedAt, ...extra,
+});
+
+test('최초 목록은 비교 기준만 만들 수 있는 최소 스냅샷으로 정규화한다', () => {
+  const row = recentRow('req-1', 'pending_review', '2026-08-30T09:00:00.000Z', {
+    description: '스냅샷에 들어가면 안 되는 설명', officeContact: { phone: '010-1111-2222' },
+  });
+  const result = api.normalizeRecentList([row], RECENT_NOW);
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.snapshot, [{ requestId: 'req-1', status: 'pending_review', updatedAtMs: Date.parse(row.updatedAt) }]);
+  assert.equal('description' in result.snapshot[0], false);
+  assert.equal('officeContact' in result.snapshot[0], false);
+  assert.equal(api.diffRecentSnapshots(null, result.snapshot).total, 0);
+});
+
+test('새 ID와 상태 변경 및 유효한 시각 증가만 최근 변경으로 판정한다', () => {
+  const previous = [
+    { requestId: 'req-1', status: 'pending_review', updatedAtMs: Date.parse('2026-08-30T09:00:00.000Z') },
+    { requestId: 'req-2', status: 'accepted', updatedAtMs: Date.parse('2026-08-30T09:30:00.000Z') },
+    { requestId: 'req-3', status: 'in_progress', updatedAtMs: Date.parse('2026-08-30T10:00:00.000Z') },
+  ];
+  const current = [
+    { requestId: 'req-4', status: 'pending_review', updatedAtMs: Date.parse('2026-08-30T11:00:00.000Z') },
+    { requestId: 'req-1', status: 'needs_info', updatedAtMs: Date.parse('2026-08-30T09:00:00.000Z') },
+    { requestId: 'req-2', status: 'accepted', updatedAtMs: Date.parse('2026-08-30T10:30:00.000Z') },
+    { requestId: 'req-3', status: 'in_progress', updatedAtMs: Date.parse('2026-08-30T10:00:00.000Z') },
+  ];
+  assert.deepEqual(api.diffRecentSnapshots(previous, current), {
+    total: 3,
+    changes: [
+      { requestId: 'req-4', kind: 'appeared', status: 'pending_review', updatedAtMs: Date.parse('2026-08-30T11:00:00.000Z') },
+      { requestId: 'req-2', kind: 'updated', status: 'accepted', updatedAtMs: Date.parse('2026-08-30T10:30:00.000Z') },
+      { requestId: 'req-1', kind: 'status', status: 'needs_info', updatedAtMs: Date.parse('2026-08-30T09:00:00.000Z') },
+    ],
+  });
+});
+
+test('사라진 ID와 과거 시각 및 무효와 유효 사이 전환은 변경으로 추론하지 않는다', () => {
+  const previous = [
+    { requestId: 'gone', status: 'accepted', updatedAtMs: Date.parse('2026-08-30T10:00:00.000Z') },
+    { requestId: 'older', status: 'accepted', updatedAtMs: Date.parse('2026-08-30T10:00:00.000Z') },
+    { requestId: 'invalid-transition', status: 'accepted', updatedAtMs: null },
+  ];
+  const current = [
+    { requestId: 'older', status: 'accepted', updatedAtMs: Date.parse('2026-08-30T09:00:00.000Z') },
+    { requestId: 'invalid-transition', status: 'accepted', updatedAtMs: Date.parse('2026-08-30T11:00:00.000Z') },
+  ];
+  assert.deepEqual(api.diffRecentSnapshots(previous, current), { total: 0, changes: [] });
+});
+
+test('중복 ID는 유효한 최신 행 하나를 선택하고 입력을 수정하지 않는다', () => {
+  const rows = [
+    recentRow('duplicate', 'accepted', 'not-a-time', { marker: 'first' }),
+    recentRow('duplicate', 'visit_scheduled', '2026-08-30T10:00:00.000Z', { marker: 'second' }),
+    recentRow('duplicate', 'completed', '2026-08-30T09:00:00.000Z', { marker: 'third' }),
+  ];
+  const before = JSON.stringify(rows);
+  const result = api.normalizeRecentList(rows, RECENT_NOW);
+  assert.equal(result.ok, true);
+  assert.equal(result.rows.length, 1);
+  assert.equal(result.rows[0].marker, 'second');
+  assert.deepEqual(result.snapshot, [{ requestId: 'duplicate', status: 'visit_scheduled', updatedAtMs: Date.parse('2026-08-30T10:00:00.000Z') }]);
+  assert.equal(JSON.stringify(rows), before);
+  const allInvalid = api.normalizeRecentList([
+    recentRow('invalid-duplicate', 'accepted', 'bad-time', { marker: 'keep-first' }),
+    recentRow('invalid-duplicate', 'completed', 'also-bad', { marker: 'drop-second' }),
+  ], RECENT_NOW);
+  assert.equal(allInvalid.rows[0].marker, 'keep-first');
+});
+
+test('legacy id는 canonical requestId로만 정규화하고 잘못된 행은 안전하게 거른다', () => {
+  const result = api.normalizeRecentList([
+    { id: 'legacy-1', status: 'accepted', updatedAt: '2026-08-30T10:00:00.000Z' },
+    { requestId: '   ', id: 'legacy-blank-primary', status: 'accepted', updatedAt: '2026-08-30T10:00:00.000Z' },
+    { requestId: '', status: 'accepted', updatedAt: '2026-08-30T10:00:00.000Z' },
+    { requestId: 'x'.repeat(121), status: 'accepted', updatedAt: '2026-08-30T10:00:00.000Z' },
+    { requestId: 'bad-status', status: 'not-contracted', updatedAt: '2026-08-30T10:00:00.000Z' },
+  ], RECENT_NOW);
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.snapshot, [
+    { requestId: 'legacy-1', status: 'accepted', updatedAtMs: Date.parse('2026-08-30T10:00:00.000Z') },
+    { requestId: 'legacy-blank-primary', status: 'accepted', updatedAtMs: Date.parse('2026-08-30T10:00:00.000Z') },
+  ]);
+  assert.equal(result.rows[0].id, 'legacy-1');
+});
+
+test('비어 있지 않은 전부 무효 응답은 실패하고 진짜 빈 배열은 유효하다', () => {
+  assert.deepEqual(api.normalizeRecentList([], RECENT_NOW), { ok: true, rows: [], snapshot: [] });
+  assert.deepEqual(api.normalizeRecentList([{ requestId: '', status: '' }], RECENT_NOW), { ok: false, rows: [], snapshot: [] });
+  assert.deepEqual(api.normalizeRecentList(null, RECENT_NOW), { ok: false, rows: [], snapshot: [] });
+});
+
+test('시간대 없는 ISO와 미래 시각은 무효이며 상태 변경 시에도 시각은 null이다', () => {
+  const result = api.normalizeRecentList([
+    recentRow('no-zone', 'accepted', '2026-08-30T10:00:00'),
+    recentRow('future', 'needs_info', '2026-08-30T12:00:00.001Z'),
+  ], RECENT_NOW);
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.snapshot.map((entry) => entry.updatedAtMs), [null, null]);
+});
+
+test('최근 변경은 최신순 최대 10건과 전체 건수를 반환한다', () => {
+  const current = Array.from({ length: 12 }, (_, index) => ({
+    requestId: `req-${index}`, status: 'accepted', updatedAtMs: RECENT_NOW - (index * 1000),
+  }));
+  const result = api.diffRecentSnapshots([], current);
+  assert.equal(result.total, 12);
+  assert.equal(result.changes.length, 10);
+  assert.deepEqual(result.changes.map((entry) => entry.requestId), current.slice(0, 10).map((entry) => entry.requestId));
+  const tied = api.diffRecentSnapshots([], [
+    { requestId: 'first-tie', status: 'accepted', updatedAtMs: RECENT_NOW },
+    { requestId: 'second-tie', status: 'accepted', updatedAtMs: RECENT_NOW },
+  ]);
+  assert.deepEqual(tied.changes.map((entry) => entry.requestId), ['first-tie', 'second-tie']);
+});
+
+test('업무 상태와 변경 종류를 승인된 문구로 표현한다', () => {
+  assert.equal(api.recentChangeLabel({ kind: 'appeared', status: 'pending_review' }), '이번 새로고침에서 새로 확인');
+  assert.equal(api.recentChangeLabel({ kind: 'status', status: 'needs_info' }), '자료 보완 필요');
+  assert.equal(api.recentChangeLabel({ kind: 'status', status: 'visit_scheduled' }), '방문 예정');
+  assert.equal(api.recentChangeLabel({ kind: 'status', status: 'completed' }), '작업 완료');
+  assert.equal(api.recentChangeLabel({ kind: 'status', status: 'billed' }), '청구 완료');
+  assert.equal(api.recentChangeLabel({ kind: 'status', status: 'paid' }), '입금 완료');
+  assert.equal(api.recentChangeLabel({ kind: 'updated', status: 'accepted' }), '내용 갱신');
+});

@@ -10,6 +10,12 @@
     pending_review: '접수됨', needs_info: '내용 확인 필요', accepted: '확인 완료', visit_scheduled: '방문 예정',
     in_progress: '작업 중', completed: '작업 완료', billed: '청구 완료', paid: '처리 완료', on_hold: '확인 중', cancelled: '취소됨',
   };
+  const CONTRACTED_STATUSES = new Set(Object.keys(STATUS_LABELS));
+  const ISO_WITH_ZONE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/;
+  const RECENT_LABELS = {
+    needs_info: '자료 보완 필요', visit_scheduled: '방문 예정', completed: '작업 완료',
+    billed: '청구 완료', paid: '입금 완료', cancelled: '취소됨',
+  };
 
   function text(value, max) { return String(value == null ? '' : value).trim().slice(0, max); }
   function digits(value) { return String(value == null ? '' : value).replace(/\D/g, ''); }
@@ -65,5 +71,67 @@
   }
   function statusLabel(status) { return STATUS_LABELS[status] || '확인 중'; }
   function needsInfoLabel(reason) { const value = text(reason, 301); return value.length <= 300 ? value : ''; }
-  return { normalizePhone, parseOfficeSlug, validateLogin, validateRequest, buildCreatePayload, statusLabel, needsInfoLabel };
+  function canonicalRequestId(item) {
+    const primary = item && typeof item.requestId === 'string' ? item.requestId.trim() : '';
+    const fallback = item && typeof item.id === 'string' ? item.id.trim() : '';
+    const id = primary || fallback;
+    return id.length > 0 && id.length <= 120 ? id : '';
+  }
+  function validUpdatedAt(value, validationNow) {
+    if (typeof value !== 'string' || !ISO_WITH_ZONE.test(value.trim())) return null;
+    const parsed = Date.parse(value);
+    return Number.isFinite(parsed) && parsed <= validationNow ? parsed : null;
+  }
+  function normalizeRecentList(rows, validationNow) {
+    if (!Array.isArray(rows) || !Number.isFinite(validationNow)) return { ok: false, rows: [], snapshot: [] };
+    if (rows.length === 0) return { ok: true, rows: [], snapshot: [] };
+    const chosen = new Map();
+    rows.forEach((row, index) => {
+      if (!row || typeof row !== 'object' || Array.isArray(row)) return;
+      const requestId = canonicalRequestId(row);
+      const status = typeof row.status === 'string' && CONTRACTED_STATUSES.has(row.status) ? row.status : '';
+      if (!requestId || !status) return;
+      const updatedAtMs = validUpdatedAt(row.updatedAt, validationNow);
+      const candidate = { index, row, snapshot: { requestId, status, updatedAtMs } };
+      const current = chosen.get(requestId);
+      if (!current || (updatedAtMs !== null && (current.snapshot.updatedAtMs === null || updatedAtMs > current.snapshot.updatedAtMs))) {
+        chosen.set(requestId, candidate);
+      }
+    });
+    if (!chosen.size) return { ok: false, rows: [], snapshot: [] };
+    const selected = [...chosen.values()].sort((left, right) => left.index - right.index);
+    return { ok: true, rows: selected.map((entry) => entry.row), snapshot: selected.map((entry) => entry.snapshot) };
+  }
+  function diffRecentSnapshots(previous, current) {
+    if (!Array.isArray(current) || previous === null) return { total: 0, changes: [] };
+    const before = new Map((Array.isArray(previous) ? previous : []).map((entry) => [entry.requestId, entry]));
+    const detected = [];
+    current.forEach((entry, order) => {
+      const prior = before.get(entry.requestId);
+      let kind = '';
+      if (!prior) kind = 'appeared';
+      else if (prior.status !== entry.status) kind = 'status';
+      else if (prior.updatedAtMs !== null && entry.updatedAtMs !== null && entry.updatedAtMs > prior.updatedAtMs) kind = 'updated';
+      if (kind) detected.push({ requestId: entry.requestId, kind, status: entry.status, updatedAtMs: entry.updatedAtMs, order });
+    });
+    detected.sort((left, right) => {
+      const leftTime = left.updatedAtMs === null ? Number.NEGATIVE_INFINITY : left.updatedAtMs;
+      const rightTime = right.updatedAtMs === null ? Number.NEGATIVE_INFINITY : right.updatedAtMs;
+      return rightTime - leftTime || left.order - right.order;
+    });
+    return {
+      total: detected.length,
+      changes: detected.slice(0, 10).map(({ order, ...entry }) => entry),
+    };
+  }
+  function recentChangeLabel(change) {
+    if (!change || typeof change !== 'object') return '변경 확인';
+    if (change.kind === 'appeared') return '이번 새로고침에서 새로 확인';
+    if (change.kind === 'updated') return '내용 갱신';
+    return RECENT_LABELS[change.status] || statusLabel(change.status);
+  }
+  return {
+    normalizePhone, parseOfficeSlug, validateLogin, validateRequest, buildCreatePayload,
+    statusLabel, needsInfoLabel, normalizeRecentList, diffRecentSnapshots, recentChangeLabel,
+  };
 });
