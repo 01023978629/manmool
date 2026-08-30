@@ -15,7 +15,12 @@ let server;
 test('목록 응답을 적용하기 직전에 최신 list generation을 확인한다', () => {
   const controller = fs.readFileSync(path.join(ROOT, 'js', 'office-request.js'), 'utf8');
   assert.match(controller, /listGeneration\s*\+=\s*1/);
-  assert.match(controller, /listAttempt\s*!==\s*listGeneration/);
+  const successStart = controller.indexOf("const response = await authenticatedCall('officeList', {});");
+  const catchStart = controller.indexOf('} catch (error) {', successStart);
+  assert.notEqual(successStart, -1, 'officeList success response is missing');
+  assert.notEqual(catchStart, -1, 'officeList success block boundary is missing');
+  const successResponse = controller.slice(successStart, catchStart);
+  assert.match(successResponse, /const response\s*=\s*await authenticatedCall\('officeList', \{\}\);\s*if\s*\(\s*!isCurrentSession\(\s*candidate\s*,\s*generation\s*\)\s*\|\|\s*listAttempt\s*!==\s*listGeneration\s*\)\s*return\s*;\s*const validationNow\s*=\s*Date\.now\(\)\s*;\s*const normalized\s*=\s*core\.normalizeRecentList/);
 });
 
 function serveStatic(req, res) {
