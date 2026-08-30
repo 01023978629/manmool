@@ -869,6 +869,7 @@ git commit -m "feat: add inquiry-only leak diagnosis handoff"
 **Files:**
 - Create: `scripts/ensure-revenue-operations.mjs`
 - Modify: `scripts/ensure-conversion-basics.mjs`
+- Modify: `privacy.html`
 - Modify: `tests/pages-artifact-policy.test.cjs`
 - Modify: `.github/workflows/deploy-pages.yml`
 - Modify: `tests/revenue-conversion.e2e.cjs`
@@ -970,6 +971,8 @@ inquiryPurpose: /신청 목적/, preferredVisitDate: /희망 방문일/,
 preferredVisitWindow: /희망 시간대/
 ```
 
+The current `privacy.html` predates those exact field labels. Make one narrow disclosure correction in the same task: inside `#privacy-office-pilot-items`, change `관리사무소 담당자` to `관리사무소 담당자명` and `요청 업무 분류` to `관심 업무`; inside `#privacy-leak-items`, explicitly add `신청 목적`, `희망 방문일`, and `희망 시간대`. Do not change retention, consent, provider, portal, or collection behavior.
+
 Make the dynamic collect-key audit read both `js/office-pilot.js` and `js/leak-inquiry.js`; define `META_KEYS` as `consent`, `privacyConsent`, `source`, `sourcePage`, `ctaId`, `submittedAt`, `status`, and `bookingStatus` so the policy checks user-information disclosure but does not mistake routing state for collected personal information. `bookingStatus` is therefore deliberately absent from `LEAD_FIELD_NOTICE`; add a separate non-privacy assertion that it remains the exact literal `inquiry-only` and that the success copy says it is not a reservation confirmation. Add separate assertions that `#privacy-office-pilot-items` contains the literal `관리사무소 30일 파일럿 신청`, the one-year rule, deletion-contact route, the resident-data warning, and the explicit-pattern rejection statement without claiming arbitrary free text can never contain PII.
 
 Implement `scripts/ensure-revenue-operations.mjs` with `read()` from the repository root and direct regular-expression checks only. Read `office.html`, `office-request.html`, `privacy.html`, `js/office-pilot.js`, `js/leak-inquiry.js`, `js/revenue-conversion.js`, and `scripts/pages-artifact-policy.mjs`; derive `pilotCollect`, `pilotSuccessBody`, and `officeRequestNotice` with balanced function/element extraction before applying the checks above. Require `PUBLIC_JS_FILES` to include exactly one `office-pilot.js` and exactly one `revenue-conversion.js`, otherwise return an `artifact allowlist` failure. It must also:
@@ -1042,7 +1045,7 @@ Expected: PASS. The artifact contains the two named scripts and no unlisted outp
 - [ ] **Step 5: Commit the public-operation release gates**
 
 ```bash
-git add scripts/ensure-conversion-basics.mjs scripts/ensure-revenue-operations.mjs tests/pages-artifact-policy.test.cjs tests/revenue-conversion.e2e.cjs .github/workflows/deploy-pages.yml
+git add scripts/ensure-conversion-basics.mjs scripts/ensure-revenue-operations.mjs privacy.html tests/pages-artifact-policy.test.cjs tests/revenue-conversion.e2e.cjs .github/workflows/deploy-pages.yml
 git commit -m "test: gate public revenue conversion contracts"
 ```
 
