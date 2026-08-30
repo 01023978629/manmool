@@ -12,9 +12,9 @@ let server;
 
 test('배포 게이트의 공개 포털 소스 계약은 설정 CLI와 fail-closed 설정을 요구한다', () => {
   const read = (relative) => fs.readFileSync(path.join(ROOT, relative), 'utf8');
-  const portal = ['office-request.html', 'js/office-request-core.js', 'js/office-request.js', 'js/office-request-api.js', 'js/office-request-photo.js']
-    .map(read)
-    .join('\n');
+  const request = read('office-request.html');
+  const controller = read('js/office-request.js');
+  const portal = [request, read('js/office-request-core.js'), controller, read('js/office-request-api.js'), read('js/office-request-photo.js')].join('\n');
   const config = read('office-api.json');
   const policy = read('scripts/pages-artifact-policy.mjs');
   const workflow = read('.github/workflows/deploy-pages.yml');
@@ -27,7 +27,11 @@ test('배포 게이트의 공개 포털 소스 계약은 설정 CLI와 fail-clos
   assert.match(portal, /sessionStorage/);
   assert.doesNotMatch(portal, /(localStorage|indexedDB|APP_TOKEN|OFFICE_SESSION_SECRET|pinHash|pinSalt)/);
   assert.match(workflow, /node --test --test-concurrency=1 tests\/configure-office-api\.test\.cjs tests\/pages-artifact-policy\.test\.cjs/);
-  assert.match(workflow, /node --test --test-concurrency=1 tests\/office-request\.logic\.test\.cjs tests\/office-request-api\.test\.cjs tests\/office-request-auth\.e2e\.cjs tests\/office-request-workflow\.e2e\.cjs tests\/office-intake\.e2e\.cjs/);
+  assert.match(workflow, /node --test --test-concurrency=1 tests\/office-request\.logic\.test\.cjs tests\/office-request-api\.test\.cjs tests\/office-request-auth\.e2e\.cjs tests\/office-request-workflow\.e2e\.cjs tests\/office-request-recent-changes\.e2e\.cjs tests\/office-intake\.e2e\.cjs/);
+  assert.match(request, /css\/office-request\.css\?v=20260830-office-recent1/);
+  assert.match(request, /js\/office-request-core\.js\?v=20260830-office-recent1/);
+  assert.match(request, /js\/office-request\.js\?v=20260830-office-recent1/);
+  assert.doesNotMatch(controller, /(setInterval|visibilitychange|Notification\s*\(|serviceWorker\.register)/);
   assert.ok(workflow.indexOf('Run management office portal regression') < workflow.indexOf('Build public allowlist artifact'));
 });
 
