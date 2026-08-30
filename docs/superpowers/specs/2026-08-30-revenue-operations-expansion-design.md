@@ -216,7 +216,14 @@ Google Apps Script OfficeOps API
 - 도입 희망 시점
 - 문의 내용
 
-입주민 이름·전화번호·동호수·현장사진은 파일럿 신청 단계에서 받지 않는다. 전송 payload는 `source: office-pilot`, `sourcePage`, `ctaId`를 포함한다.
+입주민 이름·전화번호·동호수·현장사진은 파일럿 신청 단계에서 의도적으로 받지
+않는다. 문의 내용 옆에 이를 입력하지 말라는 안내를 표시하고, 국내 전화번호 형태,
+숫자 동·호수, URL·사진 링크, `입주민/세대주 이름·성명`처럼 명시적인 주민정보
+패턴이 있으면 전송을 막는다. 단지명·담당자명·지역·도입 희망 시점·문의 내용은
+고정 길이 제한을 두고 관심 업무는 위 네 값만 허용한다. 전송 payload는
+`source: office-pilot`, `sourcePage`, `ctaId`를 포함한다. n8n 원문뿐 아니라
+Web3Forms 사람이 읽는 본문과 실패 시 문자·복사 내용에도 단지명, 담당자명, 지역,
+관심 업무, 도입 희망 시점, 문의 내용이 빠짐없이 표시되어야 한다.
 
 ### 6.2 유상 누수진단과 네이버 예약 연결
 
@@ -548,8 +555,16 @@ OfficeOps 서버 액션과 저장소는 기존 `load`, `save`, `OfficeIntake`, �
 - 누수 유상 진단 신청이 예약·결제·방문 확정으로 표시되지 않는다.
 - 유상 장비진단 문의는 이메일에서 자동 수입되지 않는다. `createPaidDiagnosisOrderFromManualLead()`가 증빙 영수증·공통 게이트를 통과할 때만 기존 오더 한 건을 만들고, 실패하면 프로젝트·일정·오더 변경이 0건이다.
 - `naver.ready=false`, 비공식 host, 유사 도메인, credentials, 커스텀 포트이면 예약 버튼이 노출되지 않는다. 허용 URL은 query를 유지하고 fragment를 제거한다.
+- 네이버 버튼을 실제 클릭한 뒤 폼을 제출해도 payload는 `inquiry-only`이고,
+  현재 URL·브라우저 저장소·내부 예약 레코드가 바뀌지 않는다.
 - UTM·CTA 항목은 길이·허용문자 제한을 거치고 세 UTM 필드의 전화번호 형태를
   거절하며, 폼 개인정보를 URL·분석값으로 복사하지 않는다.
+- `referenceCase`의 새 브라우저 payload는 검증된 slug 문자열이고, 기존 객체형
+  입력 호환은 `LeadTransport` 단위 회귀에서만 유지한다.
+- `office.html`의 `connect-src` 토큰 집합은 정확히 `'self'`와 활성 provider origin만
+  포함하며 유사 접두 origin·불필요한 추가 origin·중복·와일드카드를 거절한다.
+- Pages 허용목록으로 실제 생성한 최종 artifact의 모든 텍스트형 공개 파일(생성된
+  게시물과 JSON-LD 포함)에서 제거 대상 `500만원 이하 표준 패키지` 판매 문구가 0건이다.
 - `scripts/ensure-conversion-basics.mjs`의 기존 `표준 패키지 500만원 이하` 고정문구 검사를 `접수 프로그램 이용료 0원`과 `실제 작업은 별도 견적` 동시 검사로 교체한다.
 - `tests/revenue-conversion.e2e.cjs`, `tests/lead-transport.test.cjs`, `scripts/ensure-revenue-operations.mjs`와 기존 인테리어·누수·관리사무소 문의 폴백·포털 인증 회귀검사가 통과한다.
 - 무료 정책 변경 후 `rg`로 공개 HTML·구조화데이터·운영문서의 `500만원 이하 표준 패키지` 판매 문구가 0건인지 확인한다. 내부 계약선정 참고문구는 공개 판매가가 아님을 표시한다.

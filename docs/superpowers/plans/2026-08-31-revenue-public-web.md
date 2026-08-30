@@ -23,6 +23,8 @@
 - 누수 폼의 신청 목적은 `phone-consult` 또는 `paid-device-diagnosis`이며, 희망 방문일과 시간대(`morning|afternoon|any`)는 선택이다. 기존 `1차 인테리어 방문 실측 무료`, `누수 장비 탐지는 착수부터 유료` 정책과 충돌하는 카피를 추가하지 않는다.
 - 예방점검 공개 안내는 점검 대상과 산출물(체크리스트·위험항목 요약·현장사진·보수 권고)만 설명하며 고정가격, 안전진단 확정, 하자 판정, 무조건 수리 표현을 쓰지 않는다.
 - 외부 전송이 HTTP 성공과 provider 승인 본문을 모두 반환했을 때만 접수 완료로 표시한다. 실패하면 다시 시도·전화·문자·복사 대체수단을 표시하고, 네이버 버튼 클릭은 접수 완료로 기록하지 않는다.
+- 관리사무소 문의 내용에는 `입주민 이름·전화번호·동호수·사진 링크를 적지 마세요`를 표시한다. 국내 전화번호, 숫자 동·호수, URL·사진 링크, `입주민/세대주 이름·성명`의 명시적 패턴은 전송 전 거절하고, 모든 문자열은 고정 길이 제한, 관심 업무는 정확한 네 값 allowlist를 적용한다.
+- `office.html`의 CSP `connect-src`는 토큰 집합으로 파싱했을 때 정확히 `'self'`와 현재 활성 provider의 정규화된 origin만 한 번씩 포함해야 한다. 접두 유사 origin, 비활성 provider, 임의 추가 origin, 중복, scheme/path 토큰, 와일드카드는 거절한다.
 - Pages 공개 허용목록은 정확한 파일명 목록이다. 새 공개 JavaScript는 `scripts/pages-artifact-policy.mjs`에 명시하고, source와 `_site` 산출물의 정확한 일치를 계속 검증한다.
 - main 직접 push, PR 생성, Pages 배포, `naver.ready=true` 전환, 네이버 계정 설정은 이 구현 계획의 실행 범위가 아니다. 구현 시작 직전에 `git fetch origin`, `git status --short`, `git rev-parse origin/main`으로 기준과 작업본을 다시 확인한다.
 
@@ -207,6 +209,8 @@ assert.deepEqual(n8nRequest, payload);
 
 Keep the existing object-shaped `referenceCase:{slug,title}` message behavior for backward compatibility, and add a separate string-shaped assertion for the new public metadata contract. Web3Forms human text must include the verified slug in both cases; n8n preserves the payload value exactly.
 
+Also extend the same transport test with a pilot payload containing `complexName`, `officeContactName`, `region`, `pilotInterest`, `desiredStart`, and `memo`. `buildLeadText()` and the Web3Forms message must render exact labels `단지명`, `관리사무소 담당자`, `지역`, `관심 업무`, `도입 희망 시점`, and `문의 내용`; the n8n JSON must remain byte-for-byte equivalent to the input payload. Map the four interest codes only for display (`leak-piping→누수·배관`, `common-repair→공용부 보수`, `preventive-inspection→예방점검`, `other→기타`) while preserving the raw array in n8n.
+
 Before modifying `PUBLIC_JS_FILES`, extend `tests/pages-artifact-policy.test.cjs` with a RED assertion that `revenue-conversion.js` occurs exactly once, `expectedPublicFiles(ROOT)` resolves that exact source file, and an isolated build/verify round trip contains byte-identical `js/revenue-conversion.js` with no output-only file.
 
 - [ ] **Step 2: Run the new tests to verify they fail**
@@ -283,7 +287,7 @@ Add this public, inert configuration next to the existing top-level integrations
 }
 ```
 
-Extend `buildLeadText(d)` with explicit labels only when values are present. Map `phone-consult` to `전화로 증상 상담`, `paid-device-diagnosis` to `유상 장비진단·방문 일정 상담`, and `morning|afternoon|any` to `오전|오후|시간 협의`; emit `예약 상태: inquiry-only` literally. Treat a string `referenceCase` as the verified slug and retain the existing `{slug,title}` rendering for backward compatibility. Preserve existing n8n payload passthrough and provider response checks.
+Extend `buildLeadText(d)` with explicit labels only when values are present. Map `phone-consult` to `전화로 증상 상담`, `paid-device-diagnosis` to `유상 장비진단·방문 일정 상담`, and `morning|afternoon|any` to `오전|오후|시간 협의`; emit `예약 상태: inquiry-only` literally. Treat a string `referenceCase` as the verified slug and retain the existing `{slug,title}` rendering for backward compatibility. Render all pilot labels and display-only interest mappings described in Step 1 so Web3Forms, SMS, and copy fallbacks cannot lose the business context. Preserve existing n8n payload passthrough and provider response checks.
 
 Add `revenue-conversion.js` to `PUBLIC_JS_FILES` in `scripts/pages-artifact-policy.mjs` immediately before `lead-transport.js`; do not broaden directory scanning.
 
@@ -315,6 +319,7 @@ git commit -m "feat: add public conversion metadata boundary"
 **Interfaces:**
 - Consumes: `window.ManmulRevenue.captureLeadMetadata(window.location, 'office-pilot-submit')`, `window.ManmulLead`, and `data/config.json` from Task 1.
 - Produces: an external payload with `source: 'office-pilot'`, `sourcePage`, `ctaId`, `complexName`, `officeContactName`, `phone`, `region`, `pilotInterest`, `privacyConsent`, plus optional `desiredStart` and `memo`; no portal/API state, hyeonjang deep link, lead fragment, auto-import, or resident fields.
+- Enforces: exact pilot-interest allowlist, per-field maximum lengths, and a fail-closed resident-PII pattern check on `memo` before `rememberFailure()` or any provider call.
 
 - [ ] **Step 1: Write the failing pilot browser test**
 
@@ -368,6 +373,8 @@ test('30일 시험운영 신청은 최소 정보와 0원/별도 견적 경계를
   await page.fill('#pilotPhone', '042-123-4567');
   await page.fill('#pilotRegion', '대전 중구');
   await page.check('input[name="pilotInterest"][value="preventive-inspection"]');
+  await page.fill('#pilotDesiredStart', '2026년 9월');
+  await page.fill('#pilotMemo', '공용부 우수관 상담');
   await page.check('#pilotPrivacyConsent');
   await page.click('#officePilotSubmit');
   await waitFor(() => posted.length === 1);
@@ -376,6 +383,12 @@ test('30일 시험운영 신청은 최소 정보와 0원/별도 견적 경계를
   assert.equal(posted[0].ctaId, 'office-pilot-submit');
   assert.equal(posted[0].utmCampaign, 'pilot-2026');
   assert.equal(posted[0].privacyConsent, true);
+  assert.equal(posted[0].complexName, '테스트 단지');
+  assert.equal(posted[0].officeContactName, '테스트 담당자');
+  assert.deepEqual(posted[0].pilotInterest, ['preventive-inspection']);
+  for (const expected of ['단지명: 테스트 단지', '관리사무소 담당자: 테스트 담당자', '지역: 대전 중구', '관심 업무: 예방점검', '도입 희망 시점: 2026년 9월', '문의 내용: 공용부 우수관 상담']) {
+    assert.match(posted[0].message, new RegExp(expected));
+  }
   for (const forbidden of ['residentName', 'residentPhone', 'unit', 'photo', 'bookingStatus']) assert.equal(Object.hasOwn(posted[0], forbidden), false);
   assert.match(await page.locator('#officePilotDone').innerText(), /접수됐습니다/);
   assert.match(await page.locator('#officePilotDone').innerText(), /접수 프로그램 이용료 0원/);
@@ -395,12 +408,71 @@ In the same file add an explicit failed-delivery check:
 ```js
 test('파일럿 폼은 필수값·동의 없이 전송하지 않고 실패 시 영구 저장 없이 대체 경로를 보인다', async () => {
   const page = await browser.newPage();
+  await page.addInitScript(() => {
+    window.__pilotCopied = [];
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async text => window.__pilotCopied.push(String(text)) } });
+  });
   await page.route('https://api.web3forms.com/**', route => route.fulfill({ status: 500, body: '{}' }));
   await page.goto(`${origin}/office.html`);
   await page.click('#officePilotSubmit');
   assert.match(await page.locator('#officePilotStatus').innerText(), /단지명/);
+  await page.fill('#pilotComplexName', '실패 테스트 단지');
+  await page.fill('#pilotOfficeContactName', '시설 담당자');
+  await page.fill('#pilotPhone', '042-123-4567');
+  await page.fill('#pilotRegion', '대전 중구');
+  await page.check('input[name="pilotInterest"][value="common-repair"]');
+  await page.fill('#pilotDesiredStart', '다음 달');
+  await page.fill('#pilotMemo', '지하 공용배관 상담');
+  await page.check('#pilotPrivacyConsent');
+  await page.click('#officePilotSubmit');
+  await page.locator('#officePilotCopy').click();
+  const fallback = (await page.evaluate(() => window.__pilotCopied.join('\n'))) + '\n' + decodeURIComponent(await page.locator('#officePilotSms').getAttribute('href'));
+  for (const expected of ['실패 테스트 단지', '시설 담당자', '대전 중구', '공용부 보수', '다음 달', '지하 공용배관 상담']) assert.match(fallback, new RegExp(expected));
   assert.equal(await page.evaluate(() => localStorage.getItem('manmul_inquiries')), null);
   await page.close();
+});
+
+test('파일럿 unknown 관심 업무·각 주민정보 패턴·각 길이 초과는 독립적으로 0 POST다', async () => {
+  const residentCases = [
+    ['전화번호', '입주민 전화 010-1234-5678'],
+    ['동', '입주민 위치 101동'],
+    ['호', '입주민 위치 1002호'],
+    ['URL', '참고 https://example.test/a'],
+    ['사진 링크', '사진 링크를 확인해 주세요'],
+    ['입주민 이름', '입주민 이름 홍길동'],
+    ['세대주 성명', '세대주 성명 홍길동']
+  ];
+  const lengthCases = [
+    ['pilotComplexName', 81], ['pilotOfficeContactName', 51], ['pilotPhone', 31],
+    ['pilotRegion', 81], ['pilotDesiredStart', 81], ['pilotMemo', 501]
+  ];
+  const cases = residentCases.map(([label, memo]) => ({ label, memo, error:/입주민 정보/ }))
+    .concat(lengthCases.map(([id, length]) => ({ label:id, id, value:'가'.repeat(length), error:/길이/ })))
+    .concat([{ label:'unknown-interest', unknownInterest:true, error:/관심 업무/ }]);
+
+  for (const item of cases) {
+    const page = await browser.newPage();
+    let posts = 0;
+    await page.route('https://api.web3forms.com/**', route => { posts += 1; return route.fulfill({ status: 200, body: '{"success":true}' }); });
+    await page.goto(`${origin}/office.html`);
+    await page.fill('#pilotComplexName', '테스트 단지');
+    await page.fill('#pilotOfficeContactName', '시설 담당자');
+    await page.fill('#pilotPhone', '042-123-4567');
+    await page.fill('#pilotRegion', '대전');
+    await page.check('input[name="pilotInterest"][value="common-repair"]');
+    await page.check('#pilotPrivacyConsent');
+    if (item.memo) await page.fill('#pilotMemo', item.memo);
+    if (item.id) await page.evaluate(({ id, value }) => { document.getElementById(id).value = value; }, item);
+    if (item.unknownInterest) await page.evaluate(() => {
+      const injected = document.createElement('input');
+      injected.type = 'checkbox'; injected.name = 'pilotInterest'; injected.value = 'resident-contact'; injected.checked = true;
+      document.querySelector('#officePilotForm').append(injected);
+    });
+    await page.click('#officePilotSubmit');
+    assert.equal(posts, 0, item.label);
+    assert.match(await page.locator('#officePilotStatus').innerText(), item.error, item.label);
+    await page.close();
+  }
 });
 
 test('파일럿 전송 실패 PII는 모든 영구 sink·URL·console에 남지 않고 새로고침 뒤 재전송되지 않는다', async () => {
@@ -487,7 +559,7 @@ In `office.html`, replace the current `표준 패키지 500만원 이하` aside 
 </aside>
 ```
 
-Add `<section id="officePilot">` after the service section. Its `<form id="officePilotForm" novalidate>` must use field names `complexName`, `officeContactName`, `phone`, `region`, `pilotInterest`, `desiredStart`, `memo`, and `privacyConsent`, plus IDs `pilotComplexName`, `pilotOfficeContactName`, `pilotPhone`, `pilotRegion`, `pilotPrivacyConsent`, `officePilotSubmit`, `officePilotStatus`, and `officePilotDone`; use checkbox values `leak-piping`, `common-repair`, `preventive-inspection`, `other`. Include only one text field for each optional `pilotDesiredStart` and `pilotMemo`. Add `<p id="officePilotStaticNotice">접수 프로그램 이용료 0원 · 실제 작업은 별도 견적</p>` immediately beside the submit control, followed by this exact explanation: `30일은 접수·현황 확인 흐름을 시험하는 기간이며, 무제한 보수계약이나 무료 출동·공사를 뜻하지 않습니다.` The success renderer must place the same exact two phrases in `#officePilotDone` before any retry/phone/SMS controls. Keep every existing `office-request.html` link and portal section unchanged.
+Add `<section id="officePilot">` after the service section. Its `<form id="officePilotForm" novalidate>` must use field names `complexName`, `officeContactName`, `phone`, `region`, `pilotInterest`, `desiredStart`, `memo`, and `privacyConsent`, plus IDs `pilotComplexName`, `pilotOfficeContactName`, `pilotPhone`, `pilotRegion`, `pilotPrivacyConsent`, `officePilotSubmit`, `officePilotStatus`, and `officePilotDone`; use checkbox values `leak-piping`, `common-repair`, `preventive-inspection`, `other`. Set exact maxlengths: complex name 80, office contact 50, phone 30, region 80, desired start 80, memo 500. Include only one field for each optional `pilotDesiredStart` and `pilotMemo`, and put this literal text next to the memo: `입주민 이름·전화번호·동호수·현장사진 또는 사진 링크는 적지 마세요.` Add `<p id="officePilotStaticNotice">접수 프로그램 이용료 0원 · 실제 작업은 별도 견적</p>` immediately beside the submit control, followed by this exact explanation: `30일은 접수·현황 확인 흐름을 시험하는 기간이며, 무제한 보수계약이나 무료 출동·공사를 뜻하지 않습니다.` The failure renderer uses exact control IDs `officePilotRetry`, `officePilotSms`, and `officePilotCopy`; the success renderer must place the same exact two phrases in `#officePilotDone` before any retry/phone/SMS controls. Keep every existing `office-request.html` link and portal section unchanged.
 
 In `office-request.html`, add this static, non-interactive markup adjacent to the existing portal introduction and before the portal form:
 
@@ -548,11 +620,13 @@ const payload = Object.assign({}, collect(),
   { phone: normalizedPhone, source: 'office-pilot', submittedAt: new Date().toISOString(), status: '신규' });
 ```
 
+Before building `payload`, reject any field over its HTML maximum, require one to four unique `pilotInterest` values all drawn from exact `['leak-piping','common-repair','preventive-inspection','other']`, and reject `memo` when it matches a deterministic `RESIDENT_PII` expression covering: a domestic telephone number, `\d{1,4}\s*(동|호)`, `https?://`, `사진\s*링크`, `입주민\s*(이름|성명)`, or `세대주\s*(이름|성명)`. This validation happens before `LEAD.rememberFailure`, `LEAD.deliver`, retry generation, or any status that says the lead was accepted. Never attempt generic Korean-name inference outside those explicit phrases.
+
 Use the same latest-failure generation rules as `js/leak-inquiry.js`: call `LEAD.rememberFailure(payload)` only after delivery fails; use `LEAD.retryLatest(CONFIG)` for the retry button; call `LEAD.clearFailure(generation)` after a current successful submission; expose no `window` API; never persist or `console.*` the payload, and never change `location.href`, `location.search`, or `location.hash`. In failure rendering use `LEAD.buildLeadText(payload)` for the visible copy/SMS content and include retry, `tel:01023978629`, SMS, and copy controls. It must not create a hyeonjang URL, `#lead=`/`#hjreq=` fragment, auto-import request, or network request other than `data/config.json` and the existing selected LeadTransport endpoint.
 
 Add scoped `office.css` rules for `.office-pilot-form`, `.office-pilot-grid`, `.office-pilot-status.err`, `.office-pilot-done`, `.office-pilot-done[hidden]`, `.office-preventive-grid`, and a mobile single-column breakpoint. Inputs and submit controls must have a minimum 44px target and `:focus-visible` outline. Do not edit shared portal CSS.
 
-In `privacy.html`, add `<p id="privacy-office-pilot-items">` directly after the existing office-portal paragraph. Its literal opening must be `<b>관리사무소 30일 파일럿 신청</b>` and it must state: the pilot collects only complex name, office contact name, reply telephone, region, requested work category, optional desired start and inquiry content, and consent for partnership consultation/reply; it does not collect resident identity, unit number, resident telephone, or photo; successful lead handling uses the existing one-year general consultation rule; contact the displayed phone for access/correction/deletion. Do not call the pilot a portal account, contract, dispatch, or repair order.
+In `privacy.html`, add `<p id="privacy-office-pilot-items">` directly after the existing office-portal paragraph. Its literal opening must be `<b>관리사무소 30일 파일럿 신청</b>` and it must state: the pilot collects complex name, office contact name, reply telephone, region, requested work category, optional desired start and inquiry content, and consent for partnership consultation/reply; the form does not request resident identity, unit number, resident telephone, photo, or photo link and blocks the explicit patterns described above; users must not enter those items in free text; successful lead handling uses the existing one-year general consultation rule; contact the displayed phone for access/correction/deletion. Do not claim that arbitrary free text can never contain PII, and do not call the pilot a portal account, contract, dispatch, or repair order.
 
 Add `office-pilot.js` to `PUBLIC_JS_FILES` immediately after `lead-transport.js`.
 
@@ -560,7 +634,7 @@ Add `office-pilot.js` to `PUBLIC_JS_FILES` immediately after `lead-transport.js`
 
 Run: `node --test --test-concurrency=1 tests/revenue-conversion.e2e.cjs`
 
-Expected: PASS for the pilot payload, mandatory consent, all three exact commercial-copy locations, successful-delivery state, no persistent/browser sink, no post-reload restoration/auto-send, and no hyeonjang deep link/import. No request reaches a real provider because the test route intercepts it.
+Expected: PASS for the complete pilot payload and human-readable provider/SMS/copy content, mandatory consent, length/interest/explicit resident-PII rejection, all three exact commercial-copy locations, successful-delivery state, no persistent/browser sink, no post-reload restoration/auto-send, and no hyeonjang deep link/import. No request reaches a real provider because the test route intercepts it.
 
 - [ ] **Step 5: Commit the pilot conversion path**
 
@@ -575,9 +649,11 @@ The Task 2 commit must include `office-request.html` only as a portal file; it m
 
 **Files:**
 - Modify: `leak.html`
+- Modify: `css/leak-theme.css`
 - Modify: `js/leak-inquiry.js`
 - Modify: `tests/revenue-conversion.e2e.cjs`
 - Modify: `tests/revenue-metadata.test.cjs`
+- Modify: `tests/lead-privacy.e2e.cjs`
 
 **Interfaces:**
 - Consumes: `window.ManmulRevenue.validateNaverBookingUrl(rawUrl)`, `resolvePublishedLeakCase(caseSlug, caseIndex)`, and `captureLeadMetadata(window.location, 'leak-inquiry-submit', publishedReferenceCase)` from Task 1, plus the existing `window.ManmulLead` failure contract.
@@ -638,24 +714,60 @@ test('referenceCase는 공개 leak-case-index allowlist의 정확한 published s
   await waitFor(() => posted.length === 1);
   assert.equal(Object.hasOwn(posted[0], 'referenceCase'), false);
   await page.close();
+
+  const published = await browser.newPage();
+  const publishedPosts = [];
+  await published.route('https://api.web3forms.com/**', async route => {
+    publishedPosts.push(JSON.parse(route.request().postData()));
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"success":true}' });
+  });
+  await published.route('**/data/leak-case-index.json', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+    version: 1, cases: [{ slug: 'published-leak-case', title: '공개 사례', service: 'leak', published: true }]
+  }) }));
+  await published.goto(`${origin}/leak.html?case=published-leak-case`);
+  await published.fill('#lkPhone', '010-1234-5678'); await published.check('#lkConsent'); await published.click('#lkSubmit');
+  await waitFor(() => publishedPosts.length === 1);
+  assert.equal(publishedPosts[0].referenceCase, 'published-leak-case');
+  assert.match(publishedPosts[0].message, /참고 사례: published-leak-case/);
+  await published.close();
 });
 
-test('office-pilot와 leak은 hyeonjang deep link·자동 import·lead fragment 요청을 만들지 않는다', async () => {
+test('office-pilot와 leak의 실제 외부 요청 목적지는 활성 provider exact origin뿐이다', async () => {
   const page = await browser.newPage();
   const requests = [];
   page.on('request', request => requests.push(request.url()));
   await page.route('https://api.web3forms.com/**', route => route.fulfill({ status: 500, body: '{}' }));
   await page.goto(`${origin}/office.html`);
+  await page.fill('#pilotComplexName', '외부경계 테스트 단지');
+  await page.fill('#pilotOfficeContactName', '시설 담당자');
+  await page.fill('#pilotPhone', '042-123-4567');
+  await page.fill('#pilotRegion', '대전');
+  await page.check('input[name="pilotInterest"][value="preventive-inspection"]');
+  await page.check('#pilotPrivacyConsent');
+  await page.click('#officePilotSubmit');
+  await waitFor(() => requests.filter(url => url.startsWith('https://api.web3forms.com/')).length === 1);
+  const pilotExternal = requests.filter(url => /^https?:/.test(url) && new URL(url).origin !== origin).map(url => new URL(url).origin);
+  assert.deepEqual([...new Set(pilotExternal)], ['https://api.web3forms.com']);
+  assert.equal(requests.some(url => /hyeonjang|#(?:hjreq|lead)=|importLead|autoImport|booking|reservation|order|payment/i.test(url) && !url.startsWith('https://api.web3forms.com/')), false);
+  await new Promise(resolve => setTimeout(resolve, 250));
+  assert.equal(requests.filter(url => url.startsWith('https://api.web3forms.com/')).length, 1, 'failed pilot does not auto-retry');
   await page.goto(`${origin}/leak.html`);
   await page.fill('#lkPhone', '010-1234-5678'); await page.check('#lkConsent'); await page.click('#lkSubmit');
   await new Promise(resolve => setTimeout(resolve, 100));
-  assert.equal(requests.some(url => /hyeonjang|#(?:hjreq|lead)=|importLead|autoImport/i.test(url)), false);
+  const external = requests.filter(url => /^https?:/.test(url) && new URL(url).origin !== origin).map(url => new URL(url).origin);
+  assert.deepEqual([...new Set(external)], ['https://api.web3forms.com']);
+  assert.equal(requests.filter(url => url.startsWith('https://api.web3forms.com/')).length, 2, 'pilot and leak each submit once');
+  assert.equal(requests.some(url => /hyeonjang|#(?:hjreq|lead)=|importLead|autoImport|booking|reservation|order|payment/i.test(url) && !url.startsWith('https://api.web3forms.com/')), false);
   assert.equal(/#(?:hjreq|lead)=/i.test(page.url()), false);
   await page.close();
 });
 ```
 
 Add a second route fixture with `ready: true` and an exact allowed URL containing `?from=site#fragment`; assert that `#lkNaverBooking` has an `href` retaining `?from=site`, omitting `#fragment`, and `target="_blank" rel="noopener noreferrer"`. Add malicious URL cases for credentials, custom port, and `booking.naver.com.evil.example`, each expecting no button.
+
+For that allowed-link fixture, intercept the exact Naver origin at the browser-context level and actually click the link. Before clicking, install write spies for `localStorage`, `sessionStorage`, IndexedDB, and Cache Storage and snapshot the form page URL plus all storage keys. Assert the popup navigates only to the normalized exact Naver URL, then close it, submit the original leak form, and assert: the provider payload still has exact `bookingStatus:'inquiry-only'`; the form page URL and storage snapshots are unchanged; all write-spy arrays are empty; and there was no request whose path or origin represents an internal booking, reservation, order, payment, or hyeonjang record. The Naver navigation itself is the only additional allowed external origin in this explicit-click test and is intercepted so no live request occurs.
+
+Update the existing published-reference browser contract in `tests/lead-privacy.e2e.cjs`: the on-page reference may still use the verified `{slug,title}` object for display, but n8n JSON and Web3Forms `referenceCase` must equal the slug string. Web3Forms message and failure copy must contain that slug; they need not duplicate the title because the new transport contract is string-only. Keep the Task 1 unit test that proves legacy object-shaped `buildLeadText()` input still renders both title and slug.
 
 - [ ] **Step 2: Run the leak tests to verify they fail**
 
@@ -743,12 +855,12 @@ Invoke `renderNaverBooking(CONFIG)` once after configuration load and when a con
 
 Run: `node --test --test-concurrency=1 tests/revenue-conversion.e2e.cjs && node --test tests/revenue-metadata.test.cjs tests/lead-transport.test.cjs`
 
-Expected: PASS. The valid official link is the only one rendered; clicking or displaying it never changes `bookingStatus` from `inquiry-only` and never creates a local booking record.
+Expected: PASS. The valid official link is the only one rendered; an intercepted real click followed by submit preserves `bookingStatus:'inquiry-only'`, URL and every browser store, and creates no internal booking/order request. Published reference payloads are slug strings while legacy object rendering remains covered by the Task 1 unit suite.
 
 - [ ] **Step 5: Commit the leak inquiry-only handoff**
 
 ```bash
-git add leak.html css/leak-theme.css js/leak-inquiry.js tests/revenue-conversion.e2e.cjs tests/revenue-metadata.test.cjs
+git add leak.html css/leak-theme.css js/leak-inquiry.js tests/revenue-conversion.e2e.cjs tests/revenue-metadata.test.cjs tests/lead-privacy.e2e.cjs
 git commit -m "feat: add inquiry-only leak diagnosis handoff"
 ```
 
@@ -811,28 +923,30 @@ test('정적 전환 게이트는 카피·포털 결합·PII·CSP·privacy·artif
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'manmool-revenue-mutation-'));
   fs.cpSync(ROOT, temp, { recursive: true, filter: source => !source.includes(`${path.sep}.git`) && !source.includes(`${path.sep}_site`) });
   try {
+    assert.deepEqual(verifyRevenueOperations(temp), [], 'mutation baseline must be clean');
     const expectFailure = (relative, from, to, pattern) => {
       const file = path.join(temp, ...relative.split('/'));
-      fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(from, to));
-      assert.match(verifyRevenueOperations(temp).join('\n'), pattern);
-      fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(to, from));
+      const original = fs.readFileSync(file, 'utf8');
+      assert.equal(original.includes(from), true, `mutation source missing: ${relative}`);
+      try {
+        fs.writeFileSync(file, original.replace(from, to));
+        assert.match(verifyRevenueOperations(temp).join('\n'), pattern);
+      } finally {
+        fs.writeFileSync(file, original);
+      }
+      assert.deepEqual(verifyRevenueOperations(temp), [], `mutation restore failed: ${relative}`);
     };
     expectFailure('office.html', '접수 프로그램 이용료 0원', '접수 프로그램 이용료', /0원 프로그램/);
     expectFailure('js/office-pilot.js', "source: 'office-pilot'", "source: 'office-pilot', portal: 'office-request'", /직원 포털/);
     expectFailure('js/office-pilot.js', 'privacyConsent:', 'residentPhone:', /금지된 입주민 정보/);
     expectFailure('office.html', "connect-src 'self' https://api.web3forms.com", "connect-src *", /와일드카드/);
+    expectFailure('office.html', "connect-src 'self' https://api.web3forms.com", "connect-src 'self' https://api.web3forms.com.evil.example", /정확한 활성 provider origin/);
+    expectFailure('office.html', "connect-src 'self' https://api.web3forms.com", "connect-src 'self' https://api.web3forms.com https://extra.example", /정확한 활성 provider origin/);
     expectFailure('privacy.html', '파일럿 신청', '시험운영 신청', /파일럿/);
-    const leakPath = path.join(temp, 'js', 'leak-inquiry.js');
-    fs.writeFileSync(leakPath, fs.readFileSync(leakPath, 'utf8').replace("naver.ready === true", "naver.ready !== true"));
-    assert.match(verifyRevenueOperations(temp).join('\n'), /ready/);
-    fs.writeFileSync(leakPath, fs.readFileSync(leakPath, 'utf8').replace("naver.ready !== true", "naver.ready === true"));
-    const revenuePath = path.join(temp, 'js', 'revenue-conversion.js');
-    fs.writeFileSync(revenuePath, fs.readFileSync(revenuePath, 'utf8').replace("NAVER_HOSTS.has(url.hostname)", "url.hostname.endsWith('naver.com')"));
-    assert.match(verifyRevenueOperations(temp).join('\n'), /공식 네이버 host/);
-    fs.writeFileSync(revenuePath, fs.readFileSync(revenuePath, 'utf8').replace("url.hostname.endsWith('naver.com')", "NAVER_HOSTS.has(url.hostname)"));
-    const policyPath = path.join(temp, 'scripts', 'pages-artifact-policy.mjs');
-    fs.writeFileSync(policyPath, fs.readFileSync(policyPath, 'utf8').replace("'office-pilot.js',", ''));
-    assert.match(verifyRevenueOperations(temp).join('\n'), /artifact allowlist/);
+    expectFailure('js/leak-inquiry.js', "naver.ready === true", "naver.ready !== true", /ready/);
+    expectFailure('js/revenue-conversion.js', "NAVER_HOSTS.has(url.hostname)", "url.hostname.endsWith('naver.com')", /공식 네이버 host/);
+    expectFailure('scripts/pages-artifact-policy.mjs', "'office-pilot.js',", '', /artifact allowlist/);
+    expectFailure('posts/apartment-upper-lower-rain-pipe-repair.html', '<main', '<p>500만원 이하 표준 패키지</p><main', /공개 artifact 판매 문구/);
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 });
 ```
@@ -853,10 +967,10 @@ In `scripts/ensure-conversion-basics.mjs`, replace only the existing lines that 
 complexName: /단지명/, officeContactName: /관리사무소 담당자명/,
 pilotInterest: /관심 업무/, desiredStart: /도입 희망 시점/,
 inquiryPurpose: /신청 목적/, preferredVisitDate: /희망 방문일/,
-preferredVisitWindow: /희망 시간대/, bookingStatus: /예약 상태/
+preferredVisitWindow: /희망 시간대/
 ```
 
-Make the dynamic collect-key audit read both `js/office-pilot.js` and `js/leak-inquiry.js`; define `META_KEYS` as `consent`, `privacyConsent`, `source`, `sourcePage`, `ctaId`, `submittedAt`, `status`, and `bookingStatus` so the policy checks user-information disclosure but does not mistake routing state for collected personal information. Add separate assertions that `#privacy-office-pilot-items` contains the literal `관리사무소 30일 파일럿 신청`, the one-year rule, deletion-contact route, and the exclusion of resident identity, unit number, resident phone, and photo.
+Make the dynamic collect-key audit read both `js/office-pilot.js` and `js/leak-inquiry.js`; define `META_KEYS` as `consent`, `privacyConsent`, `source`, `sourcePage`, `ctaId`, `submittedAt`, `status`, and `bookingStatus` so the policy checks user-information disclosure but does not mistake routing state for collected personal information. `bookingStatus` is therefore deliberately absent from `LEAD_FIELD_NOTICE`; add a separate non-privacy assertion that it remains the exact literal `inquiry-only` and that the success copy says it is not a reservation confirmation. Add separate assertions that `#privacy-office-pilot-items` contains the literal `관리사무소 30일 파일럿 신청`, the one-year rule, deletion-contact route, the resident-data warning, and the explicit-pattern rejection statement without claiming arbitrary free text can never contain PII.
 
 Implement `scripts/ensure-revenue-operations.mjs` with `read()` from the repository root and direct regular-expression checks only. Read `office.html`, `office-request.html`, `privacy.html`, `js/office-pilot.js`, `js/leak-inquiry.js`, `js/revenue-conversion.js`, and `scripts/pages-artifact-policy.mjs`; derive `pilotCollect`, `pilotSuccessBody`, and `officeRequestNotice` with balanced function/element extraction before applying the checks above. Require `PUBLIC_JS_FILES` to include exactly one `office-pilot.js` and exactly one `revenue-conversion.js`, otherwise return an `artifact allowlist` failure. It must also:
 
@@ -865,14 +979,29 @@ check(/NAVER_HOSTS\.has\(url\.hostname\)/.test(revenue), '공식 네이버 host 
 check(/naver\.ready\s*===\s*true/.test(leakJs), 'ready=true일 때만 네이버 링크를 렌더하는 조건이 없다');
 const config = JSON.parse(read('data/config.json'));
 const csp = /Content-Security-Policy" content="([^"]+)"/.exec(office)?.[1] || '';
-const connectSrc = /(?:^|;\s*)connect-src\s+([^;]+)/.exec(csp)?.[1] || '';
-const endpoints = [config.forms?.enabled ? config.forms.endpoint : '', config.n8n?.enabled ? config.n8n.inquiryWebhookUrl : '']
-  .filter(Boolean).map(value => new URL(value).origin);
-for (const origin of endpoints) check(connectSrc.includes(origin), `office.html CSP connect-src에 활성 리드 endpoint가 없다: ${origin}`);
-check(!/\*/.test(connectSrc), 'office.html CSP connect-src에 와일드카드가 있다');
+const connectDirectives = csp.split(';').map(part => part.trim()).filter(part => /^connect-src(?:\s|$)/.test(part));
+check(connectDirectives.length === 1, 'office.html CSP connect-src 지시문은 정확히 하나여야 한다');
+const connectTokens = (connectDirectives[0] || '').split(/\s+/).slice(1);
+const configuredEndpoints = [config.forms?.enabled ? config.forms.endpoint : '', config.n8n?.enabled ? config.n8n.inquiryWebhookUrl : ''].filter(Boolean);
+const endpoints = [];
+for (const value of configuredEndpoints) {
+  try {
+    const url = new URL(value);
+    check(url.protocol === 'https:' && !url.username && !url.password, '활성 provider endpoint가 안전한 HTTPS URL이 아니다');
+    if (url.protocol === 'https:' && !url.username && !url.password) endpoints.push(url.origin);
+  } catch (_) { check(false, '활성 provider endpoint가 유효한 URL이 아니다'); }
+}
+const expectedConnectTokens = ["'self'"].concat([...new Set(endpoints)]);
+check(connectTokens.length === new Set(connectTokens).size && connectTokens.length === expectedConnectTokens.length &&
+  expectedConnectTokens.every(token => connectTokens.includes(token)),
+  'office.html CSP connect-src가 정확한 활성 provider origin 집합과 다르다');
+check(!connectTokens.some(token => token.includes('*') || (/^https?:/.test(token) && new URL(token).origin !== token)),
+  'office.html CSP connect-src에 와일드카드 또는 origin 이외 토큰이 있다');
 ```
 
-Also require `data/config.json` to have a boolean `naver.ready` and a string `bookingUrl`; when `ready` is `false`, the string must be empty, and when `ready` is `true`, `validateNaverBookingUrl(bookingUrl)` must be non-null. This preserves the default-off setting without preventing the separately approved account configuration later. Require `leak.html` to load `revenue-conversion.js` before `lead-transport.js` and `leak-inquiry.js`; require `office.html` to load `revenue-conversion.js`, `lead-transport.js`, then `office-pilot.js`; require `privacy.html` to contain the 1-year pilot retention and deletion-contact statements; and reject public HTML, JSON-LD, and operational documentation occurrences of `500만원 이하 표준 패키지`. Limit the documentation scan to `README.md`, `CODEX-인수인계.md`, `CODEX-인수인계-20260812.md`, and `integrations/` text files; do not scan generated posts or arbitrary binary files. The `office-request.html` assertion is limited to `#officeRequestCommercialNotice`: remove exactly that element, hash the normalized source, and compare it with `tests/fixtures/office-request-commercial-baseline.json`; compare the six untouched support-file hashes from the same fixture. Fail if any other byte differs.
+Also require `data/config.json` to have a boolean `naver.ready` and a string `bookingUrl`; when `ready` is `false`, the string must be empty, and when `ready` is `true`, `validateNaverBookingUrl(bookingUrl)` must be non-null. This preserves the default-off setting without preventing the separately approved account configuration later. Require `leak.html` to load `revenue-conversion.js` before `lead-transport.js` and `leak-inquiry.js`; require `office.html` to load `revenue-conversion.js`, `lead-transport.js`, then `office-pilot.js`; require `privacy.html` to contain the 1-year pilot retention and deletion-contact statements.
+
+For the removed `500만원 이하 표준 패키지` sales claim, do not omit generated posts. Inside `verifyRevenueOperations`, use `expectedPublicFiles(root)` to copy the exact allowlisted public sources into a disposable temporary source root, call `buildPagesArtifact(tempRoot, tempRoot/_site)`, then recursively scan every generated text-like artifact (`.html`, `.json`, `.xml`, `.txt`, `.js`, `.css`, `.webmanifest`, `.svg`) for both word orders with whitespace tolerance: `표준 패키지 … 500만원 이하` and `500만원 이하 … 표준 패키지`. Return a fixed `공개 artifact 판매 문구` failure naming only the relative file, and remove the temporary root in `finally`. This includes generated posts and embedded JSON-LD while excluding tests, private drafts, server source, and binary assets by construction. Separately scan only `README.md`, `CODEX-인수인계.md`, `CODEX-인수인계-20260812.md`, and `integrations/` text files for the same operational sales claim; do not exclude a public file merely because it is generated. The `office-request.html` assertion is limited to `#officeRequestCommercialNotice`: remove exactly that element, hash the normalized source, and compare it with `tests/fixtures/office-request-commercial-baseline.json`; compare the six untouched support-file hashes from the same fixture. Fail if any other byte differs.
 
 Require `js/office-pilot.js` to contain no `localStorage`, `sessionStorage`, `indexedDB`, `caches`, `console.`, `location.href`, `location.search`, `location.hash`, `hyeonjang`, `#hjreq=`, `#lead=`, `autoImport`, or `importLead` token. Require `js/leak-inquiry.js` to contain none of the hyeonjang/deep-link/import tokens. These source checks supplement, rather than replace, the browser sink and reload checks in Task 2.
 
