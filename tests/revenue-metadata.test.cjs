@@ -200,3 +200,15 @@ test('네이버 예약 설정은 계정 승인 전 정확히 비활성 상태다
     '기존 Web3Forms public form identifier가 변경되었습니다.'
   );
 });
+
+test('공식 네이버 handoff 정규화는 입력을 변경하지 않고 항상 문자열 또는 null만 반환한다', () => {
+  const api = loadRevenue();
+  const desktop = ' https://booking.naver.com/booking/13/bizes/42?from=site#fragment ';
+  const mobile = 'https://m.booking.naver.com/booking/13/bizes/42?from=mobile#fragment';
+  assert.equal(api.validateNaverBookingUrl(desktop), 'https://booking.naver.com/booking/13/bizes/42?from=site');
+  assert.equal(api.validateNaverBookingUrl(mobile), 'https://m.booking.naver.com/booking/13/bizes/42?from=mobile');
+  assert.equal(desktop, ' https://booking.naver.com/booking/13/bizes/42?from=site#fragment ');
+  for (const raw of ['https://u:p@booking.naver.com/booking/1', 'https://booking.naver.com:444/booking/1', 'https://booking.naver.com.evil.example/booking/1']) {
+    assert.equal(api.validateNaverBookingUrl(raw), null);
+  }
+});

@@ -102,3 +102,48 @@ test('pilot markup fixes limits, disclosure, privacy and script order', async()=
   assert.match(await page.locator('#officePilot').innerText(),/접수 프로그램 이용료 0원/); assert.match(await page.locator('#officePilot').innerText(),/실제 작업은 별도 견적/); assert.match(await page.locator('#officePilot').innerText(),/입주민 이름·전화번호·동호수·현장사진 또는 사진 링크는 적지 마세요/);
   const scripts=await page.locator('script[src]').evaluateAll(xs=>xs.map(x=>x.getAttribute('src'))); assert.deepEqual(scripts.slice(-3),['js/revenue-conversion.js?v=20260831-revenue1','js/lead-transport.js?v=20260831-revenue1','js/office-pilot.js?v=20260831-revenue1']); await page.close();
 });
+
+async function fillLeak(page) { await page.fill('#lkPhone','010-1234-5678'); await page.check('#lkConsent'); }
+
+test('paid leak diagnosis sends purpose, optional preference and immutable inquiry-only once', async()=>{
+  const page=await newPage(); const requests=[]; page.on('request',r=>requests.push({url:r.url(),method:r.method()})); const posted=[];
+  await page.route('https://api.web3forms.com/**',r=>{posted.push(JSON.parse(r.request().postData()));return r.fulfill({status:200,contentType:'application/json',body:'{"success":true}'});});
+  await page.goto(`${origin}/leak.html?utm_source=naver`); await page.check('input[name="inquiryPurpose"][value="paid-device-diagnosis"]'); await page.fill('#lkPreferredVisitDate','2026-09-15'); await page.selectOption('#lkPreferredVisitWindow','afternoon'); await fillLeak(page); await page.click('#lkSubmit'); await waitFor(()=>posted.length===1); await page.waitForFunction(()=>!document.getElementById('lkDone').hidden);
+  assert.equal(posted[0].inquiryPurpose,'paid-device-diagnosis'); assert.equal(posted[0].preferredVisitDate,'2026-09-15'); assert.equal(posted[0].preferredVisitWindow,'afternoon'); assert.equal(posted[0].bookingStatus,'inquiry-only'); assert.equal(posted[0].ctaId,'leak-inquiry-submit');
+  assert.match(await page.locator('#lkDone').innerText(),/방문이나 금액이 확정된 것은 아닙니다/); await new Promise(r=>setTimeout(r,250)); assert.deepEqual(requests.filter(r=>!r.url.startsWith(origin)),[{url:'https://api.web3forms.com/submit',method:'POST'}]); assert.equal(requests.some(r=>r.url.startsWith(origin)&&/(?:hyeonjang|import|booking|reservation|order|payment)/i.test(new URL(r.url).pathname)),false); await page.close();
+});
+
+test('phone consultation defaults optional schedule safely and remains inquiry-only',async()=>{
+  const page=await newPage();const posted=[];await page.route('https://api.web3forms.com/**',r=>{posted.push(JSON.parse(r.request().postData()));return r.fulfill({status:200,contentType:'application/json',body:'{"success":true}'});});await page.goto(`${origin}/leak.html`);await fillLeak(page);await page.click('#lkSubmit');await waitFor(()=>posted.length===1);assert.equal(posted[0].inquiryPurpose,'phone-consult');assert.equal(posted[0].preferredVisitDate,'');assert.equal(posted[0].preferredVisitWindow,'any');assert.equal(posted[0].bookingStatus,'inquiry-only');await page.close();
+});
+
+test('referenceCase only sends a published unique leak slug string',async t=>{
+  const fixtures=[
+    ['published','published-leak-case',[{slug:'published-leak-case',title:'공개 사례',service:'leak',published:true}],'published-leak-case'],
+    ['draft','draft-leak-case',[{slug:'draft-leak-case',title:'초안',service:'leak',published:false}],null],
+    ['duplicate','dup-leak',[{slug:'dup-leak',title:'공개1',service:'leak',published:true},{slug:'dup-leak',title:'공개2',service:'leak',published:true}],null],
+    ['wrong service','interior-case',[{slug:'interior-case',title:'인테리어',service:'interior',published:true}],null]
+  ];
+  for(const [label,slug,cases,expected] of fixtures) await t.test(label,async()=>{const page=await newPage();const posted=[];await page.route('https://api.web3forms.com/**',r=>{posted.push(JSON.parse(r.request().postData()));return r.fulfill({status:200,contentType:'application/json',body:'{"success":true}'});});await page.route('**/data/leak-case-index.json',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({version:1,cases})}));await page.goto(`${origin}/leak.html?case=${slug}`);await fillLeak(page);await page.click('#lkSubmit');await waitFor(()=>posted.length===1);if(expected){assert.equal(posted[0].referenceCase,expected);assert.equal(typeof posted[0].referenceCase,'string');assert.match(posted[0].message,new RegExp(expected));}else assert.equal(Object.hasOwn(posted[0],'referenceCase'),false);await page.close();});
+});
+
+test('Naver handoff is default-off and rejects credentials, ports and lookalike hosts',async()=>{
+  for(const naver of [
+    {ready:false,bookingUrl:'https://booking.naver.com/booking/13/bizes/42'},
+    {ready:true,bookingUrl:'https://user:pass@booking.naver.com/booking/13/bizes/42'},
+    {ready:true,bookingUrl:'https://booking.naver.com:444/booking/13/bizes/42'},
+    {ready:true,bookingUrl:'https://booking.naver.com.evil.example/booking/13/bizes/42'}
+  ]){const page=await newPage();await page.route('**/data/config.json',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({naver})}));await page.goto(`${origin}/leak.html`);await new Promise(r=>setTimeout(r,100));assert.equal(await page.locator('#lkNaverBooking').count(),0);await page.close();}
+  const mobile=await newPage();await mobile.route('**/data/config.json',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({naver:{ready:true,bookingUrl:'https://m.booking.naver.com/booking/13/bizes/42?from=mobile#fragment'}})}));await mobile.goto(`${origin}/leak.html`);const link=mobile.locator('#lkNaverBooking');await link.waitFor();assert.equal(await link.getAttribute('href'),'https://m.booking.naver.com/booking/13/bizes/42?from=mobile');assert.equal(await link.getAttribute('target'),'_blank');assert.equal(await link.getAttribute('rel'),'noopener noreferrer');await mobile.close();
+});
+
+test('actual official Naver click preserves URL and stores, then submit remains inquiry-only',async()=>{
+  const context=await browser.newContext(); const page=await context.newPage(); page.setDefaultTimeout(5000); const requests=[]; context.on('request',r=>requests.push({url:r.url(),method:r.method()}));
+  await page.addInitScript(()=>{window.__naverWrites=[];for(const s of [localStorage,sessionStorage]){const o=s.setItem.bind(s);s.setItem=(k,v)=>{window.__naverWrites.push(['storage',k,v]);return o(k,v);};}const io=indexedDB.open.bind(indexedDB);indexedDB.open=(...a)=>{window.__naverWrites.push(['idb',String(a[0]||'')]);return io(...a);};if(window.caches){const co=caches.open.bind(caches);caches.open=(...a)=>{window.__naverWrites.push(['cache',String(a[0]||'')]);return co(...a);};}});
+  await context.route('https://booking.naver.com/**',r=>r.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>intercepted naver</title>'})); const posted=[];await context.route('https://api.web3forms.com/**',r=>{posted.push(JSON.parse(r.request().postData()));return r.fulfill({status:200,contentType:'application/json',body:'{"success":true}'});});
+  await page.route('**/data/config.json',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({naver:{ready:true,bookingUrl:'https://booking.naver.com/booking/13/bizes/42?from=site#fragment'},forms:{enabled:true,provider:'web3forms',endpoint:'https://api.web3forms.com/submit',accessKey:'TEST_ONLY'}})}));
+  await page.goto(`${origin}/leak.html?utm_source=safe`);const link=page.locator('#lkNaverBooking');await link.waitFor();assert.equal(await link.getAttribute('href'),'https://booking.naver.com/booking/13/bizes/42?from=site');assert.equal(await link.getAttribute('target'),'_blank');assert.equal(await link.getAttribute('rel'),'noopener noreferrer');
+  const snapshot=()=>page.evaluate(async()=>({url:location.href,local:Object.keys(localStorage),session:Object.keys(sessionStorage),idb:typeof indexedDB.databases==='function'?(await indexedDB.databases()).map(x=>x.name).sort():[],cache:window.caches?(await caches.keys()).sort():[]}));const before=await snapshot();const popupPromise=page.waitForEvent('popup');await link.click();const popup=await popupPromise;await popup.waitForLoadState();assert.equal(popup.url(),'https://booking.naver.com/booking/13/bizes/42?from=site');await popup.close();
+  await page.check('input[name="inquiryPurpose"][value="paid-device-diagnosis"]');await fillLeak(page);await page.click('#lkSubmit');await waitFor(()=>posted.length===1);assert.equal(posted[0].bookingStatus,'inquiry-only');const after=await snapshot();assert.deepEqual(after,before);assert.deepEqual(await page.evaluate(()=>window.__naverWrites),[]);
+  const external=requests.filter(r=>!r.url.startsWith(origin));assert.deepEqual(external.map(r=>r.url),['https://booking.naver.com/booking/13/bizes/42?from=site','https://api.web3forms.com/submit']);assert.equal(requests.some(r=>r.url.startsWith(origin)&&/(?:hyeonjang|import|booking|reservation|order|payment)/i.test(new URL(r.url).pathname)),false);await context.close();
+});

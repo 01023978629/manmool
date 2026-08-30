@@ -621,18 +621,24 @@ footer { padding: 49px 24px 54px; background: #071a29; color: #76909f; }
 .leak-field > label small, .leak-field > legend small { font-weight: 650; color: #8c9aa5; font-size: 13px; margin-left: 6px; }
 .leak-field .req, .leak-consent .req { font-style: normal; font-size: 12px; font-weight: 800; color: #0d7f93;
   background: rgba(7,159,184,.12); border-radius: 999px; padding: 3px 9px; margin-left: 7px; }
-.leak-field input[type="text"], .leak-field input[type="tel"], .leak-field textarea {
+.leak-field input[type="text"], .leak-field input[type="tel"], .leak-field input[type="date"], .leak-field select, .leak-field textarea {
   width: 100%; font: inherit; font-size: 16px; color: var(--navy);
   border: 1px solid #d5e1e8; border-radius: 13px; padding: 14px 15px; background: #fff;
   min-height: 52px; }
 .leak-field textarea { min-height: 116px; resize: vertical; line-height: 1.6; }
-.leak-field input:focus-visible, .leak-field textarea:focus-visible {
+.leak-field input:focus-visible, .leak-field select:focus-visible, .leak-field textarea:focus-visible {
   outline: 3px solid rgba(7,159,184,.25); outline-offset: 2px; border-color: #079fb8; }
 .leak-hint { font-size: 13px; color: #7d8b96; line-height: 1.6; }
 .leak-case-context { margin: 0; padding: 13px 15px; border: 1px solid #b9dce2; border-radius: 10px; color: #173b4d; background: #edf9fa; font-size: 14px; line-height: 1.6; }
 .leak-case-context strong { color: #087f98; }
 .leak-case-context[hidden] { display: none; }
 .leak-row { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.leak-choice { display:flex; align-items:center; gap:10px; min-height:44px; font-weight:700; }
+.leak-choice input { width:20px; height:20px; flex:none; accent-color:#079fb8; }
+#lkPurposeField > small { color:#647782; font-size:13px; line-height:1.6; }
+#lkNaverBookingHost[hidden] { display:none; }
+#lkNaverBookingHost { display:flex; }
+#lkNaverBookingHost .outline-case-button { min-height:44px; }
 
 .leak-chips { display: flex; flex-wrap: wrap; gap: 10px; }
 .leak-chip { position: relative; }

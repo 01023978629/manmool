@@ -374,6 +374,13 @@
 
       <p class="leak-case-context" id="leakCaseContext" role="status" aria-live="polite" hidden>선택한 공개 참고 사례: <strong id="lkCaseReference"></strong></p>
 
+      <fieldset class="leak-field" id="lkPurposeField">
+        <legend>신청 목적 <em class="req" aria-hidden="true">필수</em></legend>
+        <label class="leak-choice"><input type="radio" name="inquiryPurpose" value="phone-consult" checked /> 전화로 증상 상담</label>
+        <label class="leak-choice"><input type="radio" name="inquiryPurpose" value="paid-device-diagnosis" /> 유상 장비진단·방문 일정 상담</label>
+        <small>유상 장비진단은 현장 확인과 별도 견적·승인 전에는 방문, 금액, 작업이 확정되지 않습니다.</small>
+      </fieldset>
+
       <fieldset class="leak-field">
         <legend>지금 보이는 증상 <small>해당하는 것을 모두 선택 (선택 사항)</small></legend>
         <div class="leak-chips" id="lkSymptoms">
@@ -402,6 +409,12 @@
         <input type="tel" id="lkPhone" name="phone" inputmode="numeric" placeholder="010-0000-0000" autocomplete="tel" required aria-describedby="lkPhoneHelp" />
         <small class="leak-hint" id="lkPhoneHelp">회신드릴 번호입니다. 이 번호로만 연락드리고 광고 문자는 보내지 않습니다.</small>
       </div>
+
+      <div class="leak-row" id="lkVisitPreference">
+        <div class="leak-field"><label for="lkPreferredVisitDate">희망 방문일 <small>선택</small></label><input id="lkPreferredVisitDate" name="preferredVisitDate" type="date" /></div>
+        <div class="leak-field"><label for="lkPreferredVisitWindow">희망 시간대 <small>선택</small></label><select id="lkPreferredVisitWindow" name="preferredVisitWindow"><option value="any">시간 협의</option><option value="morning">오전</option><option value="afternoon">오후</option></select></div>
+      </div>
+      <div id="lkNaverBookingHost" hidden></div>
 
       <div class="leak-field">
         <label for="lkMemo">자세한 내용 <small>선택</small></label>
@@ -452,6 +465,7 @@
 
   <a class="mobile-call-bar" href="tel:01023978629"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M6.7 3.5 9 7.8 7.4 9.4c1.1 2.4 2.8 4.1 5.2 5.2l1.6-1.6 4.3 2.3-.5 3.4c-.1.8-.8 1.4-1.6 1.4C9.5 20.1 3.9 14.5 3.9 7.6c0-.8.6-1.5 1.4-1.6l1.4-2.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span><small>누수 긴급 상담</small><strong>지금 전화하기</strong></span></a>
 </main>
+<script src="js/revenue-conversion.js?v=20260831-revenue1"></script>
 <script src="js/lead-transport.js?v=20260830-followup1"></script>
 <script src="js/leak.js?v=20260823-brand1"></script>
 <script src="js/leak-inquiry.js?v=20260830-followup2"></script>

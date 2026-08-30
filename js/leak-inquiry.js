@@ -7,8 +7,9 @@
    ============================================================ */
 (function () {
   const LEAD = window.ManmulLead;
+  const REVENUE = window.ManmulRevenue;
   const form = document.getElementById('leakForm');
-  if (!LEAD || !form) return;
+  if (!LEAD || !REVENUE || !form) return;
 
   const $ = (id) => document.getElementById(id);
   const status = $('lkStatus');
@@ -78,16 +79,9 @@
         }, REFERENCE_LOOKUP_TIMEOUT_MS);
       });
       const index = await Promise.race([lookup, timeout]);
-      if (!index || index.version !== 1 || !Array.isArray(index.cases)) return null;
-      const matches = index.cases.filter((item) => {
-        if (!item || item.published !== true || item.service !== 'leak' || item.slug !== requestedSlug) return false;
-        return typeof item.title === 'string' && item.title.trim();
-      });
-      if (matches.length !== 1) return null;
-      referenceCase = Object.freeze({
-        slug: String(matches[0].slug),
-        title: matches[0].title.trim(),
-      });
+      const published = REVENUE.resolvePublishedLeakCase(requestedSlug, index);
+      if (!published) return null;
+      referenceCase = Object.freeze(published);
       if (referenceHost && referenceTitle) {
         referenceTitle.textContent = referenceCase.title;
         referenceHost.hidden = false;
@@ -148,11 +142,11 @@
       phone: (fd.get('phone') || '').trim(),
       symptoms: fd.getAll('symptoms'),
       memo: (fd.get('memo') || '').trim(),
+      inquiryPurpose: fd.get('inquiryPurpose') === 'paid-device-diagnosis' ? 'paid-device-diagnosis' : 'phone-consult',
+      preferredVisitDate: /^\d{4}-\d{2}-\d{2}$/.test(fd.get('preferredVisitDate') || '') ? fd.get('preferredVisitDate') : '',
+      preferredVisitWindow: ['morning', 'afternoon', 'any'].includes(fd.get('preferredVisitWindow')) ? fd.get('preferredVisitWindow') : 'any',
       consent: fd.get('consent') === 'on',
     };
-    if (referenceCase) {
-      data.referenceCase = { slug: referenceCase.slug, title: referenceCase.title };
-    }
     return data;
   }
 
@@ -214,12 +208,9 @@
       return;
     }
 
-    const payload = Object.assign({}, data, {
-      phone,
-      source: 'leak-page',
-      submittedAt: new Date().toISOString(),
-      status: '신규',
-    });
+    const payload = Object.assign({}, data,
+      REVENUE.captureLeadMetadata(window.location, 'leak-inquiry-submit', referenceCase),
+      { phone, source: 'leak-page', bookingStatus: 'inquiry-only', submittedAt: new Date().toISOString(), status: '신규' });
 
     // 버튼 글자로도 '눌렸다'를 알린다 — 12초 대기 중 재클릭(중복 접수)을 막는다.
     submitBtn.textContent = '접수 중입니다…';
@@ -312,8 +303,10 @@
     const smsHref = 'sms:' + PHONE + '?body=' + encodeURIComponent(text);
     const retryable = !opts.delivered && !opts.honeypot && opts.generation > 0 && opts.hasBackend;
 
+    const paidNotice = payload.inquiryPurpose === 'paid-device-diagnosis'
+      ? '<p>방문이나 금액이 확정된 것은 아닙니다. 대표 확인 후 별도 견적과 일정 협의를 진행합니다.</p>' : '';
     const head = opts.delivered
-      ? '<h3>접수됐습니다.</h3><p>평일 09:00–17:30에 확인하고 남겨주신 번호로 회신드립니다. 물이 계속 번지는 상황이면 아래 번호로 바로 전화 주세요.</p>'
+      ? '<h3>접수됐습니다.</h3><p>평일 09:00–17:30에 확인하고 남겨주신 번호로 회신드립니다. 물이 계속 번지는 상황이면 아래 번호로 바로 전화 주세요.</p>' + paidNotice
       : opts.honeypot
         ? '<h3>아직 전송되지 않았습니다.</h3><p>자동 전송하지 않았고 내용도 저장되지 않았습니다. 아래 버튼으로 전화·문자 또는 내용 복사를 이용해 주세요.</p>'
         // 설정을 못 읽어 못 보낸 것과 '접수 경로가 아예 없는 것'은 다른 말이어야 한다.
@@ -346,6 +339,26 @@
     });
     doneBox.scrollIntoView({ behavior: SCROLL, block: 'center' });
   }
+
+  function renderNaverBooking(config) {
+    const host = $('lkNaverBookingHost');
+    if (!host) return;
+    const naver = config && config.naver || {};
+    const href = naver.ready === true ? REVENUE.validateNaverBookingUrl(naver.bookingUrl) : null;
+    host.replaceChildren();
+    host.hidden = !href;
+    if (!href) return;
+    const link = document.createElement('a');
+    link.id = 'lkNaverBooking';
+    link.className = 'outline-case-button';
+    link.href = href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = '네이버 예약 화면 열기';
+    host.append(link);
+  }
+
+  configReady.then(renderNaverBooking);
 
   // 새 문서를 열 때는 자동 재시도하지 않는다. 같은 탭에서 실패한 최신 문의만 온라인 복귀 시 재시도한다.
   window.addEventListener('online', () => { retryVisibleFailure(); });

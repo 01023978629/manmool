@@ -2261,9 +2261,7 @@ test('공개 누수 사례 참조만 화면·n8n JSON·Web3Forms message·실패
     await prepare(n8n);
     await submit(n8n);
     await waitForRequestCount(n8n, 1);
-    assert.deepEqual(JSON.parse(n8n.controller.requests[0].body).referenceCase, {
-      slug: PUBLIC_LEAK_CASE.slug, title: PUBLIC_LEAK_CASE.title,
-    });
+    assert.equal(JSON.parse(n8n.controller.requests[0].body).referenceCase, PUBLIC_LEAK_CASE.slug);
     await assertNoPersistentPii(n8n);
     await assertNoPersistentReference(n8n);
   } finally {
@@ -2281,8 +2279,8 @@ test('공개 누수 사례 참조만 화면·n8n JSON·Web3Forms message·실패
     await submit(forms);
     await waitForRequestCount(forms, 1);
     const body = JSON.parse(forms.controller.requests[0].body);
-    assert.deepEqual(body.referenceCase, { slug: PUBLIC_LEAK_CASE.slug, title: PUBLIC_LEAK_CASE.title });
-    assert.match(body.message, new RegExp(PUBLIC_LEAK_CASE.title));
+    assert.equal(body.referenceCase, PUBLIC_LEAK_CASE.slug);
+    assert.doesNotMatch(body.message, new RegExp(PUBLIC_LEAK_CASE.title));
     assert.match(body.message, new RegExp(PUBLIC_LEAK_CASE.slug));
   } finally {
     await closeForm(forms);
@@ -2300,7 +2298,7 @@ test('공개 누수 사례 참조만 화면·n8n JSON·Web3Forms message·실패
     await assertNotDelivered(failed);
     await failed.page.click('#lkCopy');
     const copied = await failed.page.evaluate(() => window.__leadSinks.clipboard.slice());
-    assert.equal(copied.some((text) => text.includes(PUBLIC_LEAK_CASE.title) && text.includes(PUBLIC_LEAK_CASE.slug)), true);
+    assert.equal(copied.some((text) => text.includes(PUBLIC_LEAK_CASE.slug) && !text.includes(PUBLIC_LEAK_CASE.title)), true);
     await assertNoPersistentPii(failed);
     await assertNoPersistentReference(failed);
   } finally {
