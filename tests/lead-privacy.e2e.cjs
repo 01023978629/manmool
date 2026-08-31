@@ -2583,8 +2583,20 @@ test('진행 중 제출 뒤 허니팟 제출은 이전 epoch를 무효화하고 
       await submit(handle);
       await waitForRequestCount(handle, 1);
 
-      await handle.page.fill(kind === 'general' ? '#iCompanyUrl' : '#lkCompanyUrl', 'https://bot.invalid');
-      await handle.page.locator(kind === 'general' ? '#inquiryForm' : '#leakForm').dispatchEvent('submit');
+      const honeypotWasSet = await handle.page.evaluate(({ honeypotSelector, formSelector }) => {
+        const honeypot = document.querySelector(honeypotSelector);
+        const form = document.querySelector(formSelector);
+        if (!honeypot || !form) return false;
+        honeypot.value = 'https://bot.invalid';
+        honeypot.dispatchEvent(new Event('input', { bubbles: true }));
+        if (!honeypot.value) return false;
+        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        return true;
+      }, {
+        honeypotSelector: kind === 'general' ? '#iCompanyUrl' : '#lkCompanyUrl',
+        formSelector: kind === 'general' ? '#inquiryForm' : '#leakForm',
+      });
+      assert.equal(honeypotWasSet, true, `${kind} honeypot precondition was not established`);
       await assertNotDelivered(handle);
       assert.equal(handle.controller.requests.length, 1, 'honeypot submission sent another request');
       assert.equal(await handle.page.evaluate(() => window.__rememberCallCount), 0);
