@@ -13,7 +13,10 @@ const TEXT_EXTENSIONS = new Set(['.html', '.json', '.xml', '.txt', '.md', '.js',
 function read(root, relative, fileSystem) {
   return fileSystem.readFileSync(path.join(root, ...relative.split('/')), 'utf8');
 }
-function sha256(value) { return crypto.createHash('sha256').update(value).digest('hex'); }
+function sha256(value) {
+  const normalizedText = String(value).replace(/\r\n/g, '\n');
+  return crypto.createHash('sha256').update(normalizedText).digest('hex');
+}
 function functionBody(source, name) {
   const hit = new RegExp(`function\\s+${name}\\s*\\([^)]*\\)\\s*\\{`).exec(source);
   if (!hit) return '';
@@ -133,7 +136,7 @@ export function verifyRevenueOperations(root = ROOT, fileSystem = fs) {
   fail(!/(?:localStorage|sessionStorage|indexedDB|\bcaches\b|console\.|location\.(?:href|search|hash)|hyeonjang|#hjreq=|#lead=|autoImport|importLead)/i.test(pilot), '파일럿 소스에 영구 저장·URL·console·현장 딥링크 sink가 있습니다');
 
   const noticeMatch = /\r?\n        <aside id="officeRequestCommercialNotice"[\s\S]*?^        <\/aside>\r?\n/m.exec(portal);
-  fail(!!noticeMatch && sha256(portal.replace(noticeMatch?.[0] || '', '\r\n')) === baseline['office-request.html'], '직원 포털은 정적 상업 공지 외 byte-exact여야 합니다');
+  fail(!!noticeMatch && sha256(portal.replace(noticeMatch?.[0] || '', '\n')) === baseline['office-request.html'], '직원 포털은 줄바꿈 정규화와 정적 상업 공지 외 byte-exact여야 합니다');
   for (const relative of Object.keys(baseline).filter(value => value !== 'office-request.html')) {
     try { fail(sha256(fileSystem.readFileSync(path.join(root, ...relative.split('/')))) === baseline[relative], `직원 포털 보호 파일이 변경되었습니다: ${relative}`); }
     catch { failures.push(`직원 포털 보호 파일을 읽지 못했습니다: ${relative}`); }

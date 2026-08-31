@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
 const ROOT = path.resolve(__dirname, '..');
 const MIME = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.json':'application/json; charset=utf-8' };
 let server, browser, origin;
-const sha256 = value => crypto.createHash('sha256').update(value).digest('hex');
+const sha256 = value => crypto.createHash('sha256').update(String(value).replace(/\r\n/g, '\n')).digest('hex');
 
 before(async () => {
   server = http.createServer((req, res) => {
@@ -38,6 +38,32 @@ test('정적 전환 게이트는 공개 수익 경계 변이를 각각 좁은 �
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'manmool-revenue-gate-'));
   try {
     fs.cpSync(ROOT, temp, { recursive: true, filter: source => !/(?:^|[\\/])(?:\.git|_site)(?:[\\/]|$)/.test(source) });
+    assert.deepEqual(verifyRevenueOperations(temp), []);
+    const protectedPortalFiles = [
+      'office-request.html', 'office-api.json', 'js/office-request-core.js',
+      'js/office-request-api.js', 'js/office-request-photo.js',
+      'js/office-request.js', 'css/office-request.css'
+    ];
+    const baseline = JSON.parse(fs.readFileSync(path.join(temp, 'tests', 'fixtures', 'office-request-commercial-baseline.json'), 'utf8'));
+    assert.deepEqual(Object.keys(baseline), protectedPortalFiles, '보호 파일 목록은 fixture 변경으로 축소할 수 없어야 합니다');
+    const rewritePortalEol = eol => {
+      for (const relative of protectedPortalFiles) {
+        const file = path.join(temp, ...relative.split('/'));
+        const lf = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+        fs.writeFileSync(file, lf.replace(/\n/g, eol), 'utf8');
+      }
+    };
+    rewritePortalEol('\n');
+    assert.deepEqual(verifyRevenueOperations(temp), [], '직원 포털 보호 해시는 LF에서 통과해야 합니다');
+    rewritePortalEol('\r\n');
+    assert.deepEqual(verifyRevenueOperations(temp), [], '직원 포털 보호 해시는 CRLF에서 통과해야 합니다');
+    const loneCrFile = path.join(temp, 'office-api.json');
+    const crlfSource = fs.readFileSync(loneCrFile, 'utf8');
+    const loneCrSource = crlfSource.replace('\r\n', '\r');
+    assert.notEqual(loneCrSource, crlfSource, '단독 CR mutation이 적용되어야 합니다');
+    fs.writeFileSync(loneCrFile, loneCrSource, 'utf8');
+    assert.match(verifyRevenueOperations(temp).join('\n'), /office-api\.json/, '단독 CR은 허용 줄바꿈으로 정규화하면 안 됩니다');
+    fs.writeFileSync(loneCrFile, crlfSource, 'utf8');
     assert.deepEqual(verifyRevenueOperations(temp), []);
     const mutate = (relative, replaceFrom, replaceTo, expected) => {
       const file = path.join(temp, ...relative.split('/'));
@@ -73,7 +99,7 @@ test('pilot Web3Forms success sends one minimal lead and shows exact commercial 
   const page=await newPage(); const posted=[]; const requests=[];
   page.on('request',r=>requests.push({url:r.url(),method:r.method()}));
   await page.route('https://api.web3forms.com/**', async r=>{posted.push(JSON.parse(r.request().postData())); await r.fulfill({status:200,contentType:'application/json',body:'{"success":true}'});});
-  await page.goto(`${origin}/office.html?utm_source=naver&utm_medium=organic&utm_campaign=pilot-2026`); await fillValid(page); await page.click('#officePilotSubmit'); await waitFor(()=>posted.length===1);
+  await page.goto(`${origin}/office.html?utm_source=naver&utm_medium=organic&utm_campaign=pilot-2026`); await fillValid(page); await page.click('#officePilotSubmit'); await waitFor(()=>posted.length===1); await page.waitForFunction(()=>document.getElementById('officePilotDone').innerText.includes('접수됐습니다'));
   const p=posted[0]; assert.equal(p.source,'office-pilot'); assert.equal(p.sourcePage,'/office.html'); assert.equal(p.ctaId,'office-pilot-submit'); assert.equal(p.utmCampaign,'pilot-2026');
   assert.equal(p.complexName,'테스트 단지'); assert.equal(p.officeContactName,'시설 담당자'); assert.equal(p.phone,'0421234567'); assert.equal(p.region,'대전 중구'); assert.deepEqual(p.pilotInterest,['preventive-inspection']); assert.equal(p.privacyConsent,true); assert.equal(p.status,'신규'); assert.ok(p.submittedAt);
   for(const x of ['단지명: 테스트 단지','관리사무소 담당자: 시설 담당자','지역: 대전 중구','관심 업무: 예방점검','도입 희망 시점: 2026년 9월','문의 내용: 공용부 우수관 상담']) assert.ok(p.message.includes(x),x);
@@ -131,8 +157,8 @@ test('required fields, consent, invalid phone, and provider rejection never show
   await t.test('provider rejected',async()=>{const page=await newPage();let posts=0;await page.route('https://api.web3forms.com/**',r=>{posts++;return r.fulfill({status:200,contentType:'application/json',body:'{"success":false}'});});await page.goto(`${origin}/office.html`);await fillValid(page);await page.click('#officePilotSubmit');await waitFor(()=>posts===1);await page.waitForFunction(()=>document.getElementById('officePilotDone').innerText.includes('완료되지 않았습니다'));assert.match(await page.locator('#officePilotDone').innerText(),/완료되지 않았습니다/);assert.doesNotMatch(await page.locator('#officePilotDone').innerText(),/접수됐습니다/);await page.close();});
 });
 
-test('portal bytes are preserved except the exact static commercial notice', () => {
-  const b=JSON.parse(fs.readFileSync(path.join(ROOT,'tests/fixtures/office-request-commercial-baseline.json'),'utf8')); const after=fs.readFileSync(path.join(ROOT,'office-request.html'),'utf8'); const notice=/\r?\n        <aside id="officeRequestCommercialNotice"[\s\S]*?^        <\/aside>\r?\n/m.exec(after); assert.ok(notice); assert.equal(sha256(after.replace(notice[0],'\r\n')),b['office-request.html']);
+test('portal content is preserved except line-ending normalization and the exact static commercial notice', () => {
+  const b=JSON.parse(fs.readFileSync(path.join(ROOT,'tests/fixtures/office-request-commercial-baseline.json'),'utf8')); const after=fs.readFileSync(path.join(ROOT,'office-request.html'),'utf8'); const notice=/\r?\n        <aside id="officeRequestCommercialNotice"[\s\S]*?^        <\/aside>\r?\n/m.exec(after); assert.ok(notice); assert.equal(sha256(after.replace(notice[0],'\n')),b['office-request.html']);
   for(const f of Object.keys(b).slice(1)) assert.equal(sha256(fs.readFileSync(path.join(ROOT,f))),b[f],f);
 });
 

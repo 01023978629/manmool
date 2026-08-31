@@ -1,9 +1,9 @@
 {
-  "office-request.html": "1f812bc121738f01249f82f2dbf24b9a6da97d3a215cef33e3d6944bcaf673b0",
-  "office-api.json": "fe29ecec88363e3ecb6ef5ccd648abe4e60c2a00805488d9a3e15288621552a8",
-  "js/office-request-core.js": "66b623e00320cd8a1d2088642c07d5b24fae6a27d40af42f46106ccc27f4a5e7",
-  "js/office-request-api.js": "d20c6074a209fe1807b75eaf35769ed431edcc4d4ab53c919a92654612c527be",
-  "js/office-request-photo.js": "a1d2070d546f5937009b336a42390957aeb2bfae6ea17dda8332b40208b0635d",
-  "js/office-request.js": "758af097d211e81d660c17f620bc8367f49ffc8336c0b9281837f5e25192f1ee",
-  "css/office-request.css": "4324d87291abc39a90e8e5d83bfc904ce518087fedcc1e95d82953793dadd00a"
+  "office-request.html": "b7d6bc3ec939483684bcb97f92ac41663b88d688274fc49f9f194d5eb30bac0f",
+  "office-api.json": "fc880ee2087a2f8a066248137ba9a7d156fd63375257f9558b8b7a7989fedf26",
+  "js/office-request-core.js": "64ecd4652f8cca4cbf9496c3ed751bac6c1c506b59080239fcfc9a9b9b0e005f",
+  "js/office-request-api.js": "a8d4bc6f559bb7b350795ee3c0dd20d26e7e573fbe22f681708a4474c5f5acc5",
+  "js/office-request-photo.js": "8270746decda8b1cfa2f0919ea1e91218133c3256ec01ccb4caf4bfb383053a9",
+  "js/office-request.js": "42cf87afe88f9f5e1cff7ce182ea9dbb02ba7c67fee32c599dc6a8ab7f850e81",
+  "css/office-request.css": "c2771058314b9903e39e991c7cbbdcf4055d0a93a9f9860775c3d423e8b62e3f"
 }
