@@ -10,7 +10,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src 'none'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'" />
   <link rel="stylesheet" href="css/styles.css?v=20260827-office-request2" />
   <link rel="stylesheet" href="css/brand-system.css?v=20260827-office-request2" />
-  <link rel="stylesheet" href="css/office-request.css?v=20260830-office-recent1" />
+  <link rel="stylesheet" href="css/office-request.css?v=20260901-office-entry1" />
 </head>
 <body class="request-page">
   <header class="site-header" id="siteHeader">
@@ -24,8 +24,18 @@
   <main class="request-main">
     <section class="request-shell">
       <section id="officeRouteError" class="office-view office-route-error" hidden aria-labelledby="officeRouteErrorTitle">
-        <span class="request-eyebrow">관리사무소 시설보수 접수</span><h1 id="officeRouteErrorTitle">관리사무소 전용 주소를 확인해 주세요</h1>
-        <p>안내받은 단지 전용 주소로 다시 접속해 주세요. 도움이 필요하면 대표번호로 연락해 주세요.</p><a class="office-action request-secondary" href="tel:01023978629">010-2397-8629로 전화하기</a>
+        <span class="request-eyebrow">관리사무소 시설보수 접수</span><h1 id="officeRouteErrorTitle">관리사무소 직원 로그인</h1>
+        <p>안내받은 관리사무소 코드 또는 단지 전용 주소를 입력하면 기존 6자리 비밀번호 로그인 화면이 열립니다.</p>
+        <form id="officeRouteForm" class="office-login-form office-route-form" novalidate>
+          <label for="officeEntry">관리사무소 코드 또는 전용 주소<input id="officeEntry" name="officeEntry" type="text" maxlength="300" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="officeEntryHelp" placeholder="예: sample-apt" /></label>
+          <span id="officeEntryHelp" class="office-help">코드는 영문 소문자·숫자·하이픈(-)만 입력해 주세요. 코드만으로는 로그인되지 않습니다.</span>
+          <p id="officeEntryError" class="request-error" role="alert" aria-live="polite"></p>
+          <button id="officeRouteSubmit" class="office-action request-primary" type="submit">로그인 화면 열기</button>
+        </form>
+        <aside class="office-route-help" aria-labelledby="officeRouteHelpTitle">
+          <h2 id="officeRouteHelpTitle">코드를 모르거나 새로 신청하시나요?</h2>
+          <p>신규 관리사무소는 <a href="office.html#officePilot">30일 시험운영을 신청</a>해 주세요. 기존 전용 주소를 분실했다면 <a href="tel:01023978629">010-2397-8629로 전화</a>해 주세요.</p>
+        </aside>
       </section>
       <section id="officeLoginView" class="office-view" hidden aria-labelledby="officeLoginTitle">
         <span class="request-eyebrow">관리사무소 전용</span><h1 id="officeLoginTitle">시설보수 접수 관리</h1><p class="office-intro">단지 담당자에게 전달받은 6자리 비밀번호로 로그인해 주세요.</p>
@@ -95,9 +105,9 @@
   </main>
   <footer class="site-footer"><div class="container footer-inner"><p class="footer-note">만물인테리어 · 대표 전병덕 · 사업자등록번호 895-48-01132<br />대전광역시 중구 돌다리로19번길 9, 1층(석교동) · <a href="tel:01023978629">010-2397-8629</a></p><p class="footer-links"><a href="office.html">관리사무소 안내</a> · <a href="privacy.html">개인정보처리방침</a></p><p class="footer-copy">© <span id="requestYear"></span> 만물인테리어. All rights reserved.</p></div></footer>
   <script src="js/public-nav.js?v=20260824-office1"></script>
-  <script src="js/office-request-core.js?v=20260830-office-recent1"></script>
+  <script src="js/office-request-core.js?v=20260901-office-entry1"></script>
   <script src="js/office-request-api.js?v=20260827-office-request2"></script>
   <script src="js/office-request-photo.js?v=20260827-office-request3"></script>
-  <script src="js/office-request.js?v=20260830-office-recent1"></script>
+  <script src="js/office-request.js?v=20260901-office-entry1"></script>
 </body>
 </html>

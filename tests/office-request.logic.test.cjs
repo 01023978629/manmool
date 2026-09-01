@@ -23,6 +23,17 @@ test('공개 URL에서 안전한 관리사무소 slug만 읽는다', () => {
   assert.equal(api.parseOfficeSlug('?office=-sample'), '');
 });
 
+test('직원 포털 일반 진입은 코드 또는 현재 사이트의 전용 주소만 허용한다', () => {
+  const current = 'https://01023978629.github.io/manmool/office-request.html';
+  assert.equal(api.parseOfficeEntry(' sample-apt ', current), 'sample-apt');
+  assert.equal(api.parseOfficeEntry(`${current}?office=sample-apt`, current), 'sample-apt');
+  assert.equal(api.parseOfficeEntry(`${current}?office=sample-apt&next=https://example.com`, current), '');
+  assert.equal(api.parseOfficeEntry('https://example.com/manmool/office-request.html?office=sample-apt', current), '');
+  assert.equal(api.parseOfficeEntry('https://01023978629.github.io/manmool/office.html?office=sample-apt', current), '');
+  assert.equal(api.parseOfficeEntry('SAMPLE-APT', current), '');
+  assert.equal(api.parseOfficeEntry('<script>', current), '');
+});
+
 test('로그인 PIN은 숫자 여섯 자리만 허용한다', () => {
   assert.equal(api.validateLogin({ pin: '123456' }).ok, true);
   assert.equal(api.validateLogin({ pin: '12345' }).field, 'pin');

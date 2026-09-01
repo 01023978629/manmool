@@ -34,9 +34,9 @@ test('배포 게이트의 공개 포털 소스 계약은 설정 CLI와 fail-clos
   assert.match(workflow, /node --test --test-concurrency=1 tests\/configure-office-api\.test\.cjs tests\/pages-artifact-policy\.test\.cjs/);
   assert.ok(portalRegressionRun);
   assert.equal(portalRegressionRun[1].replace(/\r\n/g, '\n').trimEnd(), expectedPortalRegressionRun);
-  assert.match(request, /css\/office-request\.css\?v=20260830-office-recent1/);
-  assert.match(request, /js\/office-request-core\.js\?v=20260830-office-recent1/);
-  assert.match(request, /js\/office-request\.js\?v=20260830-office-recent1/);
+  assert.match(request, /css\/office-request\.css\?v=20260901-office-entry1/);
+  assert.match(request, /js\/office-request-core\.js\?v=20260901-office-entry1/);
+  assert.match(request, /js\/office-request\.js\?v=20260901-office-entry1/);
   assert.doesNotMatch(controller, /(setInterval|visibilitychange|Notification\s*\(|serviceWorker\.register)/);
   assert.doesNotMatch(controller, /(?:\b(?:[\w$]+(?:\s*\.\s*[\w$]+)*)\s*\.\s*)?addEventListener\s*(?:\?\.)?\s*\(\s*['"]online['"]|(?:\b(?:[\w$]+(?:\s*\.\s*[\w$]+)*)\s*\.\s*)?ononline\s*=/);
   assert.ok(workflow.indexOf('Run management office portal regression') < workflow.indexOf('Build public allowlist artifact'));
@@ -60,7 +60,7 @@ after(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
 });
 
-test('단지 slug가 없는 포털은 저장이나 API 호출 없이 안내를 보인다', async () => {
+test('단지 slug가 없는 포털은 저장이나 API 호출 없이 코드 입력을 안내한다', async () => {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
   const calls = [];
   const errors = [];
@@ -68,11 +68,46 @@ test('단지 slug가 없는 포털은 저장이나 API 호출 없이 안내를 �
   page.on('pageerror', (error) => errors.push(error));
   await page.goto(`${origin}/office-request.html`);
   assert.equal(await page.locator('#officeRouteError').isVisible(), true);
-  assert.match(await page.locator('#officeRouteError').innerText(), /관리사무소 전용 주소/);
+  assert.match(await page.locator('#officeRouteError').innerText(), /관리사무소 코드 또는 단지 전용 주소/);
+  assert.equal(await page.locator('#officeEntry').getAttribute('autocomplete'), 'off');
+  assert.equal(await page.locator('#officeEntry').getAttribute('autocapitalize'), 'none');
+  assert.equal(await page.locator('#officeEntry').evaluate((element) => element === document.activeElement), true);
   assert.equal(await page.locator('#officeLoginView').isHidden(), true);
   assert.equal(await page.evaluate(() => localStorage.length + sessionStorage.length), 0);
   assert.deepEqual(calls, []);
   assert.deepEqual(errors, []);
+  await page.close();
+});
+
+test('발급받은 관리사무소 코드는 기존 PIN 로그인 화면으로만 이동한다', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+  const calls = [];
+  page.on('request', (request) => { if (['fetch', 'xhr'].includes(request.resourceType())) calls.push(request.url()); });
+  await page.goto(`${origin}/office-request.html`);
+  await page.locator('#officeEntry').fill('sample-apt');
+  await page.getByRole('button', { name: '로그인 화면 열기' }).click();
+  await page.waitForURL(`${origin}/office-request.html?office=sample-apt`);
+  assert.equal(await page.locator('#officeLoginView').isVisible(), true);
+  assert.equal(await page.locator('#officePin').isVisible(), true);
+  assert.equal(await page.evaluate(() => localStorage.length + sessionStorage.length), 0);
+  assert.deepEqual(calls, []);
+  await page.close();
+});
+
+test('다른 사이트 주소와 잘못된 코드는 포털 진입과 API 호출을 막는다', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+  const calls = [];
+  page.on('request', (request) => { if (['fetch', 'xhr'].includes(request.resourceType())) calls.push(request.url()); });
+  await page.goto(`${origin}/office-request.html`);
+  for (const value of ['-sample', 'https://example.com/office-request.html?office=sample-apt']) {
+    await page.locator('#officeEntry').fill(value);
+    await page.getByRole('button', { name: '로그인 화면 열기' }).click();
+    assert.equal(page.url(), `${origin}/office-request.html`);
+    assert.match(await page.locator('#officeEntryError').innerText(), /코드 또는 전용 주소/);
+  }
+  assert.equal(await page.locator('#officeLoginView').isHidden(), true);
+  assert.equal(await page.evaluate(() => localStorage.length + sessionStorage.length), 0);
+  assert.deepEqual(calls, []);
   await page.close();
 });
 

@@ -3,6 +3,7 @@
   const core = window.ManmulOfficeRequest, api = window.ManmulOfficeApi, photo = window.ManmulOfficePhoto;
   const byId = (id) => document.getElementById(id);
   const routeError = byId('officeRouteError'), loginView = byId('officeLoginView'), dashboardView = byId('officeDashboardView'), createView = byId('officeCreateView'), detailView = byId('officeDetailView');
+  const routeForm = byId('officeRouteForm'), officeEntry = byId('officeEntry'), officeEntryError = byId('officeEntryError');
   const loginForm = byId('officeLoginForm'), loginSubmit = byId('officeLoginSubmit'), pin = byId('officePin'), complex = byId('officeComplex'), loginError = byId('officeLoginError');
   const officeName = byId('officeName'), requestList = byId('officeRequestList'), syncStatus = byId('officeSyncStatus'), logout = byId('officeLogout'), newRequest = byId('officeNewRequest');
   const refreshRequests = byId('officeRefreshRequests'), recentSummary = byId('officeRecentSummary');
@@ -25,6 +26,7 @@
   function clearSession() { sessionGeneration += 1; clearDetail(); clearRecentState(); sessionStorage.removeItem(SESSION_KEY); session = null; }
   function restoreSession(slug) { try { const value = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); const keys = value && typeof value === 'object' ? Object.keys(value).sort() : []; if (keys.join(',') !== 'expiresAt,office,token' || !value.token || Date.now() >= Number(value.expiresAt)) { clearSession(); return null; } const office = safeOffice(value.office); if (!office.id || !office.slug || office.slug !== slug || !officeLabel(office)) { clearSession(); return null; } return { token: String(value.token), office, expiresAt: Number(value.expiresAt) }; } catch (_) { clearSession(); return null; } }
   function focusPin() { if (pin) pin.focus(); }
+  function focusOfficeEntry() { if (officeEntry) officeEntry.focus(); }
   function focusTitle(id) { const title = byId(id); if (!title) return; title.setAttribute('tabindex', '-1'); try { title.focus({ preventScroll: true }); } catch (_) { title.focus(); } }
   function showLogin(message) { if (loginError) loginError.textContent = message || ''; if (requestList) requestList.textContent = ''; if (syncStatus) syncStatus.textContent = ''; setView(loginView); focusPin(); }
   function errorMessage(error) { if (error && error.code === 'rate-limited') return '시도가 많습니다. 10분 후 다시 시도해 주세요.'; if (error instanceof api.ManmulOfficeApiError) return error.message; if (error && ['invalid-session', 'invalid-response', 'stale-session'].includes(error.code || error.message)) return '처리 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.'; return error && typeof error.message === 'string' ? error.message : '처리 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.'; }
@@ -273,12 +275,34 @@
   async function editOfficeRequest(id, activator) { const item = requests.find((entry) => requestId(entry) === id); if (!mutable(item)) { if (syncStatus) syncStatus.textContent = '대표 확인 후에는 전화로 변경해 주세요'; return false; } if (activator && typeof activator.focus === 'function') createActivator = activator; editingRequest = item; resetDraft(); populateCreate(item); createTitle.textContent = '접수 수정'; createSubmit.textContent = '수정 저장'; createSubmit.disabled = false; createSubmit.hidden = false; setPhotoControl(false); setCreateError(''); setProgress(''); setView(createView); focusTitle('officeCreateTitle'); return true; }
   async function updateOfficeRequest(data) { if (!editingRequest || !mutable(editingRequest)) return refreshInvalidStatus(requestId(editingRequest)); const payload = core.buildCreatePayload(data, 'update'); delete payload.idempotencyKey; delete payload.expectedUploadIds; payload.requestId = requestId(editingRequest); try { await authenticatedCall('officeUpdate', payload); const fresh = await authenticatedCall('officeGet', { requestId: payload.requestId }); replaceRequest(fresh.request); editingRequest = null; setView(dashboardView); if (syncStatus) syncStatus.textContent = '수정 내용을 저장했습니다.'; focusRequestAction(payload.requestId); return { request: fresh.request, photosComplete: true }; } catch (error) { if (error.officeSessionHandled) throw error; if (error.code === 'invalid-status') return refreshInvalidStatus(payload.requestId); throw error; } }
   async function cancelOfficeRequest(id) { const item = requests.find((entry) => requestId(entry) === id); if (!mutable(item)) { if (syncStatus) syncStatus.textContent = '대표 확인 후에는 전화로 변경해 주세요'; return false; } if (!window.confirm('이 접수를 취소할까요?')) return false; try { await authenticatedCall('officeCancel', { requestId: id }); const fresh = await authenticatedCall('officeGet', { requestId: id }); replaceRequest(fresh.request); if (syncStatus) syncStatus.textContent = '접수를 취소했습니다.'; focusRequestAction(id); return true; } catch (error) { if (error.officeSessionHandled) throw error; if (error.code === 'invalid-status') return refreshInvalidStatus(id); throw error; } }
+  function submitOfficeEntry(event) {
+    event.preventDefault();
+    const slug = core.parseOfficeEntry(officeEntry && officeEntry.value, window.location.href);
+    if (!slug) {
+      if (officeEntryError) officeEntryError.textContent = '관리사무소 코드 또는 전용 주소를 확인해 주세요.';
+      focusOfficeEntry();
+      return;
+    }
+    if (officeEntryError) officeEntryError.textContent = '';
+    const target = new URL(window.location.href);
+    target.search = '';
+    target.hash = '';
+    target.searchParams.set('office', slug);
+    window.location.assign(target.href);
+  }
   async function submitRequest(event) { event.preventDefault(); if (formPending || currentDraft.requestId) return; formPending = true; createSubmit.disabled = true; setCreateError(''); try { if (editingRequest) await updateOfficeRequest(dataFromForm(createForm)); else await submitOfficeRequest(createForm); } catch (error) { if (error.officeSessionHandled) return; if (error.code === 'photo-pending') setCreateError('사진을 준비하는 중입니다.'); else if (!error.code || error.code !== 'invalid-input') setCreateError(errorMessage(error)); } finally { formPending = false; if (!currentDraft.requestId && createSubmit) createSubmit.disabled = false; } }
 
   if (year) year.textContent = new Date().getFullYear();
-  if (!core || !api || !photo || !routeError || !loginView || !dashboardView || !loginForm || !pin || !loginSubmit || !createForm) return;
+  if (!core || !api || !photo || !routeError || !routeForm || !officeEntry || !loginView || !dashboardView || !loginForm || !pin || !loginSubmit || !createForm) return;
   const slug = core.parseOfficeSlug(window.location.search);
-  if (!slug) { setView(routeError); return; }
+  if (!slug) {
+    setView(routeError);
+    routeForm.addEventListener('submit', submitOfficeEntry);
+    officeEntry.addEventListener('input', () => { if (officeEntryError) officeEntryError.textContent = ''; });
+    if (new URLSearchParams(window.location.search).has('office') && officeEntryError) officeEntryError.textContent = '전용 주소의 관리사무소 코드 형식을 확인해 주세요.';
+    focusOfficeEntry();
+    return;
+  }
   if (complex) complex.value = slug;
   loginForm.addEventListener('submit', (event) => { submitLogin(event, slug); });
   if (logout) logout.addEventListener('click', () => { clearSession(); requests = []; resetCreate(); showLogin(''); });

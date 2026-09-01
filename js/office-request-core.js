@@ -5,6 +5,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function createApi() {
   const ISSUE_TYPES = ['누수', '배수', '급수', '난방', '방수', '공용시설', '기타'];
   const PIPE_TYPES = ['미확정', '오수', '우수', '잡배수', '난방', '급수'];
+  const OFFICE_SLUG = /^[a-z0-9][a-z0-9-]{2,63}$/;
   const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
   const STATUS_LABELS = {
     pending_review: '접수됨', needs_info: '내용 확인 필요', accepted: '확인 완료', visit_scheduled: '방문 예정',
@@ -27,7 +28,23 @@
   }
   function parseOfficeSlug(search) {
     const slug = new URLSearchParams(String(search || '')).get('office') || '';
-    return /^[a-z0-9][a-z0-9-]{2,63}$/.test(slug) ? slug : '';
+    return OFFICE_SLUG.test(slug) ? slug : '';
+  }
+  function parseOfficeEntry(value, currentUrl) {
+    const raw = text(value, 500);
+    if (OFFICE_SLUG.test(raw)) return raw;
+    let current;
+    let target;
+    try {
+      current = new URL(String(currentUrl || ''));
+      target = new URL(raw);
+    } catch (_) {
+      return '';
+    }
+    const keys = [...target.searchParams.keys()];
+    if (target.origin !== current.origin || target.pathname !== current.pathname || target.username || target.password || target.hash) return '';
+    if (keys.length !== 1 || keys[0] !== 'office' || target.searchParams.getAll('office').length !== 1) return '';
+    return parseOfficeSlug(target.search);
   }
   function validateLogin(data) {
     return /^\d{6}$/.test(String(data && data.pin || ''))
@@ -131,7 +148,7 @@
     return RECENT_LABELS[change.status] || statusLabel(change.status);
   }
   return {
-    normalizePhone, parseOfficeSlug, validateLogin, validateRequest, buildCreatePayload,
+    normalizePhone, parseOfficeSlug, parseOfficeEntry, validateLogin, validateRequest, buildCreatePayload,
     statusLabel, needsInfoLabel, normalizeRecentList, diffRecentSnapshots, recentChangeLabel,
   };
 });

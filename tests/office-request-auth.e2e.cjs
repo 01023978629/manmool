@@ -83,7 +83,8 @@ test('단지 slug가 없으면 경고만 보이고 API를 호출하지 않는다
   const { calls, page, pageErrors } = await openPortal(async () => ({ ok: true }));
   await page.goto(`${origin}/office-request.html`);
   assert.equal(await page.locator('#officeRouteError').isVisible(), true);
-  assert.match(await page.locator('#officeRouteError').innerText(), /관리사무소 전용 주소를 확인해 주세요/);
+  assert.match(await page.locator('#officeRouteError').innerText(), /관리사무소 직원 로그인/);
+  assert.equal(await page.locator('#officeRouteForm').isVisible(), true);
   assert.equal(calls.length, 0);
   assert.deepEqual(pageErrors, []);
   await page.close();
