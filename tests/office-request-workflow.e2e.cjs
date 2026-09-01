@@ -687,8 +687,9 @@ test('보완 요청 사유는 needs_info 상세에만 안전한 300자 이하 �
   const safeReason = '천장 누수 범위를 확인할 사진을 다시 올려 주세요. <img src=x onerror="window.__needsInfoXss=true">';
   const needsInfo = { ...request('req-needs-reason', 'needs_info'), needsInfoReason: safeReason };
   const accepted = { ...request('req-accepted-reason', 'accepted'), needsInfoReason: '이 상태에서는 보이면 안 됩니다.' };
+  const exactLimit = { ...request('req-needs-exact-limit', 'needs_info'), needsInfoReason: '가'.repeat(300) };
   const oversized = { ...request('req-needs-oversized', 'needs_info'), needsInfoReason: '가'.repeat(301) };
-  const items = [needsInfo, accepted, oversized];
+  const items = [needsInfo, accepted, exactLimit, oversized];
   const { page, pageErrors } = await openPortal(async (body) => {
     if (body.action === 'officeLogin') return loginResult();
     if (body.action === 'officeList') return { ok: true, requests: items };
@@ -715,6 +716,12 @@ test('보완 요청 사유는 needs_info 상세에만 안전한 300자 이하 �
   assert.equal(await page.locator('#officeDetailReceipt').innerText(), accepted.receiptNo);
   assert.equal(await page.locator('#officeDetailNeedsInfoRow').isHidden(), true);
   assert.equal(await page.locator('#officeDetailNeedsInfoReason').textContent(), '');
+  await page.getByRole('button', { name: '목록으로' }).click();
+
+  await page.locator('[data-office-detail="req-needs-exact-limit"]').click();
+  await page.locator('#officeDetailView').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#officeDetailNeedsInfoRow').isHidden(), false);
+  assert.equal((await page.locator('#officeDetailNeedsInfoReason').textContent()).length, 300);
   await page.getByRole('button', { name: '목록으로' }).click();
 
   await page.locator('[data-office-detail="req-needs-oversized"]').click();
@@ -874,7 +881,7 @@ test('완료 사진은 검증된 JPEG와 WebP 응답도 각각 data URL 이미�
 });
 
 test('상세 응답 경합에서는 늦은 A가 빠른 B 상세 화면을 덮어쓰지 않는다', async () => {
-  const a = request('req-race-a', 'accepted');
+  const a = { ...request('req-race-a', 'needs_info'), needsInfoReason: '늦게 도착한 보완 요청 사유' };
   const b = request('req-race-b', 'paid');
   let releaseA;
   const aPending = new Promise((resolve) => { releaseA = resolve; });
@@ -893,6 +900,8 @@ test('상세 응답 경합에서는 늦은 A가 빠른 B 상세 화면을 덮어
   await page.waitForTimeout(100);
   assert.equal((await page.locator('#officeDetailReceipt').innerText()), b.receiptNo);
   assert.match(await page.locator('#officeDetailStatus').innerText(), /처리 완료/);
+  assert.equal(await page.locator('#officeDetailNeedsInfoRow').isHidden(), true);
+  assert.equal(await page.locator('#officeDetailNeedsInfoReason').textContent(), '');
   assert.deepEqual(pageErrors, []);
   await page.close();
 });
