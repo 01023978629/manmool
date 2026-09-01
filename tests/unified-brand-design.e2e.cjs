@@ -128,7 +128,7 @@ test('전체 주요 페이지에서 관리사무소 전용 창구로 이동할 �
   }
 });
 
-test('관리사무소 페이지는 직원 전용 포털의 전용 주소와 보조 진입점을 안내한다', async () => {
+test('관리사무소 페이지는 직원 전용 포털의 코드·전용 주소와 보조 진입점을 안내한다', async () => {
   const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
   await page.goto(`${origin}/office.html`, { waitUntil: 'networkidle' });
 
@@ -136,13 +136,16 @@ test('관리사무소 페이지는 직원 전용 포털의 전용 주소와 보�
   assert.match(bodyText, /아파트 관리사무소의 공식 홈페이지가 아니라/);
   assert.match(bodyText, /만물인테리어가.*운영하는.*상담 안내 페이지/);
   assert.match(bodyText, /관리사무소 직원 전용/);
-  assert.match(bodyText, /\?office=<slug>/);
+  assert.match(bodyText, /단지 전용 주소로 접속하거나/);
+  assert.match(bodyText, /발급받은 관리사무소 코드를.*입력/);
+  assert.match(bodyText, /기존 6자리 비밀번호 인증/);
+  assert.doesNotMatch(bodyText, /\?office=<slug>/);
   assert.match(bodyText, /비밀번호.*주민등록번호.*신용카드.*계좌정보.*요청하지 않습니다/);
   assert.equal(await page.locator('#officeInquiry input, #officeInquiry textarea, #officeInquiry form').count(), 0);
   assert.equal(await page.locator('script[src*="office.js"]').count(), 0);
   assert.equal(await page.locator('a[href^="tel:01023978629"]').count() > 0, true);
   assert.equal(await page.getByRole('link', { name: '업무 문의', exact: true }).first().getAttribute('href'), '#officeInquiry');
-  assert.equal(await page.getByRole('link', { name: '관리사무소 직원 포털', exact: true }).first().getAttribute('href'), 'office-request.html');
+  assert.equal(await page.getByRole('link', { name: '관리사무소 직원 로그인', exact: true }).first().getAttribute('href'), 'office-request.html');
 
   await page.close();
 });
