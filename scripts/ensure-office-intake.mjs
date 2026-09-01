@@ -19,8 +19,8 @@ const fail = [];
 const check = (condition, message) => { if (!condition) fail.push(message); };
 
 check(
-  (office.match(/href="office-request\.html"/g) || []).length >= 2,
-  '영업 페이지에 시설접수 진입점 2개가 없다'
+  (office.match(/href="office-request\.html"/g) || []).length >= 1,
+  '영업 페이지에 기존 시설접수 진입점이 없다'
 );
 check(/id="officeRequestIntro"/.test(office), '단지 전용 시설접수 소개 구역이 없다');
 check(/name="robots" content="noindex,follow"/.test(request), '접수 페이지 noindex가 없다');

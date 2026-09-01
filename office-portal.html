@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko" data-office-frame-pending>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>아파트 관리 포털 · 만물인테리어</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="theme-color" content="#103b4d" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src 'none'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+  <script src="js/office-frame-guard.js?v=20260901-office-rbac2"></script>
+  <link rel="stylesheet" href="css/styles.css?v=20260901-office-rbac1" />
+  <link rel="stylesheet" href="css/brand-system.css?v=20260901-office-rbac1" />
+  <link rel="stylesheet" href="css/office-portal.css?v=20260901-office-rbac2" />
+</head>
+<body class="portal-page">
+  <header class="portal-header">
+    <div class="container portal-header-inner">
+      <a href="office.html" class="logo" aria-label="관리사무소 안내"><span class="logo-mark">萬</span><span class="logo-text"><strong id="portalOfficeName">아파트 관리 포털</strong><em>시설 상태 · 관리 일지</em></span></a>
+      <div id="portalAccount" class="portal-account" hidden>
+        <span><b id="portalUserName"></b><small id="portalUserRole"></small></span>
+        <a id="portalAdminLink" class="portal-small-link" href="office-admin.html" hidden>권한 관리</a>
+        <button id="portalLogout" class="portal-button portal-button-small portal-button-secondary" type="button">로그아웃</button>
+      </div>
+    </div>
+  </header>
+  <main class="portal-main portal-app-main">
+    <section id="portalLoading" class="portal-state-card" role="status" aria-live="polite">
+      <h1>권한을 확인하고 있습니다</h1><p>서버에서 현재 계정과 열람 범위를 확인한 뒤 화면을 엽니다.</p>
+    </section>
+    <section id="portalDenied" class="portal-state-card" hidden aria-labelledby="portalDeniedTitle">
+      <h1 id="portalDeniedTitle">포털을 열 수 없습니다</h1><p id="portalDeniedMessage">다시 로그인해 주세요.</p><a class="portal-button portal-button-primary" href="office-login.html">로그인으로 이동</a>
+    </section>
+    <div id="portalApp" class="container portal-app" hidden>
+      <nav id="portalNav" class="portal-nav" aria-label="관리 포털 메뉴">
+        <button type="button" data-panel="dashboard" data-requires="dashboard.view" hidden>관리 현황</button>
+        <button type="button" data-panel="status" data-requires="status.view" hidden>시설 상태</button>
+        <button type="button" data-panel="logs" data-requires="logs.view" hidden>관리 일지</button>
+        <a href="office-request.html" data-requires="requests.view" hidden>기존 시설보수 접수</a>
+      </nav>
+
+      <p id="portalStatusMessage" class="portal-live" role="status" aria-live="polite"></p>
+
+      <section id="portalDashboardPanel" class="portal-panel" data-panel-view="dashboard" data-requires="dashboard.view" hidden aria-labelledby="portalDashboardTitle">
+        <div class="portal-panel-head"><div><span class="portal-eyebrow">아파트 관리 상태</span><h1 id="portalDashboardTitle">오늘 확인할 내용</h1></div><button id="portalDashboardRefresh" class="portal-button portal-button-secondary" type="button">새로고침</button></div>
+        <div id="portalDashboardCards" class="portal-kpi-grid" aria-live="polite"></div>
+        <section class="portal-summary-box"><h2>최근 안내</h2><ul id="portalDashboardNotices" class="portal-list"></ul></section>
+      </section>
+
+      <section id="portalStatusPanel" class="portal-panel" data-panel-view="status" data-requires="status.view" hidden aria-labelledby="portalStatusTitle">
+        <div class="portal-panel-head"><div><span class="portal-eyebrow">시설 관리</span><h1 id="portalStatusTitle">시설 상태</h1></div><button id="portalStatusRefresh" class="portal-button portal-button-secondary" type="button">목록 새로고침</button></div>
+        <div id="portalStatusList" class="portal-record-list" aria-live="polite"></div>
+        <form id="portalStatusForm" class="portal-editor" data-requires="status.manage" hidden novalidate>
+          <h2>시설 상태 기록</h2>
+          <input name="statusId" type="hidden" />
+          <div class="portal-form-grid"><label>시설·위치<input name="location" maxlength="120" /></label><label>분류<select name="category"><option value="">선택</option><option value="water">급수·배수</option><option value="heating">난방</option><option value="electric">전기</option><option value="safety">안전</option><option value="common">공용시설</option><option value="other">기타</option></select></label></div>
+          <div class="portal-form-grid"><label>상태<select name="state"><option value="normal">정상</option><option value="watch">관찰 필요</option><option value="repair">보수 필요</option><option value="working">조치 중</option><option value="complete">조치 완료</option></select></label><label>공개 범위<select name="visibility"><option value="internal" selected>관리사무소 내부</option><option value="board">동대표까지</option><option value="public">입주민 공개</option></select></label></div>
+          <label>확인 내용<textarea name="summary" maxlength="1000" rows="4"></textarea></label>
+          <button class="portal-button portal-button-primary" type="submit">시설 상태 저장</button><p id="portalStatusError" class="portal-error" role="alert"></p>
+        </form>
+      </section>
+
+      <section id="portalLogsPanel" class="portal-panel" data-panel-view="logs" data-requires="logs.view" hidden aria-labelledby="portalLogsTitle">
+        <div class="portal-panel-head"><div><span class="portal-eyebrow">업무 기록</span><h1 id="portalLogsTitle">관리 일지</h1></div><button id="portalLogsRefresh" class="portal-button portal-button-secondary" type="button">일지 새로고침</button></div>
+        <div id="portalLogList" class="portal-record-list" aria-live="polite"></div>
+        <form id="portalLogForm" class="portal-editor" data-requires="logs.manage" hidden novalidate>
+          <h2>관리 일지 작성</h2>
+          <input name="logId" type="hidden" />
+          <div class="portal-form-grid"><label>업무일<input name="workDate" type="date" /></label><label>구분<select name="category"><option value="inspection">점검</option><option value="repair">보수</option><option value="complaint">민원</option><option value="meeting">회의</option><option value="notice">공지</option><option value="other">기타</option></select></label></div>
+          <label>공개 범위<select name="visibility"><option value="internal" selected>관리사무소 내부</option><option value="board">동대표까지</option><option value="public">입주민 공개</option></select></label>
+          <label>제목<input name="title" maxlength="120" /></label>
+          <label>내용<textarea name="content" maxlength="2000" rows="5"></textarea></label>
+          <button class="portal-button portal-button-primary" type="submit">관리 일지 저장</button><p id="portalLogError" class="portal-error" role="alert"></p>
+        </form>
+      </section>
+
+      <section id="portalEmpty" class="portal-state-card" hidden><h1>열람 가능한 메뉴가 없습니다</h1><p>관리자에게 보기 권한을 요청해 주세요.</p></section>
+    </div>
+  </main>
+  <script src="js/office-portal-core.js?v=20260901-office-rbac2"></script>
+  <script src="js/office-portal-api.js?v=20260901-office-rbac2"></script>
+  <script src="js/office-portal.js?v=20260901-office-rbac3"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko" data-office-frame-pending>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>사용자·권한 관리 · 아파트 관리 포털</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="theme-color" content="#103b4d" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src 'none'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+  <script src="js/office-frame-guard.js?v=20260901-office-rbac2"></script>
+  <link rel="stylesheet" href="css/styles.css?v=20260901-office-rbac1" />
+  <link rel="stylesheet" href="css/brand-system.css?v=20260901-office-rbac1" />
+  <link rel="stylesheet" href="css/office-portal.css?v=20260901-office-rbac2" />
+</head>
+<body class="portal-page">
+  <header class="portal-header">
+    <div class="container portal-header-inner">
+      <a href="office-portal.html" class="logo" aria-label="아파트 관리 포털"><span class="logo-mark">萬</span><span class="logo-text"><strong id="portalAdminOfficeName">사용자·권한 관리</strong><em>관리자 전용</em></span></a>
+      <div id="portalAdminAccount" class="portal-account" hidden><span><b id="portalAdminUserName"></b><small id="portalAdminUserRole"></small></span><a class="portal-small-link" href="office-portal.html">포털로 돌아가기</a><button id="portalAdminLogout" class="portal-button portal-button-small portal-button-secondary" type="button">로그아웃</button></div>
+    </div>
+  </header>
+  <main class="portal-main portal-app-main">
+    <section id="portalAdminLoading" class="portal-state-card" role="status"><h1>관리 권한을 확인하고 있습니다</h1></section>
+    <section id="portalAdminDenied" class="portal-state-card" hidden><h1>관리 권한이 없습니다</h1><p id="portalAdminDeniedMessage">관리자에게 권한을 요청해 주세요.</p><a class="portal-button portal-button-primary" href="office-portal.html">포털로 돌아가기</a></section>
+    <div id="portalAdminApp" class="container portal-app" hidden>
+      <div class="portal-panel-head"><div><span class="portal-eyebrow">관리자 전용</span><h1>사용자와 보기 권한</h1><p>사용자별 역할과 화면 열람 범위를 관리합니다. 모든 변경은 서버 감사기록에 남아야 합니다.</p></div><button id="portalUserRefresh" class="portal-button portal-button-secondary" type="button">사용자 새로고침</button></div>
+      <aside class="portal-warning" role="note"><strong>마지막 관리자 보호</strong><p>단지의 마지막 활성 관리자는 비활성화하거나 관리자 역할을 해제할 수 없습니다. 최종 판단은 서버가 수행합니다.</p></aside>
+      <p id="portalAdminStatus" class="portal-live" role="status" aria-live="polite"></p>
+
+      <section class="portal-panel" data-requires="admin.users.view" hidden aria-labelledby="portalUsersTitle">
+        <h2 id="portalUsersTitle">사용자 목록</h2>
+        <div id="portalUserList" class="portal-user-list" aria-live="polite"></div>
+      </section>
+
+      <section class="portal-panel" data-requires="admin.users.manage" hidden aria-labelledby="portalUserEditorTitle">
+        <h2 id="portalUserEditorTitle">사용자 등록·변경</h2>
+        <form id="portalUserForm" class="portal-editor" novalidate>
+          <input name="userId" type="hidden" />
+          <div class="portal-form-grid"><label>이름<input name="name" maxlength="80" /></label><label>이메일<input name="email" type="email" maxlength="254" autocomplete="off" /></label></div>
+          <label>동·호/담당 구역 (선택)<input name="unit" maxlength="40" placeholder="예: 101동 1203호 또는 지하 기계실" /></label>
+          <label>역할<select name="role"><option value="">선택</option><option value="system_admin">관리자</option><option value="manager_chief">관리소장</option><option value="facility_manager">관리과장</option><option value="resident_rep">동대표</option><option value="resident">아파트 입주민</option></select></label>
+          <label class="portal-checkbox"><input name="active" type="checkbox" checked /> 활성 계정</label>
+          <div class="portal-actions"><button class="portal-button portal-button-primary" type="submit">사용자 저장</button><button id="portalUserReset" class="portal-button portal-button-secondary" type="button">새 사용자 입력</button></div>
+          <p id="portalUserError" class="portal-error" role="alert"></p>
+        </form>
+      </section>
+
+      <section class="portal-panel" data-requires="admin.permissions.manage" hidden aria-labelledby="portalPermissionsTitle">
+        <h2 id="portalPermissionsTitle">보기 권한 재정의</h2>
+        <p>역할 기본값을 넓히지 않고, 서버가 허용한 보기 항목만 사용자별로 설정합니다. 쓰기 권한은 역할 상한을 따릅니다.</p>
+        <form id="portalPermissionForm" class="portal-editor" novalidate>
+          <input name="userId" type="hidden" />
+          <p id="portalPermissionUser" class="portal-selected-user">사용자 목록에서 권한 설정을 선택해 주세요.</p>
+          <fieldset id="portalPermissionFields" disabled><legend>열람할 화면</legend><div id="portalPermissionChecks" class="portal-permission-grid"></div></fieldset>
+          <button id="portalPermissionSave" class="portal-button portal-button-primary" type="submit" disabled>보기 권한 저장</button>
+          <p id="portalPermissionError" class="portal-error" role="alert"></p>
+        </form>
+      </section>
+
+      <section class="portal-panel" data-requires="admin.audit.view" hidden aria-labelledby="portalAuditTitle">
+        <div class="portal-panel-head"><h2 id="portalAuditTitle">최근 관리 감사기록</h2><button id="portalAuditRefresh" class="portal-button portal-button-secondary" type="button">감사기록 새로고침</button></div>
+        <div id="portalAuditList" class="portal-record-list" aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+  <script src="js/office-portal-core.js?v=20260901-office-rbac2"></script>
+  <script src="js/office-portal-api.js?v=20260901-office-rbac2"></script>
+  <script src="js/office-admin.js?v=20260901-office-rbac3"></script>
+</body>
+</html>

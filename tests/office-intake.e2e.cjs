@@ -20,7 +20,7 @@ test('배포 게이트의 공개 포털 소스 계약은 설정 CLI와 fail-clos
   const workflow = read('.github/workflows/deploy-pages.yml');
   const expectedPortalRegressionRun = [
     '          set -euo pipefail',
-    '          node --test --test-concurrency=1 tests/office-request.logic.test.cjs tests/office-request-api.test.cjs tests/office-request-auth.e2e.cjs tests/office-request-workflow.e2e.cjs tests/office-request-recent-changes.e2e.cjs tests/office-intake.e2e.cjs',
+    '          node --test --test-concurrency=1 tests/office-request.logic.test.cjs tests/office-request-api.test.cjs tests/office-request-auth.e2e.cjs tests/office-request-workflow.e2e.cjs tests/office-request-recent-changes.e2e.cjs tests/office-intake.e2e.cjs tests/office-portal-core.test.cjs tests/office-portal-api.test.cjs tests/office-portal-rbac.e2e.cjs',
   ].join('\n');
   const portalRegressionRun = workflow.match(/      - name: Run management office portal regression\r?\n[\s\S]*?        run: \|\r?\n([\s\S]*?)(?=\r?\n      - name:|\s*$)/);
   assert.equal(fs.existsSync(path.join(ROOT, 'scripts', 'configure-office-api.mjs')), true);
@@ -31,7 +31,9 @@ test('배포 게이트의 공개 포털 소스 계약은 설정 CLI와 fail-clos
   assert.match(policy, /office-request-photo\.js/);
   assert.match(portal, /sessionStorage/);
   assert.doesNotMatch(portal, /(localStorage|indexedDB|APP_TOKEN|OFFICE_SESSION_SECRET|pinHash|pinSalt)/);
-  assert.match(workflow, /node --test --test-concurrency=1 tests\/configure-office-api\.test\.cjs tests\/pages-artifact-policy\.test\.cjs/);
+  for (const testFile of ['configure-office-api.test.cjs', 'configure-office-portal-api.test.cjs', 'pages-artifact-policy.test.cjs']) {
+    assert.match(workflow, new RegExp(`tests/${testFile.replaceAll('.', '\\.')}`));
+  }
   assert.ok(portalRegressionRun);
   assert.equal(portalRegressionRun[1].replace(/\r\n/g, '\n').trimEnd(), expectedPortalRegressionRun);
   assert.match(request, /css\/office-request\.css\?v=20260901-office-entry1/);

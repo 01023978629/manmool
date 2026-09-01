@@ -128,7 +128,7 @@ test('전체 주요 페이지에서 관리사무소 전용 창구로 이동할 �
   }
 });
 
-test('관리사무소 페이지는 직원 전용 포털의 코드·전용 주소와 보조 진입점을 안내한다', async () => {
+test('관리사무소 페이지는 이메일 직원 포털과 기존 PIN 접수 진입점을 함께 안내한다', async () => {
   const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
   await page.goto(`${origin}/office.html`, { waitUntil: 'networkidle' });
 
@@ -136,16 +136,17 @@ test('관리사무소 페이지는 직원 전용 포털의 코드·전용 주소
   assert.match(bodyText, /아파트 관리사무소의 공식 홈페이지가 아니라/);
   assert.match(bodyText, /만물인테리어가.*운영하는.*상담 안내 페이지/);
   assert.match(bodyText, /관리사무소 직원 전용/);
-  assert.match(bodyText, /단지 전용 주소로 접속하거나/);
-  assert.match(bodyText, /발급받은 관리사무소 코드를.*입력/);
-  assert.match(bodyText, /기존 6자리 비밀번호 인증/);
+  assert.match(bodyText, /등록된 이메일로 로그인/);
+  assert.match(bodyText, /관리소장.*관리과장.*동대표.*입주민/);
+  assert.match(bodyText, /기존 단지 전용 주소와 6자리 PIN 접수도 계속/);
   assert.doesNotMatch(bodyText, /\?office=<slug>/);
   assert.match(bodyText, /비밀번호.*주민등록번호.*신용카드.*계좌정보.*요청하지 않습니다/);
   assert.equal(await page.locator('#officeInquiry input, #officeInquiry textarea, #officeInquiry form').count(), 0);
   assert.equal(await page.locator('script[src*="office.js"]').count(), 0);
   assert.equal(await page.locator('a[href^="tel:01023978629"]').count() > 0, true);
   assert.equal(await page.getByRole('link', { name: '업무 문의', exact: true }).first().getAttribute('href'), '#officeInquiry');
-  assert.equal(await page.getByRole('link', { name: '관리사무소 직원 로그인', exact: true }).first().getAttribute('href'), 'office-request.html');
+  assert.equal(await page.getByRole('link', { name: '관리사무소 직원 로그인', exact: true }).first().getAttribute('href'), 'office-login.html');
+  assert.equal(await page.getByRole('link', { name: '기존 6자리 PIN 접수', exact: false }).getAttribute('href'), 'office-request.html');
 
   await page.close();
 });
@@ -154,7 +155,7 @@ test('개인정보처리방침은 관리사무소 접수의 항목, 목적, 보�
   const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
   await page.goto(`${origin}/privacy.html`, { waitUntil: 'networkidle' });
   const text = await page.locator('main').innerText();
-  for (const phrase of ['관리사무소 담당자', '선택한 입주민 연락처', '현장 사진', '시설보수 접수', '취소·거절된 접수', '90일', '완료된 일반 접수', '1년', '계약·세무 증빙', '법정 보관기간', '8시간 세션']) {
+  for (const phrase of ['관리사무소 담당자', '선택한 입주민 연락처', '현장 사진', '시설보수 접수', '취소·거절된 접수', '90일', '완료된 일반 접수', '1년', '계약·세무 증빙', '법정 보관기간', '단지 코드', '등록 이메일', '동·호/담당 구역', '관리 상태', '관리 일지', '감사기록', 'OTP 원문', '세션 토큰 원문']) {
     assert.equal(text.includes(phrase), true, `개인정보 안내 누락: ${phrase}`);
   }
   assert.equal(text.includes('문자 앱에서 직접 전송'), false);
