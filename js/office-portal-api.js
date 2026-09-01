@@ -11,6 +11,8 @@
     'portalRequestCode', 'portalVerifyCode', 'portalMe', 'portalLogout', 'portalDashboard',
     'portalStatusList', 'portalStatusSave', 'portalLogList', 'portalLogSave',
     'portalUserList', 'portalUserSave', 'portalPermissionSave', 'portalAuditList',
+    'portalWorkOrderList', 'portalWorkOrderSave', 'portalNoticeList', 'portalNoticeSave',
+    'portalCostList', 'portalCostSave', 'portalCostApprove', 'portalReportSummary',
   ]);
   const PUBLIC_ACTIONS = new Set(['portalRequestCode', 'portalVerifyCode']);
   const ACTION_SET = new Set(ACTIONS);

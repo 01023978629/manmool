@@ -24,8 +24,8 @@
 | 역할 | 기본 범위 |
 | --- | --- |
 | `system_admin` | 사용자·권한 설정과 감사기록. 시설 상태·관리일지·대시보드 권한 없음 |
-| `manager_chief` | 13개 capability 전체: 상태·일지·접수·보고·공지·비용과 사용자·권한·감사 관리 |
-| `facility_manager` | 대시보드, 시설 상태·관리일지 열람·작성, 접수·보고·공지·비용 열람 |
+| `manager_chief` | 콘텐츠와 관리 capability 전체: 상태·일지·작업지시·접수·보고·공지·비용과 사용자·권한·감사 관리 |
+| `facility_manager` | 대시보드, 시설 상태·관리일지·작업지시·공지·비용 작성. 담당자 배정과 공지 발행·비용 승인은 제외 |
 | `resident_rep` | 대시보드, 공개 범위에 맞는 상태·일지·보고·공지 열람 |
 | `resident` | 대시보드, 주민 공개 상태·일지·공지 열람 |
 
@@ -33,15 +33,16 @@
 
 클라이언트는 서버가 반환한 권한을 화면 표시 용도로만 사용한다. 모든 API는 매 요청마다 세션, 사용자 활성 상태, 단지, 역할, 권한 버전을 다시 확인한다.
 
-서버와 프런트가 공통으로 사용하는 capability 13개는 다음과 같다. 이름을 임의로 변환하거나 역할만 보고 capability를 추론하지 않는다.
+서버와 프런트가 공통으로 사용하는 capability는 다음과 같다. 이름을 임의로 변환하거나 역할만 보고 capability를 추론하지 않는다.
 
 - `dashboard.view`
 - `status.view`, `status.manage`
 - `logs.view`, `logs.manage`
 - `requests.view`
 - `reports.view`
-- `notices.view`
-- `costs.view`
+- `notices.view`, `notices.manage`, `notices.publish`
+- `costs.view`, `costs.manage`, `costs.approve`
+- `workorders.view`, `workorders.manage`, `workorders.assign`
 - `admin.users.view`, `admin.users.manage`
 - `admin.permissions.manage`
 - `admin.audit.view`
@@ -50,7 +51,7 @@
 
 ## 공개 범위와 서버 필드 제거
 
-관리 상태와 관리 일지는 `public`, `board`, `internal` 중 하나의 공개 범위를 가진다.
+관리 상태·관리 일지·작업지시·공지는 `public`, `board`, `internal` 중 하나의 공개 범위를 가진다.
 
 - 입주민: `public`
 - 동대표: `public`, `board`
@@ -73,6 +74,8 @@
 - 로그인 사용자·역할·단지 표시
 - 관리 상태 요약
 - 공개 범위에 맞는 관리 일지
+- 접수번호와 연결된 작업지시·담당자 배정·기한 관리
+- 공지 초안·발행, 비용 등록·승인·지급 상태, 개인정보 없는 기간 집계 보고
 - 기존 시설보수 접수 화면으로 이동
 - 권한이 있는 사용자만 상태·일지 작성 버튼 표시
 - 권한 변경이나 세션 만료 시 즉시 로그인 화면으로 이동
@@ -101,7 +104,9 @@
 
 모든 쓰기는 `LockService` 안에서 처리한다. 감사기록에는 사용자 ID, action, entity ID, 결과, 시각만 기록하며 일지 본문·전화번호·OTP·세션 토큰은 기록하지 않는다.
 
-`portalStatusSave`, `portalLogSave`, `portalUserSave`, `portalPermissionSave`는 payload에 브라우저가 생성한 v4 UUID `requestId`를 반드시 포함한다. 한 작업의 응답이 끊기거나 실패하면 같은 `requestId`로 재시도하고, 성공하거나 사용자가 편집 대상 또는 새 입력을 명시적으로 바꾼 뒤에만 새 UUID를 만든다. 활성화·비활성화도 사용자와 목표 상태가 같은 재시도에는 같은 `requestId`를 사용한다.
+`portalStatusSave`, `portalLogSave`, `portalUserSave`, `portalPermissionSave`, `portalWorkOrderSave`, `portalNoticeSave`, `portalCostSave`, `portalCostApprove`는 payload에 브라우저가 생성한 v4 UUID `requestId`를 반드시 포함한다. 한 작업의 응답이 끊기거나 실패하면 같은 `requestId`로 재시도하고, 성공하거나 사용자가 편집 대상 또는 새 입력을 명시적으로 바꾼 뒤에만 새 UUID를 만든다. 활성화·비활성화도 사용자와 목표 상태가 같은 재시도에는 같은 `requestId`를 사용한다.
+
+운영 API는 `portalWorkOrderList`/`portalWorkOrderSave`, `portalNoticeList`/`portalNoticeSave`, `portalCostList`/`portalCostSave`/`portalCostApprove`, `portalReportSummary`를 사용한다. 작업지시 목록의 `assignees`는 `workorders.assign` 권한이 있을 때만 반환하며, 배정 권한이 없는 사용자가 기존 작업지시를 수정할 때는 `assigneeUserId`를 보내지 않아 기존 배정을 보존한다. 비용은 `draft` 상태에서만 수정하거나 승인 요청할 수 있고, `submitted` 이후에는 수정하지 않는다. 승인 흐름은 `submitted`에서 `approved` 또는 `cancelled`, `approved`에서 `paid` 또는 `cancelled`로만 이동한다. 보고 API는 기간과 aggregate만 반환하고, 작업지시 집계는 `reports.view`와 기록 공개 범위로 제한한다. 비용 항목·상태별 금액은 `costs.view`가 있을 때만 포함하고 전부 세금 구분을 반영한다. `totalAmountKrw`는 취소 제외 등록액, `pendingAmountKrw`는 초안+승인 요청액, `approvedUnpaidAmountKrw`는 승인 후 미지급액, `paidAmountKrw`는 지급 완료액이다.
 
 ## 초기 설정과 배포 경계
 

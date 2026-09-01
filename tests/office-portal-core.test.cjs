@@ -73,10 +73,17 @@ test('관리자 목록용 사용자는 비활성 상태와 동호 담당구역�
 });
 
 test('역할별 화면 권한 상한과 역할 지정 범위는 백엔드 계약과 정확히 같다', () => {
+  assert.deepEqual(core.PERMISSIONS, [
+    'dashboard.view', 'status.view', 'status.manage', 'logs.view', 'logs.manage',
+    'requests.view', 'reports.view', 'notices.view', 'notices.manage', 'notices.publish',
+    'costs.view', 'costs.manage', 'costs.approve', 'workorders.view', 'workorders.manage',
+    'workorders.assign', 'admin.users.view', 'admin.users.manage', 'admin.permissions.manage', 'admin.audit.view',
+  ]);
   assert.deepEqual(core.roleCeiling('system_admin'), ['admin.users.view', 'admin.users.manage', 'admin.permissions.manage', 'admin.audit.view']);
   assert.deepEqual(core.roleCeiling('facility_manager'), [
     'dashboard.view', 'status.view', 'status.manage', 'logs.view', 'logs.manage',
-    'requests.view', 'reports.view', 'notices.view', 'costs.view',
+    'requests.view', 'reports.view', 'notices.view', 'notices.manage', 'costs.view',
+    'costs.manage', 'workorders.view', 'workorders.manage',
   ]);
   assert.deepEqual(core.viewPermissionsForRole('resident'), ['dashboard.view', 'status.view', 'logs.view', 'notices.view']);
   assert.deepEqual(core.roleCeiling('unknown'), []);
@@ -84,4 +91,33 @@ test('역할별 화면 권한 상한과 역할 지정 범위는 백엔드 계약
   assert.equal(core.canAssignRole('manager_chief', 'manager_chief'), true);
   assert.equal(core.canAssignRole('manager_chief', 'system_admin'), false);
   assert.equal(core.canAssignRole('facility_manager', 'resident'), false);
+});
+
+test('작업지시·공지·비용 상태 선택은 서버 전이 규칙보다 넓어지지 않는다', () => {
+  assert.deepEqual(core.workOrderStatusOptions(''), ['received', 'planned']);
+  assert.deepEqual(core.workOrderStatusOptions('received'), ['received', 'planned', 'cancelled']);
+  assert.deepEqual(core.workOrderStatusOptions('planned'), ['planned', 'working', 'blocked', 'cancelled']);
+  assert.deepEqual(core.workOrderStatusOptions('working'), ['working', 'blocked', 'completed', 'cancelled']);
+  assert.deepEqual(core.workOrderStatusOptions('blocked'), ['blocked', 'planned', 'working', 'cancelled']);
+  assert.deepEqual(core.workOrderStatusOptions('completed'), ['completed']);
+  assert.deepEqual(core.workOrderStatusOptions('unknown'), []);
+
+  assert.deepEqual(core.noticeStateOptions('', false), ['draft']);
+  assert.deepEqual(core.noticeStateOptions('draft', false), ['draft', 'archived']);
+  assert.deepEqual(core.noticeStateOptions('draft', true), ['draft', 'published', 'archived']);
+  assert.deepEqual(core.noticeStateOptions('published', true), ['published', 'archived']);
+  assert.deepEqual(core.noticeStateOptions('archived', true), ['archived']);
+
+  assert.deepEqual(core.costApprovalTargets('draft'), []);
+  assert.deepEqual(core.costApprovalTargets('submitted'), ['approved', 'cancelled']);
+  assert.deepEqual(core.costApprovalTargets('approved'), ['paid', 'cancelled']);
+  assert.deepEqual(core.costApprovalTargets('paid'), []);
+});
+
+test('운영 메뉴 표시명은 실제 기능과 기존 PIN 경계를 명확히 구분한다', () => {
+  assert.equal(core.permissionLabel('reports.view'), '운영보고');
+  assert.equal(core.permissionLabel('requests.view'), '기존 PIN 시설보수 접수');
+  assert.equal(core.WORKORDER_STATUS_LABELS.working, '진행');
+  assert.equal(core.NOTICE_STATE_LABELS.archived, '보관');
+  assert.equal(core.COST_STATUS_LABELS.submitted, '승인 요청');
 });

@@ -6,11 +6,13 @@ const API_URL = 'https://script.google.com/macros/s/example-portal-deployment/ex
 function response(value, ok = true) { return { ok, text: async () => JSON.stringify(value) }; }
 async function withFetch(implementation, run) { const old = global.fetch; global.fetch = implementation; try { await run(); } finally { global.fetch = old; } }
 
-test('포털 action 계약은 승인된 열세 개만 제공한다', () => {
+test('포털 action 계약은 승인된 운영 action만 제공한다', () => {
   assert.deepEqual(portalApi.ACTIONS, [
     'portalRequestCode', 'portalVerifyCode', 'portalMe', 'portalLogout', 'portalDashboard',
     'portalStatusList', 'portalStatusSave', 'portalLogList', 'portalLogSave',
     'portalUserList', 'portalUserSave', 'portalPermissionSave', 'portalAuditList',
+    'portalWorkOrderList', 'portalWorkOrderSave', 'portalNoticeList', 'portalNoticeSave',
+    'portalCostList', 'portalCostSave', 'portalCostApprove', 'portalReportSummary',
   ]);
 });
 

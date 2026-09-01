@@ -19,23 +19,49 @@
   });
   const PERMISSIONS = Object.freeze([
     'dashboard.view', 'status.view', 'status.manage', 'logs.view', 'logs.manage',
-    'requests.view', 'reports.view', 'notices.view', 'costs.view',
+    'requests.view', 'reports.view',
+    'notices.view', 'notices.manage', 'notices.publish',
+    'costs.view', 'costs.manage', 'costs.approve',
+    'workorders.view', 'workorders.manage', 'workorders.assign',
     'admin.users.view', 'admin.users.manage', 'admin.permissions.manage', 'admin.audit.view',
   ]);
   const VIEW_PERMISSIONS = Object.freeze(PERMISSIONS.filter((value) => value.endsWith('.view')));
   const PERMISSION_LABELS = Object.freeze({
     'dashboard.view': '관리 현황', 'status.view': '시설 상태', 'status.manage': '시설 상태 수정',
-    'logs.view': '관리 일지', 'logs.manage': '관리 일지 작성', 'requests.view': '시설보수 접수',
-    'reports.view': '완료 보고', 'notices.view': '공지사항', 'costs.view': '비용·정산',
+    'logs.view': '관리 일지', 'logs.manage': '관리 일지 작성', 'requests.view': '기존 PIN 시설보수 접수',
+    'reports.view': '운영보고', 'notices.view': '공지사항', 'costs.view': '비용·정산',
+    'workorders.view': '작업지시', 'workorders.manage': '작업지시 관리', 'workorders.assign': '담당자 배정',
+    'notices.manage': '공지 작성', 'notices.publish': '공지 발행', 'costs.manage': '비용 관리', 'costs.approve': '비용 승인',
     'admin.users.view': '사용자 목록', 'admin.users.manage': '사용자 관리',
     'admin.permissions.manage': '보기 권한 설정', 'admin.audit.view': '관리 감사기록',
+  });
+  const WORKORDER_STATUS_LABELS = Object.freeze({
+    received: '접수', planned: '계획', working: '진행', blocked: '보류',
+    completed: '완료', cancelled: '취소',
+  });
+  const WORKORDER_TRANSITIONS = Object.freeze({
+    received: Object.freeze(['planned', 'cancelled']),
+    planned: Object.freeze(['working', 'blocked', 'cancelled']),
+    working: Object.freeze(['blocked', 'completed', 'cancelled']),
+    blocked: Object.freeze(['planned', 'working', 'cancelled']),
+    completed: Object.freeze([]),
+    cancelled: Object.freeze([]),
+  });
+  const NOTICE_STATE_LABELS = Object.freeze({ draft: '초안', published: '발행', archived: '보관' });
+  const COST_STATUS_LABELS = Object.freeze({
+    draft: '초안', submitted: '승인 요청', approved: '승인', paid: '지급 완료', cancelled: '취소',
+  });
+  const COST_APPROVAL_TARGETS = Object.freeze({
+    submitted: Object.freeze(['approved', 'cancelled']),
+    approved: Object.freeze(['paid', 'cancelled']),
   });
   const ROLE_CEILINGS = Object.freeze({
     system_admin: Object.freeze(['admin.users.view', 'admin.users.manage', 'admin.permissions.manage', 'admin.audit.view']),
     manager_chief: Object.freeze(PERMISSIONS.slice()),
     facility_manager: Object.freeze([
       'dashboard.view', 'status.view', 'status.manage', 'logs.view', 'logs.manage',
-      'requests.view', 'reports.view', 'notices.view', 'costs.view',
+      'requests.view', 'reports.view', 'notices.view', 'notices.manage',
+      'costs.view', 'costs.manage', 'workorders.view', 'workorders.manage',
     ]),
     resident_rep: Object.freeze(['dashboard.view', 'status.view', 'logs.view', 'reports.view', 'notices.view']),
     resident: Object.freeze(['dashboard.view', 'status.view', 'logs.view', 'notices.view']),
@@ -134,12 +160,29 @@
     if (actorRole === 'system_admin') return true;
     return actorRole === 'manager_chief' && targetRole !== 'system_admin';
   }
+  function workOrderStatusOptions(current) {
+    if (!current) return ['received', 'planned'];
+    if (!Object.prototype.hasOwnProperty.call(WORKORDER_TRANSITIONS, current)) return [];
+    return [current, ...WORKORDER_TRANSITIONS[current]];
+  }
+  function noticeStateOptions(current, canPublish) {
+    if (!current) return canPublish ? ['draft', 'published'] : ['draft'];
+    if (current === 'draft') return canPublish ? ['draft', 'published', 'archived'] : ['draft', 'archived'];
+    if (current === 'published') return canPublish ? ['published', 'archived'] : ['published'];
+    return current === 'archived' ? ['archived'] : [];
+  }
+  function costApprovalTargets(status) {
+    return Object.prototype.hasOwnProperty.call(COST_APPROVAL_TARGETS, status)
+      ? COST_APPROVAL_TARGETS[status].slice() : [];
+  }
 
   return {
     SESSION_KEY, ROLES, ROLE_LABELS, ROLE_CEILINGS, PERMISSIONS, VIEW_PERMISSIONS, PERMISSION_LABELS,
+    WORKORDER_STATUS_LABELS, NOTICE_STATE_LABELS, COST_STATUS_LABELS,
     normalizeEmail, normalizeOfficeCode, normalizeChallengeId, validateRequestCode, validateVerifyCode,
     normalizePermissions, hasPermission, normalizeUser, safeUser, safeOffice, normalizeSession,
     storeSession, restoreSession, clearSession, roleLabel, permissionLabel,
     roleCeiling, viewPermissionsForRole, canAssignRole,
+    workOrderStatusOptions, noticeStateOptions, costApprovalTargets,
   };
 });

@@ -126,22 +126,22 @@ test('이메일 OTP는 challengeId와 함께 검증하고 세션에는 OTP 없�
   assert.deepEqual(errors, []); await page.close();
 });
 
-test('시설·일지 저장은 실패 재시도 ID를 유지하고 성공 뒤 새 작업에 새 UUID를 쓴다', async () => {
+test('시설·일지 저장은 동일 입력 재시도 ID를 유지하고 실패 뒤 입력을 바꾸면 새 UUID를 쓴다', async () => {
   const login = sessionResponse('facility_manager', ['status.manage', 'status.view', 'logs.manage', 'logs.view']);
-  let statusSaveCount = 0;
+  let statusSaveCount = 0; let logSaveCount = 0;
   const { page, calls, errors } = await openPortal(async (body) => {
     if (body.action === 'portalMe') return login;
     if (body.action === 'portalStatusList') return { ok: true, statuses: [] };
-    if (body.action === 'portalStatusSave') { statusSaveCount += 1; return statusSaveCount === 1 ? NETWORK_ABORT : { ok: true }; }
+    if (body.action === 'portalStatusSave') { statusSaveCount += 1; return statusSaveCount <= 2 ? NETWORK_ABORT : { ok: true, status: { statusId: `sts-${statusSaveCount}`, ...body.payload, revision: 1 } }; }
     if (body.action === 'portalLogList') return { ok: true, logs: [] };
-    if (body.action === 'portalLogSave') return { ok: true };
+    if (body.action === 'portalLogSave') { logSaveCount += 1; return logSaveCount === 1 ? NETWORK_ABORT : { ok: true, log: { logId: `log-${logSaveCount}`, ...body.payload, revision: 1 } }; }
     throw new Error(`unexpected ${body.action}`);
   });
   await seedSession(page, login); await page.goto(`${origin}/office-portal.html`); await page.locator('#portalApp').waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-panel="dashboard"]').isHidden(), true);
   assert.equal(await page.locator('[data-panel="status"]').isVisible(), true);
   assert.equal(await page.locator('#portalStatusForm').isVisible(), true);
-  await page.locator('[name="location"]').fill('지하 기계실');
+  await page.locator('#portalStatusForm [name="location"]').fill('지하 기계실');
   await page.locator('#portalStatusForm [name="category"]').selectOption('water');
   await page.locator('#portalStatusForm [name="summary"]').fill('급수 배관 점검 완료');
   await page.locator('#portalStatusForm button[type="submit"]').click();
@@ -149,18 +149,27 @@ test('시설·일지 저장은 실패 재시도 ID를 유지하고 성공 뒤 �
   const firstStatus = calls.filter((call) => call.action === 'portalStatusSave')[0];
   assert.match(firstStatus.payload.requestId, UUID_V4);
   assert.deepEqual(firstStatus.payload, { requestId: firstStatus.payload.requestId, location: '지하 기계실', category: 'water', state: 'normal', summary: '급수 배관 점검 완료', visibility: 'internal' });
+  const retryRequest = page.waitForRequest((request) => request.url() === API_URL && request.postDataJSON().action === 'portalStatusSave');
   await page.locator('#portalStatusForm button[type="submit"]').click();
+  const retryStatus = (await retryRequest).postDataJSON().payload;
+  assert.equal(retryStatus.requestId, firstStatus.payload.requestId);
+  assert.equal(retryStatus.summary, firstStatus.payload.summary);
+  await page.waitForFunction(() => !document.querySelector('#portalStatusForm button[type="submit"]').disabled);
+  await page.locator('#portalStatusForm [name="summary"]').fill('급수 배관 재점검 완료');
+  const changedRequest = page.waitForRequest((request) => request.url() === API_URL && request.postDataJSON().action === 'portalStatusSave' && request.postDataJSON().payload.summary === '급수 배관 재점검 완료');
+  await page.locator('#portalStatusForm button[type="submit"]').click();
+  const changedStatus = (await changedRequest).postDataJSON().payload;
+  assert.match(changedStatus.requestId, UUID_V4);
+  assert.notEqual(changedStatus.requestId, firstStatus.payload.requestId);
   await page.waitForFunction(() => document.getElementById('portalStatusForm').elements.namedItem('location').value === '');
-  const secondStatus = calls.filter((call) => call.action === 'portalStatusSave')[1];
-  assert.equal(secondStatus.payload.requestId, firstStatus.payload.requestId);
-  await page.locator('[name="location"]').fill('옥상 배수구');
+  await page.locator('#portalStatusForm [name="location"]').fill('옥상 배수구');
   await page.locator('#portalStatusForm [name="category"]').selectOption('water');
   await page.locator('#portalStatusForm [name="summary"]').fill('두 번째 신규 기록');
   const secondSaveRequest = page.waitForRequest((request) => request.url() === API_URL && request.postDataJSON().action === 'portalStatusSave' && request.postDataJSON().payload.location === '옥상 배수구');
   await page.locator('#portalStatusForm button[type="submit"]').click();
   const nextStatus = (await secondSaveRequest).postDataJSON().payload;
   assert.match(nextStatus.requestId, UUID_V4);
-  assert.notEqual(nextStatus.requestId, firstStatus.payload.requestId);
+  assert.notEqual(nextStatus.requestId, changedStatus.requestId);
   assert.equal(Object.hasOwn(nextStatus, 'revision'), false);
 
   await page.locator('[data-panel="logs"]').click();
@@ -172,6 +181,13 @@ test('시설·일지 저장은 실패 재시도 ID를 유지하고 성공 뒤 �
   const firstLog = (await firstLogRequest).postDataJSON().payload;
   assert.match(firstLog.requestId, UUID_V4);
   assert.equal(firstLog.visibility, 'internal');
+  await page.waitForFunction(() => document.getElementById('portalLogError').textContent.includes('네트워크'));
+  await page.locator('#portalLogForm [name="content"]').fill('급수 배관 상태를 다시 확인했습니다.');
+  const changedLogRequest = page.waitForRequest((request) => request.url() === API_URL && request.postDataJSON().action === 'portalLogSave' && request.postDataJSON().payload.content.includes('다시'));
+  await page.locator('#portalLogForm button[type="submit"]').click();
+  const changedLog = (await changedLogRequest).postDataJSON().payload;
+  assert.match(changedLog.requestId, UUID_V4);
+  assert.notEqual(changedLog.requestId, firstLog.requestId);
   await page.waitForFunction(() => document.getElementById('portalLogForm').elements.namedItem('title').value === '');
   await page.locator('#portalLogForm [name="workDate"]').fill('2026-09-02');
   await page.locator('#portalLogForm [name="title"]').fill('새 점검');
@@ -180,7 +196,7 @@ test('시설·일지 저장은 실패 재시도 ID를 유지하고 성공 뒤 �
   await page.locator('#portalLogForm button[type="submit"]').click();
   const nextLog = (await nextLogRequest).postDataJSON().payload;
   assert.match(nextLog.requestId, UUID_V4);
-  assert.notEqual(nextLog.requestId, firstLog.requestId);
+  assert.notEqual(nextLog.requestId, changedLog.requestId);
   assert.deepEqual(errors, []); await page.close();
 });
 
@@ -200,25 +216,189 @@ test('입주민은 서버가 허용한 공개 목록만 읽고 상태·일지 �
   assert.deepEqual(errors, []); await page.close();
 });
 
+test('관리과장은 기존 담당자를 보존하며 작업지시·공지·비용을 승인 권한 없이 처리한다', async () => {
+  const permissions = core.roleCeiling('facility_manager');
+  const login = sessionResponse('facility_manager', permissions);
+  const workOrder = {
+    workOrderId: 'wrk-1', receiptNo: 'REQ-101', title: '지하 배수폄프 점검', location: '101동 지하', category: '급배수',
+    priority: 'high', status: 'planned', assigneeUserId: 'chief-1', assigneeName: '김 소장', dueDate: '2026-09-03',
+    instructions: '누수 흔적과 접합부를 점검합니다.', visibility: 'internal', revision: 2,
+  };
+  const notice = { noticeId: 'ntc-1', title: '단수 예정', content: '점검 중 단수합니다.', visibility: 'board', state: 'draft', publishDate: '2026-09-02', expiresDate: '2026-09-03', revision: 1 };
+  const cost = { costId: 'cst-1', workOrderId: 'wrk-1', category: '자재', description: '배관 부속', amountKrw: 15000, taxMode: 'included', status: 'submitted', revision: 1 };
+  const draftCost = { costId: 'cst-draft', workOrderId: 'wrk-1', category: '외주', description: '점검 인건비', amountKrw: 25000, taxMode: 'excluded', status: 'draft', revision: 1 };
+  let workorderSaveCount = 0; let noticeSaveCount = 0; let costSaveCount = 0;
+  const { page, calls, errors } = await openPortal(async (body) => {
+    if (body.action === 'portalMe') return login;
+    if (body.action === 'portalDashboard') return { ok: true, metrics: [], notices: [] };
+    if (body.action === 'portalWorkOrderList') return { ok: true, workOrders: [workOrder] };
+    if (body.action === 'portalWorkOrderSave') { workorderSaveCount += 1; return workorderSaveCount === 1 ? NETWORK_ABORT : { ok: true, workOrder: { ...workOrder, ...body.payload, revision: 3 } }; }
+    if (body.action === 'portalNoticeList') return { ok: true, notices: [notice] };
+    if (body.action === 'portalNoticeSave') { noticeSaveCount += 1; return noticeSaveCount === 1 ? NETWORK_ABORT : { ok: true, notice: { ...notice, ...body.payload, revision: 2 } }; }
+    if (body.action === 'portalCostList') return { ok: true, costs: [cost, draftCost] };
+    if (body.action === 'portalCostSave') { costSaveCount += 1; return costSaveCount === 1 ? NETWORK_ABORT : { ok: true, cost: { ...draftCost, ...body.payload, revision: 2 } }; }
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await seedSession(page, login); await page.goto(`${origin}/office-portal.html`); await page.locator('#portalApp').waitFor({ state: 'visible' });
+  await page.locator('[data-panel="workorders"]').click(); await page.waitForFunction(() => document.getElementById('portalWorkorderList').textContent.includes('지하 배수폄프'));
+  assert.equal(await page.locator('[data-requires="workorders.assign"]').isHidden(), true);
+  await page.getByRole('button', { name: '지하 배수폄프 점검 수정' }).click();
+  assert.deepEqual(await page.locator('#portalWorkorderForm [name="status"] option').evaluateAll((options) => options.map((option) => option.value)), ['planned', 'working', 'blocked', 'cancelled']);
+  await page.locator('#portalWorkorderForm [name="instructions"]').fill('누수 흔적과 접합부를 재점검합니다.');
+  const saveRequest = page.waitForRequest((request) => request.url() === API_URL && request.postDataJSON().action === 'portalWorkOrderSave');
+  await page.locator('#portalWorkorderForm button[type="submit"]').click();
+  const saved = (await saveRequest).postDataJSON().payload;
+  assert.match(saved.requestId, UUID_V4); assert.equal(saved.status, 'planned'); assert.equal(saved.revision, 2); assert.equal(Object.hasOwn(saved, 'assigneeUserId'), false);
+  await page.waitForFunction(() => document.getElementById('portalWorkorderError').textContent.includes('네트워크'));
+  await page.locator('#portalWorkorderForm [name="instructions"]').fill('누수 흔적과 접합부 및 밸브를 재점검합니다.');
+  const changedWorkorderRequest = page.waitForRequest((request) => request.url() === API_URL && request.postDataJSON().action === 'portalWorkOrderSave' && request.postDataJSON().payload.instructions.includes('밸브'));
+  await page.locator('#portalWorkorderForm button[type="submit"]').click();
+  const changedWorkorder = (await changedWorkorderRequest).postDataJSON().payload;
+  assert.match(changedWorkorder.requestId, UUID_V4); assert.notEqual(changedWorkorder.requestId, saved.requestId); assert.equal(Object.hasOwn(changedWorkorder, 'assigneeUserId'), false);
+
+  await page.locator('[data-panel="notices"]').evaluate((button) => button.click()); await page.waitForFunction(() => document.getElementById('portalNoticeList').textContent.includes('단수 예정'));
+  await page.getByRole('button', { name: '단수 예정 수정' }).click();
+  assert.deepEqual(await page.locator('#portalNoticeForm [name="state"] option').evaluateAll((options) => options.map((option) => option.value)), ['draft', 'archived']);
+  const firstNoticeRequest = page.waitForRequest((request) => request.url() === API_URL && request.postDataJSON().action === 'portalNoticeSave');
+  await page.locator('#portalNoticeForm button[type="submit"]').click();
+  const firstNotice = (await firstNoticeRequest).postDataJSON().payload;
+  await page.waitForFunction(() => document.getElementById('portalNoticeError').textContent.includes('네트워크'));
+  await page.locator('#portalNoticeForm [name="content"]').fill('점검 중 30분간 단수합니다.');
+  const changedNoticeRequest = page.waitForRequest((request) => request.url() === API_URL && request.postDataJSON().action === 'portalNoticeSave' && request.postDataJSON().payload.content.includes('30분'));
+  await page.locator('#portalNoticeForm button[type="submit"]').click();
+  const changedNotice = (await changedNoticeRequest).postDataJSON().payload;
+  assert.match(firstNotice.requestId, UUID_V4); assert.match(changedNotice.requestId, UUID_V4); assert.notEqual(changedNotice.requestId, firstNotice.requestId);
+
+  await page.locator('[data-panel="costs"]').evaluate((button) => button.click()); await page.waitForFunction(() => document.getElementById('portalCostList').textContent.includes('배관 부속'));
+  assert.equal(await page.locator('[data-cost-approve]').count(), 0);
+  const submittedCostCard = page.locator('.portal-record').filter({ hasText: '배관 부속' });
+  assert.equal(await submittedCostCard.locator('[data-cost-edit]').count(), 0);
+  assert.equal(await page.locator('[data-cost-edit]').count(), 1);
+  assert.deepEqual(await page.locator('#portalCostForm [name="taxMode"] option').evaluateAll((options) => options.map((option) => option.value)), ['excluded', 'included', 'exempt']);
+  assert.equal(await page.locator('#portalCostForm [name="amountKrw"]').getAttribute('min'), '1');
+  await page.getByRole('button', { name: '점검 인건비 수정' }).click();
+  const firstCostRequest = page.waitForRequest((request) => request.url() === API_URL && request.postDataJSON().action === 'portalCostSave');
+  await page.locator('#portalCostForm button[type="submit"]').click();
+  const firstCost = (await firstCostRequest).postDataJSON().payload;
+  await page.waitForFunction(() => document.getElementById('portalCostError').textContent.includes('네트워크'));
+  await page.locator('#portalCostForm [name="description"]').fill('점검 및 재방문 인건비');
+  const changedCostRequest = page.waitForRequest((request) => request.url() === API_URL && request.postDataJSON().action === 'portalCostSave' && request.postDataJSON().payload.description.includes('재방문'));
+  await page.locator('#portalCostForm button[type="submit"]').click();
+  const changedCost = (await changedCostRequest).postDataJSON().payload;
+  assert.match(firstCost.requestId, UUID_V4); assert.match(changedCost.requestId, UUID_V4); assert.notEqual(changedCost.requestId, firstCost.requestId);
+  assert.equal(calls.some((call) => call.action === 'portalCostApprove'), false);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+  assert.deepEqual(errors, []); await page.close();
+});
+
+test('관리소장은 담당자 배정·공지 발행·비용 승인 전이와 한글 운영보고를 이용한다', async () => {
+  const permissions = ['workorders.view', 'workorders.manage', 'workorders.assign', 'notices.view', 'notices.manage', 'notices.publish', 'costs.view', 'costs.manage', 'costs.approve', 'reports.view'];
+  const login = sessionResponse('manager_chief', permissions);
+  const workOrder = { workOrderId: 'wrk-2', receiptNo: 'REQ-202', title: '옥상 우수관 점검', location: '102동 옥상', category: '배수', priority: 'urgent', status: 'received', assigneeUserId: 'facility-1', assigneeName: '이 과장', dueDate: '', instructions: '배수 상태를 확인합니다.', visibility: 'internal', revision: 1 };
+  const notice = { noticeId: 'ntc-2', title: '주차장 통제', content: '도색 작업 중 통제합니다.', visibility: 'public', state: 'published', publishDate: '2026-09-01', expiresDate: '2026-09-05', revision: 2 };
+  let costState = 'submitted'; let costRevision = 3;
+  let costListCount = 0; let costApprovalCount = 0; let reportCallCount = 0; const lateReportGate = deferred();
+  const currentCost = () => ({ costId: 'cst-2', workOrderId: 'wrk-2', category: '외주', description: '우수관 점검비', amountKrw: 30000, taxMode: 'excluded', status: costState, revision: costRevision });
+  const { page, calls, errors } = await openPortal(async (body) => {
+    if (body.action === 'portalMe') return login;
+    if (body.action === 'portalWorkOrderList') return { ok: true, workOrders: [workOrder], assignees: [{ id: 'facility-1', name: '이 과장', role: 'facility_manager' }] };
+    if (body.action === 'portalNoticeList') return { ok: true, notices: [notice] };
+    if (body.action === 'portalCostList') { costListCount += 1; return costListCount === 2 ? NETWORK_ABORT : { ok: true, costs: [currentCost()] }; }
+    if (body.action === 'portalCostApprove') { costApprovalCount += 1; if (costApprovalCount === 1) return NETWORK_ABORT; costState = body.payload.targetState; costRevision += 1; return { ok: true, cost: currentCost() }; }
+    if (body.action === 'portalReportSummary') { reportCallCount += 1; if (reportCallCount === 2) return lateReportGate.promise; return { ok: true, report: { startDate: body.payload.startDate, endDate: body.payload.endDate, counts: { workOrders: 1, notices: 1, costs: 1 }, workOrdersByStatus: { received: 1 }, noticesByState: { published: 1 }, totalAmountKrw: 44000, pendingAmountKrw: 11000, approvedUnpaidAmountKrw: 33000, paidAmountKrw: 0, amountKrwByStatus: { approved: 33000 } } }; }
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await seedSession(page, login); await page.goto(`${origin}/office-portal.html`); await page.locator('#portalApp').waitFor({ state: 'visible' });
+  await page.waitForFunction(() => document.getElementById('portalWorkorderList').textContent.includes('옥상 우수관'));
+  assert.deepEqual(await page.locator('#portalWorkorderForm [name="status"] option').evaluateAll((options) => options.map((option) => option.value)), ['received', 'planned']);
+  await page.getByRole('button', { name: '옥상 우수관 점검 수정' }).click();
+  assert.equal(await page.locator('#portalWorkorderForm [name="assigneeUserId"]').inputValue(), 'facility-1');
+  assert.deepEqual(await page.locator('#portalWorkorderForm [name="status"] option').evaluateAll((options) => options.map((option) => option.value)), ['received', 'planned', 'cancelled']);
+
+  await page.locator('[data-panel="notices"]').click(); await page.waitForFunction(() => document.getElementById('portalNoticeList').textContent.includes('주차장 통제'));
+  await page.getByRole('button', { name: '주차장 통제 수정' }).click();
+  assert.deepEqual(await page.locator('#portalNoticeForm [name="state"] option').evaluateAll((options) => options.map((option) => option.value)), ['published', 'archived']);
+  assert.equal(await page.locator('#portalNoticeFilter option[value="archived"]').count(), 1);
+
+  page.on('dialog', (dialog) => dialog.accept());
+  await page.locator('[data-panel="costs"]').click(); await page.waitForFunction(() => document.getElementById('portalCostList').textContent.includes('우수관 점검비'));
+  assert.deepEqual(await page.locator('[data-cost-approve]').evaluateAll((buttons) => buttons.map((button) => button.dataset.nextState)), ['approved', 'cancelled']);
+  await page.locator('[data-cost-approve][data-next-state="approved"]').click();
+  await page.waitForFunction(() => document.getElementById('portalCostError').textContent.includes('네트워크'));
+  const firstApproval = calls.filter((call) => call.action === 'portalCostApprove')[0].payload;
+  await page.locator('#portalCostSearch').fill('우수관');
+  assert.deepEqual(await page.locator('[data-cost-approve]').evaluateAll((buttons) => buttons.map((button) => button.dataset.nextState)), ['approved', 'cancelled']);
+  await page.locator('[data-cost-approve][data-next-state="approved"]').click();
+  await page.waitForFunction(() => [...document.querySelectorAll('[data-cost-approve]')].some((button) => button.dataset.nextState === 'paid'));
+  const approvals = calls.filter((call) => call.action === 'portalCostApprove').map((call) => call.payload);
+  assert.match(firstApproval.requestId, UUID_V4); assert.equal(firstApproval.targetState, 'approved'); assert.equal(firstApproval.revision, 3);
+  assert.equal(approvals[1].requestId, firstApproval.requestId); assert.equal(approvals[1].revision, 3);
+  await page.waitForFunction(() => document.getElementById('portalStatusMessage').textContent.includes('네트워크'));
+  assert.deepEqual(await page.locator('[data-cost-approve]').evaluateAll((buttons) => buttons.map((button) => button.dataset.nextState)), ['paid', 'cancelled']);
+  assert.deepEqual(await page.locator('[data-cost-approve]').evaluateAll((buttons) => buttons.map((button) => button.dataset.nextState)), ['paid', 'cancelled']);
+
+  await page.locator('[data-panel="reports"]').click(); await page.waitForFunction(() => document.getElementById('portalReportCards').textContent.includes('44,000원'));
+  assert.match(await page.locator('#portalReportCards').innerText(), /작업지시[\s\S]*접수/);
+  assert.match(await page.locator('#portalReportCards').innerText(), /비용 등록액\(부가세 반영·취소 제외\)[\s\S]*44,000원/);
+  assert.match(await page.locator('#portalReportCards').innerText(), /승인 전 금액\(초안\+승인 요청\)[\s\S]*11,000원/);
+  assert.match(await page.locator('#portalReportCards').innerText(), /승인 후 미지급액[\s\S]*33,000원/);
+  assert.match(await page.locator('#portalReportCards').innerText(), /지급 완료액[\s\S]*0원/);
+  assert.equal(await page.locator('#portalReportCsv').isDisabled(), false);
+  const lateReportRequest = page.waitForRequest((request) => request.url() === API_URL && request.postDataJSON().action === 'portalReportSummary');
+  await page.locator('#portalReportLoad').click(); await lateReportRequest;
+  await page.locator('#portalReportFrom').fill('');
+  await page.locator('#portalReportLoad').click();
+  assert.match(await page.locator('#portalReportPeriod').innerText(), /366일 이내/);
+  assert.equal(await page.locator('#portalReportLoad').getAttribute('aria-busy'), 'false');
+  lateReportGate.resolve({ ok: true, report: { startDate: '2026-01-01', endDate: '2026-01-02', counts: { workOrders: 999 }, totalAmountKrw: 999999 } });
+  await page.waitForTimeout(100);
+  assert.equal(await page.locator('#portalReportCards').innerText(), '');
+  assert.doesNotMatch(await page.locator('#portalReportCards').innerText(), /999/);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+  assert.deepEqual(errors, []); await page.close();
+});
+
+test('system_admin이 일반 운영 권한이 없어도 빈 화면에서 권한 관리로 이동할 수 있다', async () => {
+  const permissions = core.roleCeiling('system_admin'); const login = sessionResponse('system_admin', permissions);
+  const { page, calls, errors } = await openPortal(async (body) => { if (body.action === 'portalMe') return login; throw new Error(`unexpected ${body.action}`); });
+  await seedSession(page, login); await page.goto(`${origin}/office-portal.html`); await page.locator('#portalApp').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#portalEmpty').isVisible(), true);
+  assert.equal(await page.locator('#portalEmptyAdmin').isVisible(), true);
+  assert.equal(await page.locator('#portalEmptyAdmin').getAttribute('href'), 'office-admin.html');
+  assert.equal(await page.locator('#portalAdminLink').isVisible(), true);
+  assert.deepEqual(calls.map((call) => call.action), ['portalMe']);
+  assert.deepEqual(errors, []); await page.close();
+});
+
 test('포털 로그아웃은 서버 응답 전에 민감 화면을 지우고 1.2초 안팎에 로그인으로 복귀한다', async () => {
   const logoutGate = deferred();
+  const lateDashboardGate = deferred();
+  let dashboardCalls = 0;
   const login = sessionResponse('manager_chief', ['dashboard.view']);
   const { page, calls, errors } = await openPortal(async (body) => {
     if (body.action === 'portalMe') return login;
-    if (body.action === 'portalDashboard') return { ok: true, metrics: [{ label: '민감 지표', value: 7 }], notices: ['비공개 점검 일정'] };
+    if (body.action === 'portalDashboard') {
+      dashboardCalls += 1;
+      return dashboardCalls === 1 ? { ok: true, metrics: [{ label: '민감 지표', value: 7 }], notices: ['비공개 점검 일정'] } : lateDashboardGate.promise;
+    }
     if (body.action === 'portalLogout') return logoutGate.promise;
     throw new Error(`unexpected ${body.action}`);
   });
   await seedSession(page, login); await page.goto(`${origin}/office-portal.html`); await page.locator('#portalApp').waitFor({ state: 'visible' });
   await page.waitForFunction(() => document.getElementById('portalDashboardCards').textContent.includes('민감 지표'));
+  await page.locator('#portalDashboardRefresh').click();
+  await page.waitForFunction(() => document.getElementById('portalDashboardRefresh').getAttribute('aria-busy') === 'true');
   const logoutStartedAt = Date.now();
   await page.locator('#portalLogout').click();
   await page.waitForFunction(() => document.getElementById('portalDeniedMessage').textContent.includes('로그아웃'));
+  lateDashboardGate.resolve({ ok: true, metrics: [{ label: '늦은 민감 지표', value: 99 }], notices: ['늦은 비공개 안내'] });
+  await page.waitForTimeout(100);
   assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), core.SESSION_KEY), null);
   assert.equal(await page.locator('#portalApp').isHidden(), true);
   assert.equal(await page.locator('#portalAccount').isHidden(), true);
   assert.equal(await page.locator('#portalDashboardCards').innerText(), '');
   assert.equal(await page.locator('#portalDashboardNotices').innerText(), '');
+  assert.match(await page.locator('#portalDeniedMessage').innerText(), /로그아웃/);
   assert.equal(calls.filter((call) => call.action === 'portalLogout').length, 1);
   await page.waitForURL(`${origin}/office-login.html`);
   assert.ok(Date.now() - logoutStartedAt < 1900, '서버 로그아웃 무응답 시 로컬 복귀가 짧은 타임아웃을 넘어섰습니다.');
