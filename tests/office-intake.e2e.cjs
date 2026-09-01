@@ -36,7 +36,8 @@ test('배포 게이트의 공개 포털 소스 계약은 설정 CLI와 fail-clos
   assert.equal(portalRegressionRun[1].replace(/\r\n/g, '\n').trimEnd(), expectedPortalRegressionRun);
   assert.match(request, /css\/office-request\.css\?v=20260901-office-entry1/);
   assert.match(request, /js\/office-request-core\.js\?v=20260901-office-entry1/);
-  assert.match(request, /js\/office-request\.js\?v=20260901-office-entry1/);
+  assert.match(request, /js\/office-request\.js\?v=20260901-office-status1/);
+  assert.match(request, /id="officeDetailNeedsInfoRow"[^>]*hidden[\s\S]*?<dt>보완 요청 사유<\/dt><dd id="officeDetailNeedsInfoReason"><\/dd>/);
   assert.doesNotMatch(controller, /(setInterval|visibilitychange|Notification\s*\(|serviceWorker\.register)/);
   assert.doesNotMatch(controller, /(?:\b(?:[\w$]+(?:\s*\.\s*[\w$]+)*)\s*\.\s*)?addEventListener\s*(?:\?\.)?\s*\(\s*['"]online['"]|(?:\b(?:[\w$]+(?:\s*\.\s*[\w$]+)*)\s*\.\s*)?ononline\s*=/);
   assert.ok(workflow.indexOf('Run management office portal regression') < workflow.indexOf('Build public allowlist artifact'));

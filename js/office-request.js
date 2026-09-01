@@ -10,7 +10,7 @@
   const recentList = byId('officeRecentList'), recentOverflow = byId('officeRecentOverflow');
   const lastChecked = byId('officeLastChecked');
   const createForm = byId('officeCreateForm'), createTitle = byId('officeCreateTitle'), createError = byId('officeCreateError'), createProgress = byId('officeCreateProgress'), createSubmit = byId('officeCreateSubmit'), retryPhotos = byId('officeRetryPhotos'), createBack = byId('officeCreateBack'), photoField = byId('officePhotoField');
-  const detailBack = byId('officeDetailBack'), detailReceipt = byId('officeDetailReceipt'), detailStatus = byId('officeDetailStatus'), detailLocation = byId('officeDetailLocation'), detailVisitRow = byId('officeDetailVisitRow'), detailVisit = byId('officeDetailVisit'), detailAmountRow = byId('officeDetailAmountRow'), detailAmount = byId('officeDetailAmount'), detailTimeline = byId('officeStatusTimeline'), completionSummary = byId('officeCompletionSummary'), completionPhotoStatus = byId('officeCompletionPhotoStatus'), completionPhotos = byId('officeCompletionPhotos');
+  const detailBack = byId('officeDetailBack'), detailReceipt = byId('officeDetailReceipt'), detailStatus = byId('officeDetailStatus'), detailLocation = byId('officeDetailLocation'), detailNeedsInfoRow = byId('officeDetailNeedsInfoRow'), detailNeedsInfoReason = byId('officeDetailNeedsInfoReason'), detailVisitRow = byId('officeDetailVisitRow'), detailVisit = byId('officeDetailVisit'), detailAmountRow = byId('officeDetailAmountRow'), detailAmount = byId('officeDetailAmount'), detailTimeline = byId('officeStatusTimeline'), completionSummary = byId('officeCompletionSummary'), completionPhotoStatus = byId('officeCompletionPhotoStatus'), completionPhotos = byId('officeCompletionPhotos');
   const year = byId('requestYear'), filters = [...document.querySelectorAll('[data-office-filter]')], views = [routeError, loginView, dashboardView, createView, detailView];
   let session = null, requests = [], activeFilter = 'all', loginPending = false, formPending = false, editingRequest = null, photoGeneration = 0, detailGeneration = 0, detailActivator = null, createActivator = null, sessionGeneration = 0;
   let listSnapshot = null, recentChanges = [], recentTotal = 0, lastSuccessfulRefreshAt = null, refreshPending = false, listGeneration = 0;
@@ -22,7 +22,7 @@
   function officeLabel(office) { return office && (office.complexName || office.name) || ''; }
   function saveSession(value, expectedSlug) { const saved = { token: String(value && value.sessionToken || '').trim(), office: safeOffice(value && value.office), expiresAt: Number(value && value.expiresAt) }; if (!saved.token || !saved.office.id || !saved.office.slug || saved.office.slug !== expectedSlug || !officeLabel(saved.office) || !Number.isFinite(saved.expiresAt)) return null; sessionStorage.setItem(SESSION_KEY, JSON.stringify(saved)); return saved; }
   function clearCompletionPhotos() { if (!completionPhotos) return; completionPhotos.querySelectorAll('img').forEach((image) => { image.removeAttribute('src'); image.remove(); }); completionPhotos.textContent = ''; }
-  function clearDetail() { detailGeneration += 1; [detailReceipt, detailStatus, detailLocation, detailVisit, detailAmount, completionSummary, completionPhotoStatus, detailTimeline].forEach((element) => { if (element) element.textContent = ''; }); if (detailVisitRow) detailVisitRow.hidden = true; if (detailAmountRow) detailAmountRow.hidden = true; clearCompletionPhotos(); }
+  function clearDetail() { detailGeneration += 1; [detailReceipt, detailStatus, detailLocation, detailNeedsInfoReason, detailVisit, detailAmount, completionSummary, completionPhotoStatus, detailTimeline].forEach((element) => { if (element) element.textContent = ''; }); if (detailNeedsInfoRow) detailNeedsInfoRow.hidden = true; if (detailVisitRow) detailVisitRow.hidden = true; if (detailAmountRow) detailAmountRow.hidden = true; clearCompletionPhotos(); }
   function clearSession() { sessionGeneration += 1; clearDetail(); clearRecentState(); sessionStorage.removeItem(SESSION_KEY); session = null; }
   function restoreSession(slug) { try { const value = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); const keys = value && typeof value === 'object' ? Object.keys(value).sort() : []; if (keys.join(',') !== 'expiresAt,office,token' || !value.token || Date.now() >= Number(value.expiresAt)) { clearSession(); return null; } const office = safeOffice(value.office); if (!office.id || !office.slug || office.slug !== slug || !officeLabel(office)) { clearSession(); return null; } return { token: String(value.token), office, expiresAt: Number(value.expiresAt) }; } catch (_) { clearSession(); return null; } }
   function focusPin() { if (pin) pin.focus(); }
@@ -140,6 +140,9 @@
     if (detailStatus) detailStatus.textContent = core.statusLabel(item.status);
     renderTimeline(String(item.status || ''));
     if (detailLocation) detailLocation.textContent = [item.unit, item.location].filter((value) => typeof value === 'string' && value).map((value) => value.slice(0, 140)).join(' · ');
+    const needsInfoReason = item.status === 'needs_info' ? core.needsInfoLabel(item.needsInfoReason) : '';
+    if (detailNeedsInfoRow) detailNeedsInfoRow.hidden = !needsInfoReason;
+    if (detailNeedsInfoReason) detailNeedsInfoReason.textContent = needsInfoReason;
     const visitAt = typeof item.visitAt === 'string' ? item.visitAt.trim() : '';
     if (detailVisitRow) detailVisitRow.hidden = !visitAt;
     if (visitAt && detailVisit) detailVisit.textContent = visitAt;
