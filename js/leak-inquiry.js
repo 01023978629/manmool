@@ -210,7 +210,7 @@
 
     const payload = Object.assign({}, data,
       REVENUE.captureLeadMetadata(window.location, 'leak-inquiry-submit', referenceCase),
-      { phone, source: 'leak-page', bookingStatus: 'inquiry-only', submittedAt: new Date().toISOString(), status: '신규' });
+      { phone, source: 'leak-page', bookingStatus: 'inquiry-only', privacyConsent: data.consent, submittedAt: new Date().toISOString(), status: '신규' });
 
     // 버튼 글자로도 '눌렸다'를 알린다 — 12초 대기 중 재클릭(중복 접수)을 막는다.
     submitBtn.textContent = '접수 중입니다…';

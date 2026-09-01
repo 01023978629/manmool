@@ -303,7 +303,8 @@
       source: 'website',
       submittedAt: new Date().toISOString(),
       status: '신규',
-      ...data
+      ...data,
+      privacyConsent: data.consent
     };
 
     // 누른 게 먹혔다는 표시를 버튼 자체에 남긴다. 전송은 최대 12초까지 걸리는데

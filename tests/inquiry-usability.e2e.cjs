@@ -109,6 +109,8 @@ test('② 손님이 안 고른 항목은 사실처럼 전달되지 않는다', a
   assert.equal(page.__sent.length, 1, '전송이 한 번 나가지 않았다: ' + JSON.stringify(page.__sent));
   const p = page.__sent[0];
   assert.equal(p.name, '테스트고객', '전송 본문이 폼 내용이 아니다: ' + JSON.stringify(p));
+  assert.equal(p.privacyConsent, true, '현장 연결에 필요한 개인정보 동의 근거가 payload에 없다');
+  assert.match(p.message || '', /개인정보 수집·이용 동의: 동의/, '사람이 읽는 메일 본문에 동의 근거가 없다');
   assert.ok(!p.scope, `손님이 안 고른 공사 범위가 '${p.scope}' 로 전달됐다 — 대표가 그걸 믿고 방문 준비를 한다`);
   assert.ok(!p.live, `손님이 안 고른 거주 여부가 '${p.live}' 로 전달됐다`);
   assert.equal(p.movein, '미정', `손님이 안 고른 희망 시기가 '${p.movein}' 로 전달됐다`);
