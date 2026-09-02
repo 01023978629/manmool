@@ -78,6 +78,12 @@ const order = (html, first, second, page) => {
 };
 order(leak, 'js/lead-transport.js', 'js/leak-inquiry.js', 'leak.html');
 order(index, 'js/lead-transport.js', 'js/inquiry.js', 'index.html');
+if (!/privacyConsent:\s*data\.consent/.test(inquiryJs)) {
+  fail.push('js/inquiry.js 인테리어 문의 payload에 확인된 개인정보 동의가 없다.');
+}
+if (!/privacyConsent:\s*data\.consent/.test(leakJs)) {
+  fail.push('js/leak-inquiry.js 누수 문의 payload에 확인된 개인정보 동의가 없다.');
+}
 
 /* ③ 전송·현재 탭 재시도는 공용 모듈 한 곳에만 둔다 --------------------- */
 const expectedExports = [

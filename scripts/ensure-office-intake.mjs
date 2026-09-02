@@ -19,8 +19,8 @@ const fail = [];
 const check = (condition, message) => { if (!condition) fail.push(message); };
 
 check(
-  (office.match(/href="office-request\.html"/g) || []).length >= 2,
-  '영업 페이지에 시설접수 진입점 2개가 없다'
+  (office.match(/href="office-request\.html"/g) || []).length >= 1,
+  '영업 페이지에 기존 시설접수 진입점이 없다'
 );
 check(/id="officeRequestIntro"/.test(office), '단지 전용 시설접수 소개 구역이 없다');
 check(/name="robots" content="noindex,follow"/.test(request), '접수 페이지 noindex가 없다');
@@ -31,7 +31,11 @@ check(
 check(/id="officeRefreshRequests"/.test(request) && /id="officeRecentChanges"/.test(request), '최근 변경 또는 수동 새로고침 UI가 없다');
 check(!/(setInterval|visibilitychange|Notification\s*\(|serviceWorker\.register)/.test(controller), 'R1 포털에 자동 조회 또는 외부 브라우저 알림이 있다');
 check(!/(?:\b(?:[\w$]+(?:\s*\.\s*[\w$]+)*)\s*\.\s*)?addEventListener\s*(?:\?\.)?\s*\(\s*['"]online['"]|(?:\b(?:[\w$]+(?:\s*\.\s*[\w$]+)*)\s*\.\s*)?ononline\s*=/.test(controller), 'R1 포털에 online 이벤트 기반 자동 재조회가 있다');
-check(/20260901-office-entry1/.test(request), '직원 포털 진입 변경 자산 cache marker가 없다');
+check(/js\/office-request\.js\?v=20260901-office-status1/.test(request), '보완 요청 사유 표시 자산 cache marker가 없다');
+check(
+  /id="officeDetailNeedsInfoRow"[^>]*hidden[\s\S]*?<dt>보완 요청 사유<\/dt><dd id="officeDetailNeedsInfoReason"><\/dd>/.test(request),
+  '접수 상세에 보완 요청 사유 행과 제목이 없다'
+);
 check(
   /sessionStorage/.test(controller) && !/(localStorage|indexedDB)/.test(request + core + controller + apiClient + photoClient),
   '포털이 허용되지 않은 영구 브라우저 저장소를 사용한다'

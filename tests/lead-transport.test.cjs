@@ -422,6 +422,14 @@ test('누수 상담 목적과 희망 시간대의 사람용 표시명을 모두 
   }
 });
 
+test('개인정보 동의는 privacyConsent boolean을 사람이 읽는 메일 문구로 보존한다', () => {
+  const { lead } = loadLead();
+  assert.match(lead.buildLeadText({ privacyConsent: true }), /개인정보 수집·이용 동의: 동의/);
+  assert.match(lead.buildLeadText({ privacyConsent: false }), /개인정보 수집·이용 동의: 미동의/);
+  assert.doesNotMatch(lead.buildLeadText({ consent: true }), /개인정보 수집·이용 동의:/,
+    'transport가 정규화되지 않은 consent 키를 암묵적으로 추론하면 안 된다');
+});
+
 test('HTTP 500은 성공 JSON이어도 제출 성공이 아니다', async () => {
   for (const config of [n8nConfig(), formsConfig('web3forms')]) {
     const loaded = loadLead({ fetch: async () => response(500, '{"success":true,"ok":true}') });

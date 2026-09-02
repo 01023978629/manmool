@@ -683,6 +683,56 @@ test('상세 화면은 보고서 없음과 유효하지 않은 사진을 안전�
   await page.close();
 });
 
+test('보완 요청 사유는 needs_info 상세에만 안전한 300자 이하 텍스트로 표시하고 화면 이탈 시 지운다', async () => {
+  const safeReason = '천장 누수 범위를 확인할 사진을 다시 올려 주세요. <img src=x onerror="window.__needsInfoXss=true">';
+  const needsInfo = { ...request('req-needs-reason', 'needs_info'), needsInfoReason: safeReason };
+  const accepted = { ...request('req-accepted-reason', 'accepted'), needsInfoReason: '이 상태에서는 보이면 안 됩니다.' };
+  const exactLimit = { ...request('req-needs-exact-limit', 'needs_info'), needsInfoReason: '가'.repeat(300) };
+  const oversized = { ...request('req-needs-oversized', 'needs_info'), needsInfoReason: '가'.repeat(301) };
+  const items = [needsInfo, accepted, exactLimit, oversized];
+  const { page, pageErrors } = await openPortal(async (body) => {
+    if (body.action === 'officeLogin') return loginResult();
+    if (body.action === 'officeList') return { ok: true, requests: items };
+    if (body.action === 'officeGet') return { ok: true, request: items.find((item) => item.requestId === body.payload.requestId) };
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await page.addInitScript(() => { window.__needsInfoXss = false; });
+  await login(page);
+
+  await page.locator('[data-office-detail="req-needs-reason"]').click();
+  await page.locator('#officeDetailView').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#officeDetailNeedsInfoRow dt').innerText(), '보완 요청 사유');
+  assert.equal(await page.locator('#officeDetailNeedsInfoRow').isHidden(), false);
+  assert.equal(await page.locator('#officeDetailNeedsInfoReason').innerText(), safeReason);
+  assert.equal(await page.locator('#officeDetailNeedsInfoReason img').count(), 0);
+  assert.equal(await page.evaluate(() => window.__needsInfoXss), false);
+
+  await page.getByRole('button', { name: '목록으로' }).click();
+  assert.equal(await page.locator('#officeDetailNeedsInfoRow').isHidden(), true);
+  assert.equal(await page.locator('#officeDetailNeedsInfoReason').textContent(), '');
+
+  await page.locator('[data-office-detail="req-accepted-reason"]').click();
+  await page.locator('#officeDetailView').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#officeDetailReceipt').innerText(), accepted.receiptNo);
+  assert.equal(await page.locator('#officeDetailNeedsInfoRow').isHidden(), true);
+  assert.equal(await page.locator('#officeDetailNeedsInfoReason').textContent(), '');
+  await page.getByRole('button', { name: '목록으로' }).click();
+
+  await page.locator('[data-office-detail="req-needs-exact-limit"]').click();
+  await page.locator('#officeDetailView').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#officeDetailNeedsInfoRow').isHidden(), false);
+  assert.equal((await page.locator('#officeDetailNeedsInfoReason').textContent()).length, 300);
+  await page.getByRole('button', { name: '목록으로' }).click();
+
+  await page.locator('[data-office-detail="req-needs-oversized"]').click();
+  await page.locator('#officeDetailView').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#officeDetailReceipt').innerText(), oversized.receiptNo);
+  assert.equal(await page.locator('#officeDetailNeedsInfoRow').isHidden(), true);
+  assert.equal(await page.locator('#officeDetailNeedsInfoReason').textContent(), '');
+  assert.deepEqual(pageErrors, []);
+  await page.close();
+});
+
 test('대시보드는 계약된 열 가지 상태를 고정된 한국어 라벨로 표시한다', async () => {
   const statuses = [
     ['pending_review', '접수됨'], ['needs_info', '내용 확인 필요'], ['accepted', '확인 완료'], ['visit_scheduled', '방문 예정'], ['in_progress', '작업 중'],
@@ -831,7 +881,7 @@ test('완료 사진은 검증된 JPEG와 WebP 응답도 각각 data URL 이미�
 });
 
 test('상세 응답 경합에서는 늦은 A가 빠른 B 상세 화면을 덮어쓰지 않는다', async () => {
-  const a = request('req-race-a', 'accepted');
+  const a = { ...request('req-race-a', 'needs_info'), needsInfoReason: '늦게 도착한 보완 요청 사유' };
   const b = request('req-race-b', 'paid');
   let releaseA;
   const aPending = new Promise((resolve) => { releaseA = resolve; });
@@ -850,6 +900,8 @@ test('상세 응답 경합에서는 늦은 A가 빠른 B 상세 화면을 덮어
   await page.waitForTimeout(100);
   assert.equal((await page.locator('#officeDetailReceipt').innerText()), b.receiptNo);
   assert.match(await page.locator('#officeDetailStatus').innerText(), /처리 완료/);
+  assert.equal(await page.locator('#officeDetailNeedsInfoRow').isHidden(), true);
+  assert.equal(await page.locator('#officeDetailNeedsInfoReason').textContent(), '');
   assert.deepEqual(pageErrors, []);
   await page.close();
 });
