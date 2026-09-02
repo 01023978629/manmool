@@ -95,6 +95,7 @@ test('OTP 검증 중에는 이메일 재입력을 막아 늦은 검증 응답이
   await page.locator('#portalCode').fill('123456');
   await page.locator('#portalCodeVerifyForm').evaluate((form) => form.requestSubmit());
   await page.waitForFunction(() => document.getElementById('portalChangeAccount').disabled === true);
+  await waitForCall(calls, 'portalVerifyCode');
   assert.equal(calls.filter((call) => call.action === 'portalVerifyCode').length, 1);
   assert.equal(await page.locator('#portalChangeAccount').isDisabled(), true);
   await page.locator('#portalChangeAccount').evaluate((button) => button.click());
@@ -405,6 +406,7 @@ test('포털 로그아웃은 서버 응답 전에 민감 화면을 지우고 1.2
   assert.equal(await page.locator('#portalDashboardCards').innerText(), '');
   assert.equal(await page.locator('#portalDashboardNotices').innerText(), '');
   assert.match(await page.locator('#portalDeniedMessage').innerText(), /로그아웃/);
+  await waitForCall(calls, 'portalLogout');
   assert.equal(calls.filter((call) => call.action === 'portalLogout').length, 1);
   await page.waitForURL(`${origin}/office-login.html`);
   assert.ok(Date.now() - logoutStartedAt < 1900, '서버 로그아웃 무응답 시 로컬 복귀가 짧은 타임아웃을 넘어섰습니다.');
