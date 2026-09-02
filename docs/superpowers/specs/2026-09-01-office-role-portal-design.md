@@ -10,14 +10,14 @@
 
 ## 인증 방식
 
-- 로그인 식별자는 `단지 코드 + 등록 이메일`이다.
-- 서버가 6자리 일회용 코드를 이메일로 발송한다.
-- 코드는 10분 뒤 만료되고 재사용할 수 없다.
-- 브라우저에는 코드, 비밀번호, 서버 비밀키를 저장하지 않는다.
+- 로그인 식별자는 `단지 코드 + 등록 이메일`이며 관리자가 사용자별 6자리 로그인 인증번호를 발급한다.
+- 인증번호 원문은 브라우저·Google Sheet·감사기록에 저장하지 않고, 서버에는 사용자별 소금값과 HMAC 해시만 저장한다.
+- 5회 연속 오류 시 해당 사용자는 15분간 잠기며, 인증번호 변경 시 기존 세션을 무효화한다.
+- 브라우저에는 인증번호나 서버 비밀키를 저장하지 않는다.
 - 인증 성공 시 무작위 세션 토큰 원문을 한 번만 반환한다.
 - 서버에는 세션 토큰의 HMAC 해시만 저장하며 세션은 8시간 뒤 만료된다.
 - 로그아웃, 사용자 비활성화, 역할 또는 권한 변경 시 기존 세션을 폐기한다.
-- 로그인 성공 전 응답은 사용자 존재 여부를 구분하지 않는 동일한 문구를 사용한다.
+- 로그인 실패 응답은 사용자 존재 여부나 어떤 입력이 틀렸는지 구분하지 않는다.
 
 ## 역할
 
@@ -64,10 +64,8 @@
 
 ### `office-login.html`
 
-- 단지 코드, 이메일 입력
-- 일회용 코드 요청
-- 일회용 코드 확인
-- 설정되지 않은 서버 주소 또는 만료·과다 시도에 대한 명확한 안내
+- 단지 코드, 이메일, 관리자 발급 6자리 인증번호 입력
+- 설정되지 않은 서버 주소 또는 과다 시도·잠금에 대한 명확한 안내
 
 ### `office-portal.html`
 
@@ -83,7 +81,7 @@
 ### `office-admin.html`
 
 - 사용자 목록
-- 사용자 등록 또는 수정(등록만 수행하며 초대 이메일은 자동 발송하지 않음)
+- 사용자 등록 또는 수정과 6자리 로그인 인증번호 발급·초기화
 - 역할 변경, 활성화·비활성화
 - 서버 ceiling 안의 열람 권한 override
 - 감사기록 열람
@@ -95,14 +93,14 @@
 
 - `Offices`
 - `Users`
-- `OtpChallenges`
+- `OtpChallenges` (이전 이메일 OTP 기록의 보관·정리 전용, 신규 기록 없음)
 - `Sessions`
 - `RolePermissions`
 - `ManagementStatus`
 - `ManagementLogs`
 - `PortalAudit`
 
-모든 쓰기는 `LockService` 안에서 처리한다. 감사기록에는 사용자 ID, action, entity ID, 결과, 시각만 기록하며 일지 본문·전화번호·OTP·세션 토큰은 기록하지 않는다.
+모든 쓰기는 `LockService` 안에서 처리한다. 감사기록에는 사용자 ID, action, entity ID, 결과, 시각만 기록하며 일지 본문·전화번호·로그인 인증번호·세션 토큰은 기록하지 않는다.
 
 `portalStatusSave`, `portalLogSave`, `portalUserSave`, `portalPermissionSave`, `portalWorkOrderSave`, `portalNoticeSave`, `portalCostSave`, `portalCostApprove`는 payload에 브라우저가 생성한 v4 UUID `requestId`를 반드시 포함한다. 한 작업의 응답이 끊기거나 실패하면 같은 `requestId`로 재시도하고, 성공하거나 사용자가 편집 대상 또는 새 입력을 명시적으로 바꾼 뒤에만 새 UUID를 만든다. 활성화·비활성화도 사용자와 목표 상태가 같은 재시도에는 같은 `requestId`를 사용한다.
 
@@ -112,7 +110,7 @@
 
 GitHub Pages에는 정적 화면과 Apps Script 배포 URL만 공개한다. Apps Script 비밀키, Sheet ID, 관리자 초기화 값은 Script Properties에만 둔다.
 
-최초 단지와 `system_admin` 계정은 Apps Script 편집기에서 서버의 `portalBootstrapFromProperties_()` 함수를 직접 실행해 등록한다. 공개 웹에서 최초 관리자를 자체 생성하는 기능은 제공하지 않는다.
+최초 단지와 `system_admin` 계정은 임시 Script Properties에 6자리 인증번호를 넣고 Apps Script 편집기에서 서버의 `portalBootstrapFromProperties_()` 함수를 직접 실행해 등록한다. 기존 설치는 `portalSetupSheets_()`로 열을 추가한 뒤 `portalSetLoginCodeFromProperties_()`로 최초 인증번호를 설정한다. 두 함수 모두 성공 시 인증번호 원문이 든 임시 속성을 즉시 삭제하며, 공개 웹에서 최초 관리자를 자체 생성하는 기능은 제공하지 않는다.
 
 완료 판정은 다음이 모두 충족되어야 한다.
 
@@ -120,12 +118,12 @@ GitHub Pages에는 정적 화면과 Apps Script 배포 URL만 공개한다. Apps
 2. 별도 Apps Script 프로젝트 새 버전 배포
 3. Script Properties와 Google Sheet 설정
 4. 최초 단지와 `system_admin` 등록
-5. 실제 이메일 코드 수신 및 로그인 확인
+5. 관리자가 지정한 인증번호로 실제 로그인 확인
 6. 다섯 역할의 허용·거부 동작을 실제 계정으로 확인
 
 로컬 테스트 통과만으로 실제 로그인이 완료되었다고 보고하지 않는다.
 
-Apps Script의 새 `/exec` 주소를 발급받은 뒤에는 저장소 루트에서 다음 명령으로 공개 설정 파일만 안전하게 활성화한다. 이 명령은 token, PIN, secret, password, OTP 인자를 받지 않는다.
+Apps Script의 새 `/exec` 주소를 발급받은 뒤에는 저장소 루트에서 다음 명령으로 공개 설정 파일만 안전하게 활성화한다. 이 명령은 token, PIN, secret, password, 로그인 인증번호 인자를 받지 않는다.
 
 ```powershell
 node scripts/configure-office-portal-api.mjs --url "https://script.google.com/macros/s/배포_ID/exec" --enable
@@ -147,5 +145,5 @@ GitHub Pages 정적 호스팅에서는 이 저장소가 포털 경로별 `X-Fram
 - 권한 변경 뒤 기존 세션 무효화 검사
 - 마지막 관리자 보호 검사
 - 타 단지 행 접근 차단 검사
-- OTP·세션 원문이 Sheet, 로그, GitHub Pages 산출물에 없는지 검사
+- 로그인 인증번호·세션 원문이 Sheet, 로그, GitHub Pages 산출물에 없는지 검사
 - 모바일 390px과 PC 화면에서 로그인·대시보드·관리 화면 확인

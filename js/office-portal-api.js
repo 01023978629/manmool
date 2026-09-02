@@ -8,18 +8,18 @@
   const CONFIG_PATH = 'office-portal-api.json';
   const API_URL = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
   const ACTIONS = Object.freeze([
-    'portalRequestCode', 'portalVerifyCode', 'portalMe', 'portalLogout', 'portalDashboard',
+    'portalLogin', 'portalMe', 'portalLogout', 'portalDashboard',
     'portalStatusList', 'portalStatusSave', 'portalLogList', 'portalLogSave',
     'portalUserList', 'portalUserSave', 'portalPermissionSave', 'portalAuditList',
     'portalWorkOrderList', 'portalWorkOrderSave', 'portalNoticeList', 'portalNoticeSave',
     'portalCostList', 'portalCostSave', 'portalCostApprove', 'portalReportSummary',
   ]);
-  const PUBLIC_ACTIONS = new Set(['portalRequestCode', 'portalVerifyCode']);
+  const PUBLIC_ACTIONS = new Set(['portalLogin']);
   const ACTION_SET = new Set(ACTIONS);
   const MESSAGES = Object.freeze({
     'not-configured': '직원 포털 서버 연결을 준비하고 있습니다. 기존 6자리 PIN 접수 포털을 이용해 주세요.',
     'invalid-input': '입력 내용을 확인해 주세요.', 'invalid-credentials': '관리사무소 코드, 이메일 또는 인증번호를 확인해 주세요.',
-    'code-expired': '인증번호가 만료되었습니다. 새 인증번호를 요청해 주세요.', 'rate-limited': '요청이 많습니다. 잠시 후 다시 시도해 주세요.',
+    'rate-limited': '인증번호 입력이 여러 번 틀렸거나 요청이 많습니다. 15분 뒤 다시 시도해 주세요.',
     'session-expired': '로그인 세션이 만료되었습니다. 다시 로그인해 주세요.', 'forbidden': '이 기능을 볼 수 있는 권한이 없습니다.',
     'last-admin': '마지막 관리자는 비활성화하거나 관리자 권한을 해제할 수 없습니다.',
     'not-found': '요청한 정보를 찾을 수 없습니다.', 'bad-request': '요청 형식을 확인해 주세요.',

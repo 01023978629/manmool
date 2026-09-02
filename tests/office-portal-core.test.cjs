@@ -17,14 +17,11 @@ function response(overrides = {}) {
   };
 }
 
-test('이메일 OTP 로그인 입력은 관리사무소 코드·이메일·6자리 번호만 허용한다', () => {
-  assert.deepEqual(core.validateRequestCode({ officeCode: 'Sample-Apt', email: 'Chief@Example.com' }).value, { officeCode: 'sample-apt', email: 'chief@example.com' });
-  assert.equal(core.validateRequestCode({ officeCode: '../apt', email: 'chief@example.com' }).ok, false);
-  assert.equal(core.validateRequestCode({ officeCode: 'sample-apt', email: 'bad-email' }).ok, false);
-  const challengeId = '123e4567-e89b-42d3-a456-426614174000';
-  assert.deepEqual(core.validateVerifyCode({ officeCode: 'sample-apt', email: 'chief@example.com', code: '123456', challengeId }).value, { officeCode: 'sample-apt', email: 'chief@example.com', code: '123456', challengeId });
-  assert.equal(core.validateVerifyCode({ officeCode: 'sample-apt', email: 'chief@example.com', code: '12a456', challengeId }).ok, false);
-  assert.equal(core.validateVerifyCode({ officeCode: 'sample-apt', email: 'chief@example.com', code: '123456', challengeId: 'guessable' }).ok, false);
+test('관리자 발급 로그인 입력은 관리사무소 코드·이메일·6자리 번호만 허용한다', () => {
+  assert.deepEqual(core.validateLogin({ officeCode: 'Sample-Apt', email: 'Chief@Example.com', loginCode: '123456' }).value, { officeCode: 'sample-apt', email: 'chief@example.com', loginCode: '123456' });
+  assert.equal(core.validateLogin({ officeCode: '../apt', email: 'chief@example.com', loginCode: '123456' }).ok, false);
+  assert.equal(core.validateLogin({ officeCode: 'sample-apt', email: 'bad-email', loginCode: '123456' }).ok, false);
+  assert.equal(core.validateLogin({ officeCode: 'sample-apt', email: 'chief@example.com', loginCode: '12a456' }).ok, false);
 });
 
 test('서버 권한 allowlist 밖 값은 버리고 역할 기본 권한을 추론하지 않는다', () => {
@@ -35,14 +32,14 @@ test('서버 권한 allowlist 밖 값은 버리고 역할 기본 권한을 추�
   assert.deepEqual(core.normalizePermissions(undefined), []);
 });
 
-test('세션은 token user office permissions expiresAt만 저장하고 OTP·비밀번호는 저장하지 않는다', () => {
+test('세션은 token user office permissions expiresAt만 저장하고 로그인 인증번호는 저장하지 않는다', () => {
   const storage = memoryStorage();
   const session = core.storeSession(storage, response(), 1_000);
   assert.ok(session);
   const parsed = JSON.parse(storage.getItem(core.SESSION_KEY));
   assert.deepEqual(Object.keys(parsed).sort(), ['expiresAt', 'office', 'permissions', 'token', 'user']);
   assert.equal(JSON.stringify(parsed).includes('123456'), false);
-  assert.equal(JSON.stringify(parsed).toLowerCase().includes('password'), false);
+  assert.equal(Object.hasOwn(parsed.user, 'loginCode'), false);
   assert.deepEqual(core.restoreSession(storage, 2_000), session);
 });
 
@@ -64,7 +61,7 @@ test('만료·비활성·알 수 없는 역할·추가 최상위 키 세션은 f
 
 test('관리자 목록용 사용자는 비활성 상태와 동호 담당구역을 안전하게 정규화한다', () => {
   assert.deepEqual(core.normalizeUser({ id: 'u2', email: 'resident@example.com', name: '김입주', role: 'resident', active: false, unit: '101동 202호' }), {
-    id: 'u2', email: 'resident@example.com', name: '김입주', role: 'resident', active: false, unit: '101동 202호',
+    id: 'u2', email: 'resident@example.com', name: '김입주', role: 'resident', active: false, loginCodeConfigured: false, unit: '101동 202호',
   });
   assert.equal(core.normalizeUser({ id: 'u4', email: 'chief@example.com', name: '담당', role: 'manager_chief', active: true, unit: '가'.repeat(60) }).unit.length, 40);
   assert.equal(core.normalizeUser({ id: 'u3', email: 'x@example.com', name: '무효', role: 'unknown', active: true }), null);

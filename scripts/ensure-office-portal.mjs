@@ -17,24 +17,25 @@ const publicFiles = new Set(expectedPublicFiles(ROOT).map(({ relative }) => rela
 const failures = [];
 const check = (condition, message) => { if (!condition) failures.push(message); };
 const actions = [
-  'portalRequestCode', 'portalVerifyCode', 'portalMe', 'portalLogout', 'portalDashboard', 'portalStatusList', 'portalStatusSave',
+  'portalLogin', 'portalMe', 'portalLogout', 'portalDashboard', 'portalStatusList', 'portalStatusSave',
   'portalLogList', 'portalLogSave', 'portalUserList', 'portalUserSave', 'portalPermissionSave', 'portalAuditList',
   'portalWorkOrderList', 'portalWorkOrderSave', 'portalNoticeList', 'portalNoticeSave',
   'portalCostList', 'portalCostSave', 'portalCostApprove', 'portalReportSummary',
 ];
 
-check((files.office.match(/href="office-login\.html"/g) || []).length >= 2, '관리사무소 영업 페이지에 새 이메일 포털 진입점 두 개가 없습니다.');
+check((files.office.match(/href="office-login\.html"/g) || []).length >= 2, '관리사무소 영업 페이지에 직원 포털 진입점 두 개가 없습니다.');
 check(/href="office-request\.html"[^>]*>기존 6자리 PIN 접수/.test(files.office), '기존 PIN 접수 포털 호환 링크가 없습니다.');
 for (const page of ['login', 'portal', 'admin']) check(/name="robots" content="noindex,nofollow"/.test(files[page]), `${page} 페이지가 noindex,nofollow가 아닙니다.`);
 check(!/(office-login|office-portal|office-admin)\.html/.test(files.sitemap), '비공개 포털 페이지가 sitemap에 들어갔습니다.');
-check(files.login.includes('type="email"') && files.login.includes('autocomplete="one-time-code"') && !files.login.includes('type="password"'), '로그인 페이지가 이메일 OTP 전용이 아닙니다.');
+check(files.login.includes('type="email"') && files.login.includes('name="loginCode"') && files.login.includes('autocomplete="current-password"'), '로그인 페이지가 관리자 발급 인증번호 방식이 아닙니다.');
 check(/"enabled": false[\s\S]*"apiUrl": ""/.test(files.config) && Object.keys(JSON.parse(files.config)).sort().join(',') === 'apiUrl,enabled', '포털 API 기본 설정이 exact disabled가 아닙니다.');
 check(actions.every((action) => files.api.includes(`'${action}'`)), '포털 API action 계약이 불완전합니다.');
 check(/sessionStorage/.test(files.loginJs + files.portalJs + files.adminJs) && !/(localStorage|indexedDB)/.test(files.core + files.api + files.loginJs + files.portalJs + files.adminJs), '포털이 허용되지 않은 영구 브라우저 저장소를 사용합니다.');
 check(/token,user,office,permissions,expiresAt/.test(files.core.replace(/\s+/g, '')) || /\{ token, user, office, permissions, expiresAt \}/.test(files.core), '세션 저장 필드 allowlist가 없습니다.');
 check(/portalMe/.test(files.portalJs) && /portalMe/.test(files.adminJs) && /data-requires/.test(files.portal + files.admin), '서버 권한 재확인 또는 fail-closed 화면 계약이 없습니다.');
 check(/source\.active;/.test(files.core) && /typeof active !== 'boolean'/.test(files.core) && /active !== true/.test(files.core), '사용자 active 값이 exact boolean과 활성 세션으로 검증되지 않습니다.');
-check(/changeAccount\.disabled\s*=\s*value/.test(files.loginJs) && /if \(busy\) return;/.test(files.loginJs), 'OTP 검증 중 로그인 reset 경로가 잠기지 않습니다.');
+check(/loginButton\.disabled\s*=\s*value/.test(files.loginJs) && /if \(busy\s*\|\|/.test(files.loginJs), '로그인 처리 중 중복 제출이 차단되지 않습니다.');
+check(/name="loginCode"[^>]*autocomplete="new-password"/.test(files.admin) && /loginCodeConfigured/.test(files.adminJs), '관리자 인증번호 발급·설정 상태 화면이 없습니다.');
 check([files.portalJs, files.adminJs].every((code) => /LOGOUT_TIMEOUT_MS\s*=\s*1200/.test(code) && /clearSession\(sessionStorage\)/.test(code) && /portalLogout/.test(code)), '로그아웃의 즉시 로컬 삭제 또는 짧은 서버 타임아웃이 없습니다.');
 check([files.portalJs, files.adminJs].every((code) => /crypto\.randomUUID\(\)/.test(code) && /dataset\.requestId/.test(code) && /delete form\.dataset\.requestId/.test(code)), '쓰기 작업의 v4 requestId 생성·재시도·초기화 수명주기가 없습니다.');
 check(/addEventListener\('input',\s*\(\)\s*=>\s*clearOperationRequest\(form\)\)/.test(files.portalJs) && /addEventListener\('change',\s*\(\)\s*=>\s*clearOperationRequest\(form\)\)/.test(files.portalJs), '포털 저장 폼의 입력 변경 시 requestId가 새로 발급되지 않습니다.');
@@ -74,4 +75,4 @@ if (failures.length) {
   failures.forEach((message) => console.error(`  - ${message}`));
   process.exit(1);
 }
-console.log('PASS  관리사무소 이메일 OTP·역할 권한·기존 PIN 호환·Pages 경계');
+console.log('PASS  관리자 발급 인증번호·역할 권한·기존 PIN 호환·Pages 경계');

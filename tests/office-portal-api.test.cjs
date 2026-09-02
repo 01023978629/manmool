@@ -8,7 +8,7 @@ async function withFetch(implementation, run) { const old = global.fetch; global
 
 test('포털 action 계약은 승인된 운영 action만 제공한다', () => {
   assert.deepEqual(portalApi.ACTIONS, [
-    'portalRequestCode', 'portalVerifyCode', 'portalMe', 'portalLogout', 'portalDashboard',
+    'portalLogin', 'portalMe', 'portalLogout', 'portalDashboard',
     'portalStatusList', 'portalStatusSave', 'portalLogList', 'portalLogSave',
     'portalUserList', 'portalUserSave', 'portalPermissionSave', 'portalAuditList',
     'portalWorkOrderList', 'portalWorkOrderSave', 'portalNoticeList', 'portalNoticeSave',
@@ -21,19 +21,19 @@ test('기본 disabled 설정은 endpoint 요청 없이 fail-closed 된다', asyn
   await withFetch(async (url) => { calls.push(url); return response({ enabled: false, apiUrl: '' }); }, async () => {
     const config = await portalApi.loadConfig();
     assert.deepEqual(config, { enabled: false, apiUrl: '' });
-    await assert.rejects(() => portalApi.call('portalRequestCode', { payload: { officeCode: 'sample-apt', email: 'a@example.com' } }), (error) => error.code === 'not-configured');
+    await assert.rejects(() => portalApi.call('portalLogin', { payload: { officeCode: 'sample-apt', email: 'a@example.com', loginCode: '123456' } }), (error) => error.code === 'not-configured');
   });
   assert.deepEqual(calls, ['office-portal-api.json', 'office-portal-api.json']);
 });
 
-test('이메일 코드 요청은 세션 토큰 없이, 인증 후 action은 세션 토큰과 exact text/plain POST를 사용한다', async () => {
+test('로그인은 세션 토큰 없이, 인증 후 action은 세션 토큰과 exact text/plain POST를 사용한다', async () => {
   const calls = [];
   await withFetch(async (url, options = {}) => {
     calls.push({ url, options });
     if (url === 'office-portal-api.json') return response({ enabled: true, apiUrl: API_URL });
     return response({ ok: true, user: {}, office: {}, permissions: [] });
   }, async () => {
-    await portalApi.call('portalRequestCode', { payload: { officeCode: 'sample-apt', email: 'a@example.com' } });
+    await portalApi.call('portalLogin', { payload: { officeCode: 'sample-apt', email: 'a@example.com', loginCode: '123456' } });
     await portalApi.call('portalMe', { sessionToken: 'signed-token', payload: {} });
   });
   const posts = calls.filter((call) => call.url === API_URL);
@@ -41,7 +41,7 @@ test('이메일 코드 요청은 세션 토큰 없이, 인증 후 action은 세�
   const first = JSON.parse(posts[0].options.body);
   const second = JSON.parse(posts[1].options.body);
   assert.deepEqual(Object.keys(first).sort(), ['action', 'payload', 'ts']);
-  assert.equal(first.action, 'portalRequestCode');
+  assert.equal(first.action, 'portalLogin');
   assert.deepEqual(Object.keys(second).sort(), ['action', 'payload', 'sessionToken', 'ts']);
   assert.equal(second.sessionToken, 'signed-token');
   assert.equal(posts[1].options.headers['Content-Type'], 'text/plain;charset=utf-8');
