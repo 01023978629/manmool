@@ -97,6 +97,12 @@ jobs:
           node --test apps-script-contract/test/*.mjs
           git diff --exit-code
 
+      - name: Enable management office employee portal for production artifact
+        run: >-
+          node scripts/configure-office-portal-api.mjs
+          --url https://script.google.com/macros/s/AKfycbwnlDRquyFw2T6JS3D0thRpnFW_u7ZbL3Pn3twtidhkgkr-QWKqrI3gZH9VCgY0Z-sR/exec
+          --enable
+
       - name: Build public allowlist artifact
         run: node scripts/build-pages-artifact.mjs
 
