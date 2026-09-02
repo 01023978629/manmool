@@ -30,6 +30,12 @@ function deferred() {
   const promise = new Promise((next) => { resolve = next; });
   return { promise, resolve };
 }
+async function waitForCall(calls, action, timeoutMs = 2000) {
+  const deadline = Date.now() + timeoutMs;
+  while (!calls.some((call) => call.action === action) && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+}
 async function openPortal(respond, { enabled = true } = {}) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
   page.setDefaultTimeout(2000);
@@ -531,6 +537,7 @@ test('관리 화면 로그아웃도 서버 응답 전에 사용자·감사 DOM�
   assert.equal(await page.locator('#portalAdminAccount').isHidden(), true);
   assert.equal(await page.locator('#portalUserList').innerText(), '');
   assert.equal(await page.locator('#portalAuditList').innerText(), '');
+  await waitForCall(calls, 'portalLogout');
   assert.equal(calls.filter((call) => call.action === 'portalLogout').length, 1);
   logoutGate.resolve({ ok: true });
   await page.waitForURL(`${origin}/office-login.html`);
