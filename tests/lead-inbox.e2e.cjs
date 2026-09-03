@@ -346,7 +346,8 @@ test('본문 복사는 메일 형식 그대로 클립보드에 넣고 버튼 문
   await page.locator('#inboxDetail:not([hidden])').waitFor();
   await page.locator('#inboxCopyMessage').click();
   await page.locator('#inboxCopyMessage:has-text("복사했습니다")').waitFor();
-  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), fake.leads[LEAD_NEW].message);
+  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), fake.leads[LEAD_NEW].message + '\n접수번호: LD-20260903-0001', '복사본 = 메일 형식 본문 + 접수번호 줄(앱이 읽는 라벨)');
+  assert.equal(await page.locator('#inboxMessage').innerText(), fake.leads[LEAD_NEW].message, '화면 본문은 서버가 준 그대로');
   assert.deepEqual(pageErrors, []);
   await context.close();
 });
