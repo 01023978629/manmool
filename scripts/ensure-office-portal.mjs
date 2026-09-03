@@ -23,8 +23,13 @@ const actions = [
   'portalCostList', 'portalCostSave', 'portalCostApprove', 'portalReportSummary',
 ];
 
-check((files.office.match(/href="office-login\.html"/g) || []).length >= 2, '관리사무소 영업 페이지에 직원 포털 진입점 두 개가 없습니다.');
-check(/href="office-request\.html"[^>]*>기존 6자리 비밀번호 접수/.test(files.office), '기존 PIN 접수 포털 호환 링크가 없습니다.');
+// 대표 결정(9/3): 1순위 버튼은 지금 실제로 쓰는 시설보수 접수(접수 비밀번호)로, 직원 포털은 그 옆 보조 버튼으로.
+// 소장님이 첫 방문에서 계정 없는 포털에 먼저 들어가 막히지 않게 한다.
+const introActions = (files.office.match(/<div class="office-request-intro-actions">[\s\S]*?<\/div>/) || [''])[0];
+check(/<a href="office-request\.html" class="office-button office-button-primary">/.test(introActions), '관리사무소 페이지 1순위 버튼이 시설보수 접수가 아닙니다.');
+check(/<a href="office-login\.html" class="office-button office-button-ghost">/.test(introActions), '관리사무소 페이지에 직원 포털 보조 진입점이 없습니다.');
+check((files.office.match(/href="office-login\.html"/g) || []).length >= 1, '관리사무소 영업 페이지에 직원 포털 진입점이 없습니다.');
+check(/href="office-request\.html"[^>]*>(?:관리사무소 )?시설보수 접수/.test(files.office), '시설보수 접수(접수 비밀번호) 진입 링크가 없습니다.');
 for (const page of ['login', 'portal', 'admin']) check(/name="robots" content="noindex,nofollow"/.test(files[page]), `${page} 페이지가 noindex,nofollow가 아닙니다.`);
 check(!/(office-login|office-portal|office-admin)\.html/.test(files.sitemap), '비공개 포털 페이지가 sitemap에 들어갔습니다.');
 // 인증번호 칸은 one-time-code 여야 한다 — current/new-password 면 브라우저가 '비밀번호 저장?'을 띄워

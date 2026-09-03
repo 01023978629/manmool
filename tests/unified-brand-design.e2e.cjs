@@ -128,7 +128,7 @@ test('전체 주요 페이지에서 관리사무소 전용 창구로 이동할 �
   }
 });
 
-test('관리사무소 페이지는 이메일 직원 포털과 기존 PIN 접수 진입점을 함께 안내한다', async () => {
+test('관리사무소 페이지는 시설보수 접수를 1순위로, 직원 포털을 보조로 안내한다', async () => {
   const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
   await page.goto(`${origin}/office.html`, { waitUntil: 'networkidle' });
 
@@ -145,8 +145,12 @@ test('관리사무소 페이지는 이메일 직원 포털과 기존 PIN 접수 
   assert.equal(await page.locator('script[src*="office.js"]').count(), 0);
   assert.equal(await page.locator('a[href^="tel:01023978629"]').count() > 0, true);
   assert.equal(await page.getByRole('link', { name: '업무 문의', exact: true }).first().getAttribute('href'), '#officeInquiry');
-  assert.equal(await page.getByRole('link', { name: '관리사무소 직원 로그인', exact: true }).first().getAttribute('href'), 'office-login.html');
-  assert.equal(await page.getByRole('link', { name: '기존 6자리 비밀번호 접수', exact: false }).getAttribute('href'), 'office-request.html');
+  // 대표 결정(9/3): 1순위는 실제로 쓰는 시설보수 접수, 직원 포털은 보조
+  assert.equal(await page.getByRole('link', { name: '관리사무소 시설보수 접수', exact: true }).first().getAttribute('href'), 'office-request.html');
+  assert.equal(await page.getByRole('link', { name: '시설보수 접수 (단지 전용 주소 · 접수 비밀번호)', exact: true }).getAttribute('href'), 'office-request.html');
+  assert.equal(await page.getByRole('link', { name: '직원 포털 로그인 (등록 이메일)', exact: true }).getAttribute('href'), 'office-login.html');
+  const primary = page.locator('.office-request-intro-actions .office-button-primary');
+  assert.equal(await primary.getAttribute('href'), 'office-request.html', '1순위 버튼이 접수가 아니다');
 
   await page.close();
 });
