@@ -437,12 +437,14 @@ if (!/<meta property="og:image:width" content="1400" \/>/.test(leak)
 }
 
 if (!/시행일 2026-08-30/.test(privacy)) failures.push('개인정보처리방침 시행일이 2026-08-30이 아니다');
-for (const page of ['privacy', 'leak', 'blog']) {
+for (const page of ['leak', 'blog']) {
   const entry = sitemap.match(new RegExp(`<url>\\s*<loc>https://01023978629\\.github\\.io/manmool/${page}\\.html</loc>\\s*<lastmod>([^<]+)</lastmod>`));
-  if (entry?.[1] !== '2026-08-30') failures.push(`${page}.html sitemap lastmod가 2026-08-30이 아니다`);
+  if (entry?.[1] !== '2026-09-04') failures.push(`${page}.html sitemap lastmod가 2026-09-04가 아니다`);
 }
-if (!/<lastBuildDate>Sun, 30 Aug 2026 00:00:00 \+0900<\/lastBuildDate>/.test(rss)) {
-  failures.push('RSS lastBuildDate가 가장 최근 updated 날짜 2026-08-30이 아니다');
+const privacyEntry = sitemap.match(/<url>\s*<loc>https:\/\/01023978629\.github\.io\/manmool\/privacy\.html<\/loc>\s*<lastmod>([^<]+)<\/lastmod>/);
+if (privacyEntry?.[1] !== '2026-08-30') failures.push('privacy.html sitemap lastmod가 2026-08-30이 아니다');
+if (!/<lastBuildDate>Fri, 04 Sep 2026 00:00:00 \+0900<\/lastBuildDate>/.test(rss)) {
+  failures.push('RSS lastBuildDate가 가장 최근 공개 글 날짜 2026-09-04가 아니다');
 }
 
 for (const expected of expectedContent) {
