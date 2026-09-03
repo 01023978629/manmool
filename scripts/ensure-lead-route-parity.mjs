@@ -69,11 +69,11 @@ function ifConditions(body) {
 
 function configKeys(source) {
   const keys = new Set();
-  for (const match of source.matchAll(/\b(n8n|forms)\.([A-Za-z_$][\w$]*)/g)) {
+  for (const match of source.matchAll(/\b(n8n|forms|inbox)\.([A-Za-z_$][\w$]*)/g)) {
     keys.add(match[1] + '.' + match[2]);
   }
   for (const match of source.matchAll(/\b(?:config|CONFIG)\.([A-Za-z_$][\w$]*)/g)) {
-    if (match[1] !== 'n8n' && match[1] !== 'forms') keys.add('config.' + match[1]);
+    if (match[1] !== 'n8n' && match[1] !== 'forms' && match[1] !== 'inbox') keys.add('config.' + match[1]);
   }
   return keys;
 }
@@ -117,18 +117,26 @@ if (!sameSet(transportProviderSet, adminProviderSet)) {
   fail.push('전송 모듈과 관리자 화면의 지원 폼 provider 집합이 서로 다릅니다');
 }
 
+// 2026-09-03 부터 deliver() 는 메일 경로(deliverEmail)와 문의 접수함(deliverToInbox·
+// inboxConfigured)으로 나뉜다. gate 키는 그 셋을 합쳐 본다 — deliver 본문만 보면
+// n8n·forms 키가 사라져 검사가 무의미해진다.
 const deliverBody = funcBody(inquirySrc, 'async function deliver(');
+const emailBody = funcBody(inquirySrc, 'async function deliverEmail(');
+const inboxBody = funcBody(inquirySrc, 'function inboxConfigured(');
 const backendBody = funcBody(inquirySrc, 'function backendConfigured(');
 const routeBody = funcBody(adminSrc, 'function leadRoute(');
 
 if (!deliverBody) fail.push('js/lead-transport.js 에서 deliver() 본문을 찾지 못했습니다 (함수명이 바뀌었나요?)');
+if (!emailBody) fail.push('js/lead-transport.js 에서 deliverEmail() 본문을 찾지 못했습니다');
+if (!inboxBody) fail.push('js/lead-transport.js 에서 inboxConfigured() 본문을 찾지 못했습니다');
 if (!backendBody) fail.push('js/lead-transport.js 에서 backendConfigured() 본문을 찾지 못했습니다');
 if (!routeBody) fail.push('js/admin.js 에서 leadRoute() 본문을 찾지 못했습니다 — admin 이 접수 경로 판정을 잃었습니다');
 
-if (deliverBody && backendBody && routeBody) {
-  const dk = configKeys(ifConditions(deliverBody).join('\n'));
+if (deliverBody && emailBody && inboxBody && backendBody && routeBody) {
+  const dk = configKeys(ifConditions(emailBody).join('\n') + '\n' + inboxBody);
   // backendConfigured()는 전체 함수가 순수 route predicate라 모든 설정 참조가 gate다.
-  const bk = configKeys(backendBody);
+  // inboxConfigured() 를 호출하므로 그 본문의 키도 합친다.
+  const bk = configKeys(backendBody + '\n' + inboxBody);
   const rk = configKeys(ifConditions(routeBody).join('\n'));
 
   const compareGates = (name, keys) => {
@@ -145,12 +153,26 @@ if (deliverBody && backendBody && routeBody) {
 
   // provider 배열을 선언만 해두고 우회 전송하는 decoy를 막는다. n8n이 먼저이며,
   // 폼은 enabled+endpoint를 만족한 뒤 명시 지원 provider만 허용해야 한다.
-  if (!/n8n\.enabled\s*&&\s*n8n\.inquiryWebhookUrl/.test(deliverBody) ||
-      !/forms\.enabled\s*&&\s*forms\.endpoint/.test(deliverBody) ||
-      !/SUPPORTED_FORM_PROVIDERS\.includes\(provider\)/.test(deliverBody) ||
-      !/throw\s+new\s+Error\(['"]unsupported-form-provider['"]\)/.test(deliverBody) ||
-      deliverBody.indexOf('n8n.enabled') > deliverBody.indexOf('forms.enabled')) {
-    fail.push('deliver() 가 n8n 우선 또는 지원된 enabled 폼만 전송하는 계약을 지키지 않습니다');
+  if (!/n8n\.enabled\s*&&\s*n8n\.inquiryWebhookUrl/.test(emailBody) ||
+      !/forms\.enabled\s*&&\s*forms\.endpoint/.test(emailBody) ||
+      !/SUPPORTED_FORM_PROVIDERS\.includes\(provider\)/.test(emailBody) ||
+      !/throw\s+new\s+Error\(['"]unsupported-form-provider['"]\)/.test(emailBody) ||
+      emailBody.indexOf('n8n.enabled') > emailBody.indexOf('forms.enabled')) {
+    fail.push('deliverEmail() 가 n8n 우선 또는 지원된 enabled 폼만 전송하는 계약을 지키지 않습니다');
+  }
+  // 접수함 계약: deliver 는 메일 → 접수함 순서로 둘 다 시도하고, 접수함이 켜져 있으면
+  // 메일 성공 여부(emailDelivered)를 접수함 줄에 남긴다. 둘 다 실패해야 실패다.
+  if (!/await deliverEmail\(config, payload\)/.test(deliverBody) ||
+      !/await deliverToInbox\(config, payload, emailDelivered\)/.test(deliverBody) ||
+      !/if \(emailDelivered\) return true;/.test(deliverBody) ||
+      !/ensureLeadId\(payload\)/.test(deliverBody)) {
+    fail.push('deliver() 가 메일→접수함 이중 전송·문의 ID·메일 성공 시 통과 계약을 지키지 않습니다');
+  }
+  if (!/inbox\.enabled\s*&&\s*typeof inbox\.url === 'string'\s*&&\s*INBOX_URL\.test\(inbox\.url\)/.test(inboxBody)) {
+    fail.push('inboxConfigured() 가 script.google.com /exec 주소만 허용하지 않습니다');
+  }
+  if (!/inbox\.enabled\s*&&\s*inbox\.url/.test(routeBody) || routeBody.indexOf('forms.enabled') > routeBody.indexOf('inbox.enabled')) {
+    fail.push('admin leadRoute() 가 접수함 경로를 메일 경로 다음 순서로 판정하지 않습니다');
   }
   if (!/n8n\.enabled\s*&&\s*n8n\.inquiryWebhookUrl/.test(backendBody) ||
       !/forms\.enabled\s*&&\s*forms\.endpoint\s*&&\s*SUPPORTED_FORM_PROVIDERS\.includes\(formProvider\(forms\)\)/.test(backendBody)) {
@@ -169,6 +191,10 @@ try {
   if (!cfg.n8n || typeof cfg.n8n !== 'object') fail.push('data/config.json 에 n8n 항목이 없습니다');
   if (!cfg.forms || typeof cfg.forms !== 'object') fail.push('data/config.json 에 forms 항목이 없습니다 (무료 접수 경로를 설정할 자리)');
   if (cfg.forms && !('endpoint' in cfg.forms)) fail.push('data/config.json 의 forms 에 endpoint 키가 없습니다');
+  if (!cfg.inbox || typeof cfg.inbox !== 'object' || !('enabled' in cfg.inbox) || !('url' in cfg.inbox)) fail.push('data/config.json 에 inbox(문의 접수함) 항목이 없습니다');
+  if (cfg.inbox && cfg.inbox.enabled && !/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(String(cfg.inbox.url || ''))) {
+    fail.push('data/config.json 의 inbox.url 이 script.google.com /exec 형식이 아닌데 enabled 입니다');
+  }
   if (cfg.forms && cfg.forms.enabled && !expectedProviders.includes(String(cfg.forms.provider || '').trim().toLowerCase())) {
     fail.push('data/config.json 에 활성화된 폼 provider가 명시 지원 집합 밖입니다');
   }

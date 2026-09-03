@@ -55,6 +55,9 @@ jobs:
         run: >-
           node --test --test-concurrency=1
           tests/lead-transport.test.cjs
+          tests/lead-inbox-pure.test.cjs
+          tests/lead-inbox-transport.test.cjs
+          tests/lead-inbox.e2e.cjs
           tests/lead-privacy.e2e.cjs
           tests/inquiry-phone.e2e.cjs
           tests/inquiry-result-honesty.e2e.cjs

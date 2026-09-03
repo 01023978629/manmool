@@ -21,12 +21,21 @@
     return String(forms && forms.provider || '').trim().toLowerCase();
   }
 
+  // 문의 접수함(Apps Script + 구글 시트). 메일 경로와 별개로 "무엇이 들어왔고 어떻게
+  // 판정했나"의 정본이다. 주소는 script.google.com 의 /exec 만 받는다.
+  const INBOX_URL = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
+  function inboxConfigured(config) {
+    const inbox = (config && config.inbox) || {};
+    return !!(inbox.enabled && typeof inbox.url === 'string' && INBOX_URL.test(inbox.url));
+  }
+
   function backendConfigured(config) {
     const n8n = (config && config.n8n) || {};
     const forms = (config && config.forms) || {};
     return !!(
       (n8n.enabled && n8n.inquiryWebhookUrl) ||
-      (forms.enabled && forms.endpoint && SUPPORTED_FORM_PROVIDERS.includes(formProvider(forms)))
+      (forms.enabled && forms.endpoint && SUPPORTED_FORM_PROVIDERS.includes(formProvider(forms))) ||
+      inboxConfigured(config)
     );
   }
 
@@ -148,8 +157,66 @@
     return L.join('\n');
   }
 
-  // 실제 전송(백엔드 있으면 전송, 없으면 false). 실패 시 throw.
+  // 문의 ID — 접수함이 같은 문의를 두 줄로 만들지 않게 하는 열쇠. 같은 payload 객체로
+  // 재시도하면 같은 ID 가 간다(rememberFailure 가 객체를 그대로 보관한다).
+  function ensureLeadId(payload) {
+    if (payload && typeof payload === 'object' && !payload.leadId) {
+      let id = '';
+      try { id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ''; } catch (_) { id = ''; }
+      if (!id) {
+        const hex = () => Math.floor(Math.random() * 0x10000).toString(16).padStart(4, '0');
+        id = hex() + hex() + '-' + hex() + '-4' + hex().slice(1) + '-' + (8 + Math.floor(Math.random() * 4)).toString(16) + hex().slice(1) + '-' + hex() + hex() + hex();
+      }
+      payload.leadId = id;
+    }
+    return payload && payload.leadId;
+  }
+
+  // 접수함에 한 줄 남긴다. 성공하면 true, 응답이 ok 가 아니면 throw.
+  async function deliverToInbox(config, payload, emailDelivered) {
+    const inbox = (config && config.inbox) || {};
+    const body = {
+      action: 'leadCreate',
+      ts: Date.now(),
+      payload: Object.assign({}, payload, { emailDelivered: emailDelivered === true, message: buildLeadText(payload) })
+    };
+    const result = await fetchWithTimeout(inbox.url, {
+      method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow', credentials: 'omit'
+    });
+    if (!result.response.ok) throw new Error('inbox-http-error');
+    const responseBody = parseJsonObject(result.text);
+    if (responseBody.ok !== true) throw new Error('inbox-not-accepted');
+    return true;
+  }
+
+  // 실제 전송. 메일 경로(n8n 또는 폼 서비스)와 접수함을 둘 다 시도한다.
+  // 하나라도 받았으면 true — 손님에게는 "전달됐다"가 맞고, 접수함 줄에는 메일 발송 여부가
+  // 남아 대표가 어느 길로 왔는지 안다. 둘 다 실패하면 마지막 오류를 던진다.
   async function deliver(config, payload) {
+    ensureLeadId(payload);
+    const inboxOn = inboxConfigured(config);
+    let emailDelivered = false;
+    let emailError = null;
+    try {
+      emailDelivered = await deliverEmail(config, payload);
+    } catch (err) {
+      emailError = err;
+    }
+    if (!inboxOn) {
+      if (emailError) throw emailError;
+      return emailDelivered;
+    }
+    try {
+      await deliverToInbox(config, payload, emailDelivered);
+      return true;
+    } catch (inboxError) {
+      if (emailDelivered) return true;
+      throw emailError || inboxError;
+    }
+  }
+
+  // 메일 경로만. 백엔드가 없으면 false, 실패 시 throw.
+  async function deliverEmail(config, payload) {
     const n8n = (config && config.n8n) || {};
     const forms = (config && config.forms) || {};
     if (n8n.enabled && n8n.inquiryWebhookUrl) {
