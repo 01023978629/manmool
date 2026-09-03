@@ -35,6 +35,8 @@
 
 - `tests/lead-inbox-pure.test.cjs` — 순수 로직(정규화·전이·접수번호·비밀번호 형식).
 - `tests/lead-inbox-transport.test.cjs` — 폼 → 접수함 경로(둘 다 성공/한쪽 실패/둘 다 실패/주소 규칙/leadId 안정/저장소 무접촉).
+- `tests/lead-inbox-server.test.cjs` — 서버(Code.gs)를 메모리 흉내 Apps Script 서비스로 끝까지 돌린다(설치·접수·번호·중복·상한·알림·로그인 잠금·세션·판정 멱등·전이·비밀값 무노출). 변이 9종 검출.
+- `tests/inquiry-receipt.e2e.cjs` — 세 폼의 성공 화면에 접수번호가 보이고(접수함이 줬을 때만), 재전송 성공에도 붙는다.
 - `tests/lead-inbox.e2e.cjs` — 브라우저(잠금·XSS·세션 필드·판정·연타·복사·로그아웃·만료·복원·프레임). 서버는 `page.route` 로 대신하고 실제 외부 호출은 없다.
 - `scripts/ensure-lead-inbox.mjs` — 위 규칙의 정적 검사. 21개 변이 중 21개를 잡는 것을 확인(2026-09-03).
 
