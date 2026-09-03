@@ -138,12 +138,33 @@ function leadPureAdminCodeShape_(code) {
   return value.length >= 8 && value.length <= 64 && !/\s/.test(value);
 }
 
+/* 새 문의 알림 메일(선택). 제목은 한 줄로 어떤 문의인지, 본문은 메일과 같은 형식의 message 와
+   접수함 링크. HTML 이 아니라 평문 — 손님 입력이 그대로 들어가도 메일 클라이언트가 해석하지 않는다. */
+function leadPureNotifyMail_(row, pageUrl) {
+  row = row && typeof row === 'object' ? row : {};
+  var name = String(row.name || '(이름 없음)');
+  var service = String(row.service || '문의');
+  var region = String(row.region || '').trim();
+  var subject = '[만물 접수함] ' + service + ' 문의 · ' + name + (region ? ' · ' + region : '') + ' (' + String(row.receiptNo || '') + ')';
+  var lines = [
+    '홈페이지에 새 문의가 접수됐습니다.',
+    '접수번호: ' + String(row.receiptNo || ''),
+    '메일 발송: ' + (row.emailDelivered === 'Y' ? '됨' : '안 됨 — 접수함에만 남은 문의입니다'),
+    '',
+    String(row.message || ''),
+    '',
+    '판정(승인·보류·거절)은 접수함에서: ' + String(pageUrl || ''),
+    '이 메일은 답장해도 손님에게 가지 않습니다.'
+  ];
+  return { subject: subject.slice(0, 200), body: lines.join('\n') };
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     LEAD_STATUSES: LEAD_STATUSES, LEAD_TRANSITIONS: LEAD_TRANSITIONS, LEAD_TEXT_LIMITS: LEAD_TEXT_LIMITS,
     leadPureText_: leadPureText_, leadPureDigits_: leadPureDigits_, leadPureFormatPhone_: leadPureFormatPhone_,
     leadPureNormalizeCreate_: leadPureNormalizeCreate_, leadPureReceiptNo_: leadPureReceiptNo_,
     leadPureNormalizeDecision_: leadPureNormalizeDecision_, leadPureCanTransition_: leadPureCanTransition_,
-    leadPureAdminCodeShape_: leadPureAdminCodeShape_
+    leadPureAdminCodeShape_: leadPureAdminCodeShape_, leadPureNotifyMail_: leadPureNotifyMail_
   };
 }

@@ -135,6 +135,24 @@ test('관리 비밀번호 형식은 8~64자, 공백 없음이다', () => {
   assert.equal(pure.leadPureAdminCodeShape_(12345678), true);
 });
 
+test('알림 메일은 평문이며 제목에 서비스·이름·지역·접수번호, 본문에 메일 형식 내용과 접수함 링크가 있다', () => {
+  const row = { receiptNo: 'LD-20260903-0007', name: '검사 손님<b>', service: '누수', region: '대전 서구', emailDelivered: 'N', message: '[만물인테리어 상담 신청]\n연락처: 010-1234-5678' };
+  const mail = pure.leadPureNotifyMail_(row, 'https://example.invalid/lead-inbox.html');
+  assert.equal(mail.subject, '[만물 접수함] 누수 문의 · 검사 손님<b> · 대전 서구 (LD-20260903-0007)');
+  assert.equal(mail.body.includes('접수번호: LD-20260903-0007'), true);
+  assert.equal(mail.body.includes('메일 발송: 안 됨'), true);
+  assert.equal(mail.body.includes('연락처: 010-1234-5678'), true);
+  assert.equal(mail.body.includes('https://example.invalid/lead-inbox.html'), true);
+  assert.equal(mail.body.includes('답장해도 손님에게 가지 않습니다'), true);
+  const delivered = pure.leadPureNotifyMail_({ receiptNo: 'LD-1', emailDelivered: 'Y' }, '');
+  assert.equal(delivered.subject, '[만물 접수함] 문의 문의 · (이름 없음) (LD-1)');
+  assert.equal(delivered.body.includes('메일 발송: 됨'), true);
+  assert.equal(pure.leadPureNotifyMail_(null, '').subject.startsWith('[만물 접수함]'), true);
+  assert.equal(pure.leadPureNotifyMail_({ name: 'n'.repeat(300) }, '').subject.length, 200);
+  assert.equal(/<|>/.test(JSON.stringify(Object.keys(mail))), false);
+  assert.deepEqual(Object.keys(mail).sort(), ['body', 'subject']);
+});
+
 test('순수 파일은 Apps Script 서비스(Sheets·Cache·Properties·Lock)를 건드리지 않는다', () => {
   assert.equal(/\b(?:SpreadsheetApp|CacheService|PropertiesService|LockService|UrlFetchApp|Utilities)\b/.test(source), false);
 });
