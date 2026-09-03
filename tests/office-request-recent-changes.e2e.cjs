@@ -373,11 +373,18 @@ test('진행 중 중복 클릭을 막고 로그아웃 전 늦은 목록이 새 �
     throw new Error(`unexpected action ${body.action}`);
   });
   await login(page);
+  const listCalls = () => calls.filter((entry) => entry.action === 'officeList').length;
   await page.getByRole('button', { name: '목록 새로고침' }).click();
   await page.waitForFunction(() => document.getElementById('officeRefreshRequests').disabled);
   assert.equal(await page.locator('#officeRefreshRequests').getAttribute('aria-busy'), 'true');
+  // 버튼은 클릭 즉시(동기) 비활성화되지만 route 기록은 fetch 가 가로채진 뒤에 남는다.
+  // 기록이 도착하기 전에 세면 1 !== 2 로 떨어진다(2026-09-03 CI 첫 시도에서 실제 발생,
+  // 재시도 통과). 새로고침 요청이 기록된 것을 확인한 **뒤에** 중복 클릭을 넣고 센다.
+  for (let i = 0; i < 60 && listCalls() < 2; i++) await page.waitForTimeout(25);
+  assert.equal(listCalls(), 2, '새로고침 요청이 기록되지 않았다');
   await page.dispatchEvent('#officeRefreshRequests', 'click');
-  assert.equal(calls.filter((entry) => entry.action === 'officeList').length, 2);
+  await page.waitForTimeout(120);   // 중복 클릭이 요청을 냈다면 이 사이에 기록된다
+  assert.equal(listCalls(), 2, '진행 중인데 중복 클릭이 요청을 하나 더 냈다');
   await page.getByRole('button', { name: '로그아웃' }).click();
   await page.locator('#officePin').fill('123456');
   const newSessionList = page.waitForRequest((request) => {
