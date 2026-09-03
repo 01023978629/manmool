@@ -79,9 +79,9 @@
           <label>긴급도<select name="urgency"><option value="normal">일반</option><option value="urgent">긴급</option></select></label>
           <label>증상<textarea name="description" maxlength="1200"></textarea></label>
           <div class="office-form-grid"><label>관리사무소 담당자<input name="officeContactName" maxlength="60" autocomplete="name" /></label><label>관리사무소 연락처<input name="officeContactPhone" inputmode="tel" maxlength="40" autocomplete="tel" /></label></div>
-          <details><summary>입주민 연락처 추가</summary><div class="office-form-grid"><label>입주민 성함<input name="residentName" maxlength="60" autocomplete="name" /></label><label>입주민 연락처<input name="residentPhone" inputmode="tel" maxlength="40" autocomplete="tel" /></label></div></details>
+          <details><summary>입주민 연락처 추가 (방문·보수 협의가 필요할 때만)</summary><div class="office-form-grid"><label>입주민 성함<input name="residentName" maxlength="60" autocomplete="name" /></label><label>입주민 연락처<input name="residentPhone" inputmode="tel" maxlength="40" autocomplete="tel" /></label></div><p class="office-hint">입주민 연락처는 만물인테리어가 방문 일정과 보수 협의로 연락드릴 때만 씁니다. 입주민 본인이 아닌 관리사무소가 적는 정보이므로, <b>입주민에게 이 목적을 알리고 동의를 받은 경우에만</b> 적어 주세요.</p><label class="office-consent"><input name="residentInformed" type="checkbox" /> 입주민에게 연락 목적을 알리고 동의를 받았습니다.</label></details>
           <label>희망 방문일<input name="preferredVisitDate" type="date" /></label><label id="officePhotoField">현장 사진 (최대 5장)<input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple /></label>
-          <label class="office-consent"><input name="privacyConsent" type="checkbox" /> 개인정보 수집·이용에 동의합니다.</label>
+          <label class="office-consent"><input name="privacyConsent" type="checkbox" /> 개인정보 수집·이용에 동의합니다. (시설보수 접수·현장 확인·완료 보고 목적, 완료일로부터 1년 보관 · <a href="privacy.html" target="_blank" rel="noopener">처리방침</a>)</label>
           <p id="officeCreateError" class="request-error" role="alert"></p><p id="officeCreateProgress" class="office-progress" role="status" aria-live="polite"></p>
           <div class="office-form-actions"><button id="officeCreateSubmit" class="office-action request-primary" type="submit">접수 저장</button><button id="officeRetryPhotos" class="office-action request-secondary" type="button" hidden>사진 다시 보내기</button><button id="officeCreateBack" class="office-action request-secondary" type="button">목록으로</button></div>
         </form>
@@ -106,9 +106,9 @@
   </main>
   <footer class="site-footer"><div class="container footer-inner"><p class="footer-note">만물인테리어 · 대표 전병덕 · 사업자등록번호 895-48-01132<br />대전광역시 중구 돌다리로19번길 9, 1층(석교동) · <a href="tel:01023978629">010-2397-8629</a></p><p class="footer-links"><a href="office.html">관리사무소 안내</a> · <a href="privacy.html">개인정보처리방침</a></p><p class="footer-copy">© <span id="requestYear"></span> 만물인테리어. All rights reserved.</p></div></footer>
   <script src="js/public-nav.js?v=20260824-office1"></script>
-  <script src="js/office-request-core.js?v=20260901-office-entry1"></script>
+  <script src="js/office-request-core.js?v=20260903-resident-consent1"></script>
   <script src="js/office-request-api.js?v=20260827-office-request2"></script>
   <script src="js/office-request-photo.js?v=20260827-office-request3"></script>
-  <script src="js/office-request.js?v=20260901-office-status1"></script>
+  <script src="js/office-request.js?v=20260903-resident-consent1"></script>
 </body>
 </html>

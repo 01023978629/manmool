@@ -137,3 +137,35 @@ test('③ 필수 표시는 실제로 막는 칸(이름·연락처·동의) 셋�
     '필수 표시가 붙은 칸이 이름·연락처·동의 셋이 아니다: ' + JSON.stringify(marks));
   await page.context().close();
 });
+
+test('④ 폰에서 다음을 누르면 새 단계의 제목과 첫 칸이 화면 안에 있다', async () => {
+  // 예전에는 #inquiry 절 맨 위로 스크롤해, 폰에서는 절 머리(제목+전화 상자 ≈940px)만
+  // 보이고 새 단계의 칸은 전부 화면 아래에 있었다(실측 첫 칸 y=1072, 화면 844).
+  // 손님은 '다음'을 눌렀는데 화면이 위로 튀고 아무것도 안 보인다고 느끼고 나간다.
+  const page = await openForm();
+  const next = () => page.evaluate(() => {
+    const b = [...document.querySelectorAll('#inquiry button')].find((x) => /다음/.test(x.textContent));
+    if (b) b.click();
+  });
+  const where = () => page.evaluate(() => {
+    const vh = innerHeight;
+    const top = (e) => (e ? Math.round(e.getBoundingClientRect().top) : null);
+    const step = document.querySelector('.inquiry-form .step:not([hidden])');
+    const legend = step && step.querySelector('legend');
+    const first = step && step.querySelector('input:not([type=radio]):not([type=checkbox]),select,textarea');
+    return { vh, step: step && step.dataset.step, legendTop: top(legend), firstTop: top(first) };
+  });
+  for (const expected of ['2', '3']) {
+    await next();
+    await page.waitForTimeout(900);   // smooth scroll 이 끝날 시간
+    const w = await where();
+    assert.equal(w.step, expected, '단계가 넘어가지 않았다: ' + JSON.stringify(w));
+    assert.ok(w.legendTop !== null && w.legendTop >= 0 && w.legendTop < w.vh * 0.5,
+      `${expected}단계 제목이 화면 위쪽에 없다(y=${w.legendTop}, 화면 ${w.vh}) — 손님은 어느 단계인지 모른다`);
+    if (w.firstTop !== null) {
+      assert.ok(w.firstTop >= 0 && w.firstTop < w.vh,
+        `${expected}단계 첫 칸이 화면 밖이다(y=${w.firstTop}, 화면 ${w.vh}) — 다음을 눌렀는데 아무것도 안 보인다`);
+    }
+  }
+  await page.context().close();
+});

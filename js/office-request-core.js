@@ -83,6 +83,10 @@
     if (!ISSUE_TYPES.includes(value.issueType)) return { ok: false, field: 'issueType', message: '문제 유형을 선택해 주세요.' };
     if (!PIPE_TYPES.includes(value.pipeType)) return { ok: false, field: 'pipeType', message: '배관 유형을 선택해 주세요.' };
     if (residentName && !value.residentContact) return { ok: false, field: 'residentContact', message: '입주민 연락처를 확인해 주세요.' };
+    // 입주민 연락처는 본인이 아닌 직원이 적는 제3자 정보다. 직원이 입주민에게 연락
+    // 목적을 알리고 동의를 받았다는 확인 없이는 받지 않는다. 이 확인은 화면에서만
+    // 막고 전송 본문(buildCreatePayload)에는 싣지 않는다 — 서버 계약 불변.
+    if (value.residentContact && data.residentInformed !== true) return { ok: false, field: 'residentInformed', message: '입주민에게 연락 목적을 알리고 동의를 받았는지 확인해 주세요.' };
     if (!value.privacyConsent) return { ok: false, field: 'privacyConsent', message: '개인정보 수집·이용에 동의해 주세요.' };
     return { ok: true, field: null, message: '' };
   }
