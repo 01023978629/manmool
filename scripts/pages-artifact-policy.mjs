@@ -3,14 +3,14 @@ import path from 'node:path';
 
 export const PUBLIC_ROOT_FILES = Object.freeze([
   'admin.html', 'as.html', 'bathroom-check.html', 'blog.html', 'case-new.html',
-  'field.html', 'index.html', 'leak.html', 'mypage.html', 'office.html', 'office-request.html', 'office-api.json',
+  'field.html', 'index.html', 'lead-inbox.html', 'leak.html', 'mypage.html', 'office.html', 'office-request.html', 'office-api.json',
   'office-login.html', 'office-portal.html', 'office-admin.html', 'office-portal-api.json', 'privacy.html',
   'google11dc37fbc3ab6e98.html', 'og-image.png', 'robots.txt', 'rss.xml', 'sitemap.xml',
 ]);
 export const PUBLIC_DATA_FILES = Object.freeze(['config.json', 'leak-case-index.json', 'material-catalog.json', 'project.json', 'site.json']);
 export const PUBLIC_JS_FILES = Object.freeze([
   'admin.js', 'as.js', 'bathroom-check.js', 'blog.js', 'case-new.js', 'case-store.js', 'content-editor.js', 'design-bom.js', 'estimate.js',
-  'field.js', 'hj-link.js', 'inquiry.js', 'revenue-conversion.js', 'lead-transport.js', 'office-pilot.js', 'leak-inquiry.js', 'leak.js', 'lookbook.js', 'main.js', 'mypage.js',
+  'field.js', 'hj-link.js', 'inquiry.js', 'revenue-conversion.js', 'lead-inbox-api.js', 'lead-inbox.js', 'lead-transport.js', 'office-pilot.js', 'leak-inquiry.js', 'leak.js', 'lookbook.js', 'main.js', 'mypage.js',
   'office-request-api.js', 'office-request-core.js', 'office-request-photo.js', 'office-request.js',
   'office-frame-guard.js', 'office-portal-api.js', 'office-portal-core.js', 'office-login.js', 'office-portal.js', 'office-admin.js', 'pii-rules.js', 'project-state.js',
   'public-nav.js', 'simulator.js',
@@ -26,6 +26,7 @@ export const PORTAL_PUBLIC_FILES = Object.freeze([
   'js/office-request-core.js', 'js/office-request-api.js', 'js/office-request-photo.js', 'js/office-request.js',
   'office-portal-api.json', 'office-login.html', 'office-portal.html', 'office-admin.html', 'css/office-portal.css',
   'js/office-frame-guard.js', 'js/office-portal-core.js', 'js/office-portal-api.js', 'js/office-login.js', 'js/office-portal.js', 'js/office-admin.js',
+  'lead-inbox.html', 'css/lead-inbox.css', 'js/lead-inbox-api.js', 'js/lead-inbox.js',
 ]);
 
 export function toPublicPath(value) {

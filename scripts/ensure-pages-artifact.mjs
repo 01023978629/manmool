@@ -7,7 +7,7 @@ import { PORTAL_PUBLIC_FILES, PUBLIC_ROOT_FILES, expectedPublicFiles, toPublicPa
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const googleVerificationFile = 'google11dc37fbc3ab6e98.html';
-const forbiddenTop = new Set(['.git', '.github', '.claude', '.codex', 'apps-script-contract', 'contract-backend', 'docs', 'integrations', 'scripts']);
+const forbiddenTop = new Set(['.git', '.github', '.claude', '.codex', 'apps-script-contract', 'apps-script-lead-inbox', 'contract-backend', 'docs', 'integrations', 'scripts']);
 const textFile = /\.(?:html|css|js|json|txt|xml)$/i;
 const secretIdentifiers = [/\b(?:APP_TOKEN|OFFICE_SESSION_SECRET|pinHash|pinSalt)\b/];
 const portalFixtureMarkers = [

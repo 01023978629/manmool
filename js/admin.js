@@ -36,8 +36,13 @@
     if (forms.enabled && forms.endpoint && SUPPORTED_FORM_PROVIDERS.includes(provider)) {
       return { on: true, via: 'forms', provider };
     }
+    const inbox = CONFIG.inbox || {};
+    if (inbox.enabled && inbox.url) {
+      return { on: true, via: 'inbox', provider: '문의 접수함' };
+    }
     return { on: false, via: '', provider: '' };
   }
+  function inboxOn() { const inbox = CONFIG.inbox || {}; return !!(inbox.enabled && inbox.url); }
 
   function renderPipeline() {
     const kakao = CONFIG.kakao || {};
@@ -88,7 +93,7 @@
     );
     const rows = [
       ['★ 상담 접수 경로', route.on
-        ? (route.via === 'n8n' ? 'n8n 웹훅으로 전달됨' : '폼 서비스로 전달됨')
+        ? (route.via === 'n8n' ? 'n8n 웹훅으로 전달됨' : route.via === 'inbox' ? '문의 접수함(구글 시트)으로 전달됨' : '폼 서비스로 전달됨')
         : '없음 — 문의가 자동으로 오지 않습니다', route.on],
       ['n8n 웹훅', n8n.enabled && n8n.inquiryWebhookUrl ? '설정됨' : '(미설정)',
         !!(n8n.enabled && n8n.inquiryWebhookUrl)],
@@ -96,6 +101,7 @@
       ['카카오 채널', kakao.ready && (kakao.chatUrl || kakao.channelAddUrl) ? '설정됨' : '(미설정)',
         !!(kakao.ready && (kakao.chatUrl || kakao.channelAddUrl))],
       ['알림톡 자동발송', alimtalkOn ? `${alimtalk.provider} · 템플릿 ${templateCount}종` : '(미설정 · 수동 발송만)', alimtalkOn],
+      ['문의 접수함(서버 이력·승인)', inboxOn() ? '설정됨 · lead-inbox.html' : '(미설정 · 메일만)', inboxOn()],
       ['현장 앱(hyeonjang)', hyeonjang.appUrl ? '설정됨' : '(미설정)', !!hyeonjang.appUrl],
       ['브라우저 상담 문의 보관', '사용 안 함', true]
     ];

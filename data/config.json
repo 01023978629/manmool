@@ -30,6 +30,11 @@
     "accessKey": "ab68147a-a9e0-4f54-b791-2d3f06e83f70",
     "_help": "n8n 없이도 상담 신청을 대표 이메일로 바로 받는 무료 경로. Web3Forms(https://web3forms.com, 가입 없이 access_key 발급) 또는 Formspree를 추천. endpoint에 서비스 URL, accessKey에 발급키를 넣고 enabled:true. n8n(inquiryWebhookUrl)이 켜져 있으면 그쪽이 우선합니다. 둘 다 없으면 고객이 접수 후 전화·문자·카카오로 직접 보낼 수 있게 안내됩니다(리드 유실 0)."
   },
+  "inbox": {
+    "enabled": false,
+    "url": "",
+    "_help": "문의 접수함(apps-script-lead-inbox/). 대표가 Apps Script 를 배포한 뒤 나오는 https://script.google.com/macros/s/…/exec 주소를 url 에 넣고 enabled:true. 켜지면 모든 상담이 메일과 함께 구글 시트에 이력으로 남고, lead-inbox.html 에서 승인·보류·거절을 기록한다. 메일 경로(forms)는 그대로 유지된다."
+  },
   "naver": {
     "ready": false,
     "bookingUrl": "",

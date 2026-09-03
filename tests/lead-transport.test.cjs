@@ -14,6 +14,7 @@ const source = fs.readFileSync(
 const LEGACY_KEY = 'manmul_inquiries';
 const FIXTURE_URL = 'https://fixture.invalid/lead';
 const FIXTURE_PAYLOAD = Object.freeze({ kind: 'synthetic-fixture' });
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
 function response(status, body, textImpl) {
   return {
@@ -666,7 +667,9 @@ test('이전 세대의 늦은 성공은 stale이며 새 실패를 지우지 않�
   const sent = await loaded.lead.retryLatest(n8nConfig());
   assert.equal(sent.status, 'sent');
   assert.equal(sent.generation, newGeneration);
-  assert.deepEqual(requests.map(request => request.body), [
+  // deliver 는 접수함 중복 방지용 leadId(UUID)를 붙인다 — 본문 나머지는 저장 당시 복제본 그대로여야 한다.
+  for (const request of requests) assert.match(request.body.leadId, UUID_PATTERN);
+  assert.deepEqual(requests.map(({ body: { leadId, ...rest } }) => rest), [
     { kind: 'old-fixture' },
     { kind: 'new-fixture', nested: { stage: 'captured' } }
   ]);
@@ -712,6 +715,8 @@ test('rememberFailure 뒤 원본을 바꿔도 재전송 본문은 저장 당시 
   const result = await loaded.lead.retryLatest(n8nConfig());
 
   assert.equal(result.status, 'sent');
+  assert.match(sentBody.leadId, UUID_PATTERN);
+  delete sentBody.leadId;
   assert.deepEqual(sentBody, {
     kind: 'clone-fixture',
     nested: { state: 'original' },

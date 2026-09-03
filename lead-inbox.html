@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko" data-office-frame-pending>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>문의 접수함 · 만물인테리어</title>
+  <meta name="description" content="만물인테리어 대표 전용 문의 접수함. 홈페이지 상담 문의의 이력과 승인·보류·거절 판정을 기록합니다." />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="theme-color" content="#103b4d" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src 'none'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'" />
+  <script src="js/office-frame-guard.js?v=20260901-office-rbac2"></script>
+  <link rel="stylesheet" href="css/styles.css?v=20260901-office-rbac1" />
+  <link rel="stylesheet" href="css/brand-system.css?v=20260901-office-rbac1" />
+  <link rel="stylesheet" href="css/office-portal.css?v=20260903-leadinbox1" />
+  <link rel="stylesheet" href="css/lead-inbox.css?v=20260903-leadinbox1" />
+</head>
+<body class="portal-page inbox-page">
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo" aria-label="만물인테리어 홈"><span class="logo-mark">萬</span><span class="logo-text"><strong>만물인테리어</strong><em>문의 접수함</em></span></a>
+      <div id="inboxAccount" class="portal-account" hidden>
+        <span><b>대표</b><small id="inboxSessionUntil"></small></span>
+        <button id="inboxLogout" class="portal-button portal-button-small portal-button-secondary" type="button">로그아웃</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="portal-main">
+    <!-- 로그인 -->
+    <section id="inboxLoginView" class="portal-auth-card" aria-labelledby="inboxLoginTitle">
+      <span class="portal-eyebrow">대표 전용</span>
+      <h1 id="inboxLoginTitle">문의 접수함</h1>
+      <p class="portal-lead">홈페이지 상담 문의가 들어온 이력을 보고, 건마다 승인·보류·거절을 남기는 화면입니다. 관리 비밀번호는 대표만 압니다.</p>
+      <div id="inboxConfigNotice" class="portal-notice" role="status" aria-live="polite">서버 연결 상태를 확인하고 있습니다.</div>
+      <form id="inboxLoginForm" class="portal-form" novalidate>
+        <label for="inboxAdminCode">관리 비밀번호
+          <input id="inboxAdminCode" name="adminCode" type="password" autocomplete="one-time-code" minlength="8" maxlength="64" aria-describedby="inboxLoginError" />
+        </label>
+        <p class="portal-help">비밀번호는 브라우저에 저장하지 않습니다. 5회 연속 오류 시 15분간 잠깁니다.</p>
+        <p id="inboxLoginError" class="portal-error" role="alert" aria-live="polite"></p>
+        <button id="inboxLoginButton" class="portal-button portal-button-primary" type="submit" disabled>들어가기</button>
+      </form>
+    </section>
+
+    <!-- 접수함 -->
+    <section id="inboxApp" class="portal-app inbox-app" hidden>
+      <p id="inboxSessionNotice" class="portal-session-notice" role="status" aria-live="polite" hidden></p>
+      <nav class="portal-nav" aria-label="상태별 보기">
+        <button type="button" class="is-active" data-status="신규">신규 <span data-count="신규"></span></button>
+        <button type="button" data-status="보류">보류 <span data-count="보류"></span></button>
+        <button type="button" data-status="승인">승인 <span data-count="승인"></span></button>
+        <button type="button" data-status="거절">거절 <span data-count="거절"></span></button>
+        <button type="button" data-status="전체">전체</button>
+      </nav>
+      <p id="inboxStatus" class="portal-live" role="status" aria-live="polite"></p>
+
+      <section class="portal-panel" aria-labelledby="inboxListTitle">
+        <div class="portal-panel-head">
+          <div><h1 id="inboxListTitle" tabindex="-1">신규 문의</h1><p>최근 것이 위에 옵니다. 건을 누르면 내용과 이력이 열립니다.</p></div>
+          <button id="inboxRefresh" class="portal-button portal-button-secondary" type="button">목록 새로고침</button>
+        </div>
+        <div id="inboxList" class="portal-record-list" aria-live="polite"></div>
+        <p id="inboxEmpty" class="portal-help" hidden>해당 상태의 문의가 없습니다.</p>
+      </section>
+
+      <section id="inboxDetail" class="portal-panel" aria-labelledby="inboxDetailTitle" hidden>
+        <div class="portal-panel-head">
+          <div><span id="inboxDetailStatus" class="inbox-status-pill"></span><h2 id="inboxDetailTitle" tabindex="-1"></h2><p id="inboxDetailMeta"></p></div>
+          <button id="inboxDetailClose" class="portal-button portal-button-secondary" type="button">목록으로</button>
+        </div>
+        <dl id="inboxDetailFields" class="inbox-fields"></dl>
+        <div class="inbox-message-wrap">
+          <div class="inbox-message-head">
+            <h3>문의 본문 (메일과 같은 형식)</h3>
+            <button id="inboxCopyMessage" class="portal-button portal-button-small portal-button-secondary" type="button">앱에 붙여넣을 본문 복사</button>
+          </div>
+          <pre id="inboxMessage" class="inbox-message"></pre>
+          <p class="portal-help">복사한 본문을 현장 앱 더보기 → 「📥 웹 업무 연결」에 붙여 넣으면 미리보기가 뜨고, 「현장으로 등록」을 눌러야 현장이 됩니다.</p>
+        </div>
+        <form id="inboxDecisionForm" class="portal-editor" novalidate>
+          <h2>판정</h2>
+          <label for="inboxDecisionMemo">메모 (거절은 사유 필수)<textarea id="inboxDecisionMemo" name="memo" rows="3" maxlength="500"></textarea></label>
+          <p id="inboxDecisionError" class="portal-error" role="alert" aria-live="polite"></p>
+          <div class="portal-actions">
+            <button type="button" class="portal-button portal-button-primary" data-decision="승인">승인 — 현장으로 진행</button>
+            <button type="button" class="portal-button portal-button-secondary" data-decision="보류">보류</button>
+            <button type="button" class="portal-button portal-button-secondary" data-decision="거절">거절</button>
+          </div>
+          <p class="portal-help">승인은 되돌리지 않습니다. 거절한 건은 보류로 되살릴 수 있습니다.</p>
+        </form>
+        <section class="inbox-history" aria-labelledby="inboxHistoryTitle">
+          <h3 id="inboxHistoryTitle">이력</h3>
+          <ol id="inboxHistory" class="inbox-history-list"></ol>
+        </section>
+      </section>
+    </section>
+
+    <section id="inboxDenied" class="portal-state-card" hidden>
+      <h1 id="inboxDeniedTitle">접수함을 열 수 없습니다</h1>
+      <p id="inboxDeniedMessage"></p>
+      <a href="lead-inbox.html" class="portal-button portal-button-primary">다시 로그인</a>
+    </section>
+  </main>
+
+  <script src="js/lead-transport.js?v=20260903-leadinbox1"></script>
+  <script src="js/lead-inbox-api.js?v=20260903-leadinbox1"></script>
+  <script src="js/lead-inbox.js?v=20260903-leadinbox1"></script>
+</body>
+</html>

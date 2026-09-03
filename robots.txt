@@ -11,5 +11,6 @@ Disallow: /*.md$
 Disallow: /mypage.html
 Disallow: /field.html
 Disallow: /as.html
+Disallow: /lead-inbox.html
 
 Sitemap: https://01023978629.github.io/manmool/sitemap.xml
