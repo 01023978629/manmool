@@ -19,6 +19,7 @@
    - LEAD_INBOX_SESSION_SECRET 32자 이상 무작위 (세션 토큰 HMAC)
    - LEAD_INBOX_ADMIN_CODE     관리 비밀번호 원문 (8자 이상, 공백 없음) — 대표만 아는 값
    - LEAD_INBOX_LOGIN_PEPPER   32자 이상 무작위 (비밀번호 비교용 HMAC 키)
+   - LEAD_INBOX_NOTIFY_TO      (선택) 새 문의 알림 메일을 받을 주소. 비워 두면 알림 없음
 
    최초 설치는 README.md 순서대로: 시트 생성 → 속성 등록 → leadInboxSetupSheets_() 1회 실행 → 웹앱 배포. */
 
@@ -31,6 +32,7 @@ var LEAD_CREATE_WINDOW_SECONDS = 10 * 60;
 var LEAD_CREATE_WINDOW_LIMIT = 60;
 var LEAD_MAX_BODY_BYTES = 64 * 1024;
 var LEAD_LIST_LIMIT = 200;
+var LEAD_INBOX_PAGE_URL = 'https://01023978629.github.io/manmool/lead-inbox.html';
 var LEAD_HEADERS = {
   '문의': ['leadId', 'receiptNo', 'receivedAt', 'status', 'decidedAt', 'name', 'phone', 'type', 'service', 'region', 'area', 'scope',
     'works', 'budget', 'movein', 'live', 'symptoms', 'purpose', 'visit', 'memo', 'source', 'sourcePage', 'ctaId', 'utm',
@@ -169,7 +171,7 @@ function leadCreate_(payload) {
   var normalized = leadPureNormalizeCreate_(payload);
   if (!normalized.ok) throw leadError_(normalized.error);
   var row = normalized.row;
-  return leadWithLock_(function () {
+  var result = leadWithLock_(function () {
     // 같은 leadId 가 이미 있으면 그대로 돌려준다 — 폼의 재시도가 두 줄을 만들지 않게.
     var existing = leadRows_('문의').filter(function (item) { return String(item.leadId) === row.leadId; })[0];
     if (existing) return { receiptNo: existing.receiptNo, duplicate: true };
@@ -186,6 +188,21 @@ function leadCreate_(payload) {
     leadHistory_(row.leadId, '접수', '', '신규', row.emailDelivered === 'Y' ? '메일 발송됨' : '메일 미발송', 'site', '');
     return { receiptNo: row.receiptNo };
   });
+  // 알림은 저장 뒤·잠금 밖에서. 실패해도 접수는 이미 끝났으므로 손님에게 오류를 돌려주지 않는다.
+  if (!result.duplicate) leadNotify_(row);
+  return result;
+}
+
+/* 새 문의 알림 메일(선택). LEAD_INBOX_NOTIFY_TO 가 비어 있으면 아무것도 하지 않는다.
+   MailApp 은 배포 계정의 하루 발송 한도를 쓰므로, 한도가 차면 조용히 건너뛴다(접수는 이미 시트에 있다). */
+function leadNotify_(row) {
+  try {
+    var to = String(leadProps_().getProperty('LEAD_INBOX_NOTIFY_TO') || '').trim();
+    if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return;
+    if (MailApp.getRemainingDailyQuota() < 1) return;
+    var mail = leadPureNotifyMail_(row, LEAD_INBOX_PAGE_URL);
+    MailApp.sendEmail({ to: to, subject: mail.subject, body: mail.body, name: '만물인테리어 문의 접수함', noReply: true });
+  } catch (_) { /* 알림 실패는 접수 실패가 아니다 */ }
 }
 
 function leadHistory_(leadId, action, from, to, memo, actor, requestId) {

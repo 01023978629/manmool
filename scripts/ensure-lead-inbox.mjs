@@ -25,7 +25,7 @@ const files = {
 const failures = [];
 const check = (condition, message) => { if (!condition) failures.push(message); };
 const EXEC_URL_SOURCE = String.raw`^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$`;
-const PROPERTY_NAMES = ['LEAD_INBOX_ENABLED', 'LEAD_INBOX_SHEET_ID', 'LEAD_INBOX_SESSION_SECRET', 'LEAD_INBOX_ADMIN_CODE', 'LEAD_INBOX_LOGIN_PEPPER'];
+const PROPERTY_NAMES = ['LEAD_INBOX_ENABLED', 'LEAD_INBOX_SHEET_ID', 'LEAD_INBOX_SESSION_SECRET', 'LEAD_INBOX_ADMIN_CODE', 'LEAD_INBOX_LOGIN_PEPPER', 'LEAD_INBOX_NOTIFY_TO'];
 
 /* ① 화면 — 색인·리퍼러·프레임·CSP */
 check(/<meta name="robots" content="noindex,nofollow"/.test(files.page), '접수함 페이지가 noindex,nofollow 가 아닙니다.');
@@ -99,6 +99,13 @@ for (const name of PROPERTY_NAMES) {
   check(files.readme.includes(name), `README 에 스크립트 속성 ${name} 설명이 없습니다.`);
 }
 check(!/PropertiesService\.getScriptProperties\(\)\.setPropert/.test(files.server), '서버 코드가 스크립트 속성을 코드로 씁니다(비밀값은 콘솔에서만).');
+// 알림 메일은 접수를 실패시키면 안 된다 — MailApp 호출은 leadNotify_ 안, try 안에만 있고 잠금 밖에서 부른다.
+const notifyBody = (/function leadNotify_\(row\) \{([\s\S]*?)\n\}/.exec(files.server) || [])[1] || '';
+check((files.server.match(/MailApp\./g) || []).length === (notifyBody.match(/MailApp\./g) || []).length && /^\s*try \{/.test(notifyBody) && /catch \(_\)/.test(notifyBody), '알림 메일(MailApp)이 leadNotify_ 의 try 밖에서 쓰입니다 — 알림 실패가 접수 실패가 됩니다.');
+check(/getProperty\('LEAD_INBOX_NOTIFY_TO'\)/.test(notifyBody) && /if \(!to \|\| /.test(notifyBody), '알림 메일이 LEAD_INBOX_NOTIFY_TO 가 비어 있을 때도 나갑니다.');
+check(/if \(!result\.duplicate\) leadNotify_\(row\);/.test(files.server) && files.server.indexOf('if (!result.duplicate) leadNotify_(row);') > files.server.indexOf('var result = leadWithLock_'), '알림이 잠금 안에서 나가거나 중복 접수에도 나갑니다.');
+check((files.server.match(/leadNotify_\(/g) || []).length === 2, '알림 호출이 잠금 밖 한 곳(정의 포함 2회)이어야 합니다 — 잠금 안이나 다른 곳에서 또 부릅니다.');
+check(/LEAD_INBOX_PAGE_URL = 'https:\/\/01023978629\.github\.io\/manmool\/lead-inbox\.html'/.test(files.server), '알림 메일의 접수함 링크가 실제 페이지 주소가 아닙니다.');
 check(!/(SpreadsheetApp|PropertiesService|CacheService|LockService)/.test(files.pure), '순수 로직 파일이 Apps Script 서비스를 부릅니다.');
 check(/computeHmacSha256Signature/.test(files.server) && /leadConstantTimeEqual_|constantTime/.test(files.server), '서버가 HMAC·상수시간 비교로 비밀번호·토큰을 다루지 않습니다.');
 check(/LEAD_LOGIN_MAX_ATTEMPTS = 5;/.test(files.server) && /LEAD_LOGIN_LOCK_SECONDS = 15 \* 60;/.test(files.server), '로그인 5회·15분 잠금 상수가 바뀌었습니다.');
