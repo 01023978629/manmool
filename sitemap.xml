@@ -32,9 +32,21 @@
   </url>
   <url>
     <loc>https://01023978629.github.io/manmool/blog.html</loc>
-    <lastmod>2026-08-30</lastmod>
+    <lastmod>2026-09-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://01023978629.github.io/manmool/posts/daejeon-jung-gu-heating-pipe-leak-repair.html</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://01023978629.github.io/manmool/posts/daejeon-jung-gu-yard-water-valve-leak.html</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://01023978629.github.io/manmool/posts/apartment-balcony-rain-pipe-replacement.html</loc>

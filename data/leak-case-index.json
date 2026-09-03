@@ -2,6 +2,18 @@
   "version": 1,
   "cases": [
     {
+      "slug": "daejeon-jung-gu-heating-pipe-leak-repair",
+      "title": "대전 중구 주택 안방 난방관 누수 보수 — 바닥을 열어 손상 구간 교체",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "daejeon-jung-gu-yard-water-valve-leak",
+      "title": "대전 중구 주택 마당 수도밸브 누수 보수 — 매설부 확인 후 문제 밸브 제거",
+      "service": "leak",
+      "published": true
+    },
+    {
       "slug": "apartment-balcony-rain-pipe-replacement",
       "title": "대전 한밭우성아파트 베란다 우수관 보수 — 바닥 배수구와 하부 연결 부속 교체",
       "service": "leak",
