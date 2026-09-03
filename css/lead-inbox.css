@@ -31,3 +31,8 @@
   .inbox-fields { grid-template-columns: 1fr; gap: 2px 0; }
   .inbox-fields dt { margin-top: 8px; }
 }
+.inbox-search { display: grid; gap: 6px; margin: 0 0 14px; font-size: 13px; font-weight: 800; color: #587079; }
+.inbox-search input { font: inherit; font-weight: 500; font-size: 15px; padding: 10px 12px; border: 1.5px solid #d5e2df; border-radius: 12px; background: #fff; color: inherit; }
+.inbox-search input:focus-visible { outline: none; border-color: var(--portal-teal); box-shadow: 0 0 0 3px rgba(8,127,136,.18); }
+.inbox-stale-flag { font-size: 12px; font-weight: 850; color: #7a4d0b; background: #fff1d6; padding: 3px 9px; border-radius: 999px; }
+.inbox-record.is-stale { border-color: #f0c987; }

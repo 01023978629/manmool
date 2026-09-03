@@ -27,6 +27,8 @@
   let currentStatus = '신규';
   let currentLead = null;
   let listGeneration = 0;
+  let loadedLeads = [];
+  const STALE_NEW_MS = 24 * 60 * 60 * 1000;
   let sessionNoticeTimer = null;
   let logoutStarted = false;
   if (!api || !loginForm || !app) return;
@@ -57,6 +59,7 @@
     list.textContent = ''; byId('inboxHistory').textContent = ''; byId('inboxDetailFields').textContent = '';
     byId('inboxMessage').textContent = ''; byId('inboxDetailTitle').textContent = ''; byId('inboxDetailMeta').textContent = '';
     byId('inboxDecisionMemo').value = ''; currentLead = null; detail.hidden = true;
+    loadedLeads = []; const search = byId('inboxSearch'); if (search) search.value = '';
   }
   function scheduleSessionNotice(expiresAt) {
     const notice = byId('inboxSessionNotice');
@@ -154,7 +157,8 @@
     try {
       const result = await authenticatedCall('leadList', { status: currentStatus });
       if (generation !== listGeneration) return;
-      renderList(Array.isArray(result.leads) ? result.leads : []);
+      loadedLeads = Array.isArray(result.leads) ? result.leads : [];
+      renderList(filterLeads(loadedLeads));
       renderCounts(result.counts || {});
       setStatusText('마지막 확인 ' + new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }));
     } catch (error) {
@@ -170,6 +174,25 @@
       node.textContent = Number.isFinite(n) && n > 0 ? String(n) : '';
     });
   }
+  // 찾기 — 서버를 다시 부르지 않고 이미 받은 목록만 거른다. 전화는 숫자만 비교(하이픈 무관).
+  function filterLeads(leads) {
+    const input = byId('inboxSearch');
+    const query = input ? input.value.trim().toLowerCase() : '';
+    if (!query) return leads;
+    const digits = query.replace(/[^0-9]/g, '');
+    return leads.filter((lead) => {
+      const text = [lead.name, lead.receiptNo, lead.region, lead.type, lead.memo, lead.symptoms, lead.works].map((v) => String(v || '').toLowerCase()).join(' ');
+      if (text.includes(query)) return true;
+      return digits.length >= 3 && String(lead.phone || '').replace(/[^0-9]/g, '').includes(digits);
+    });
+  }
+  function staleDays(lead) {
+    if (lead.status !== '신규') return 0;
+    const t = Date.parse(String(lead.receivedAt || ''));
+    if (!Number.isFinite(t)) return 0;
+    const age = Date.now() - t;
+    return age >= STALE_NEW_MS ? Math.floor(age / STALE_NEW_MS) : 0;
+  }
   function renderList(leads) {
     list.textContent = '';
     empty.hidden = leads.length > 0;
@@ -183,6 +206,8 @@
       top.appendChild(el('b', '', lead.name));
       top.appendChild(el('span', 'inbox-record-meta', lead.phone));
       if (lead.emailDelivered !== 'Y') top.appendChild(el('span', 'inbox-mail-flag', '메일 미발송'));
+      const stale = staleDays(lead);
+      if (stale > 0) { card.classList.add('is-stale'); top.appendChild(el('span', 'inbox-stale-flag', `답변 대기 ${stale}일`)); }
       card.appendChild(top);
       const meta = [lead.receiptNo, fmtTime(lead.receivedAt), lead.region, lead.type].filter(Boolean).join(' · ');
       card.appendChild(el('div', 'inbox-record-meta', meta));
@@ -304,6 +329,7 @@
     });
   });
   byId('inboxRefresh').addEventListener('click', () => { loadList(); });
+  byId('inboxSearch').addEventListener('input', () => { renderList(filterLeads(loadedLeads)); });
   byId('inboxDetailClose').addEventListener('click', () => { detail.hidden = true; currentLead = null; byId('inboxListTitle').focus(); });
   byId('inboxLogout').addEventListener('click', async () => {
     if (logoutStarted) return;

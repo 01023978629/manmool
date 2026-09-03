@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="css/styles.css?v=20260901-office-rbac1" />
   <link rel="stylesheet" href="css/brand-system.css?v=20260901-office-rbac1" />
   <link rel="stylesheet" href="css/office-portal.css?v=20260903-leadinbox1" />
-  <link rel="stylesheet" href="css/lead-inbox.css?v=20260903-leadinbox1" />
+  <link rel="stylesheet" href="css/lead-inbox.css?v=20260903-leadinbox2" />
 </head>
 <body class="portal-page inbox-page">
   <header class="site-header">
@@ -57,9 +57,12 @@
 
       <section class="portal-panel" aria-labelledby="inboxListTitle">
         <div class="portal-panel-head">
-          <div><h1 id="inboxListTitle" tabindex="-1">신규 문의</h1><p>최근 것이 위에 옵니다. 건을 누르면 내용과 이력이 열립니다.</p></div>
+          <div><h1 id="inboxListTitle" tabindex="-1">신규 문의</h1><p>최근 것이 위에 옵니다. 건을 누르면 내용과 이력이 열립니다. 신규인 채 하루가 지나면 「답변 대기」 표시가 붙습니다.</p></div>
           <button id="inboxRefresh" class="portal-button portal-button-secondary" type="button">목록 새로고침</button>
         </div>
+        <label class="inbox-search" for="inboxSearch">찾기
+          <input id="inboxSearch" type="search" autocomplete="off" placeholder="이름·전화·접수번호·지역·메모" maxlength="60" />
+        </label>
         <div id="inboxList" class="portal-record-list" aria-live="polite"></div>
         <p id="inboxEmpty" class="portal-help" hidden>해당 상태의 문의가 없습니다.</p>
       </section>
@@ -105,6 +108,6 @@
 
   <script src="js/lead-transport.js?v=20260903-leadinbox1"></script>
   <script src="js/lead-inbox-api.js?v=20260903-leadinbox1"></script>
-  <script src="js/lead-inbox.js?v=20260903-leadinbox1"></script>
+  <script src="js/lead-inbox.js?v=20260903-leadinbox2"></script>
 </body>
 </html>
