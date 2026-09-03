@@ -229,7 +229,7 @@
     deniedMessage.textContent = '안전하게 로그아웃하고 있습니다.';
     purgePrivateUi();
     if (current) await Promise.race([
-      api.call('portalLogout', { sessionToken: current.token, payload: {} }).catch(() => null),
+      api.call('portalLogout', { sessionToken: current.token, payload: {}, keepalive: true }).catch(() => null),
       new Promise((resolve) => window.setTimeout(resolve, LOGOUT_TIMEOUT_MS)),
     ]);
     window.location.replace('office-login.html');

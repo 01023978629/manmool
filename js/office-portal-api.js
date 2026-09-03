@@ -17,9 +17,9 @@
   const PUBLIC_ACTIONS = new Set(['portalLogin']);
   const ACTION_SET = new Set(ACTIONS);
   const MESSAGES = Object.freeze({
-    'not-configured': '직원 포털 서버 연결을 준비하고 있습니다. 기존 6자리 PIN 접수 포털을 이용해 주세요.',
-    'invalid-input': '입력 내용을 확인해 주세요.', 'invalid-credentials': '관리사무소 코드, 이메일 또는 인증번호를 확인해 주세요.',
-    'rate-limited': '인증번호 입력이 여러 번 틀렸거나 요청이 많습니다. 15분 뒤 다시 시도해 주세요.',
+    'not-configured': '직원 포털 서버 연결을 준비하고 있습니다. 기존 6자리 PIN 접수 포털을 이용해 주세요. PIN 이 없으면 010-2397-8629 로 전화 주세요.',
+    'invalid-input': '입력 내용을 확인해 주세요.', 'invalid-credentials': '관리사무소 코드, 이메일 또는 인증번호를 확인해 주세요. 계속 안 되면 010-2397-8629 로 전화 주세요.',
+    'rate-limited': '인증번호 입력이 여러 번 틀렸거나 요청이 많습니다. 15분 뒤 다시 시도해 주세요. 급하면 010-2397-8629 로 전화 주세요.',
     'session-expired': '로그인 세션이 만료되었습니다. 다시 로그인해 주세요.', 'forbidden': '이 기능을 볼 수 있는 권한이 없습니다.',
     'last-admin': '마지막 관리자는 비활성화하거나 관리자 권한을 해제할 수 없습니다.',
     'not-found': '요청한 정보를 찾을 수 없습니다.', 'bad-request': '요청 형식을 확인해 주세요.',
@@ -78,9 +78,13 @@
     if (!config.enabled) throw apiError('not-configured');
     const body = { action, ts: Date.now(), payload: exactPayload(options.payload) };
     if (!PUBLIC_ACTIONS.has(action)) body.sessionToken = token;
+    // keepalive: 로그아웃처럼 바로 화면을 떠나는 요청은 이동이 fetch 를 끊지 않게 한다.
+    // 이게 없으면 Apps Script 콜드스타트(흔히 1.2초 초과) 중 페이지가 바뀌어 서버 세션이
+    // 폐기되지 않고 8시간 유효로 남는다.
     const result = await fetchJson(config.apiUrl, {
       method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(body), redirect: 'follow', credentials: 'omit',
+      ...(options.keepalive === true ? { keepalive: true } : {}),
     }, 'http-error');
     if (!result || typeof result !== 'object' || Array.isArray(result) || typeof result.ok !== 'boolean') throw apiError('invalid-response');
     if (!result.ok) throw apiError(typeof result.error === 'string' ? result.error : 'server-error');

@@ -38,7 +38,7 @@
         <form id="portalUserForm" class="portal-editor" novalidate>
           <input name="userId" type="hidden" />
           <div class="portal-form-grid"><label>이름<input name="name" maxlength="80" /></label><label>이메일<input name="email" type="email" maxlength="254" autocomplete="off" /></label></div>
-          <label>6자리 로그인 인증번호<input name="loginCode" type="password" inputmode="numeric" autocomplete="new-password" maxlength="6" pattern="[0-9]{6}" placeholder="신규 사용자는 필수, 기존 사용자는 변경할 때만 입력" /></label>
+          <label>6자리 로그인 인증번호<input name="loginCode" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="신규 사용자는 필수, 기존 사용자는 변경할 때만 입력" /></label>
           <p class="portal-help">인증번호 원문은 저장되지 않습니다. 기존 사용자 수정 시 비워 두면 현재 인증번호가 유지됩니다.</p>
           <label>동·호/담당 구역 (선택)<input name="unit" maxlength="40" placeholder="예: 101동 1203호 또는 지하 기계실" /></label>
           <label>역할<select name="role"><option value="">선택</option><option value="system_admin">관리자</option><option value="manager_chief">관리소장</option><option value="facility_manager">관리과장</option><option value="resident_rep">동대표</option><option value="resident">아파트 입주민</option></select></label>

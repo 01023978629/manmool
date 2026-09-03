@@ -36,7 +36,7 @@
           <input id="portalEmail" name="email" type="email" maxlength="254" autocomplete="username" inputmode="email" />
         </label>
         <label for="portalLoginCode">6자리 로그인 인증번호
-          <input id="portalLoginCode" name="loginCode" type="password" inputmode="numeric" autocomplete="current-password" maxlength="6" pattern="[0-9]{6}" />
+          <input id="portalLoginCode" name="loginCode" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" aria-describedby="portalLoginError" />
         </label>
         <p class="portal-help">인증번호는 관리자가 발급하며 브라우저에 저장하지 않습니다. 5회 연속 오류 시 15분간 잠깁니다.</p>
         <p id="portalLoginError" class="portal-error" role="alert" aria-live="polite"></p>

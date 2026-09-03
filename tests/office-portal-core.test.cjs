@@ -118,3 +118,12 @@ test('운영 메뉴 표시명은 실제 기능과 기존 PIN 경계를 명확히
   assert.equal(core.NOTICE_STATE_LABELS.archived, '보관');
   assert.equal(core.COST_STATUS_LABELS.submitted, '승인 요청');
 });
+
+test('세션 만료 상한은 설계 8시간에 시계 오차 1시간만 더한 값이다', () => {
+  // 24시간짜리를 받아들이면 서버가 잘못 내려도 화면이 하루 종일 열려 있다.
+  const H = 60 * 60 * 1000;
+  assert.ok(core.normalizeSession(response({ expiresAt: 1_000 + 8 * H }), 1_000), '8시간 세션을 거부했다');
+  assert.ok(core.normalizeSession(response({ expiresAt: 1_000 + 9 * H }), 1_000), '시계 오차 여유(9시간)를 거부했다');
+  assert.equal(core.normalizeSession(response({ expiresAt: 1_000 + 10 * H }), 1_000), null, '10시간 세션을 받아들였다');
+  assert.equal(core.normalizeSession(response({ expiresAt: 1_000 + 24 * H }), 1_000), null, '24시간 세션을 받아들였다');
+});

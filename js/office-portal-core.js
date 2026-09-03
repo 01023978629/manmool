@@ -112,6 +112,9 @@
     const complexName = text(source.complexName || source.name, 160);
     return id && slug && complexName ? { id, slug, complexName } : null;
   }
+  // 설계(2026-09-01 역할 포털)의 세션 수명은 8시간이다. 시계 오차 1시간만 더 봐주고,
+  // 그보다 긴 만료를 내려주는 응답은 세션으로 받지 않는다.
+  const MAX_SESSION_MS = 9 * 60 * 60 * 1000;
   function normalizeSession(value, now = Date.now()) {
     const source = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
     const token = text(source.sessionToken || source.token, 4096);
@@ -119,7 +122,7 @@
     const office = safeOffice(source.office);
     const permissions = normalizePermissions(source.permissions);
     const expiresAt = Number(source.expiresAt);
-    if (!token || !user || !office || !Number.isFinite(expiresAt) || expiresAt <= now || expiresAt > now + (24 * 60 * 60 * 1000)) return null;
+    if (!token || !user || !office || !Number.isFinite(expiresAt) || expiresAt <= now || expiresAt > now + MAX_SESSION_MS) return null;
     return { token, user, office, permissions, expiresAt };
   }
   function storeSession(storage, value, now = Date.now()) {
