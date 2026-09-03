@@ -110,6 +110,7 @@
     fields.namedItem('name').value = user.name;
     fields.namedItem('email').value = user.email;
     fields.namedItem('unit').value = user.unit || '';
+    fields.namedItem('loginCode').value = '';
     fields.namedItem('role').value = user.role;
     fields.namedItem('active').checked = user.active === true;
     if (user.id === session.user.id) {
@@ -123,7 +124,7 @@
       const card = document.createElement('article'); card.className = 'portal-user-card';
       addText(card, 'h3', '', `${user.name} · ${core.roleLabel(user.role)}`);
       addText(card, 'p', '', user.email);
-      addText(card, 'p', 'portal-record-meta', `${user.active === false ? '비활성' : '활성'}${user.unit ? ` · ${user.unit}` : ''} · 보기 권한 ${core.normalizePermissions(user.permissions).filter((permission) => core.VIEW_PERMISSIONS.includes(permission)).length}개`);
+      addText(card, 'p', 'portal-record-meta', `${user.active === false ? '비활성' : '활성'}${user.unit ? ` · ${user.unit}` : ''} · 인증번호 ${user.loginCodeConfigured ? '설정됨' : '미설정'} · 보기 권한 ${core.normalizePermissions(user.permissions).filter((permission) => core.VIEW_PERMISSIONS.includes(permission)).length}개`);
       const actions = document.createElement('div'); actions.className = 'portal-user-actions';
       if (canManageUser(user)) {
         const edit = addText(actions, 'button', 'portal-button portal-button-secondary', '사용자 수정'); edit.type = 'button'; edit.dataset.userEdit = user.id;
@@ -153,6 +154,7 @@
       role: fields.namedItem('role').value, active: fields.namedItem('active').checked,
       unit: fields.namedItem('unit').value.trim().slice(0, 40),
     };
+    const loginCode = fields.namedItem('loginCode').value.trim(); if (loginCode) payload.loginCode = loginCode;
     const userId = fields.namedItem('userId').value.trim(); if (userId) payload.userId = userId;
     return payload;
   }
@@ -198,6 +200,7 @@
     event.preventDefault(); if (!can('admin.users.manage')) return;
     const payload = userPayload(); userError.textContent = '';
     if (!payload.email || !payload.name || !core.canAssignRole(session.user.role, payload.role)) { userError.textContent = '이름, 이메일과 지정할 수 있는 역할을 확인해 주세요.'; return; }
+    if ((!payload.userId && !/^\d{6}$/.test(payload.loginCode || '')) || (payload.loginCode && !/^\d{6}$/.test(payload.loginCode))) { userError.textContent = '신규 사용자는 관리자가 정한 6자리 숫자 인증번호가 필요합니다.'; return; }
     payload.requestId = operationRequestId(userForm);
     try { await portalCall('portalUserSave', payload); clearOperationRequest(userForm); resetUserForm(); await loadUsers(); }
     catch (error) { if (session) userError.textContent = message(error); }

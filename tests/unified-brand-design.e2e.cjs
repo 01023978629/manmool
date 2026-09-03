@@ -155,7 +155,7 @@ test('개인정보처리방침은 관리사무소 접수의 항목, 목적, 보�
   const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
   await page.goto(`${origin}/privacy.html`, { waitUntil: 'networkidle' });
   const text = await page.locator('main').innerText();
-  for (const phrase of ['관리사무소 담당자', '선택한 입주민 연락처', '현장 사진', '시설보수 접수', '취소·거절된 접수', '90일', '완료된 일반 접수', '1년', '계약·세무 증빙', '법정 보관기간', '단지 코드', '등록 이메일', '동·호/담당 구역', '관리 상태', '관리 일지', '감사기록', 'OTP 원문', '세션 토큰 원문']) {
+  for (const phrase of ['관리사무소 담당자', '선택한 입주민 연락처', '현장 사진', '시설보수 접수', '취소·거절된 접수', '90일', '완료된 일반 접수', '1년', '계약·세무 증빙', '법정 보관기간', '단지 코드', '등록 이메일', '동·호/담당 구역', '관리 상태', '관리 일지', '감사기록', '인증번호 원문', '세션 토큰 원문']) {
     assert.equal(text.includes(phrase), true, `개인정보 안내 누락: ${phrase}`);
   }
   assert.equal(text.includes('문자 앱에서 직접 전송'), false);

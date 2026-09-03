@@ -8,7 +8,6 @@ const core = require('../js/office-portal-core.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const API_URL = 'https://script.google.com/macros/s/test-office-rbac/exec';
-const CHALLENGE_ID = '123e4567-e89b-42d3-a456-426614174000';
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const NETWORK_ABORT = Object.freeze({ networkAbort: true });
 const MIME = { '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8' };
@@ -22,7 +21,7 @@ function serve(req, res) {
   if (!target.startsWith(ROOT + path.sep) || !fs.existsSync(target) || fs.statSync(target).isDirectory()) { res.writeHead(404).end('not found'); return; }
   res.writeHead(200, { 'content-type': MIME[path.extname(target)] || 'application/octet-stream' }); fs.createReadStream(target).pipe(res);
 }
-function user(role, extra = {}) { return { id: `user-${role}`, email: `${role}@example.com`, name: `테스트 ${core.roleLabel(role)}`, role, active: true, ...extra }; }
+function user(role, extra = {}) { return { id: `user-${role}`, email: `${role}@example.com`, name: `테스트 ${core.roleLabel(role)}`, role, active: true, loginCodeConfigured: true, ...extra }; }
 function office() { return { id: 'office-1', slug: 'sample-apt', complexName: '샘플아파트' }; }
 function sessionResponse(role, permissions, extra = {}) { return { ok: true, sessionToken: `token-${role}`, user: user(role), office: office(), permissions, expiresAt: Date.now() + 60 * 60 * 1000, ...extra }; }
 function deferred() {
@@ -67,62 +66,56 @@ before(async () => {
 });
 after(async () => { if (browser) await browser.close(); if (server) await new Promise((resolve) => server.close(resolve)); });
 
-test('기본 설정은 이메일 인증을 비활성화하고 mock/demo 로그인을 제공하지 않는다', async () => {
+test('기본 설정은 관리자 발급 인증번호 로그인을 비활성화하고 mock/demo 로그인을 제공하지 않는다', async () => {
   const { page, errors } = await openPortal(async () => { throw new Error('endpoint must not be called'); }, { enabled: false });
   await page.goto(`${origin}/office-login.html`);
   await page.waitForFunction(() => document.getElementById('portalConfigNotice').textContent.includes('준비'));
-  assert.equal(await page.locator('#portalRequestCode').isDisabled(), true);
+  assert.equal(await page.locator('#portalLoginButton').isDisabled(), true);
   assert.match(await page.locator('#portalConfigNotice').innerText(), /준비/);
   assert.equal(await page.getByRole('link', { name: '기존 접수 포털 열기' }).getAttribute('href'), 'office-request.html');
   assert.equal(await page.locator('html').getAttribute('data-office-frame-pending'), null);
   assert.deepEqual(errors, []); await page.close();
 });
 
-test('OTP 검증 중에는 이메일 재입력을 막아 늦은 검증 응답이 다른 로그인 흐름에 섞이지 않는다', async () => {
-  const verifyGate = deferred();
+test('로그인 처리 중에는 중복 제출을 막는다', async () => {
+  const loginGate = deferred();
   const login = sessionResponse('resident', ['dashboard.view']);
   const { page, calls, errors } = await openPortal(async (body) => {
-    if (body.action === 'portalRequestCode') return { ok: true, challengeId: CHALLENGE_ID };
-    if (body.action === 'portalVerifyCode') return verifyGate.promise;
+    if (body.action === 'portalLogin') return loginGate.promise;
     if (body.action === 'portalMe') return login;
     if (body.action === 'portalDashboard') return { ok: true, metrics: [], notices: [] };
     throw new Error(`unexpected ${body.action}`);
   });
   await page.goto(`${origin}/office-login.html`);
-  await page.waitForFunction(() => !document.getElementById('portalRequestCode').disabled);
+  await page.waitForFunction(() => !document.getElementById('portalLoginButton').disabled);
   await page.locator('#portalOfficeCode').fill('sample-apt'); await page.locator('#portalEmail').fill('resident@example.com');
-  await page.locator('#portalCodeRequestForm').evaluate((form) => form.requestSubmit());
-  await page.locator('#portalCode').fill('123456');
-  await page.locator('#portalCodeVerifyForm').evaluate((form) => form.requestSubmit());
-  await page.waitForFunction(() => document.getElementById('portalChangeAccount').disabled === true);
-  await waitForCall(calls, 'portalVerifyCode');
-  assert.equal(calls.filter((call) => call.action === 'portalVerifyCode').length, 1);
-  assert.equal(await page.locator('#portalChangeAccount').isDisabled(), true);
-  await page.locator('#portalChangeAccount').evaluate((button) => button.click());
-  assert.equal(await page.locator('#portalCodeRequestForm').isHidden(), true);
-  assert.equal(await page.locator('#portalCodeVerifyForm').isVisible(), true);
-  verifyGate.resolve(login);
+  await page.locator('#portalLoginCode').fill('123456');
+  await page.locator('#portalLoginForm').evaluate((form) => form.requestSubmit());
+  await waitForCall(calls, 'portalLogin');
+  assert.equal(calls.filter((call) => call.action === 'portalLogin').length, 1);
+  assert.equal(await page.locator('#portalLoginButton').isDisabled(), true);
+  await page.locator('#portalLoginForm').evaluate((form) => form.requestSubmit());
+  assert.equal(calls.filter((call) => call.action === 'portalLogin').length, 1);
+  loginGate.resolve(login);
   await page.waitForURL(`${origin}/office-portal.html`);
   assert.deepEqual(errors, []); await page.close();
 });
 
-test('이메일 OTP는 challengeId와 함께 검증하고 세션에는 OTP 없이 서버 권한만 저장한다', async () => {
+test('관리자 발급 인증번호는 한 번에 검증하고 세션에는 인증번호 없이 서버 권한만 저장한다', async () => {
   const login = sessionResponse('manager_chief', ['dashboard.view']);
   const { page, calls, errors } = await openPortal(async (body) => {
-    if (body.action === 'portalRequestCode') return { ok: true, challengeId: CHALLENGE_ID };
-    if (body.action === 'portalVerifyCode') return login;
+    if (body.action === 'portalLogin') return login;
     if (body.action === 'portalMe') return login;
     if (body.action === 'portalDashboard') return { ok: true, metrics: [{ label: '보수 필요', value: 2 }], notices: ['정기점검 예정'] };
     throw new Error(`unexpected ${body.action}`);
   });
   await page.goto(`${origin}/office-login.html`);
-  await page.waitForFunction(() => !document.getElementById('portalRequestCode').disabled);
+  await page.waitForFunction(() => !document.getElementById('portalLoginButton').disabled);
   await page.locator('#portalOfficeCode').fill('sample-apt'); await page.locator('#portalEmail').fill('chief@example.com');
-  await page.getByRole('button', { name: '이메일 인증번호 받기' }).click();
-  await page.locator('#portalCode').fill('123456'); await page.getByRole('button', { name: '로그인', exact: true }).click();
+  await page.locator('#portalLoginCode').fill('123456'); await page.getByRole('button', { name: '로그인', exact: true }).click();
   await page.waitForURL(`${origin}/office-portal.html`); await page.locator('#portalApp').waitFor({ state: 'visible' });
-  const verify = calls.find((call) => call.action === 'portalVerifyCode');
-  assert.deepEqual(verify.payload, { officeCode: 'sample-apt', email: 'chief@example.com', code: '123456', challengeId: CHALLENGE_ID });
+  const verify = calls.find((call) => call.action === 'portalLogin');
+  assert.deepEqual(verify.payload, { officeCode: 'sample-apt', email: 'chief@example.com', loginCode: '123456' });
   const stored = await page.evaluate((key) => JSON.parse(sessionStorage.getItem(key)), core.SESSION_KEY);
   assert.deepEqual(Object.keys(stored).sort(), ['expiresAt', 'office', 'permissions', 'token', 'user']);
   assert.equal(JSON.stringify(stored).includes('123456'), false);
@@ -433,12 +426,14 @@ test('관리자는 사용자·역할·동호와 보기 권한을 관리하고 �
   assert.deepEqual(await page.locator('#portalUserForm [name="role"] option[value="system_admin"]').evaluate((option) => ({ hidden: option.hidden, disabled: option.disabled })), { hidden: false, disabled: false });
   await page.getByRole('button', { name: '사용자 수정', exact: true }).click();
   assert.equal(await page.locator('#portalUserForm [name="unit"]').inputValue(), '101동 202호');
+  assert.equal(await page.locator('#portalUserForm [name="loginCode"]').inputValue(), '');
   await page.locator('#portalUserForm [name="unit"]').fill('102동 303호');
+  await page.locator('#portalUserForm [name="loginCode"]').fill('654321');
   await page.locator('#portalUserForm button[type="submit"]').click();
   await page.waitForFunction(() => document.getElementById('portalUserError').textContent.includes('네트워크'));
   const firstUserSave = calls.filter((call) => call.action === 'portalUserSave')[0].payload;
   assert.match(firstUserSave.requestId, UUID_V4);
-  assert.deepEqual(firstUserSave, { requestId: firstUserSave.requestId, userId: 'resident-1', email: 'resident@example.com', name: '테스트 아파트 입주민', role: 'resident', active: true, unit: '102동 303호' });
+  assert.deepEqual(firstUserSave, { requestId: firstUserSave.requestId, userId: 'resident-1', email: 'resident@example.com', name: '테스트 아파트 입주민', role: 'resident', active: true, unit: '102동 303호', loginCode: '654321' });
   await page.locator('#portalUserForm button[type="submit"]').click();
   await page.waitForFunction(() => document.getElementById('portalUserForm').elements.namedItem('userId').value === '');
   const retriedUserSave = calls.filter((call) => call.action === 'portalUserSave')[1].payload;

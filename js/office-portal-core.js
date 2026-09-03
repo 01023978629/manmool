@@ -8,8 +8,7 @@
   const SESSION_KEY = 'manmul_office_portal_session_v1';
   const OFFICE_SLUG = /^[a-z0-9][a-z0-9-]{2,63}$/;
   const EMAIL = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,63}$/;
-  const OTP = /^\d{6}$/;
-  const CHALLENGE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const LOGIN_CODE = /^\d{6}$/;
   const ROLES = Object.freeze([
     'system_admin', 'manager_chief', 'facility_manager', 'resident_rep', 'resident',
   ]);
@@ -78,23 +77,15 @@
     const code = text(value, 64).toLowerCase();
     return OFFICE_SLUG.test(code) ? code : '';
   }
-  function validateRequestCode(data) {
+  function validateLogin(data) {
     const email = normalizeEmail(data && data.email);
     const officeCode = normalizeOfficeCode(data && data.officeCode);
     if (!officeCode) return { ok: false, field: 'officeCode', message: '관리사무소 코드를 확인해 주세요.' };
     if (!email) return { ok: false, field: 'email', message: '로그인 이메일을 확인해 주세요.' };
-    return { ok: true, value: { officeCode, email }, field: null, message: '' };
+    const loginCode = String(data && data.loginCode || '').trim();
+    if (!LOGIN_CODE.test(loginCode)) return { ok: false, field: 'loginCode', message: '관리자가 발급한 6자리 인증번호를 입력해 주세요.' };
+    return { ok: true, value: { officeCode, email, loginCode }, field: null, message: '' };
   }
-  function validateVerifyCode(data) {
-    const base = validateRequestCode(data);
-    if (!base.ok) return base;
-    const code = String(data && data.code || '').trim();
-    if (!OTP.test(code)) return { ok: false, field: 'code', message: '이메일로 받은 6자리 인증번호를 입력해 주세요.' };
-    const challengeId = normalizeChallengeId(data && data.challengeId);
-    if (!challengeId) return { ok: false, field: 'code', message: '인증 요청이 만료되었습니다. 새 인증번호를 요청해 주세요.' };
-    return { ok: true, value: { ...base.value, code, challengeId }, field: null, message: '' };
-  }
-  function normalizeChallengeId(value) { const id = text(value, 80); return CHALLENGE_ID.test(id) ? id.toLowerCase() : ''; }
   function normalizePermissions(value) {
     if (!Array.isArray(value)) return [];
     return [...new Set(value.filter((item) => typeof item === 'string' && PERMISSION_SET.has(item)))].sort();
@@ -111,7 +102,7 @@
     const active = source.active;
     const unit = text(source.unit, 40);
     if (!id || !email || !name || !role || typeof active !== 'boolean' || (requireActive && active !== true)) return null;
-    return { id, email, name, role, active, ...(unit ? { unit } : {}) };
+    return { id, email, name, role, active, loginCodeConfigured: source.loginCodeConfigured === true, ...(unit ? { unit } : {}) };
   }
   function safeUser(value) { return normalizeUser(value, true); }
   function safeOffice(value) {
@@ -179,7 +170,7 @@
   return {
     SESSION_KEY, ROLES, ROLE_LABELS, ROLE_CEILINGS, PERMISSIONS, VIEW_PERMISSIONS, PERMISSION_LABELS,
     WORKORDER_STATUS_LABELS, NOTICE_STATE_LABELS, COST_STATUS_LABELS,
-    normalizeEmail, normalizeOfficeCode, normalizeChallengeId, validateRequestCode, validateVerifyCode,
+    normalizeEmail, normalizeOfficeCode, validateLogin,
     normalizePermissions, hasPermission, normalizeUser, safeUser, safeOffice, normalizeSession,
     storeSession, restoreSession, clearSession, roleLabel, permissionLabel,
     roleCeiling, viewPermissionsForRole, canAssignRole,
