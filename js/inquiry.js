@@ -158,8 +158,13 @@
     $('submitInquiry').hidden = step !== TOTAL_STEPS;
     if (step === TOTAL_STEPS) renderSummary();
     renderStepper();
-    const sec = $('inquiry');
-    if (sec && n > 1) sec.scrollIntoView({ behavior: SCROLL, block: 'start' });
+    // 단계가 바뀌면 **폼**이 보이는 자리로 간다. 예전에는 #inquiry 절 맨 위로 갔는데,
+    // 폰에서는 절 머리(제목+전화 상자)가 약 940px 라 새 단계의 칸이 전부 화면 아래에
+    // 있었다 — '다음'을 눌렀는데 화면이 위로 튀고 아무것도 안 보여 손님이 나간다
+    // (2026-09 실측: 390px 에서 단계 제목 y=999, 첫 칸 y=1072, 화면 844).
+    // 단계 표시줄(#stepper)을 기준으로 잡으면 어느 단계인지와 첫 칸이 함께 보인다.
+    const anchor = $('stepper') || $('inquiry');
+    if (anchor && n > 1) anchor.scrollIntoView({ behavior: SCROLL, block: 'start' });
     // 새 단계 첫 입력으로 포커스 이동(접근성) — 초기 로드/스텝1 제외
     if (n > 1) {
       const first = document.querySelector(`.inquiry-form .step[data-step="${step}"] input:not([type=radio]):not([type=checkbox]), .inquiry-form .step[data-step="${step}"] select, .inquiry-form .step[data-step="${step}"] textarea`);

@@ -104,6 +104,24 @@ test('서버와 같은 필드 상한과 허용값으로 전송 값을 제한한�
 
 test('개인정보 동의와 서버 허용 선택값을 확인한다', () => {
   assert.equal(api.validateRequest({ ...valid, privacyConsent: false }).field, 'privacyConsent');
+});
+
+test('입주민 연락처는 직원이 입주민에게 알리고 동의를 받았다는 확인이 있어야 받는다', () => {
+  // 입주민 연락처는 본인이 아닌 직원이 적는 제3자 정보다. 확인 없이 받으면
+  // 입주민은 자기 번호가 어디로 갔는지 모른 채 만물인테리어의 전화를 받는다.
+  const withResident = { ...valid, residentName: '홍길동', residentPhone: '01098765432' };
+  const missing = api.validateRequest({ ...withResident, residentInformed: false });
+  assert.equal(missing.ok, false);
+  assert.equal(missing.field, 'residentInformed');
+  assert.match(missing.message, /입주민에게/);
+  assert.equal(api.validateRequest({ ...withResident, residentInformed: 'yes' }).field, 'residentInformed', "문자열 'yes' 를 확인으로 받아들였다 — 체크박스 true 만 확인이다");
+  assert.equal(api.validateRequest({ ...withResident, residentInformed: true }).ok, true);
+  // 입주민 칸을 비우면 이 확인은 요구하지 않는다 — 없는 정보에 동의를 묻지 않는다
+  assert.equal(api.validateRequest({ ...valid, residentInformed: false }).ok, true);
+  // 확인 여부는 화면에서만 막고 서버로는 보내지 않는다 — 전송 본문 allowlist 불변
+  const payload = api.buildCreatePayload({ ...withResident, residentInformed: true }, 'key');
+  assert.equal(Object.hasOwn(payload, 'residentInformed'), false, '전송 본문에 residentInformed 가 실렸다 — 서버 계약이 바뀐다');
+  assert.deepEqual(payload.residentContact, { name: '홍길동', phone: '010-9876-5432' });
   assert.equal(api.validateRequest({ ...valid, issueType: '전기' }).field, 'issueType');
   assert.equal(api.validateRequest({ ...valid, pipeType: '가스' }).field, 'pipeType');
   assert.equal(api.validateRequest({ ...valid, officeContactPhone: '042-123-456' }).field, 'officeContactPhone');
