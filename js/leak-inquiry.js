@@ -270,6 +270,7 @@
         if (result && result.status === 'sent' && result.generation === visibleFailureGeneration) {
           visibleFailureGeneration = 0;
           visibleFailurePayload = null;
+          if (result.receiptNo) payload.receiptNo = result.receiptNo;
           showDone(payload, { delivered: true, hasBackend: true });
           return result;
         }
@@ -305,8 +306,11 @@
 
     const paidNotice = payload.inquiryPurpose === 'paid-device-diagnosis'
       ? '<p>방문이나 금액이 확정된 것은 아닙니다. 대표 확인 후 별도 견적과 일정 협의를 진행합니다.</p>' : '';
+    // 접수번호는 접수함(서버)이 받았을 때만 온다. 메일만 간 문의에는 없다 — 없는 번호를 지어내지 않는다.
+    const receiptNo = /^LD-\d{8}-\d{4,6}$/.test(String(payload.receiptNo || '')) ? String(payload.receiptNo) : '';
+    const receiptLine = receiptNo ? '<p class="leak-done-receipt">접수번호 <b>' + esc(receiptNo) + '</b> — 문의하실 때 이 번호를 말씀해 주세요.</p>' : '';
     const head = opts.delivered
-      ? '<h3>접수됐습니다.</h3><p>평일 09:00–17:30에 확인하고 남겨주신 번호로 회신드립니다. 물이 계속 번지는 상황이면 아래 번호로 바로 전화 주세요.</p>' + paidNotice
+      ? '<h3>접수됐습니다.</h3>' + receiptLine + '<p>평일 09:00–17:30에 확인하고 남겨주신 번호로 회신드립니다. 물이 계속 번지는 상황이면 아래 번호로 바로 전화 주세요.</p>' + paidNotice
       : opts.honeypot
         ? '<h3>아직 전송되지 않았습니다.</h3><p>자동 전송하지 않았고 내용도 저장되지 않았습니다. 아래 버튼으로 전화·문자 또는 내용 복사를 이용해 주세요.</p>'
         // 설정을 못 읽어 못 보낸 것과 '접수 경로가 아예 없는 것'은 다른 말이어야 한다.

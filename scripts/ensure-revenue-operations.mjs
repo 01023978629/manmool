@@ -55,6 +55,9 @@ function expectedOrigins(config) {
   for (const endpoint of endpoints) {
     try { const u = new URL(endpoint); if (u.protocol !== 'https:' || u.username || u.password) return null; origins.push(u.origin); } catch { return null; }
   }
+  // 문의 접수함(Apps Script)은 고정 호스트 둘로 간다. 설정의 inbox.enabled 와 무관하게 CSP 에 있어야
+  // 대표가 접수함을 켜는 순간 폼이 막히지 않는다(2026-09-03, office.html 이 막혀 있던 사고).
+  origins.push('https://script.google.com', 'https://script.googleusercontent.com');
   return [...new Set(origins)];
 }
 function copyPublicSource(root, destination, fileSystem) {

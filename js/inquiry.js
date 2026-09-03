@@ -374,6 +374,7 @@
         if (result && result.status === 'sent' && result.generation === visibleFailureGeneration) {
           visibleFailureGeneration = 0;
           visibleFailurePayload = null;
+          if (result.receiptNo) payload.receiptNo = result.receiptNo;
           showResult(payload, { delivered: true, hasBackend: true });
           return result;
         }
@@ -418,6 +419,8 @@
     // 설정을 못 읽어 못 보낸 것과 '접수 경로가 아예 없는 것'은 다른 말이어야 한다.
     // 앞의 경우 손님이 할 일은 새로고침이고, 뒤의 경우는 전화다.
     const configFailed = !!CONFIG.configLoadFailed;
+    // 접수번호는 접수함(서버)이 받았을 때만 온다. 메일만 간 문의에는 없다 — 없는 번호를 지어내지 않는다.
+    const receiptNo = /^LD-\d{8}-\d{4,6}$/.test(String(payload.receiptNo || '')) ? String(payload.receiptNo) : '';
     const lead = delivered
       ? '접수 내용이 담당자에게 전달되었습니다. 영업시간 기준 빠르게 회신드립니다.'
       : opts.honeypot
@@ -437,6 +440,7 @@
         <div class="${iconCls}">${icon}</div>
         <h3 tabindex="-1">${head}</h3>
         <p><b class="done-person-name"></b>님, 감사합니다. <span class="done-lead"></span></p>
+        ${delivered && receiptNo ? '<p class="done-receipt">접수번호 <b class="done-receipt-no"></b> — 문의하실 때 이 번호를 말씀해 주세요.</p>' : ''}
         ${delivered ? (phone ? `<p class="done-followup">회신이 없거나 급하시면 바로 전화 주세요 —
           <a href="tel:${phone}">${COMPANY.phone || phone}</a></p>` : '')
         : `<pre class="done-text"></pre>
@@ -451,6 +455,8 @@
         <a href="#top" class="btn btn-ghost btn-sm">처음으로</a>
       `;
     done.querySelector('.done-person-name').textContent = payload.name || '고객';
+    const receiptNode = done.querySelector('.done-receipt-no');
+    if (receiptNode) receiptNode.textContent = receiptNo;
     done.querySelector('.done-lead').textContent = lead;
     // 전송이 안 된 화면에서는 보낼 내용을 화면에 펼쳐 둔다. 복사가 막힌 브라우저
     // (권한 거부·구형 iOS)에서도 손님이 직접 긁어서 문자·카톡에 붙일 수 있어야 한다.

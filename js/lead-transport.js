@@ -24,6 +24,7 @@
   // 문의 접수함(Apps Script + 구글 시트). 메일 경로와 별개로 "무엇이 들어왔고 어떻게
   // 판정했나"의 정본이다. 주소는 script.google.com 의 /exec 만 받는다.
   const INBOX_URL = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
+  const RECEIPT_NO = /^LD-\d{8}-\d{4,6}$/;
   function inboxConfigured(config) {
     const inbox = (config && config.inbox) || {};
     return !!(inbox.enabled && typeof inbox.url === 'string' && INBOX_URL.test(inbox.url));
@@ -186,6 +187,8 @@
     if (!result.response.ok) throw new Error('inbox-http-error');
     const responseBody = parseJsonObject(result.text);
     if (responseBody.ok !== true) throw new Error('inbox-not-accepted');
+    // 접수번호(LD-날짜-순번)는 손님 화면과 대표 접수함이 같은 건을 가리키는 열쇠. 형식이 맞을 때만 payload 에 남긴다.
+    if (typeof responseBody.receiptNo === 'string' && RECEIPT_NO.test(responseBody.receiptNo)) payload.receiptNo = responseBody.receiptNo;
     return true;
   }
 
@@ -291,7 +294,8 @@
             return { status: 'stale', generation: captured.generation };
           }
           latestFailure = null;
-          return { status: 'sent', generation: captured.generation };
+          // 재전송은 복제본으로 나가므로 접수번호를 결과에 실어 화면이 원본에 붙일 수 있게 한다.
+          return { status: 'sent', generation: captured.generation, receiptNo: typeof captured.payload.receiptNo === 'string' ? captured.payload.receiptNo : '' };
         });
       })
       .catch(() => ({ status: 'failed', generation: captured.generation }))

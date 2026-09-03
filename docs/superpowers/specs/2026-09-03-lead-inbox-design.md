@@ -13,6 +13,7 @@
 | 서버 | `apps-script-lead-inbox/Code.gs`, `LeadInboxPure.gs`, `appsscript.json`, `README.md` | 별도 Apps Script 웹앱 + 전용 구글 시트(`문의`·`이력`·`세션`). 폼 접수(`leadCreate`)와 대표 판정(`leadDecide`)을 기록 |
 | 폼 → 서버 | `js/lead-transport.js` `deliver` | 메일 경로(n8n/폼 서비스) 뒤에 접수함 호출. **하나라도 받으면 성공**, 접수함 줄에 메일 발송 여부(`emailDelivered`)가 남는다. `leadId`(UUID)는 `deliver` 가 붙이고 재시도해도 같다 |
 | 설정 | `data/config.json` `inbox { enabled, url }` | 꺼져 있으면(기본) 지금과 완전히 같다. 켜려면 script.google.com 의 `/exec` 주소만 허용 |
+| 손님 화면 | `js/inquiry.js`, `js/leak-inquiry.js`, `js/office-pilot.js` | 접수함이 접수번호(`LD-…`)를 돌려주면 성공 화면에 「접수번호 LD-…」를 보여 준다. 메일만 간 문의에는 번호가 없고, 없는 번호를 지어내지 않는다. 재전송 성공에도 붙는다 |
 | 대표 화면 | `lead-inbox.html`, `js/lead-inbox-api.js`, `js/lead-inbox.js`, `css/lead-inbox.css` | 관리 비밀번호 로그인 → 상태별 목록 → 건별 내용·이력 → 승인/보류/거절 + 메모 → 본문 복사(현장 앱 「📥 웹 업무 연결」에 붙여넣기) |
 | 관리자 표시 | `js/admin.js` | 연결 상태 줄 "문의 접수함(서버 이력·승인)" |
 | 처리방침 | `privacy.html` | 3절 경유 설명, `#privacy-lead-inbox-retention` 보관 기준 |

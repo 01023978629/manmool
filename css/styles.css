@@ -524,6 +524,8 @@ body.content-preview .site-header { top: 46px; }
   color: var(--ink-soft); background: var(--bg-alt); border: 1px solid var(--line);
   border-radius: 14px; padding: 16px 18px; margin: 16px 0 4px; line-height: 1.7;
   max-height: 240px; overflow: auto; user-select: text; }
+.done-receipt { font-weight: 700; color: var(--ink, #103b4d); }
+.done-receipt b { font-variant-numeric: tabular-nums; letter-spacing: .02em; }
 .done-followup { font-weight: 700; }
 .done-followup a { color: var(--link-strong); text-decoration: underline; white-space: nowrap; }
 .done-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 18px 0 6px; }

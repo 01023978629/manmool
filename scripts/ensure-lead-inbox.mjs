@@ -64,6 +64,16 @@ check(/url\.hostname === 'script\.google\.com'/.test(files.apiJs) && /!url\.sear
 check(/credentials: 'omit'/.test(files.apiJs) && /'Content-Type': 'text\/plain;charset=utf-8'/.test(files.apiJs), '접수함 호출이 쿠키 없이 text/plain 으로 가지 않습니다(프리플라이트 회피 규칙).');
 
 /* ③ 전송 모듈·설정 — 폼 → 접수함 */
+// 폼 페이지에 CSP 가 있으면 접수함 호스트를 허용해야 한다 — office.html 이 web3forms 만 허용해 접수함 호출이
+// 브라우저에서 조용히 막혔던 사고(2026-09-03). CSP 없는 페이지(index·leak)는 해당 없음.
+for (const relative of fs.readdirSync(ROOT).filter((name) => /\.html$/.test(name))) {
+  const html = read(relative);
+  if (!/lead-transport\.js/.test(html) || relative === 'lead-inbox.html') continue;
+  const pageCsp = (/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/.exec(html) || [])[1];
+  if (!pageCsp) continue;
+  const pageConnect = ((/connect-src ([^;]+)/.exec(pageCsp) || [])[1] || '').split(/\s+/).filter(Boolean);
+  check(pageConnect.includes('https://script.google.com') && pageConnect.includes('https://script.googleusercontent.com'), `${relative} 의 CSP connect-src 가 접수함(Apps Script) 호스트를 막습니다 — 이 폼의 문의가 접수함에 닿지 않습니다.`);
+}
 check(new RegExp(`const INBOX_URL = /${EXEC_URL_SOURCE.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}/;`).test(files.transport), '전송 모듈의 접수함 주소 규칙이 화면 API 와 다릅니다.');
 const deliverBody = (/async function deliver\(config, payload\) \{([\s\S]*?)\n  \}/.exec(files.transport) || [])[1] || '';
 check(/ensureLeadId\(payload\);/.test(deliverBody) && deliverBody.indexOf('ensureLeadId') < deliverBody.indexOf('deliverEmail'), 'deliver 가 메일 전송 전에 leadId 를 붙이지 않습니다.');

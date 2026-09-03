@@ -165,3 +165,31 @@ test('접수함 호출은 문의 내용을 영구 저장소·sessionStorage 에 
   await loaded.lead.deliver(both(), payload());
   assert.deepEqual(loaded.storageCalls, []);
 });
+
+test('접수함이 돌려준 접수번호는 형식이 맞을 때만 payload 에 남고, 재전송 결과에도 실린다', async () => {
+  const ok = loadLead(router('{"success":true}', '{"ok":true,"receiptNo":"LD-20260903-0007"}'));
+  const data = payload();
+  assert.equal(await ok.lead.deliver(both(), data), true);
+  assert.equal(data.receiptNo, 'LD-20260903-0007');
+  for (const bad of ['{"ok":true,"receiptNo":"7"}', '{"ok":true,"receiptNo":"<b>x</b>"}', '{"ok":true,"receiptNo":42}', '{"ok":true}']) {
+    const loaded = loadLead(router('{"success":true}', bad));
+    const item = payload();
+    assert.equal(await loaded.lead.deliver(both(), item), true);
+    assert.equal('receiptNo' in item, false, bad);
+  }
+  const mailOnly = loadLead(router('{"success":true}', '{"ok":true,"receiptNo":"LD-20260903-0007"}'));
+  const mailItem = payload();
+  assert.equal(await mailOnly.lead.deliver(formsOnly(), mailItem), true);
+  assert.equal('receiptNo' in mailItem, false, '접수함이 꺼져 있으면 접수번호가 없다');
+
+  const retry = loadLead(router('{"success":true}', '{"ok":true,"receiptNo":"LD-20260903-0008"}'));
+  const original = payload();
+  const generation = retry.lead.rememberFailure(original);
+  const result = await retry.lead.retryLatest(both());
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), { status: 'sent', generation, receiptNo: 'LD-20260903-0008' });
+  assert.equal('receiptNo' in original, false, '재전송은 복제본으로 나가므로 원본은 화면이 결과로 붙인다');
+  const noReceipt = loadLead(router('{"success":true}', '{"ok":true}'));
+  const gen2 = noReceipt.lead.rememberFailure(payload());
+  assert.deepEqual(JSON.parse(JSON.stringify(await noReceipt.lead.retryLatest(both()))), { status: 'sent', generation: gen2, receiptNo: '' });
+});
+
