@@ -37,7 +37,7 @@ function serveStatic(req, res) {
 function fakeServer() {
   const leads = {
     [LEAD_NEW]: {
-      leadId: LEAD_NEW, receiptNo: 'LD-20260903-0001', receivedAt: '2026-09-03T01:00:00.000Z', status: '신규', decidedAt: '',
+      leadId: LEAD_NEW, receiptNo: 'LD-20260903-0001', receivedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 - 60000).toISOString(), status: '신규', decidedAt: '',
       name: XSS_NAME, phone: '010-1234-5678', type: '아파트', service: '인테리어', region: '대전 서구', area: '32', scope: '전체',
       works: '도배, 장판', budget: '2,000만 원', movein: '10월', live: '거주 중', symptoms: '', purpose: '', visit: '', memo: 'FIXTURE_MEMO <b>bold</b>',
       source: 'index', sourcePage: 'index.html', ctaId: 'hero', utm: '', emailDelivered: 'N',
@@ -226,6 +226,33 @@ test('로그인하면 세션 필드만 sessionStorage 에 남고 목록은 텍�
   await context.close();
 });
 
+test('찾기는 이미 받은 목록만 거르고(서버 호출 없음) 전화는 숫자만 비교하며, 하루 넘은 신규에는 답변 대기 표시가 붙는다', async () => {
+  const { page, context, calls, pageErrors } = await openInbox();
+  await page.goto(`${origin}/lead-inbox.html`);
+  await login(page);
+  await page.locator('.portal-nav [data-status="전체"]').click();
+  await page.locator('#inboxList .inbox-record').nth(1).waitFor();
+  assert.equal(await page.locator('#inboxList .inbox-record').count(), 2);
+  assert.equal(await page.locator('#inboxList .inbox-record.is-stale').count(), 1, '3일 지난 신규 한 건만');
+  assert.match(await page.locator('#inboxList .inbox-record.is-stale .inbox-stale-flag').innerText(), /^답변 대기 3일$/);
+  assert.equal(await page.locator('#inboxList .inbox-record.is-stale').innerText().then((t) => t.includes('FIXTURE_NAME')), true);
+  const before = calls.length;
+  await page.locator('#inboxSearch').fill('042 123');
+  assert.equal(await page.locator('#inboxList .inbox-record').count(), 1);
+  assert.match(await page.locator('#inboxList').innerText(), /보류 손님/);
+  await page.locator('#inboxSearch').fill('ld-20260903-0001');
+  assert.equal(await page.locator('#inboxList .inbox-record').count(), 1);
+  assert.match(await page.locator('#inboxList').innerText(), /FIXTURE_NAME/);
+  await page.locator('#inboxSearch').fill('없는 이름');
+  assert.equal(await page.locator('#inboxList .inbox-record').count(), 0);
+  assert.equal(await page.locator('#inboxEmpty').isVisible(), true);
+  await page.locator('#inboxSearch').fill('');
+  assert.equal(await page.locator('#inboxList .inbox-record').count(), 2);
+  assert.equal(calls.length, before, '찾기는 서버를 부르지 않는다');
+  assert.deepEqual(pageErrors, []);
+  await context.close();
+});
+
 test('건을 열면 내용·이력이 텍스트로 보이고 거절은 사유 없이는 서버를 부르지 않으며 판정은 requestId 로 기록된다', async () => {
   const { page, context, calls, pageErrors, fake } = await openInbox();
   await page.goto(`${origin}/lead-inbox.html`);
@@ -348,11 +375,13 @@ test('서버가 세션 만료를 돌려주면 세션을 지우고 화면의 문�
   await page.goto(`${origin}/lead-inbox.html`);
   await login(page);
   await page.locator('#inboxList .inbox-record').waitFor();
+  await page.locator('#inboxSearch').fill('FIXTURE');
   fake.state.sessionValid = false;
   await page.locator('#inboxRefresh').click();
   await page.locator('#inboxDenied:not([hidden])').waitFor();
   assert.match(await page.locator('#inboxDeniedMessage').innerText(), /로그인이 만료되었습니다/);
   assert.equal(await page.locator('#inboxList').innerText(), '');
+  assert.equal(await page.locator('#inboxSearch').inputValue(), '', '만료 뒤 찾기 칸(손님 이름일 수 있음)도 비운다');
   assert.equal(await page.locator('#inboxApp').isHidden(), true);
   assert.equal((await storageSnapshot(page)).session, '');
   assert.deepEqual(pageErrors, []);
