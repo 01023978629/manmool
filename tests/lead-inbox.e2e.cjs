@@ -113,7 +113,7 @@ async function openInbox(options = {}) {
   page.on('console', (message) => consoleText.push(message.text()));
   await page.route('**/data/config.json', (route) => route.fulfill({
     contentType: 'application/json',
-    body: JSON.stringify(options.config || { inbox: { enabled: true, url: API_URL } }),
+    body: JSON.stringify(options.config || { inbox: { enabled: true, url: API_URL }, hyeonjang: { appUrl: 'https://app.example.invalid/hyeonjang/' } }),
   }));
   await page.route(API_URL, async (route) => {
     const body = route.request().postDataJSON();
@@ -335,6 +335,32 @@ test('판정 버튼을 연타해도 서버에는 한 번만 가고 서버가 전
   assert.equal(await rejecting.page.locator('[data-decision="승인"]').isEnabled(), true, '실패 뒤 버튼이 다시 살아난다');
   assert.deepEqual(rejecting.pageErrors, []);
   await rejecting.context.close();
+});
+
+test('현장 앱 링크는 설정의 https 주소일 때만 보이고 새 탭·noopener 로 연다', async () => {
+  const shown = await openInbox();
+  await shown.page.goto(`${origin}/lead-inbox.html`);
+  await login(shown.page);
+  await shown.page.locator('#inboxList .inbox-record').waitFor();
+  await shown.page.locator('#inboxList .inbox-record').first().click();
+  await shown.page.locator('#inboxOpenApp:not([hidden])').waitFor();
+  assert.equal(await shown.page.locator('#inboxOpenApp').getAttribute('href'), 'https://app.example.invalid/hyeonjang/');
+  assert.equal(await shown.page.locator('#inboxOpenApp').getAttribute('target'), '_blank');
+  assert.match(await shown.page.locator('#inboxOpenApp').getAttribute('rel'), /noopener/);
+  assert.deepEqual(shown.pageErrors, []);
+  await shown.context.close();
+
+  for (const hyeonjang of [undefined, { appUrl: '' }, { appUrl: 'http://app.example.invalid/' }, { appUrl: 'javascript:alert(1)' }]) {
+    const hidden = await openInbox({ config: { inbox: { enabled: true, url: API_URL }, ...(hyeonjang ? { hyeonjang } : {}) } });
+    await hidden.page.goto(`${origin}/lead-inbox.html`);
+    await login(hidden.page);
+    await hidden.page.locator('#inboxList .inbox-record').waitFor();
+    await hidden.page.waitForTimeout(150);
+    assert.equal(await hidden.page.locator('#inboxOpenApp').isHidden(), true, JSON.stringify(hyeonjang));
+    assert.equal(await hidden.page.locator('#inboxOpenApp').getAttribute('href'), null);
+    assert.deepEqual(hidden.pageErrors, []);
+    await hidden.context.close();
+  }
 });
 
 test('본문 복사는 메일 형식 그대로 클립보드에 넣고 버튼 문구로 결과를 알린다', async () => {

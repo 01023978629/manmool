@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="css/styles.css?v=20260901-office-rbac1" />
   <link rel="stylesheet" href="css/brand-system.css?v=20260901-office-rbac1" />
   <link rel="stylesheet" href="css/office-portal.css?v=20260903-leadinbox1" />
-  <link rel="stylesheet" href="css/lead-inbox.css?v=20260903-leadinbox2" />
+  <link rel="stylesheet" href="css/lead-inbox.css?v=20260903-leadinbox3" />
 </head>
 <body class="portal-page inbox-page">
   <header class="site-header">
@@ -76,7 +76,10 @@
         <div class="inbox-message-wrap">
           <div class="inbox-message-head">
             <h3>문의 본문 (메일과 같은 형식)</h3>
-            <button id="inboxCopyMessage" class="portal-button portal-button-small portal-button-secondary" type="button">앱에 붙여넣을 본문 복사</button>
+            <div class="inbox-message-actions">
+              <button id="inboxCopyMessage" class="portal-button portal-button-small portal-button-secondary" type="button">앱에 붙여넣을 본문 복사</button>
+              <a id="inboxOpenApp" class="portal-button portal-button-small portal-button-secondary" target="_blank" rel="noopener noreferrer" hidden>현장 앱 열기 ↗</a>
+            </div>
           </div>
           <pre id="inboxMessage" class="inbox-message"></pre>
           <p class="portal-help">복사한 본문을 현장 앱 더보기 → 「📥 웹 업무 연결」에 붙여 넣으면 미리보기가 뜨고, 「현장으로 등록」을 눌러야 현장이 됩니다. 복사본 마지막 줄에 접수번호가 붙어 앱 현장과 이 접수함 건이 연결됩니다(앱 v249 이상).</p>
@@ -108,6 +111,6 @@
 
   <script src="js/lead-transport.js?v=20260903-leadinbox1"></script>
   <script src="js/lead-inbox-api.js?v=20260903-leadinbox1"></script>
-  <script src="js/lead-inbox.js?v=20260903-leadinbox3"></script>
+  <script src="js/lead-inbox.js?v=20260903-leadinbox4"></script>
 </body>
 </html>

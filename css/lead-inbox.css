@@ -36,3 +36,4 @@
 .inbox-search input:focus-visible { outline: none; border-color: var(--portal-teal); box-shadow: 0 0 0 3px rgba(8,127,136,.18); }
 .inbox-stale-flag { font-size: 12px; font-weight: 850; color: #7a4d0b; background: #fff1d6; padding: 3px 9px; border-radius: 999px; }
 .inbox-record.is-stale { border-color: #f0c987; }
+.inbox-message-actions { display: flex; flex-wrap: wrap; gap: 8px; }
