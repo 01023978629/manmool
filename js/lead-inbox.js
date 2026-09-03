@@ -353,8 +353,20 @@
     window.location.replace('lead-inbox.html');
   });
 
+  /* ── 현장 앱 링크 — data/config.json 의 hyeonjang.appUrl(https 만). 복사 → 앱 열기 → 붙여넣기 두 번 탭 ── */
+  async function wireAppLink() {
+    const link = byId('inboxOpenApp');
+    if (!link || !window.ManmulLead || typeof window.ManmulLead.loadConfig !== 'function') return;
+    try {
+      const config = await window.ManmulLead.loadConfig();
+      const url = config && config.hyeonjang && typeof config.hyeonjang.appUrl === 'string' ? config.hyeonjang.appUrl.trim() : '';
+      if (/^https:\/\/[^\s"'<>]+$/.test(url)) { link.href = url; link.hidden = false; }
+    } catch (_) { /* 링크 없이도 접수함은 동작 */ }
+  }
+
   /* ── 부팅 ── */
   (async () => {
+    wireAppLink();
     const restored = readSession();
     if (restored) {
       session = restored;
