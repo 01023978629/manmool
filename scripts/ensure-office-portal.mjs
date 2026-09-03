@@ -27,7 +27,9 @@ check((files.office.match(/href="office-login\.html"/g) || []).length >= 2, '관
 check(/href="office-request\.html"[^>]*>기존 6자리 PIN 접수/.test(files.office), '기존 PIN 접수 포털 호환 링크가 없습니다.');
 for (const page of ['login', 'portal', 'admin']) check(/name="robots" content="noindex,nofollow"/.test(files[page]), `${page} 페이지가 noindex,nofollow가 아닙니다.`);
 check(!/(office-login|office-portal|office-admin)\.html/.test(files.sitemap), '비공개 포털 페이지가 sitemap에 들어갔습니다.');
-check(files.login.includes('type="email"') && files.login.includes('name="loginCode"') && files.login.includes('autocomplete="current-password"'), '로그인 페이지가 관리자 발급 인증번호 방식이 아닙니다.');
+// 인증번호 칸은 one-time-code 여야 한다 — current/new-password 면 브라우저가 '비밀번호 저장?'을 띄워
+// 관리자 PC 의 비밀번호 관리자에 직원·입주민 인증번호가 평문으로 남는다(화면 문구 '브라우저에 저장하지 않습니다'와 어긋남).
+check(files.login.includes('type="email"') && files.login.includes('name="loginCode"') && files.login.includes('autocomplete="one-time-code"'), '로그인 페이지가 관리자 발급 인증번호 방식이 아닙니다.');
 check(/"enabled": false[\s\S]*"apiUrl": ""/.test(files.config) && Object.keys(JSON.parse(files.config)).sort().join(',') === 'apiUrl,enabled', '포털 API 기본 설정이 exact disabled가 아닙니다.');
 check(actions.every((action) => files.api.includes(`'${action}'`)), '포털 API action 계약이 불완전합니다.');
 check(/sessionStorage/.test(files.loginJs + files.portalJs + files.adminJs) && !/(localStorage|indexedDB)/.test(files.core + files.api + files.loginJs + files.portalJs + files.adminJs), '포털이 허용되지 않은 영구 브라우저 저장소를 사용합니다.');
@@ -35,7 +37,19 @@ check(/token,user,office,permissions,expiresAt/.test(files.core.replace(/\s+/g, 
 check(/portalMe/.test(files.portalJs) && /portalMe/.test(files.adminJs) && /data-requires/.test(files.portal + files.admin), '서버 권한 재확인 또는 fail-closed 화면 계약이 없습니다.');
 check(/source\.active;/.test(files.core) && /typeof active !== 'boolean'/.test(files.core) && /active !== true/.test(files.core), '사용자 active 값이 exact boolean과 활성 세션으로 검증되지 않습니다.');
 check(/loginButton\.disabled\s*=\s*value/.test(files.loginJs) && /if \(busy\s*\|\|/.test(files.loginJs), '로그인 처리 중 중복 제출이 차단되지 않습니다.');
-check(/name="loginCode"[^>]*autocomplete="new-password"/.test(files.admin) && /loginCodeConfigured/.test(files.adminJs), '관리자 인증번호 발급·설정 상태 화면이 없습니다.');
+check(/name="loginCode"[^>]*autocomplete="one-time-code"/.test(files.admin) && /loginCodeConfigured/.test(files.adminJs), '관리자 인증번호 발급·설정 상태 화면이 없습니다.');
+// 로그인 실패 뒤 포커스는 인증번호 칸으로 돌아와야 한다(제출 버튼 disabled 로 포커스 소실).
+check(/loginError\.textContent = loginMessage\(error\);\s*\n[^\n]*\n\s*focusField\('loginCode'\)/.test(files.loginJs), '로그인 실패 뒤 포커스가 인증번호 칸으로 돌아오지 않습니다.');
+// 실패·잠금·미설정 문구에 전화 안내 — 재시도만 말하면 직원은 갈 곳이 없다.
+for (const code of ['invalid-credentials', 'rate-limited', 'not-configured']) check(new RegExp(`'${code}': '[^']*010-2397-8629`).test(files.api), `${code} 문구에 전화 안내가 없습니다.`);
+// 세션 만료 10분 전 경고 — 작성 중 내용을 잃기 전에 보여야 한다.
+check(/SESSION_NOTICE_LEAD_MS = 10 \* 60 \* 1000/.test(files.portalJs) && /scheduleSessionNotice\(session\.expiresAt\)/.test(files.portalJs) && /id="portalSessionNotice"[^>]*role="status"/.test(files.portal), '세션 만료 임박 안내가 없습니다.');
+// 로그아웃 요청은 keepalive 여야 한다 — 화면 이동이 진행 중 fetch 를 끊으면 서버 세션이 8시간 살아남는다(2026-09-03 보안 검토).
+check(/options\.keepalive === true \? \{ keepalive: true \}/.test(files.api) && [files.portalJs, files.adminJs].every((code) => /api\.call\('portalLogout', \{[\s\S]{0,120}?keepalive: true/.test(code)), '로그아웃 요청이 keepalive 가 아닙니다 — 화면 이동이 서버 세션 폐기를 끊습니다.');
+// 로그인 실패는 한 문구로 접는다 — 코드별 문구를 그대로 내면 등록된 이메일인지 화면이 알려 준다.
+check(/LOGIN_PASSTHROUGH/.test(files.loginJs) && /loginError\.textContent = loginMessage\(error\)/.test(files.loginJs) && !/loginError\.textContent = apiMessage\(error\)/.test(files.loginJs), '로그인 실패 문구가 코드별로 갈립니다 — 사용자 존재 여부가 드러납니다.');
+// 세션 만료 상한은 설계 8시간에 시계 오차만 더한 값이어야 한다.
+check(/MAX_SESSION_MS = 9 \* 60 \* 60 \* 1000/.test(files.core) && /expiresAt > now \+ MAX_SESSION_MS/.test(files.core), '세션 만료 상한이 설계(8시간)에서 벗어납니다.');
 check([files.portalJs, files.adminJs].every((code) => /LOGOUT_TIMEOUT_MS\s*=\s*1200/.test(code) && /clearSession\(sessionStorage\)/.test(code) && /portalLogout/.test(code)), '로그아웃의 즉시 로컬 삭제 또는 짧은 서버 타임아웃이 없습니다.');
 check([files.portalJs, files.adminJs].every((code) => /crypto\.randomUUID\(\)/.test(code) && /dataset\.requestId/.test(code) && /delete form\.dataset\.requestId/.test(code)), '쓰기 작업의 v4 requestId 생성·재시도·초기화 수명주기가 없습니다.');
 check(/addEventListener\('input',\s*\(\)\s*=>\s*clearOperationRequest\(form\)\)/.test(files.portalJs) && /addEventListener\('change',\s*\(\)\s*=>\s*clearOperationRequest\(form\)\)/.test(files.portalJs), '포털 저장 폼의 입력 변경 시 requestId가 새로 발급되지 않습니다.');

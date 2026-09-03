@@ -20,7 +20,7 @@ test('배포 게이트의 공개 포털 소스 계약은 설정 CLI와 fail-clos
   const workflow = read('.github/workflows/deploy-pages.yml');
   const expectedPortalRegressionRun = [
     '          set -euo pipefail',
-    '          node --test --test-concurrency=1 tests/office-request.logic.test.cjs tests/office-request-api.test.cjs tests/office-request-auth.e2e.cjs tests/office-request-workflow.e2e.cjs tests/office-request-recent-changes.e2e.cjs tests/office-intake.e2e.cjs tests/office-portal-core.test.cjs tests/office-portal-api.test.cjs tests/office-portal-rbac.e2e.cjs',
+    '          node --test --test-concurrency=1 tests/office-request.logic.test.cjs tests/office-request-api.test.cjs tests/office-request-auth.e2e.cjs tests/office-request-workflow.e2e.cjs tests/office-request-recent-changes.e2e.cjs tests/office-request-resident-focus.e2e.cjs tests/office-intake.e2e.cjs tests/office-portal-core.test.cjs tests/office-portal-api.test.cjs tests/office-portal-rbac.e2e.cjs',
   ].join('\n');
   const portalRegressionRun = workflow.match(/      - name: Run management office portal regression\r?\n[\s\S]*?        run: \|\r?\n([\s\S]*?)(?=\r?\n      - name:|\s*$)/);
   assert.equal(fs.existsSync(path.join(ROOT, 'scripts', 'configure-office-api.mjs')), true);

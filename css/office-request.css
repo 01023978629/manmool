@@ -50,8 +50,10 @@
 .office-create-form label { display: grid; gap: 8px; color: #183f4c; font-weight: 750; }
 .office-create-form input, .office-create-form select, .office-create-form textarea { width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid #bdceca; border-radius: 12px; color: #173b49; background: #fff; font: inherit; }
 .office-create-form textarea { min-height: 112px; resize: vertical; }
-.office-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.office-consent { grid-template-columns: 20px 1fr; align-items: center; }
+.office-form-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 14px; }
+/* 입주민 연락처 접기 손잡이·동의 줄 — 손가락으로 누르는 곳이라 44px 을 지킨다 */
+.office-create-form summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 750; color: #183f4c; }
+.office-consent { grid-template-columns: 20px 1fr; align-items: center; min-height: 44px; }
 .office-consent input { width: 20px; min-height: 20px; padding: 0; }
 .office-progress { min-height: 24px; margin: 0; color: var(--request-teal); font-size: 14px; font-weight: 750; }
 .office-form-actions, .office-card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -71,5 +73,5 @@
 .office-photo-status { margin-top: 10px; font-size: 14px; font-weight: 750; }
 .office-completion-photos { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 16px; }
 .office-completion-photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; background: #dfecea; }
-@media (max-width: 640px) { .request-main { padding: 28px 12px 80px; } .request-shell { padding: 24px 16px; border-radius: 18px; } .office-route-form .office-action { width: 100%; } .office-dashboard-head, .office-dashboard-actions { align-items: stretch; flex-direction: column; } .office-dashboard-actions .office-action { width: 100%; } .office-dashboard-buttons { display: grid; grid-template-columns: 1fr; width: 100%; } .office-dashboard-buttons .office-action { width: 100%; } .office-sync-status { text-align: left; } .office-filters { grid-template-columns: 1fr 1fr; } .office-status-timeline { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 640px) { .request-main { padding: 28px 12px 80px; } .request-shell { padding: 24px 16px; border-radius: 18px; } .office-route-form .office-action { width: 100%; } .office-dashboard-head, .office-dashboard-actions { align-items: stretch; flex-direction: column; } .office-dashboard-actions .office-action { width: 100%; } .office-dashboard-buttons { display: grid; grid-template-columns: 1fr; width: 100%; } .office-dashboard-buttons .office-action { width: 100%; } .office-sync-status { text-align: left; } .office-filters { grid-template-columns: 1fr 1fr; } .office-form-grid { grid-template-columns: 1fr; } .office-status-timeline { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

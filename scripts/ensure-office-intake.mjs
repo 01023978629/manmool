@@ -70,6 +70,16 @@ check(/value\.residentContact && data\.residentInformed !== true/.test(coreSrc),
 const payloadBody = (coreSrc.match(/function buildCreatePayload[\s\S]*?\n  }\n/) || [''])[0];
 check(payloadBody.length > 0 && !/residentInformed/.test(payloadBody),
   '전송 본문(buildCreatePayload)에 residentInformed 가 실린다 — 서버 allowlist 계약이 바뀐다');
+// 오류 칸이 접힌 <details> 안이면 펼치고 포커스한다 — 닫힌 채로는 focus() 가 무효라 직원이 고칠 곳을 못 찾는다.
+check(/folded && !folded\.open\) folded\.open = true; input\.focus\(\)/.test(requestSrc),
+  '접수 오류 포커스가 접힌 입주민 칸을 펼치지 않는다 — 포커스가 body 로 떨어진다');
+// 폰(≤640px)에서 2열 그리드가 가로로 넘치지 않게 1열로
+const requestCss = read('css/office-request.css');
+check(/\.office-form-grid \{ display: grid; grid-template-columns: minmax\(0,1fr\) minmax\(0,1fr\)/.test(requestCss)
+  && /@media \(max-width: 640px\)[^\n]*\.office-form-grid \{ grid-template-columns: 1fr; \}/.test(requestCss),
+  '접수 폼 2열 그리드가 폰에서 1열로 바뀌지 않는다 — 동·호수/연락처 행이 오른쪽으로 잘린다');
+check(/\.office-create-form summary \{ min-height: 44px/.test(requestCss) && /\.office-consent \{[^}]*min-height: 44px/.test(requestCss),
+  '입주민 연락처 손잡이·동의 줄의 터치 면적이 44px 미만이다');
 check(/residentInformed: !!\(get\('residentInformed'\)/.test(requestSrc),
   '접수 화면이 residentInformed 체크박스를 읽지 않는다 — 검증이 항상 막힌다');
 

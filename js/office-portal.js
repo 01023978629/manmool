@@ -134,7 +134,7 @@
   async function bestEffortServerLogout(current) {
     if (!current) return;
     await Promise.race([
-      api.call('portalLogout', { sessionToken: current.token, payload: {} }).catch(() => null),
+      api.call('portalLogout', { sessionToken: current.token, payload: {}, keepalive: true }).catch(() => null),
       new Promise((resolve) => window.setTimeout(resolve, LOGOUT_TIMEOUT_MS)),
     ]);
   }
@@ -541,10 +541,28 @@
     logoutStarted = true;
     const current = session;
     core.clearSession(sessionStorage); session = null;
+    scheduleSessionNotice(NaN);
     hidePrivateUiForLogout();
     await bestEffortServerLogout(current);
     window.location.replace('office-login.html');
   });
+
+  // 세션은 8시간 뒤 만료되고, 만료 뒤 저장은 실패하며 편집 중이던 내용은 화면에서 지워진다.
+  // 10분 전에 미리 알려 직원이 작성 중인 일지를 잃지 않게 한다. 저장하지 않고 화면에만 띄운다.
+  const SESSION_NOTICE_LEAD_MS = 10 * 60 * 1000;
+  let sessionNoticeTimer = null;
+  function scheduleSessionNotice(expiresAt) {
+    const notice = byId('portalSessionNotice');
+    if (sessionNoticeTimer) { window.clearTimeout(sessionNoticeTimer); sessionNoticeTimer = null; }
+    if (!notice || !Number.isFinite(expiresAt)) return;
+    notice.hidden = true; notice.textContent = '';
+    const delay = Math.max(0, expiresAt - Date.now() - SESSION_NOTICE_LEAD_MS);
+    sessionNoticeTimer = window.setTimeout(() => {
+      if (!session) return;
+      notice.textContent = '로그인이 10분 안에 만료됩니다. 작성 중인 내용은 지금 저장해 주세요. 만료 뒤에는 다시 로그인해야 하고 입력 중이던 내용은 남지 않습니다.';
+      notice.hidden = false;
+    }, Math.min(delay, 2_147_000_000));
+  }
 
   async function boot() {
     session = core.restoreSession(sessionStorage);
@@ -563,6 +581,7 @@
       byId('portalAccount').hidden = false;
       loading.hidden = true; denied.hidden = true; app.hidden = false;
       applyPermissions();
+      scheduleSessionNotice(session.expiresAt);
       const localDate = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       const today = new Date(), from = new Date(today); from.setDate(from.getDate() - 29); byId('portalReportTo').value = localDate(today); byId('portalReportFrom').value = localDate(from);
       configureWorkorderStatuses(''); configureNoticeStates(''); resetCostEditor();
