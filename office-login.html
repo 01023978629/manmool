@@ -24,8 +24,8 @@
   <main class="portal-main">
     <section class="portal-auth-card" aria-labelledby="portalLoginTitle">
       <span class="portal-eyebrow">관리사무소 계정 전용</span>
-      <h1 id="portalLoginTitle">관리자 발급 인증번호로 로그인</h1>
-      <p class="portal-lead">관리사무소 코드, 등록 이메일과 관리자가 발급한 6자리 인증번호를 입력하세요. 직책과 열람 범위는 관리자가 설정한 권한을 따릅니다.</p>
+      <h1 id="portalLoginTitle">관리자 발급 비밀번호로 로그인</h1>
+      <p class="portal-lead">관리사무소 코드, 등록 이메일과 관리자가 발급한 6자리 비밀번호를 입력하세요. 직책과 열람 범위는 관리자가 설정한 권한을 따릅니다.</p>
       <div id="portalConfigNotice" class="portal-notice" role="status" aria-live="polite">서버 연결 상태를 확인하고 있습니다.</div>
 
       <form id="portalLoginForm" class="portal-form" novalidate>
@@ -35,17 +35,17 @@
         <label for="portalEmail">등록 이메일
           <input id="portalEmail" name="email" type="email" maxlength="254" autocomplete="username" inputmode="email" />
         </label>
-        <label for="portalLoginCode">6자리 로그인 인증번호
+        <label for="portalLoginCode">6자리 로그인 비밀번호
           <input id="portalLoginCode" name="loginCode" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" aria-describedby="portalLoginError" />
         </label>
-        <p class="portal-help">인증번호는 관리자가 발급하며 브라우저에 저장하지 않습니다. 5회 연속 오류 시 15분간 잠깁니다.</p>
+        <p class="portal-help">비밀번호는 관리자가 발급하며 브라우저에 저장하지 않습니다. 5회 연속 오류 시 15분간 잠깁니다.</p>
         <p id="portalLoginError" class="portal-error" role="alert" aria-live="polite"></p>
         <button id="portalLoginButton" class="portal-button portal-button-primary" type="submit">로그인</button>
       </form>
 
       <aside class="portal-legacy" aria-labelledby="portalLegacyTitle">
-        <h2 id="portalLegacyTitle">기존 6자리 PIN 접수</h2>
-        <p>기존 단지 전용 PIN을 사용 중인 관리사무소는 이전 접수 포털을 계속 이용할 수 있습니다.</p>
+        <h2 id="portalLegacyTitle">기존 6자리 비밀번호 접수</h2>
+        <p>기존 단지 전용 비밀번호를 사용 중인 관리사무소는 이전 접수 포털을 계속 이용할 수 있습니다.</p>
         <a class="portal-button portal-button-secondary" href="office-request.html">기존 접수 포털 열기</a>
       </aside>
       <p class="portal-support">계정 등록과 권한 확인은 <a href="tel:01023978629">010-2397-8629</a>로 문의해 주세요.</p>

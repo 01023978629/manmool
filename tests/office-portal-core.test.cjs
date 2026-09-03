@@ -113,7 +113,7 @@ test('작업지시·공지·비용 상태 선택은 서버 전이 규칙보다 �
 
 test('운영 메뉴 표시명은 실제 기능과 기존 PIN 경계를 명확히 구분한다', () => {
   assert.equal(core.permissionLabel('reports.view'), '운영보고');
-  assert.equal(core.permissionLabel('requests.view'), '기존 PIN 시설보수 접수');
+  assert.equal(core.permissionLabel('requests.view'), '기존 비밀번호 시설보수 접수');
   assert.equal(core.WORKORDER_STATUS_LABELS.working, '진행');
   assert.equal(core.NOTICE_STATE_LABELS.archived, '보관');
   assert.equal(core.COST_STATUS_LABELS.submitted, '승인 요청');

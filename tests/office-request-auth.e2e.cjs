@@ -324,7 +324,12 @@ test('지연된 로그인 중 중복 제출을 막고 완료 뒤 버튼을 복�
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   });
   await page.waitForFunction(() => document.getElementById('officeLoginSubmit').disabled);
-  assert.equal(calls.filter((call) => call.action === 'officeLogin').length, 1);
+  // 버튼은 제출 즉시(동기) 잠기지만 route 기록은 fetch 가 가로채진 뒤에 남는다 — 기록이
+  // 도착한 것을 확인한 뒤 세야 0 !== 1 로 헛되이 떨어지지 않는다(2026-09-03 간헐 실패).
+  const loginCalls = () => calls.filter((call) => call.action === 'officeLogin').length;
+  for (let i = 0; i < 60 && loginCalls() < 1; i++) await page.waitForTimeout(25);
+  await page.waitForTimeout(120);   // 두 번째 submit 이 요청을 냈다면 이 사이에 기록된다
+  assert.equal(loginCalls(), 1, '진행 중 중복 제출이 로그인 요청을 하나 더 냈다');
   release();
   await page.waitForFunction(() => !document.getElementById('officeLoginSubmit').disabled);
   assert.match(await page.locator('#officeLoginError').innerText(), /비밀번호/);
