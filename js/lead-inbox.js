@@ -306,8 +306,15 @@
   });
 
   /* ── 본문 복사 ── */
+  // 복사 본문 = 메일 형식 그대로 + 마지막 줄 「접수번호: LD-…」. 현장 앱(v249+)이 이 줄을 읽어 현장에 남기고
+  // 같은 접수번호를 두 번 등록하지 않는다. 화면의 본문 자체는 서버가 준 message 그대로다.
+  function copyText() {
+    const message = byId('inboxMessage').textContent || '';
+    const receiptNo = currentLead && /^LD-\d{8}-\d{4,6}$/.test(String(currentLead.receiptNo || '')) ? String(currentLead.receiptNo) : '';
+    return receiptNo ? message.replace(/\s+$/, '') + '\n접수번호: ' + receiptNo : message;
+  }
   byId('inboxCopyMessage').addEventListener('click', async () => {
-    const text = byId('inboxMessage').textContent || '';
+    const text = copyText();
     const button = byId('inboxCopyMessage');
     let ok = false;
     try {
