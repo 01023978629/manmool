@@ -78,10 +78,11 @@ test('정적 전환 게이트는 공개 수익 경계 변이를 각각 좁은 �
     mutate('office.html', '접수 프로그램 이용료 0원', '접수 프로그램 이용료', /0원 프로그램/);
     mutate('js/office-pilot.js', "source:'office-pilot',", "source:'office-pilot',officeRequest:true,", /직원 포털/);
     mutate('js/office-pilot.js', "privacyConsent:fd.get('privacyConsent') === 'on'", "residentPhone:fd.get('phone'),privacyConsent:fd.get('privacyConsent') === 'on'", /금지된 입주민 정보/);
-    mutate('office.html', "connect-src 'self' https://api.web3forms.com", "connect-src 'self' https://api.web3forms.com *", /와일드카드/);
+    mutate('office.html', "connect-src 'self' https://api.web3forms.com https://script.google.com https://script.googleusercontent.com", "connect-src 'self' https://api.web3forms.com https://script.google.com https://script.googleusercontent.com *", /와일드카드/);
     mutate('office.html', "https://api.web3forms.com", "https://api.web3forms.com.evil.example", /정확한 활성 provider origin/);
-    mutate('office.html', "connect-src 'self' https://api.web3forms.com", "connect-src 'self' https://api.web3forms.com https://extra.example", /정확한 활성 provider origin/);
-    mutate('office.html', "connect-src 'self' https://api.web3forms.com", "connect-src 'self' https://%", /origin/);
+    mutate('office.html', "connect-src 'self' https://api.web3forms.com https://script.google.com https://script.googleusercontent.com", "connect-src 'self' https://api.web3forms.com https://script.google.com https://script.googleusercontent.com https://extra.example", /정확한 활성 provider origin/);
+    mutate('office.html', "connect-src 'self' https://api.web3forms.com https://script.google.com https://script.googleusercontent.com", "connect-src 'self' https://api.web3forms.com", /정확한 활성 provider origin/);
+    mutate('office.html', "connect-src 'self' https://api.web3forms.com https://script.google.com https://script.googleusercontent.com", "connect-src 'self' https://%", /origin/);
     mutate('privacy.html', '관리사무소 30일 파일럿 신청', '관리사무소 30일 시험운영 신청', /파일럿/);
     mutate('privacy.html', '관리사무소 담당자명', '관리사무소 담당자', /파일럿 개인정보 항목/);
     mutate('privacy.html', '신청 목적, 선택 입력한 희망 방문일·희망 시간대', '상담 분류, 선택 입력한 방문 날짜·시간', /누수 개인정보 항목/);

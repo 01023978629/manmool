@@ -60,14 +60,16 @@
     document.getElementById('officePilotCopy').addEventListener('click', function(){ LEAD.copyToClipboard(text).then(function(ok){status.textContent=ok?'문의 내용을 복사했습니다.':'복사하지 못했습니다. 내용을 직접 선택해 주세요.';}); });
     document.getElementById('officePilotRetry').addEventListener('click', function(){
       status.textContent='다시 접수하고 있습니다.';
-      LEAD.retryLatest(config).then(function(result){ if(result.status==='sent'){ LEAD.clearFailure(generation); showSuccess(); } else status.textContent='아직 자동 접수가 되지 않았습니다. 전화·문자 또는 복사를 이용해 주세요.'; });
+      LEAD.retryLatest(config).then(function(result){ if(result.status==='sent'){ LEAD.clearFailure(generation); showSuccess(result.receiptNo); } else status.textContent='아직 자동 접수가 되지 않았습니다. 전화·문자 또는 복사를 이용해 주세요.'; });
     });
   }
-  function showSuccess() {
+  function showSuccess(receiptNo) {
     if (failureGeneration) LEAD.clearFailure(failureGeneration);
     failureGeneration = 0;
     status.textContent=''; done.hidden=false;
-    done.innerHTML='<strong>시험운영 신청이 접수됐습니다.</strong><p>접수 프로그램 이용료 0원 · 실제 작업은 별도 견적</p><p>대표가 확인 후 연락드리겠습니다.</p><a href="tel:01023978629">대표에게 전화</a>';
+    // 접수번호는 접수함(서버)이 받았을 때만 온다. 형식이 맞을 때만 보여 준다.
+    var receipt = /^LD-\d{8}-\d{4,6}$/.test(String(receiptNo||'')) ? '<p class="office-pilot-receipt">접수번호 <b>'+String(receiptNo)+'</b> — 문의하실 때 이 번호를 말씀해 주세요.</p>' : '';
+    done.innerHTML='<strong>시험운영 신청이 접수됐습니다.</strong>'+receipt+'<p>접수 프로그램 이용료 0원 · 실제 작업은 별도 견적</p><p>대표가 확인 후 연락드리겠습니다.</p><a href="tel:01023978629">대표에게 전화</a>';
     form.reset();
   }
 
@@ -79,6 +81,6 @@
     var metadata=REVENUE.captureLeadMetadata(window.location,'office-pilot-submit');
     var payload=Object.assign({},data,metadata,{source:'office-pilot',submittedAt:new Date().toISOString(),status:'신규'});
     submit.disabled=true; status.textContent='접수하고 있습니다.';
-    Promise.resolve(config || LEAD.loadConfig()).then(function(current){config=current; return LEAD.deliver(current,payload);}).then(function(sent){ if(sent===true) showSuccess(); else showFailure(payload); }).catch(function(){showFailure(payload);}).finally(function(){submit.disabled=false;});
+    Promise.resolve(config || LEAD.loadConfig()).then(function(current){config=current; return LEAD.deliver(current,payload);}).then(function(sent){ if(sent===true) showSuccess(payload.receiptNo); else showFailure(payload); }).catch(function(){showFailure(payload);}).finally(function(){submit.disabled=false;});
   });
 })();
