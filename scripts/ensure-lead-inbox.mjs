@@ -142,7 +142,7 @@ check(/'apps-script-lead-inbox'/.test(read('scripts/ensure-pages-artifact.mjs'))
 const retention = (/<p id="privacy-lead-inbox-retention">([\s\S]*?)<\/p>/.exec(files.privacy) || [])[1] || '';
 check(/Google Sheets/.test(retention) && /90일/.test(retention) && /1년/.test(retention) && /승인·보류·거절/.test(retention), '처리방침에 접수함 보관 기준 문단(#privacy-lead-inbox-retention)이 불완전합니다.');
 check(/문의 접수함이 켜져 있으면[\s\S]*Google Apps Script 및 Google Sheets/.test(files.privacy), '처리방침 3절이 접수함 경유를 설명하지 않습니다.');
-for (const suite of ['tests/lead-inbox-pure.test.cjs', 'tests/lead-inbox-transport.test.cjs', 'tests/lead-inbox.e2e.cjs']) {
+for (const suite of ['tests/lead-inbox-pure.test.cjs', 'tests/lead-inbox-transport.test.cjs', 'tests/lead-inbox-server.test.cjs', 'tests/lead-inbox.e2e.cjs', 'tests/inquiry-receipt.e2e.cjs']) {
   check(fs.existsSync(path.join(ROOT, suite)), `${suite} 가 없습니다.`);
   check(files.workflow.includes(suite), `배포 게이트가 ${suite} 를 돌리지 않습니다.`);
 }

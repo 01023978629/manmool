@@ -57,6 +57,7 @@ jobs:
           tests/lead-transport.test.cjs
           tests/lead-inbox-pure.test.cjs
           tests/lead-inbox-transport.test.cjs
+          tests/lead-inbox-server.test.cjs
           tests/lead-inbox.e2e.cjs
           tests/lead-privacy.e2e.cjs
           tests/inquiry-phone.e2e.cjs
