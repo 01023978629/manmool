@@ -27,7 +27,7 @@
   const VIEW_PERMISSIONS = Object.freeze(PERMISSIONS.filter((value) => value.endsWith('.view')));
   const PERMISSION_LABELS = Object.freeze({
     'dashboard.view': '관리 현황', 'status.view': '시설 상태', 'status.manage': '시설 상태 수정',
-    'logs.view': '관리 일지', 'logs.manage': '관리 일지 작성', 'requests.view': '기존 PIN 시설보수 접수',
+    'logs.view': '관리 일지', 'logs.manage': '관리 일지 작성', 'requests.view': '기존 비밀번호 시설보수 접수',
     'reports.view': '운영보고', 'notices.view': '공지사항', 'costs.view': '비용·정산',
     'workorders.view': '작업지시', 'workorders.manage': '작업지시 관리', 'workorders.assign': '담당자 배정',
     'notices.manage': '공지 작성', 'notices.publish': '공지 발행', 'costs.manage': '비용 관리', 'costs.approve': '비용 승인',
@@ -83,7 +83,7 @@
     if (!officeCode) return { ok: false, field: 'officeCode', message: '관리사무소 코드를 확인해 주세요.' };
     if (!email) return { ok: false, field: 'email', message: '로그인 이메일을 확인해 주세요.' };
     const loginCode = String(data && data.loginCode || '').trim();
-    if (!LOGIN_CODE.test(loginCode)) return { ok: false, field: 'loginCode', message: '관리자가 발급한 6자리 인증번호를 입력해 주세요.' };
+    if (!LOGIN_CODE.test(loginCode)) return { ok: false, field: 'loginCode', message: '관리자가 발급한 6자리 비밀번호를 입력해 주세요.' };
     return { ok: true, value: { officeCode, email, loginCode }, field: null, message: '' };
   }
   function normalizePermissions(value) {

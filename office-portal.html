@@ -41,7 +41,7 @@
         <button type="button" data-panel="notices" data-requires="notices.view" hidden>공지</button>
         <button type="button" data-panel="costs" data-requires="costs.view" hidden>비용·정산</button>
         <button type="button" data-panel="reports" data-requires="reports.view" hidden>운영보고</button>
-        <a href="office-request.html" data-requires="requests.view" hidden>기존 PIN 시설접수</a>
+        <a href="office-request.html" data-requires="requests.view" hidden>기존 비밀번호 시설접수</a>
       </nav>
 
       <p id="portalStatusMessage" class="portal-live" role="status" aria-live="polite"></p>
@@ -109,7 +109,7 @@
 
       <section id="portalReportsPanel" class="portal-panel" data-panel-view="reports" data-requires="reports.view" hidden aria-labelledby="portalReportsTitle"><div class="portal-panel-head"><div><span class="portal-eyebrow">개인정보 없는 집계</span><h1 id="portalReportsTitle" tabindex="-1">운영보고</h1></div><button id="portalReportPrint" class="portal-button portal-button-secondary" type="button">인쇄</button></div><div class="portal-list-tools"><label>시작일<input id="portalReportFrom" type="date" /></label><label>종료일<input id="portalReportTo" type="date" /></label><button id="portalReportLoad" class="portal-button portal-button-primary" type="button">조회</button><button id="portalReportCsv" class="portal-button portal-button-secondary" type="button" disabled>CSV 다운로드</button></div><p id="portalReportPeriod" role="status" aria-live="polite"></p><div id="portalReportCards" class="portal-kpi-grid" aria-live="polite"></div></section>
 
-      <section class="portal-panel portal-intake-card" data-requires="requests.view" hidden><h2>기존 PIN 시설보수 접수</h2><p>시설보수 접수는 기존 단지 전용 주소와 6자리 PIN 화면에서 계속 처리합니다. 이메일 포털의 작업지시는 접수 이후 내부 운영 기록입니다.</p><a class="portal-button portal-button-secondary" href="office-request.html">기존 시설접수 열기</a></section>
+      <section class="portal-panel portal-intake-card" data-requires="requests.view" hidden><h2>기존 비밀번호 시설보수 접수</h2><p>시설보수 접수는 기존 단지 전용 주소와 6자리 비밀번호 화면에서 계속 처리합니다. 이메일 포털의 작업지시는 접수 이후 내부 운영 기록입니다.</p><a class="portal-button portal-button-secondary" href="office-request.html">기존 시설접수 열기</a></section>
 
       <section id="portalEmpty" class="portal-state-card" hidden><h1>열람 가능한 메뉴가 없습니다</h1><p>관리자에게 보기 권한을 요청해 주세요.</p><a id="portalEmptyAdmin" class="portal-button portal-button-primary" href="office-admin.html" hidden>권한 관리로 이동</a></section>
     </div>

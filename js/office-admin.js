@@ -124,7 +124,7 @@
       const card = document.createElement('article'); card.className = 'portal-user-card';
       addText(card, 'h3', '', `${user.name} · ${core.roleLabel(user.role)}`);
       addText(card, 'p', '', user.email);
-      addText(card, 'p', 'portal-record-meta', `${user.active === false ? '비활성' : '활성'}${user.unit ? ` · ${user.unit}` : ''} · 인증번호 ${user.loginCodeConfigured ? '설정됨' : '미설정'} · 보기 권한 ${core.normalizePermissions(user.permissions).filter((permission) => core.VIEW_PERMISSIONS.includes(permission)).length}개`);
+      addText(card, 'p', 'portal-record-meta', `${user.active === false ? '비활성' : '활성'}${user.unit ? ` · ${user.unit}` : ''} · 비밀번호 ${user.loginCodeConfigured ? '설정됨' : '미설정'} · 보기 권한 ${core.normalizePermissions(user.permissions).filter((permission) => core.VIEW_PERMISSIONS.includes(permission)).length}개`);
       const actions = document.createElement('div'); actions.className = 'portal-user-actions';
       if (canManageUser(user)) {
         const edit = addText(actions, 'button', 'portal-button portal-button-secondary', '사용자 수정'); edit.type = 'button'; edit.dataset.userEdit = user.id;

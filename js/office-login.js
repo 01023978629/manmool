@@ -42,7 +42,7 @@
     try {
       const config = await api.loadConfig();
       if (!config.enabled) throw new api.ManmulOfficePortalApiError('not-configured');
-      configNotice.textContent = '관리자가 등록한 계정과 인증번호만 사용할 수 있습니다.';
+      configNotice.textContent = '관리자가 등록한 계정과 비밀번호만 사용할 수 있습니다.';
       configNotice.classList.remove('is-off');
       loginButton.dataset.configured = 'true';
       loginButton.disabled = false;
