@@ -49,11 +49,10 @@ function fakeSheet() {
 }
 
 /* 서버 시계를 한 순간에 고정한다 — 같은 밀리초에 두 건이 접수되는 CI 상황을 결정적으로 재현 */
-function frozenDate(iso) {
-  const fixed = Date.parse(iso);
+function frozenDate(clock) {
   return class FrozenDate extends Date {
-    constructor(...args) { super(...(args.length ? args : [fixed])); }
-    static now() { return fixed; }
+    constructor(...args) { super(...(args.length ? args : [clock.now])); }
+    static now() { return clock.now; }
   };
 }
 
@@ -65,13 +64,15 @@ function makeServer(options = {}) {
   const sheets = new Map();
   const cache = new Map();
   const mails = [];
+  const clock = options.frozenAt ? { now: Date.parse(options.frozenAt) } : null;
+  const triggers = [];
   const spreadsheet = {
     getSheetByName: (name) => sheets.get(name) || null,
     insertSheet(name) { const s = fakeSheet(); sheets.set(name, s); return s; },
   };
   const toBytes = (value) => (typeof value === 'string' ? Buffer.from(value, 'utf8') : Buffer.from(value.map((b) => (b + 256) % 256)));
   const context = {
-    console, JSON, Math, Date: options.frozenAt ? frozenDate(options.frozenAt) : Date, Object, Array, String, Number, Boolean, RegExp, Error, TypeError, isFinite, isNaN, parseInt, parseFloat,
+    console, JSON, Math, Date: clock ? frozenDate(clock) : Date, Object, Array, String, Number, Boolean, RegExp, Error, TypeError, isFinite, isNaN, parseInt, parseFloat,
     PropertiesService: { getScriptProperties: () => ({ getProperty: (k) => (Object.prototype.hasOwnProperty.call(props, k) ? props[k] : null) }) },
     SpreadsheetApp: { openById: (id) => { if (id !== SHEET_ID) throw new Error('no such sheet'); return spreadsheet; } },
     CacheService: { getScriptCache: () => ({
@@ -86,12 +87,14 @@ function makeServer(options = {}) {
       base64EncodeWebSafe: (bytes) => toBytes(bytes).toString('base64url'),
       getUuid: () => nodeCrypto.randomUUID(),
     },
+    ScriptApp: { getProjectTriggers: () => triggers.slice(), deleteTrigger: (t) => { const i = triggers.indexOf(t); if (i >= 0) triggers.splice(i, 1); },
+      newTrigger: (fn) => ({ timeBased: () => ({ everyDays: (d) => ({ atHour: (h) => ({ create: () => { const tr = { fn, d, h, getHandlerFunction: () => fn }; triggers.push(tr); return tr; } }) }) }) }) },
     MailApp: { getRemainingDailyQuota: () => (options.quota === undefined ? 100 : options.quota), sendEmail: (mail) => mails.push(mail) },
     ContentService: { MimeType: { JSON: 'json' }, createTextOutput: (text) => ({ setMimeType() { return { getContent: () => text }; } }) },
   };
   vm.runInNewContext(source, context, { filename: 'lead-inbox-server.gs' });
   const call = (body) => JSON.parse(context.doPost({ postData: { contents: typeof body === 'string' ? body : JSON.stringify(body) } }).getContent());
-  return { context, call, sheets, mails, props, cache };
+  return { context, call, sheets, mails, props, cache, clock, triggers };
 }
 
 function setup(options) {
@@ -246,6 +249,35 @@ test('목록·상세·판정·로그아웃이 한 줄로 이어지고 판정은 
 
   assert.deepEqual(authed(server, token, 'leadLogout'), { ok: true, loggedOut: true });
   assert.deepEqual(authed(server, token, 'leadMe'), { ok: false, error: 'session-expired' }, '로그아웃한 토큰은 죽는다');
+});
+
+test('처리방침대로 거절 90일·승인 1년이 지난 문의는 이력까지 지우고 신규·보류는 남긴다', () => {
+  const DAY = 24 * 60 * 60 * 1000;
+  const server = setup({ frozenAt: '2026-01-01T00:00:00.000Z' });
+  const ids = { rej: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c01', ok: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c02', hold: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c03', fresh: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c04' };
+  Object.entries(ids).forEach(([k, id]) => create(server, lead({ leadId: id, name: k })));
+  let token = login(server).sessionToken;
+  assert.equal(authed(server, token, 'leadDecide', { leadId: ids.rej, decision: '거절', memo: '예산', requestId: '3f2c9b1e-6d4a-4c8b-9e1f-0a2b3c4d5e01' }).ok, true);
+  assert.equal(authed(server, token, 'leadDecide', { leadId: ids.ok, decision: '승인', memo: '진행', requestId: '3f2c9b1e-6d4a-4c8b-9e1f-0a2b3c4d5e02' }).ok, true);
+  assert.equal(authed(server, token, 'leadDecide', { leadId: ids.hold, decision: '보류', memo: '연락 대기', requestId: '3f2c9b1e-6d4a-4c8b-9e1f-0a2b3c4d5e03' }).ok, true);
+  const remaining = () => authed(server, token, 'leadList', { status: '전체' }).leads.map((l) => l.leadId).sort();
+  const historyOf = (id) => server.sheets.get('이력').rows.slice(1).filter((r) => String(r[1]) === id).length;
+  assert.equal(remaining().length, 4);
+  // 89일: 아무것도 안 지운다
+  server.clock.now += 89 * DAY; token = login(server).sessionToken;
+  assert.equal(remaining().length, 4, '89일에는 그대로');
+  // 91일: 거절만 이력까지 사라진다
+  server.clock.now += 2 * DAY; token = login(server).sessionToken;
+  assert.deepEqual(remaining(), [ids.fresh, ids.hold, ids.ok].sort(), '91일: 거절 삭제');
+  assert.equal(historyOf(ids.rej), 0, '거절 문의의 이력도 지운다'); assert.ok(historyOf(ids.ok) >= 2, '남은 문의의 이력은 그대로');
+  // 366일: 승인도 사라지고, 판정 없는 신규·보류는 남는다
+  server.clock.now += 275 * DAY; token = login(server).sessionToken;
+  assert.deepEqual(remaining(), [ids.fresh, ids.hold].sort(), '366일: 승인 삭제, 신규·보류 유지');
+  assert.equal(historyOf(ids.ok), 0);
+  // 시간 트리거 설치는 몇 번 실행해도 하나만 남는다
+  assert.equal(server.context.leadInboxInstallTrigger_(), 'ok'); assert.equal(server.context.leadInboxInstallTrigger_(), 'ok');
+  assert.equal(server.triggers.length, 1); assert.equal(server.triggers[0].fn, 'leadInboxDailyPrune');
+  assert.equal(server.context.leadInboxDailyPrune(), 0, '트리거 본체는 잠금 안에서 같은 정리를 한다');
 });
 
 test('어떤 응답에도 비밀값·토큰 해시·시트 ID 가 실리지 않는다', () => {

@@ -240,6 +240,7 @@ function leadLogin_(payload) {
     };
     leadSaveRow_('세션', session);
     leadPruneSessions_();
+    leadPruneLeads_();
     return { sessionToken: rawToken, expiresAt: nowMs + LEAD_SESSION_TTL_MS };
   });
 }
@@ -263,6 +264,38 @@ function leadPruneSessions_() {
   var sheet = leadSheet_('세션');
   var rows = leadRows_('세션').filter(function (row) { return leadTime_(row.expiresAt) < cutoff; });
   rows.sort(function (a, b) { return b._row - a._row; }).forEach(function (row) { sheet.deleteRow(row._row); });
+}
+
+/* ── 보관 기한(처리방침 privacy.html #privacy-lead-inbox-retention 과 같은 숫자) ──────────────
+   거절된 문의는 판정일로부터 90일, 승인된 문의는 1년 뒤 문의·이력을 지운다. 신규·보류는 판정이 없으니 남긴다.
+   로그인할 때마다 한 번, 그리고 leadInboxInstallTrigger_ 를 한 번 실행해 두면 매일 새벽에도 돈다. */
+var LEAD_RETAIN_REJECTED_MS = 90 * 24 * 60 * 60 * 1000;
+var LEAD_RETAIN_APPROVED_MS = 365 * 24 * 60 * 60 * 1000;
+function leadPruneLeads_() {
+  var now = Date.now();
+  var gone = {};
+  leadRows_('문의').forEach(function (row) {
+    var decided = leadTime_(row.decidedAt);
+    if (!isFinite(decided)) return;
+    var status = String(row.status);
+    var limit = status === '거절' ? LEAD_RETAIN_REJECTED_MS : (status === '승인' ? LEAD_RETAIN_APPROVED_MS : 0);
+    if (limit && now - decided > limit) gone[String(row.leadId)] = row;
+  });
+  var ids = Object.keys(gone);
+  if (!ids.length) return 0;
+  var inquiry = leadSheet_('문의'), history = leadSheet_('이력');
+  leadRows_('이력').filter(function (row) { return !!gone[String(row.leadId)]; })
+    .sort(function (a, b) { return b._row - a._row; }).forEach(function (row) { history.deleteRow(row._row); });
+  ids.map(function (id) { return gone[id]; }).sort(function (a, b) { return b._row - a._row; }).forEach(function (row) { inquiry.deleteRow(row._row); });
+  return ids.length;
+}
+function leadInboxDailyPrune() {
+  return leadWithLock_(function () { return leadPruneLeads_(); });
+}
+function leadInboxInstallTrigger_() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'leadInboxDailyPrune') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('leadInboxDailyPrune').timeBased().everyDays(1).atHour(4).create();
+  return 'ok';
 }
 
 /* ── 조회·판정(관리자) ────────────────────────────────────────── */

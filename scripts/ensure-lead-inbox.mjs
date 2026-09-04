@@ -119,6 +119,9 @@ check(/LEAD_INBOX_PAGE_URL = 'https:\/\/01023978629\.github\.io\/manmool\/lead-i
 check(!/(SpreadsheetApp|PropertiesService|CacheService|LockService)/.test(files.pure), '순수 로직 파일이 Apps Script 서비스를 부릅니다.');
 check(/computeHmacSha256Signature/.test(files.server) && /leadConstantTimeEqual_|constantTime/.test(files.server), '서버가 HMAC·상수시간 비교로 비밀번호·토큰을 다루지 않습니다.');
 check(/LEAD_LOGIN_MAX_ATTEMPTS = 5;/.test(files.server) && /LEAD_LOGIN_LOCK_SECONDS = 15 \* 60;/.test(files.server), '로그인 5회·15분 잠금 상수가 바뀌었습니다.');
+check(/LEAD_RETAIN_REJECTED_MS = 90 \* 24 \* 60 \* 60 \* 1000;/.test(files.server) && /LEAD_RETAIN_APPROVED_MS = 365 \* 24 \* 60 \* 60 \* 1000;/.test(files.server), '보관 기한 상수(거절 90일·승인 1년)가 처리방침과 다릅니다.');
+check(/leadPruneSessions_\(\);\s*leadPruneLeads_\(\);/.test(files.server), '로그인 때 보관 기한 지난 문의를 지우는 호출(leadPruneLeads_)이 없습니다.');
+check(/function leadInboxDailyPrune\(\)/.test(files.server) && /newTrigger\('leadInboxDailyPrune'\)\.timeBased\(\)\.everyDays\(1\)/.test(files.server), '매일 정리 트리거(leadInboxDailyPrune)와 설치 함수가 없습니다.');
 const pureContext = { module: { exports: {} } };
 pureContext.exports = pureContext.module.exports;
 vm.runInNewContext(files.pure, pureContext, { filename: 'LeadInboxPure.gs' });
@@ -140,7 +143,7 @@ for (const relative of ['lead-inbox.html', 'css/lead-inbox.css', 'js/lead-inbox-
 check(![...publicFiles].some((relative) => relative.startsWith('apps-script-lead-inbox/')), '접수함 백엔드 폴더가 Pages 산출물에 들어갑니다.');
 check(/'apps-script-lead-inbox'/.test(read('scripts/ensure-pages-artifact.mjs')), '산출물 검사의 금지 최상위 폴더에 apps-script-lead-inbox 가 없습니다.');
 const retention = (/<p id="privacy-lead-inbox-retention">([\s\S]*?)<\/p>/.exec(files.privacy) || [])[1] || '';
-check(/Google Sheets/.test(retention) && /90일/.test(retention) && /1년/.test(retention) && /승인·보류·거절/.test(retention), '처리방침에 접수함 보관 기준 문단(#privacy-lead-inbox-retention)이 불완전합니다.');
+check(/Google Sheets/.test(retention) && /90일/.test(retention) && /1년/.test(retention) && /승인·보류·거절/.test(retention) && /자동으로 삭제/.test(retention), '처리방침에 접수함 보관 기준 문단(#privacy-lead-inbox-retention)이 불완전합니다.');
 check(/문의 접수함이 켜져 있으면[\s\S]*Google Apps Script 및 Google Sheets/.test(files.privacy), '처리방침 3절이 접수함 경유를 설명하지 않습니다.');
 for (const suite of ['tests/lead-inbox-pure.test.cjs', 'tests/lead-inbox-transport.test.cjs', 'tests/lead-inbox-server.test.cjs', 'tests/lead-inbox.e2e.cjs', 'tests/inquiry-receipt.e2e.cjs']) {
   check(fs.existsSync(path.join(ROOT, suite)), `${suite} 가 없습니다.`);
