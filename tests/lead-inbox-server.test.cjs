@@ -48,6 +48,15 @@ function fakeSheet() {
   };
 }
 
+/* 서버 시계를 한 순간에 고정한다 — 같은 밀리초에 두 건이 접수되는 CI 상황을 결정적으로 재현 */
+function frozenDate(iso) {
+  const fixed = Date.parse(iso);
+  return class FrozenDate extends Date {
+    constructor(...args) { super(...(args.length ? args : [fixed])); }
+    static now() { return fixed; }
+  };
+}
+
 function makeServer(options = {}) {
   const props = Object.assign({
     LEAD_INBOX_ENABLED: '1', LEAD_INBOX_SHEET_ID: SHEET_ID, LEAD_INBOX_SESSION_SECRET: SESSION_SECRET,
@@ -62,7 +71,7 @@ function makeServer(options = {}) {
   };
   const toBytes = (value) => (typeof value === 'string' ? Buffer.from(value, 'utf8') : Buffer.from(value.map((b) => (b + 256) % 256)));
   const context = {
-    console, JSON, Math, Date, Object, Array, String, Number, Boolean, RegExp, Error, TypeError, isFinite, isNaN, parseInt, parseFloat,
+    console, JSON, Math, Date: options.frozenAt ? frozenDate(options.frozenAt) : Date, Object, Array, String, Number, Boolean, RegExp, Error, TypeError, isFinite, isNaN, parseInt, parseFloat,
     PropertiesService: { getScriptProperties: () => ({ getProperty: (k) => (Object.prototype.hasOwnProperty.call(props, k) ? props[k] : null) }) },
     SpreadsheetApp: { openById: (id) => { if (id !== SHEET_ID) throw new Error('no such sheet'); return spreadsheet; } },
     CacheService: { getScriptCache: () => ({
@@ -198,7 +207,8 @@ test('세션 없이·엉뚱한 토큰으로는 관리자 action 이 전부 sessi
 });
 
 test('목록·상세·판정·로그아웃이 한 줄로 이어지고 판정은 requestId 로 멱등이며 전이 표를 지킨다', () => {
-  const server = setup();
+  // 두 접수가 같은 밀리초에 들어와도(고정 시계) 나중 접수가 위에 온다 — 시각이 같으면 행 번호로 가른다
+  const server = setup({ frozenAt: '2026-09-04T00:00:00.000Z' });
   create(server, lead());
   create(server, lead({ leadId: LEAD_B, name: '둘째 손님', type: '누수', emailDelivered: false }));
   const token = login(server).sessionToken;
