@@ -94,6 +94,12 @@ for (const id of ['utilPhone', 'heroCall', 'inquiryCall', 'fabCall']) {
     `전화 버튼 #${id} 의 href 가 tel: 이 아니다 — 데이터 로드 전에 누르면 아무 일도 안 일어난다`,
     `#${id} tel: 하드코딩됨`);
 }
+/* ③-0 키보드·스크린리더: 첫 화면 건너뛰기 링크와 첫 사진 크기(레이아웃 흔들림 방지) */
+check(/<a class="skip-link" href="#inquiry">/.test(index), 'index.html 에 상담 신청으로 건너뛰는 skip-link 가 없다(키보드 사용자는 내비 전체를 지나야 한다)', '첫 화면 skip-link(#inquiry)');
+{
+  const imgs = index.match(/<img src="assets\/cases\/[^>]*>/g) || [];
+  check(imgs.length >= 3 && imgs.every((m) => /\swidth="\d+"/.test(m) && /\sheight="\d+"/.test(m)), '첫 화면 실제 시공 사진에 width/height 가 빠졌다(로드 중 레이아웃이 흔들린다)', '첫 화면 사진 ' + imgs.length + '장 모두 width/height');
+}
 /* ③-1 카톡 버튼이 첫 화면에도 있다 — js/main.js 가 kakao.ready 면 #heroKakao 를 켠다(요소가 없으면 죽은 배선) */
 {
   const m = index.match(/<a[^>]*id="heroKakao"[^>]*>/);
