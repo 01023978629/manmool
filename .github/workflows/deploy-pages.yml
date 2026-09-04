@@ -29,10 +29,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -43,11 +43,23 @@ jobs:
           python3 scripts/prerender-posts.py
           git diff --exit-code -- blog.html posts rss.xml data/leak-case-index.json
 
+      # 브라우저 바이너리(약 150MB)를 매 배포마다 새로 받지 않도록 캐시한다 — 키는 고정한 playwright 버전
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-1.55.0-chromium
+
       - name: Install browser test runtime
         shell: bash
         run: |
           npm install --prefix "$RUNNER_TEMP/manmool-e2e" --no-save --package-lock=false playwright@1.55.0
-          "$RUNNER_TEMP/manmool-e2e/node_modules/.bin/playwright" install --with-deps chromium
+          if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
+            "$RUNNER_TEMP/manmool-e2e/node_modules/.bin/playwright" install-deps chromium
+          else
+            "$RUNNER_TEMP/manmool-e2e/node_modules/.bin/playwright" install --with-deps chromium
+          fi
 
       - name: Verify lead privacy
         env:
@@ -66,6 +78,7 @@ jobs:
           tests/inquiry-receipt.e2e.cjs
           tests/revenue-metadata.test.cjs
           tests/revenue-conversion.e2e.cjs
+          tests/hero-kakao.e2e.cjs
 
       - name: Run management office artifact mutation tests
         shell: bash
@@ -115,14 +128,14 @@ jobs:
         run: node scripts/ensure-pages-artifact.mjs
 
       - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Upload site artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           # 고객 화면에 필요한 허용목록만 공개한다. 서버 소스·테스트·문서는 제외.
           path: "_site"
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

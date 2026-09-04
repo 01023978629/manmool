@@ -94,6 +94,23 @@ for (const id of ['utilPhone', 'heroCall', 'inquiryCall', 'fabCall']) {
     `전화 버튼 #${id} 의 href 가 tel: 이 아니다 — 데이터 로드 전에 누르면 아무 일도 안 일어난다`,
     `#${id} tel: 하드코딩됨`);
 }
+/* ③-1 카톡 버튼이 첫 화면에도 있다 — js/main.js 가 kakao.ready 면 #heroKakao 를 켠다(요소가 없으면 죽은 배선) */
+{
+  const m = index.match(/<a[^>]*id="heroKakao"[^>]*>/);
+  check(m && /btn-kakao/.test(m[0]) && /\bhidden\b/.test(m[0]) && /hero-actions[\s\S]{0,600}id="heroKakao"/.test(index),
+    '첫 화면(hero-actions)에 #heroKakao 카톡 버튼이 없거나 기본 숨김이 아니다 — main.js 의 카톡 배선이 죽은 채 남는다',
+    '첫 화면 카톡 버튼(#heroKakao, 기본 숨김·ready 때만 표시)');
+}
+/* ③-2 주 버튼 글자 대비 — 흰 글자 16px 는 배경과 4.5:1 이상(WCAG AA). --brand(#b8895a)는 3.10 이라 버튼 배경으로 못 쓴다 */
+{
+  const css = fs.readFileSync(path.join(ROOT, 'css/styles.css'), 'utf8');
+  const hex = (name) => (css.match(new RegExp('--' + name + ':\\s*(#[0-9a-fA-F]{6})')) || [])[1] || '';
+  const lum = (h) => { const c = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+  const bgVar = (css.match(/\.btn-primary \{[^}]*background:\s*var\(--([a-z-]+)\)/) || [])[1] || '';
+  const bg = hex(bgVar);
+  const ratio = bg ? (1.05) / (lum(bg) + 0.05) : 0;
+  check(ratio >= 4.5, `.btn-primary 배경(${bgVar || '?'} ${bg || '?'})의 흰 글자 대비가 ${ratio.toFixed(2)}:1 — 4.5 미만`, `.btn-primary 흰 글자 대비 ${ratio.toFixed(2)}:1 (≥4.5)`);
+}
 check(/address:/.test(main.match(/const FALLBACK_CONTACT = \{[^}]*\}/)?.[0] || ''),
   'FALLBACK_CONTACT 에 address 가 없다 — site.json 로드 실패 시 주소가 통째로 사라진다',
   '로드 실패 폴백에 주소 포함');

@@ -8,6 +8,7 @@
   --line: #e7ddd0;
   --brand: #b8895a;
   --brand-dark: #9a6f43;
+  --brand-btn: #8a6239;     /* 흰 글자 대비 5.40:1 — 주 버튼 배경. --brand(3.10)·--brand-dark(4.44)는 16px 흰 글자에 기준 4.5 미달 */
   --link-strong: #7d5528;   /* 흰 배경 대비 6.56:1 — 연락처처럼 꼭 읽혀야 하는 링크용
                                (--brand-dark 는 4.44:1 로 기준 4.5 미달이라 본문 링크엔 부적합) */
   --brand-soft: #f3e7d7;
@@ -47,8 +48,8 @@ ul, ol { list-style: none; }
   font-family: inherit;
 }
 .btn:active { transform: translateY(1px); }
-.btn-primary { background: var(--brand); color: #fff; box-shadow: 0 8px 20px rgba(184,137,90,.35); }
-.btn-primary:hover { background: var(--brand-dark); box-shadow: 0 10px 26px rgba(184,137,90,.45); }
+.btn-primary { background: var(--brand-btn); color: #fff; box-shadow: 0 8px 20px rgba(184,137,90,.35); }
+.btn-primary:hover { background: var(--link-strong); box-shadow: 0 10px 26px rgba(184,137,90,.45); }
 .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
 .btn-ghost:hover { border-color: var(--brand); color: var(--brand-dark); }
 .btn-lg { padding: 15px 30px; font-size: 16px; }
