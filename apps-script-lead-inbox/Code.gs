@@ -274,7 +274,8 @@ function leadPresent_(row) {
 function leadList_(payload) {
   var status = String(payload.status || '전체');
   var rows = leadRows_('문의').filter(function (row) { return status === '전체' || String(row.status) === status; });
-  rows.sort(function (a, b) { return leadTime_(b.receivedAt) - leadTime_(a.receivedAt); });
+  // 같은 밀리초에 접수된 두 건은 시각으로 갈리지 않는다 — 나중에 붙은 행(행 번호 큰 쪽)이 위. 배포 게이트에서 실제로 걸렸다(2026-09-04).
+  rows.sort(function (a, b) { var d = leadTime_(b.receivedAt) - leadTime_(a.receivedAt); return d || (b._row - a._row); });
   var counts = {};
   LEAD_STATUSES.forEach(function (s) { counts[s] = 0; });
   leadRows_('문의').forEach(function (row) { if (counts[String(row.status)] !== undefined) counts[String(row.status)] += 1; });
