@@ -649,6 +649,8 @@ test('상세 화면은 officeGet의 공개 상태와 완료 보고만 textConten
     assert.equal(text.includes(privateValue), false, `비공개 값 노출: ${privateValue}`);
   }
   assert.equal(await page.locator('#officeCompletionSummary img').count(), 0);
+  // 공개 사진은 상세 화면이 보인 뒤 officePhoto 호출로 비동기로 붙는다 — 먼저 기다린 뒤 개수를 센다(CI 에서 0≠1 로 흔들렸음)
+  await page.locator('#officeCompletionPhotos img').first().waitFor();
   assert.equal(await page.locator('#officeCompletionPhotos img').count(), 1);
   assert.equal(await page.evaluate(() => window.__portalXss), false);
   assert.deepEqual(calls.filter((call) => call.action === 'officePhoto').map((call) => call.payload.photoId), ['public-photo']);
