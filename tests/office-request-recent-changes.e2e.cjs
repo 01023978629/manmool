@@ -154,6 +154,8 @@ test('지연된 수동 새로고침 완료는 사용자가 옮긴 필터 포커�
   await progressFilter.click();
   await progressFilter.focus();
   assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.dataset.officeFilter), 'progress');
+  // 두 번째 officeList 는 설정 조회를 거쳐 늦게 도착한다 — 기록될 때까지 잠깐 기다린 뒤 센다
+  for (let i = 0; i < 80 && calls.filter((entry) => entry.action === 'officeList').length < 2; i += 1) await page.waitForTimeout(25);
   assert.equal(calls.filter((entry) => entry.action === 'officeList').length, 2);
   resolveRefresh({ ok: true, requests: changed });
   await page.getByText('최근 변경 1건').waitFor();
@@ -396,7 +398,9 @@ test('진행 중 중복 클릭을 막고 로그아웃 전 늦은 목록이 새 �
   await page.waitForFunction(() => document.getElementById('officeRefreshRequests').disabled);
   assert.equal(calls.filter((entry) => entry.action === 'officeList').length, 3);
   assert.equal(await page.locator('#officeRefreshRequests').getAttribute('aria-busy'), 'true');
+  const lateOld = page.waitForResponse(async (response) => response.url() === API_URL && (await response.text()).includes('late-old-session'));
   resolveLate({ ok: true, requests: [request('late-old-session', 'completed', '2026-08-30T12:00:00.000Z')] });
+  await lateOld;   // 늦은 응답이 실제로 도착한 뒤에 본다
   await page.waitForTimeout(80);
   assert.equal(await page.locator('#officeRefreshRequests').isDisabled(), true);
   assert.equal(await page.locator('#officeRefreshRequests').getAttribute('aria-busy'), 'true');

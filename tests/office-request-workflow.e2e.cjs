@@ -31,7 +31,7 @@ function request(id, status = 'pending_review') {
 
 async function openPortal(respond, options = {}) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
-  page.setDefaultTimeout(1500);
+  page.setDefaultTimeout(4000);   // 사진 여러 장 전송·상세 여러 건 순회는 왕복이 많다 — 느린 러너 여유
   const calls = [];
   const pageErrors = [];
   page.on('pageerror', (error) => pageErrors.push(error));
@@ -377,7 +377,7 @@ test('create 성공 뒤 submitOfficeRequest는 결과 객체를 반환하고 일
   assert.equal(result.saved.photosComplete, true);
   assert.equal(result.disabled || result.hidden, true);
   await page.evaluate(() => document.getElementById('officeCreateForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
-  await page.waitForTimeout(50);
+  await page.waitForTimeout(150);   // 중복 제출이 요청을 냈다면 설정 조회를 거쳐 이 사이에 기록된다
   assert.equal(calls.filter((call) => call.action === 'officeCreate').length, 1);
   assert.deepEqual(pageErrors, []);
   await page.close();
@@ -897,8 +897,12 @@ test('상세 응답 경합에서는 늦은 A가 빠른 B 상세 화면을 덮어
   await login(page);
   await page.locator('[data-office-detail="req-race-a"]').click();
   await page.locator('[data-office-detail="req-race-b"]').click();
-  await page.getByText(b.receiptNo).waitFor();
+  // 목록 카드에도 B 접수번호가 있으므로 getByText 로는 상세를 기다린 것이 아니다 — 상세 칸 자체를 본다
+  await page.locator('#officeDetailView').waitFor({ state: 'visible' });
+  await page.waitForFunction((receipt) => document.getElementById('officeDetailReceipt').textContent === receipt, b.receiptNo);
+  const lateA = page.waitForResponse((response) => response.url() === API_URL && response.request().postDataJSON().action === 'officeGet' && response.request().postDataJSON().payload.requestId === a.requestId);
   releaseA({ ok: true, request: a });
+  await (await lateA).finished();
   await page.waitForTimeout(100);
   assert.equal((await page.locator('#officeDetailReceipt').innerText()), b.receiptNo);
   assert.match(await page.locator('#officeDetailStatus').innerText(), /처리 완료/);

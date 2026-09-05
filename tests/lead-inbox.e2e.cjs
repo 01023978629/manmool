@@ -182,6 +182,7 @@ test('틀린 비밀번호는 안내만 보이고 입력칸을 비우며, 5회째
     await page.locator('#inboxLoginError:not(:empty)').waitFor();
   }
   assert.equal(fake.state.failedLogins, 5);
+  assert.equal(calls.some((c) => c.body.payload && c.body.payload.adminCode === 'short'), false, '8자 미만은 서버를 부르지 않는다(뒤늦게라도)');
   await login(page, ADMIN_CODE);
   await page.locator('#inboxLoginError:has-text("15분")').waitFor();
   assert.equal(await page.locator('#inboxApp').isHidden(), true);
@@ -206,10 +207,10 @@ test('로그인하면 세션 필드만 sessionStorage 에 남고 목록은 텍�
   assert.deepEqual(stored.databases, []);
   assert.equal(stored.session.includes(ADMIN_CODE), false);
 
+  await page.locator('#inboxList .inbox-record').waitFor();
   const listCall = calls.find((c) => c.body.action === 'leadList');
   assert.equal(listCall.body.sessionToken, TOKEN);
   assert.deepEqual(listCall.body.payload, { status: '신규' });
-  await page.locator('#inboxList .inbox-record').waitFor();
   assert.equal(await page.locator('#inboxList .inbox-record').count(), 1);
   const listText = await page.locator('#inboxList').innerText();
   assert.equal(listText.includes('FIXTURE_NAME<img'), true, '손님 이름이 HTML 로 해석되지 않고 글자로 보여야 한다');
@@ -280,6 +281,8 @@ test('건을 열면 내용·이력이 텍스트로 보이고 거절은 사유 �
   await page.locator('#inboxDecisionMemo').fill('FIXTURE_MEMO 예산 불일치');
   await page.locator('[data-decision="거절"]').click();
   await page.locator('#inboxDetailStatus[data-status="거절"]').waitFor();
+  // 판정 뒤 목록·건수 재조회가 끝나야 상태 문구가 찍힌다 — 그 뒤에 목록/건수를 본다
+  await page.locator('#inboxStatus:has-text("거절(으)로 기록했습니다")').waitFor();
   const decide = calls.filter((c) => c.body.action === 'leadDecide');
   assert.equal(decide.length, 1);
   assert.equal(decide[0].body.sessionToken, TOKEN);
@@ -440,6 +443,8 @@ test('서버가 세션을 모르면 부팅은 로그인 화면으로 돌아오�
   await page.evaluate(([key, token]) => sessionStorage.setItem(key, JSON.stringify({ token, expiresAt: Date.now() + 60 * 60 * 1000 })), [SESSION_KEY, TOKEN]);
   await page.reload();
   await page.locator('#inboxLoginView:not([hidden])').waitFor();
+  // 로그인 화면은 처음부터 보인다 — 부팅이 세션을 지우고 설정 확인까지 마친 신호(로그인 버튼 활성)를 기다린다
+  await page.locator('#inboxLoginButton:not([disabled])').waitFor();
   assert.equal(await page.locator('#inboxDenied').isHidden(), true);
   assert.equal(await page.locator('#inboxApp').isHidden(), true);
   assert.equal((await storageSnapshot(page)).session, '');

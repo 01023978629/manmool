@@ -98,6 +98,7 @@ test('로그인 처리 중에는 중복 제출을 막는다', async () => {
   assert.equal(calls.filter((call) => call.action === 'portalLogin').length, 1);
   loginGate.resolve(login);
   await page.waitForURL(`${origin}/office-portal.html`);
+  assert.equal(calls.filter((call) => call.action === 'portalLogin').length, 1, '중복 제출이 설정 조회를 거쳐 늦게 요청을 냈다');
   assert.deepEqual(errors, []); await page.close();
 });
 
@@ -122,6 +123,7 @@ test('관리자 발급 인증번호는 한 번에 검증하고 세션에는 인�
   assert.deepEqual(stored.permissions, ['dashboard.view']);
   assert.equal(await page.locator('[data-panel="status"]').isHidden(), true);
   assert.equal(await page.locator('#portalAdminLink').isHidden(), true);
+  await page.waitForFunction(() => document.getElementById('portalDashboardCards').textContent.includes('보수 필요'));
   assert.match(await page.locator('#portalDashboardCards').innerText(), /보수 필요[\s\S]*2/);
   assert.deepEqual(errors, []); await page.close();
 });
@@ -211,6 +213,7 @@ test('입주민은 서버가 허용한 공개 목록만 읽고 상태·일지 �
   await seedSession(page, login); await page.goto(`${origin}/office-portal.html`); await page.locator('#portalApp').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#portalStatusForm').isHidden(), true);
   assert.equal(await page.locator('#portalLogForm').isHidden(), true);
+  await page.waitForFunction(() => document.getElementById('portalStatusList').textContent.includes('놀이터'));
   assert.match(await page.locator('#portalStatusList').innerText(), /놀이터[\s\S]*입주민 공개/);
   assert.equal(calls.some((call) => /Save$/.test(call.action)), false);
   assert.deepEqual(errors, []); await page.close();
@@ -350,7 +353,9 @@ test('관리소장은 담당자 배정·공지 발행·비용 승인 전이와 �
   await page.locator('#portalReportLoad').click();
   assert.match(await page.locator('#portalReportPeriod').innerText(), /366일 이내/);
   assert.equal(await page.locator('#portalReportLoad').getAttribute('aria-busy'), 'false');
+  const lateReport = page.waitForResponse(async (response) => response.url() === API_URL && (await response.text()).includes('999999'));
   lateReportGate.resolve({ ok: true, report: { startDate: '2026-01-01', endDate: '2026-01-02', counts: { workOrders: 999 }, totalAmountKrw: 999999 } });
+  await lateReport;   // 늦은 응답이 실제로 도착한 뒤에 본다
   await page.waitForTimeout(100);
   assert.equal(await page.locator('#portalReportCards').innerText(), '');
   assert.doesNotMatch(await page.locator('#portalReportCards').innerText(), /999/);
@@ -391,7 +396,9 @@ test('포털 로그아웃은 서버 응답 전에 민감 화면을 지우고 1.2
   const logoutStartedAt = Date.now();
   await page.locator('#portalLogout').click();
   await page.waitForFunction(() => document.getElementById('portalDeniedMessage').textContent.includes('로그아웃'));
+  const lateDashboard = page.waitForResponse(async (response) => response.url() === API_URL && (await response.text()).includes('늦은 민감 지표'));
   lateDashboardGate.resolve({ ok: true, metrics: [{ label: '늦은 민감 지표', value: 99 }], notices: ['늦은 비공개 안내'] });
+  await lateDashboard;   // 늦은 응답이 실제로 도착한 뒤에 본다
   await page.waitForTimeout(100);
   assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), core.SESSION_KEY), null);
   assert.equal(await page.locator('#portalApp').isHidden(), true);
@@ -447,6 +454,8 @@ test('관리자는 사용자·역할·동호와 보기 권한을 관리하고 �
   assert.match(nextUserSave.requestId, UUID_V4);
   assert.notEqual(nextUserSave.requestId, firstUserSave.requestId);
   await page.waitForFunction(() => document.getElementById('portalUserForm').elements.namedItem('userId').value === '');
+  // 저장 뒤 사용자 목록 재조회가 끝나면 권한 폼이 초기화된다 — 그 전에 권한 칸을 만지면 되돌아간다
+  await page.waitForFunction(() => document.getElementById('portalAdminStatus').textContent.includes('사용자 목록을 불러왔습니다'));
   await page.getByRole('button', { name: '보기 권한', exact: true }).click();
   assert.equal(await page.locator('#portalPermissionChecks input[value="status.view"]').isDisabled(), false);
   assert.equal(await page.locator('#portalPermissionChecks input[value="admin.users.view"]').isDisabled(), true);

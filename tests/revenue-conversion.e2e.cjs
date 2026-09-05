@@ -199,7 +199,7 @@ test('Naver handoff is default-off and rejects credentials, ports and lookalike 
     {ready:true,bookingUrl:'https://user:pass@booking.naver.com/booking/13/bizes/42'},
     {ready:true,bookingUrl:'https://booking.naver.com:444/booking/13/bizes/42'},
     {ready:true,bookingUrl:'https://booking.naver.com.evil.example/booking/13/bizes/42'}
-  ]){const page=await newPage();await page.route('**/data/config.json',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({naver})}));await page.goto(`${origin}/leak.html`);await new Promise(r=>setTimeout(r,100));assert.equal(await page.locator('#lkNaverBooking').count(),0);await page.close();}
+  ]){const page=await newPage();await page.route('**/data/config.json',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({naver})}));const cfg=page.waitForResponse(r=>r.url().includes('/data/config.json'));await page.goto(`${origin}/leak.html`);await (await cfg).finished();await new Promise(r=>setTimeout(r,100));assert.equal(await page.locator('#lkNaverBooking').count(),0);await page.close();}
   const mobile=await newPage();await mobile.route('**/data/config.json',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({naver:{ready:true,bookingUrl:'https://m.booking.naver.com/booking/13/bizes/42?from=mobile#fragment'}})}));await mobile.goto(`${origin}/leak.html`);const link=mobile.locator('#lkNaverBooking');await link.waitFor();assert.equal(await link.getAttribute('href'),'https://m.booking.naver.com/booking/13/bizes/42?from=mobile');assert.equal(await link.getAttribute('target'),'_blank');assert.equal(await link.getAttribute('rel'),'noopener noreferrer');await mobile.close();
 });
 

@@ -45,8 +45,8 @@ test('kakao.ready 가 아니면 첫 화면 카톡 버튼은 숨겨진다', async
   await page.route('**/data/config.json', (r) => r.fulfill({ contentType: 'application/json', body: config({ ready: false }) }));
   await page.route(/https:\/\/(?!127\.0\.0\.1)/, (r) => r.abort());
   await page.goto(`${origin}/index.html`);
-  await page.waitForFunction(() => document.getElementById('heroCall') && document.getElementById('heroCall').getAttribute('href'));
-  await page.waitForTimeout(300);
+  // 설정이 적용된 뒤에 본다(window.MANMUL 은 setupContactCtas 직전에 놓인다) — 정적 숨김만 보고 지나가지 않게
+  await page.waitForFunction(() => window.MANMUL && window.MANMUL.config);
   const hidden = await page.evaluate(() => { const el = document.getElementById('heroKakao'); return el.hidden && el.getBoundingClientRect().height === 0; });
   assert.equal(hidden, true);
   await page.close();

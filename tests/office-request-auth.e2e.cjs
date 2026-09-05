@@ -26,7 +26,7 @@ function serveStatic(req, res) {
 
 async function openPortal(respond) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
-  page.setDefaultTimeout(1000);
+  page.setDefaultTimeout(3000);   // 느린 러너에서 목록 조회(설정+목록 두 왕복) 동안 잠긴 버튼을 1초 안에 못 누르던 것
   const calls = [];
   const pageErrors = [];
   page.on('pageerror', (error) => pageErrors.push(error));
@@ -100,6 +100,8 @@ test('여섯 자리 PIN 로그인은 slug를 보내고 허용된 세션 필드�
   await page.locator('#officePin').fill('123456');
   await page.getByRole('button', { name: '로그인' }).click();
   await page.locator('#officeDashboardView').waitFor({ state: 'visible' });
+  // 목록은 대시보드가 보인 뒤 officeList 응답으로 채워진다 — 끝 신호(동기화 문구)를 기다린 뒤 읽는다
+  await page.getByText('접수 목록을 최신 상태로 불러왔습니다.').waitFor();
   const login = calls.find((call) => call.action === 'officeLogin');
   assert.deepEqual(login.payload, { slug: 'test-complex', pin: '123456' });
   const stored = await page.evaluate((key) => JSON.parse(sessionStorage.getItem(key)), SESSION_KEY);
@@ -126,7 +128,8 @@ test('새 로그인 응답의 단지 slug가 현재 주소와 다르면 세션�
   await page.goto(`${origin}/office-request.html?office=test-complex`);
   await page.locator('#officePin').fill('123456');
   await page.getByRole('button', { name: '로그인' }).click();
-  await page.locator('#officeLoginView').waitFor({ state: 'visible' });
+  // 로그인 화면은 실패해도 계속 보인다 — 실패 경로의 끝 신호(오류 문구)를 기다린 뒤 부작용이 없는지 본다
+  await page.waitForFunction(() => document.getElementById('officeLoginError').textContent.includes('처리 중 문제가 생겼습니다'));
   assert.equal(await page.locator('#officeLoginView').isVisible(), true);
   assert.equal(await page.locator('#officeRequestList').innerText(), '');
   assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), SESSION_KEY), null);
@@ -148,7 +151,10 @@ test('로그아웃 뒤 늦게 도착한 목록 응답은 접수 목록에 개인
   await page.getByRole('button', { name: '로그인' }).click();
   await page.locator('#officeDashboardView').waitFor({ state: 'visible' });
   await page.getByRole('button', { name: '로그아웃' }).click();
+  // 늦은 응답이 실제로 도착한 뒤에 본다 — 도착 전에 보면 검사가 아무것도 막지 못한다
+  const lateList = page.waitForResponse((response) => response.url() === API_URL && response.request().postDataJSON().action === 'officeList');
   release({ ok: true, requests: requestList() });
+  await (await lateList).finished();
   await page.waitForTimeout(100);
   assert.equal(await page.locator('#officeLoginView').isVisible(), true);
   assert.equal(await page.locator('#officeRequestList').innerText(), '');
@@ -225,6 +231,7 @@ test('유효한 세션은 새로고침 뒤 PIN 없이 목록을 다시 불러온
   })), SESSION_KEY);
   await page.reload();
   await page.locator('#officeDashboardView').waitFor({ state: 'visible' });
+  await page.getByText('접수 목록을 최신 상태로 불러왔습니다.').waitFor();
   assert.equal(await page.locator('#officeLoginView').isHidden(), true);
   assert.equal(calls.filter((call) => call.action === 'officeLogin').length, 0);
   assert.equal(calls.filter((call) => call.action === 'officeList').length, 1);
@@ -350,6 +357,7 @@ test('악성 문자열을 포함한 반환 접수는 HTML을 실행하지 않고
   await page.locator('#officePin').fill('123456');
   await page.getByRole('button', { name: '로그인' }).click();
   await page.locator('#officeDashboardView').waitFor({ state: 'visible' });
+  await page.getByText('접수 목록을 최신 상태로 불러왔습니다.').waitFor();
   assert.equal(await page.evaluate(() => window.officeInjected), false);
   assert.equal(await page.locator('#officeRequestList img').count(), 0);
   assert.match(await page.locator('#officeRequestList').innerText(), /<img src=x onerror/);
@@ -398,6 +406,8 @@ test('390px 화면에서 인증 후 표시되는 작업 제어는 가로 넘침�
   await page.locator('#officePin').fill('123456');
   await page.getByRole('button', { name: '로그인' }).click();
   await page.locator('#officeDashboardView').waitFor({ state: 'visible' });
+  // 접수 카드의 버튼까지 재려면 목록이 채워진 뒤여야 한다
+  await page.getByText('접수 목록을 최신 상태로 불러왔습니다.').waitFor();
   const metrics = await page.evaluate(() => ({
     width: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth,

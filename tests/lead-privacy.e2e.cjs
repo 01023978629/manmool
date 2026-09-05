@@ -974,6 +974,16 @@ function deferredResponse() {
   return { kind: 'deferred', promise, resolve };
 }
 
+// 미뤄 둔 제공자 응답을 풀고 그 응답이 실제로 페이지에 도착할 때까지 기다린다 — 도착 전에 보면
+// '덮어쓰지 않는다' 검사가 아무것도 막지 못하고, '성공 문구' 검사는 느린 러너에서 헛되이 떨어진다.
+// (앱이 이미 포기(abort)한 요청에는 쓰지 않는다 — 응답 이벤트가 오지 않는다.)
+async function deliver(handle, deferred, body) {
+  const arrived = handle.page.waitForResponse((response) => new URL(response.url()).pathname === '/__lead');
+  deferred.resolve(body);
+  await (await arrived).finished();
+  await handle.page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 0)));
+}
+
 async function openForm(kind, options = {}) {
   const viewport = options.viewport || { width: 1280, height: 900 };
   const context = await browser.newContext({ viewport, serviceWorkers: 'block' });
@@ -2630,7 +2640,8 @@ test('수동 재시도·온라인 이벤트·연속 클릭은 한 요청과 한 
       }, selector);
       await waitForRequestCount(handle, 2);
       assert.equal(await handle.page.evaluate(() => window.__retryCallCount >= 3), true, 'manual and online paths must call shared retryLatest');
-      retry.resolve(json({ ok: true }));
+      await deliver(handle, retry, json({ ok: true }));
+      await handle.page.waitForFunction((selector) => /상담 신청이 전달되었습니다|접수됐습니다\./.test((document.querySelector(selector) || {}).innerText || ''), handle.kind === 'general' ? '.inquiry-done' : '#lkDone');
       const text = await resultText(handle);
       assert.match(text, /상담 신청이 전달되었습니다|접수됐습니다\./);
       assert.equal(await handle.page.evaluate(() => window.__successTransitions), 1);
@@ -2654,7 +2665,7 @@ test('늦은 직접 성공은 더 최신 실패 화면을 덮거나 누수 제�
       await handle.page.locator(kind === 'general' ? '#inquiryForm' : '#leakForm').dispatchEvent('submit');
       await waitForRequestCount(handle, 2);
 
-      first.resolve(json({ ok: true }));
+      await deliver(handle, first, json({ ok: true }));
       await new Promise((resolve) => setTimeout(resolve, 120));
       if (kind === 'leak') {
         assert.equal(await handle.page.locator('#lkSubmit').isDisabled(), true, 'older finally re-enabled the leak button');
@@ -2692,7 +2703,7 @@ test('오래된 재시도 성공과 세대가 맞지 않는 직접 성공은 최
       }, kind === 'general' ? '#inquiryForm' : '#leakForm');
       await waitForRequestCount(handle, 3);
       await assertNotDelivered(handle);
-      retry.resolve(json({ ok: true }));
+      await deliver(handle, retry, json({ ok: true }));
       await new Promise((resolve) => setTimeout(resolve, 120));
       await assertNotDelivered(handle);
 
@@ -2707,8 +2718,9 @@ test('오래된 재시도 성공과 세대가 맞지 않는 직접 성공은 최
         source: 'test-only-newest-generation', name: 'SAFE_NEWEST', phone: '0000000000',
       }));
       assert.equal(newestGeneration >= 3, true);
-      direct.resolve(json({ ok: true }));
-      await new Promise((resolve) => setTimeout(resolve, 120));
+      const clearedBefore = await handle.page.evaluate(() => window.__clearFailureArgs.length);
+      await deliver(handle, direct, json({ ok: true }));
+      await handle.page.waitForFunction((count) => window.__clearFailureArgs.length > count, clearedBefore);
       const clearArgs = await handle.page.evaluate(() => window.__clearFailureArgs.slice());
       assert.equal(clearArgs.includes(newestGeneration), false, 'direct success cleared a generation created after it started');
       assert.equal(clearArgs.some((generation) => generation > 0 && generation < newestGeneration), true, 'direct success did not use its captured generation');
