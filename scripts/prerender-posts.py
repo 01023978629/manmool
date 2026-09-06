@@ -21,11 +21,19 @@ from email.utils import format_datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE = 'https://01023978629.github.io/manmool'
-V = '20260830-followup1'  # 정적 글 스타일 캐시버스터
+V = '20260907-story-paragraphs'  # 짧은 문단 간격 반영
 
 
 def esc(s):
     return html.escape(str(s or ''), quote=True)
+
+
+def render_paragraphs(value):
+    """Plain-text blank lines become paragraphs; never interpret source HTML."""
+    text = str(value or '').replace('\r\n', '\n').replace('\r', '\n')
+    paragraphs = re.split(r'\n[\t ]*\n+', text.strip())
+    return ''.join('<p>' + esc(p.strip()).replace('\n', '<br>') + '</p>'
+                   for p in paragraphs if p.strip())
 
 
 def shade_cover(hexv):
@@ -208,7 +216,7 @@ def article_html(a, insights):
     # 문단마다 사진을 한 장 붙일 수 있다(선택). 표지 한 장만으로는 '무엇을 갈았는지'가
     # 안 보이는 현장 기록이 있어서, 해당 문단 바로 아래에 근거 사진을 둔다.
     def section_html(s):
-        out = f'<h2>{esc(s.get("h"))}</h2><p>{esc(s.get("p"))}</p>'
+        out = f'<h2>{esc(s.get("h"))}</h2>' + render_paragraphs(s.get('p'))
         if s.get('img'):
             cap = f'<figcaption>{esc(s["imgCaption"])}</figcaption>' if s.get('imgCaption') else ''
             out += (f'<figure class="post-figure"><img src="../{esc(s["img"])}"{case_extra(s.get("img"), SIZES_POST, "../")} '
@@ -377,7 +385,7 @@ def article_html(a, insights):
           <a class="post-back" href="../blog.html">← 인사이트 목록</a>
           <span class="post-cat">{esc(a.get('category'))}</span>
           <h1 class="post-title">{esc(a['title'])}</h1>
-          <p class="post-meta">{esc(a.get('date'))} · {esc(a.get('readMin'))}분 읽기</p>
+          <p class="post-meta">{esc(a.get('date'))} · {esc(a.get('readMin'))}분 읽기{(' · 수정 ' + esc(a['updated'])) if a.get('updated') and a['updated'] != a.get('date') else ''}</p>
           <div class="post-cover" style="background:{shade_cover(a.get('cover'))}">{cover_img}</div>{summary_slot}
           <div class="post-body">
             <p class="post-excerpt">{esc(a.get('excerpt'))}</p>

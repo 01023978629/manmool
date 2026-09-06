@@ -35,5 +35,21 @@ class ArticleServiceTests(unittest.TestCase):
         )
 
 
+class ParagraphTests(unittest.TestCase):
+    def test_blank_lines_are_semantic_paragraphs(self):
+        self.assertEqual(PRERENDER.render_paragraphs(' 첫 문단\n두 줄\n\n다음 문단 '),
+                         '<p>첫 문단<br>두 줄</p><p>다음 문단</p>')
+
+    def test_crlf_whitespace_and_empty_paragraphs(self):
+        self.assertEqual(PRERENDER.render_paragraphs('\r\nA\r\n \t\r\n\r\nB\r\n'),
+                         '<p>A</p><p>B</p>')
+        self.assertEqual(PRERENDER.render_paragraphs(' \n\n '), '')
+        self.assertEqual(PRERENDER.render_paragraphs(None), '')
+
+    def test_text_cannot_inject_markup(self):
+        self.assertEqual(PRERENDER.render_paragraphs('<img onerror="bad()"> &\n\n끝'),
+                         '<p>&lt;img onerror=&quot;bad()&quot;&gt; &amp;</p><p>끝</p>')
+
+
 if __name__ == '__main__':
     unittest.main()
