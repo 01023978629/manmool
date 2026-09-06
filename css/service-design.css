@@ -13,7 +13,8 @@ html:has(body.service-page) { scroll-padding-top: 0; }
   scroll-margin-top: calc(var(--service-header-offset) + var(--service-jump-height) + 20px);
 }
 .service-page .service-family {
-  display: flex;
+  /* Only the no-script mobile fallback uses this secondary navigation. */
+  display: none;
   justify-content: center;
   gap: 8px;
   padding: 12px 20px;
@@ -74,6 +75,9 @@ html:has(body.service-page) { scroll-padding-top: 0; }
 }
 .service-page .section-head h2 { text-wrap: balance; }
 .service-page .section-head p { line-height: 1.85; }
+@media (max-width: 960px) {
+  .service-page .service-family { display: flex; }
+}
 @media (max-width: 760px) {
   .service-page { --service-header-offset: 64px; }
   .service-page .service-family { gap: 3px; padding: 8px 12px; }
