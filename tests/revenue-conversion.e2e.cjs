@@ -75,7 +75,9 @@ test('정적 전환 게이트는 공개 수익 경계 변이를 각각 좁은 �
       fs.writeFileSync(file, original, 'utf8');
       assert.deepEqual(verifyRevenueOperations(temp), []);
     };
-    mutate('office.html', '접수 프로그램 이용료 0원', '접수 프로그램 이용료', /0원 프로그램/);
+    // 상단 업무 카드에도 같은 안내가 있다. 게이트가 보호하는 패키지 영역을
+    // 정확히 변이해야 다른 위치의 정상 문구가 삭제 시험을 가리지 않는다.
+    mutate('office.html', /(<aside class="office-package-note"[\s\S]*?)접수 프로그램 이용료 0원/, '$1접수 프로그램 이용료', /0원 프로그램/);
     mutate('js/office-pilot.js', "source:'office-pilot',", "source:'office-pilot',officeRequest:true,", /직원 포털/);
     mutate('js/office-pilot.js', "privacyConsent:fd.get('privacyConsent') === 'on'", "residentPhone:fd.get('phone'),privacyConsent:fd.get('privacyConsent') === 'on'", /금지된 입주민 정보/);
     mutate('office.html', "connect-src 'self' https://api.web3forms.com https://script.google.com https://script.googleusercontent.com", "connect-src 'self' https://api.web3forms.com https://script.google.com https://script.googleusercontent.com *", /와일드카드/);
@@ -89,6 +91,7 @@ test('정적 전환 게이트는 공개 수익 경계 변이를 각각 좁은 �
     mutate('js/leak-inquiry.js', 'naver.ready === true', 'naver.ready !== true', /ready/);
     mutate('js/revenue-conversion.js', 'NAVER_HOSTS.has(url.hostname)', 'url.hostname.endsWith("naver.com")', /공식 네이버 host/);
     mutate('scripts/pages-artifact-policy.mjs', "'office-pilot.js', ", '', /artifact allowlist/);
+    mutate('office.html', '<script src="js/lead-transport.js?v=20260831-revenue1"></script>', '', /script 순서/);
     mutate('posts/apartment-basement-cast-iron-pipe-repair.html', '</body>', '<p>500만원 이하 표준 패키지</p></body>', /공개 artifact 판매 문구/);
     mutate('integrations/인수인계서.md', '# ', '# 500만원 이하 맞춤 표준 패키지\n\n# ', /운영 문서 판매 문구/);
   } finally {
@@ -166,7 +169,14 @@ test('portal content is preserved except line-ending normalization and the exact
 test('pilot markup fixes limits, disclosure, privacy and script order', async()=>{
   const page=await newPage(); await page.goto(`${origin}/office.html`); for(const [id,n] of [['pilotComplexName',80],['pilotOfficeContactName',50],['pilotPhone',30],['pilotRegion',80],['pilotDesiredStart',80],['pilotMemo',500]]) assert.equal(await page.locator('#'+id).getAttribute('maxlength'),String(n));
   assert.match(await page.locator('#officePilot').innerText(),/접수 프로그램 이용료 0원/); assert.match(await page.locator('#officePilot').innerText(),/실제 작업은 별도 견적/); assert.match(await page.locator('#officePilot').innerText(),/입주민 이름·전화번호·동호수·현장사진 또는 사진 링크는 적지 마세요/);
-  const scripts=await page.locator('script[src]').evaluateAll(xs=>xs.map(x=>x.getAttribute('src'))); assert.deepEqual(scripts.slice(-3),['js/revenue-conversion.js?v=20260831-revenue1','js/lead-transport.js?v=20260831-revenue1','js/office-pilot.js?v=20260831-revenue1']); await page.close();
+  const scripts=await page.locator('script[src]').evaluateAll(xs=>xs.map(x=>x.getAttribute('src')));
+  const required=['js/revenue-conversion.js?v=20260831-revenue1','js/lead-transport.js?v=20260831-revenue1','js/office-pilot.js?v=20260831-revenue1'];
+  // 필요한 세 스크립트의 유일성과 의존 순서를 검사한다. 독립적인 화면 내비가
+  // 뒤에 추가됐다는 이유로 정상적인 상담 의존성을 실패 처리하지 않는다.
+  for (const src of required) assert.equal(scripts.filter(value=>value===src).length,1,src+' must be loaded exactly once');
+  const order=required.map(src=>scripts.indexOf(src));
+  assert.ok(order[0]<order[1] && order[1]<order[2], '상담 스크립트 의존 순서');
+  await page.close();
 });
 
 async function fillLeak(page) { await page.fill('#lkPhone','010-1234-5678'); await page.check('#lkConsent'); }
