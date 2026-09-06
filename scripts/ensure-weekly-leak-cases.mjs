@@ -29,6 +29,7 @@ export const WEEKLY_CASES = [
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const failures = [];
+let mutationChecks = 0;
 const allImages = WEEKLY_CASES.flatMap((item) => item.images);
 
 function jpegSize(buffer) {
@@ -72,9 +73,6 @@ const expectedContent = [
   {
     slug: 'apartment-balcony-rain-pipe-replacement',
     date: '2026-08-28',
-    updated: '2026-08-30',
-    title: '대전 한밭우성아파트 베란다 우수관 보수 — 바닥 배수구와 하부 연결 부속 교체',
-    excerpt: '대전 한밭우성아파트 베란다에서 바닥 배수구를 열어 처음 상태를 남긴 뒤, 수직 우수관을 따라 천장 관통부까지 살폈습니다. 마지막에는 다시 바닥으로 내려와 하부 연결 부속을 설치하고 마감 범위를 확인했습니다.',
     publicApartmentName: '한밭우성아파트',
     caseSummarySite: '대전 한밭우성아파트 베란다',
     coverAlt: '수직 우수관 하부 연결부와 바닥 마감 상태'
@@ -82,14 +80,9 @@ const expectedContent = [
   {
     slug: 'apartment-upper-lower-rain-pipe-repair',
     date: '2026-08-28',
-    updated: '2026-08-30',
-    title: '대전 목양마을아파트 상·하층 우수관 보수 — 우수 배수부품 교체',
-    excerpt: '대전 목양마을아파트에서 바닥 배수구와 위·아래층을 잇는 우수관 관통부를 차례로 확인한 현장입니다. 기존 마감과 원형 부속을 살핀 뒤, 우수관 연결 부품을 교체하고 배수구 그릴을 설치해 마무리했습니다.',
     publicApartmentName: '목양마을아파트',
     caseSummarySite: '대전 목양마을아파트',
     coverAlt: '수직 우수관과 천장 관통부 현장 상태',
-    finalHeading: '우수 배수부품 교체를 마쳤습니다',
-    finalText: '우수관 하부 연결 부품을 교체하고 배수구 그릴을 설치한 뒤의 모습입니다. 수직관과 하부 연결 부품, 배수구 그릴이 함께 보이도록 마무리 상태를 기록했습니다.',
     finalImage: 'assets/cases/apartment-upper-lower-rain-pipe-repair-5.jpg',
     finalAlt: '우수관 하부 연결 부속과 원형 배수구 그릴 설치 상태',
     finalCaption: '우수관 하부 연결 부속과 바닥 배수구 그릴을 설치한 모습'
@@ -97,9 +90,6 @@ const expectedContent = [
   {
     slug: 'apartment-basement-cast-iron-pipe-repair',
     date: '2026-08-26',
-    updated: '2026-08-30',
-    title: '대전 유원아파트 지하실 주철관 보수 — 부식 구간부터 슬리브 마감까지',
-    excerpt: '대전 유원아파트 지하실에서 나란히 이어진 주철관 가운데 관벽이 벌어지고 부식이 두드러진 구간을 확인했습니다. 절개된 관 내부를 살핀 뒤 손상 구간에 보수 슬리브를 설치하고, 두 배관의 작업 후 모습까지 순서대로 기록했습니다.',
     publicApartmentName: '유원아파트',
     caseSummarySite: '대전 유원아파트 지하실',
     coverAlt: '지하실 주철관 두 라인에 슬리브 보수를 마친 상태'
@@ -129,6 +119,10 @@ function hasAllowedBuildingBoundaryViolation(value, allowedName, allowedSuffixes
     if (previous && /[\p{L}\p{N}]/u.test(previous)) return true;
 
     const suffix = value.slice(index + allowedName.length);
+    // 승인된 정본의 문장은 바뀔 수 있지만, 다른 단지·별관으로 고유명을 확장하면 안 된다.
+    // 아래 검사는 allowedSuffixes에도 앞서므로 오염된 정본을 그대로 허용하지 않는다.
+    const extension = suffix.replace(/^(?:에서|의)/u, '').replace(/^[\s(·,\-—]+/u, '');
+    if (/^(?:(?:제)?[0-9가-힣]+단지|별관|동관|타워)/u.test(extension)) return true;
     const isApprovedSuffix = !suffix || allowedSuffixes.includes(suffix) || /^[.!?…]+\s*$/u.test(suffix);
     if (!isApprovedSuffix) return true;
     searchFrom = index + allowedName.length;
@@ -172,11 +166,76 @@ function privacyViolations(value, { allowedBuildingNames = [], allowedBuildingSu
 }
 
 function escapeMarkup(value) {
-  return String(value)
+  return String(value == null ? '' : value)
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;');
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#x27;');
+}
+
+// 생성기를 import하지 않는 독립 계약: 빈 줄은 문단, 단일 줄바꿈은 <br>다.
+function renderedParagraphs(value) {
+  return String(value == null ? '' : value).replace(/\r\n?/g, '\n')
+    .split(/\n[\t ]*\n+/).map((paragraph) => paragraph.trim()).filter(Boolean)
+    .map((paragraph) => `<p>${escapeMarkup(paragraph).replaceAll('\n', '<br>')}</p>`).join('');
+}
+
+function validIsoDay(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function latestPublicDay(insights) {
+  return (Array.isArray(insights) ? insights : []).filter((item) => item && item.published !== false)
+    .map((item) => item.updated || item.date).filter(validIsoDay).sort().at(-1) || '';
+}
+
+function publicTextValues(value) {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.flatMap(publicTextValues);
+  if (value && typeof value === 'object') return Object.values(value).flatMap(publicTextValues);
+  return [];
+}
+
+function postBodyMarkup(post) {
+  const marker = '<div class="post-body">', start = post.indexOf(marker);
+  if (start < 0) return '';
+  const end = post.indexOf('</div>', start + marker.length);
+  return end < 0 ? '' : post.slice(start + marker.length, end);
+}
+
+function bodyParagraphViolations({ item, post }) {
+  const violations = [], body = postBodyMarkup(post);
+  const sections = Array.isArray(item.body) ? item.body : [];
+  const headings = [...body.matchAll(/<h2>[\s\S]*?<\/h2>/g)];
+  if (headings.length !== sections.length) violations.push('정적 글 본문 소제목 수 불일치');
+  sections.forEach((section, index) => {
+    const heading = headings[index], expectedHeading = `<h2>${escapeMarkup(section.h)}</h2>`;
+    if (!heading || heading[0] !== expectedHeading) { violations.push(`정적 글 본문 ${index + 1} 소제목 불일치`); return; }
+    const start = heading.index + heading[0].length;
+    const end = headings[index + 1]?.index ?? body.length;
+    const sectionMarkup = body.slice(start, end).trim();
+    const actual = sectionMarkup.split('<figure class="post-figure">')[0].trim();
+    if (actual !== renderedParagraphs(section.p)) violations.push(`정적 글 본문 ${index + 1} 문단 불일치`);
+  });
+  return violations;
+}
+
+if (renderedParagraphs(' 첫 줄\r\n다음 <줄> & "인용"\r\n \r\n둘째 \'문단\'\n\n') !== '<p>첫 줄<br>다음 &lt;줄&gt; &amp; &quot;인용&quot;</p><p>둘째 &#x27;문단&#x27;</p>') failures.push('문단 렌더링 계약 fixture 불일치');
+if (latestPublicDay([{ date: '2026-08-28', updated: '2026-09-07' }, { date: '2026-09-04' }, { date: '2099-01-01', published: false }, { date: '2026-02-30' }]) !== '2026-09-07') failures.push('공개 글 수정일 최댓값 fixture 불일치');
+const paragraphFixture = { body: [{ h: '작업 과정', p: '첫 줄\n다음 줄\n\n둘째 <설명>' }] };
+const paragraphFixturePost = '<div class="post-body"><h2>작업 과정</h2><p>첫 줄<br>다음 줄</p><p>둘째 &lt;설명&gt;</p></div>';
+if (bodyParagraphViolations({ item: paragraphFixture, post: paragraphFixturePost }).length) failures.push('정상 다중 문단 fixture가 차단된다');
+for (const [label, post] of [
+  ['문단 누락', paragraphFixturePost.replace('<p>둘째 &lt;설명&gt;</p>', '')],
+  ['문단 합침', paragraphFixturePost.replace('</p><p>', ' ')],
+  ['단일 줄바꿈 누락', paragraphFixturePost.replace('<br>', ' ')],
+  ['HTML 이스케이프 누락', paragraphFixturePost.replace('&lt;설명&gt;', '<설명>')]
+]) {
+  mutationChecks += 1;
+  if (!bodyParagraphViolations({ item: paragraphFixture, post }).includes('정적 글 본문 1 문단 불일치')) failures.push(`문단 오염 fixture가 통과했다: ${label}`);
 }
 
 const caseSummaryFields = [
@@ -248,6 +307,8 @@ function caseSummaryViolations({ item, post }) {
 
 function relatedServiceViolations({ item, post, insights }) {
   const violations = [];
+  insights = (Array.isArray(insights) ? insights : []).filter((entry) => entry && entry.published !== false)
+    .slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
   const relatedStart = post.indexOf('<div class="post-related">');
   const relatedEnd = relatedStart < 0 ? -1 : post.indexOf('<footer class="site-footer">', relatedStart);
   const relatedMarkup = relatedStart < 0 || relatedEnd < 0 ? '' : post.slice(relatedStart, relatedEnd);
@@ -304,7 +365,7 @@ function artifactParityViolations({ item, expected, post, blog, rss }) {
   if (!post.includes(`<meta name="twitter:image" content="${imageUrl}" />`)) violations.push('Twitter image 불일치');
   if (!post.includes(`"headline": "${title}"`)) violations.push('JSON-LD headline 불일치');
   if (!post.includes(`"description": "${excerpt}"`)) violations.push('JSON-LD description 불일치');
-  if (!post.includes(`"dateModified": "${expected.updated}"`)) violations.push('JSON-LD dateModified 불일치');
+  if (!post.includes(`"dateModified": "${item.updated || item.date}"`)) violations.push('JSON-LD dateModified 불일치');
 
   const coverStart = post.indexOf('<div class="post-cover"');
   const coverEnd = coverStart < 0 ? -1 : post.indexOf('</div>', coverStart);
@@ -312,6 +373,7 @@ function artifactParityViolations({ item, expected, post, blog, rss }) {
   if (!cover.includes(`alt="${coverAlt}"`)) violations.push('정적 글 표지 설명 불일치');
 
   if (expected.finalImage) {
+    const finalSection = (item.body || []).at(-1) || {};
     const bodyMarker = '<div class="post-body">';
     const bodyStart = post.indexOf(bodyMarker);
     const bodyContentStart = bodyStart < 0 ? -1 : bodyStart + bodyMarker.length;
@@ -319,8 +381,8 @@ function artifactParityViolations({ item, expected, post, blog, rss }) {
     const postBody = bodyContentStart < 0 || bodyEnd < 0 ? '' : post.slice(bodyContentStart, bodyEnd);
     if (!postBody) violations.push('정적 글 본문 영역 없음');
 
-    const heading = `<h2>${escapeMarkup(expected.finalHeading)}</h2>`;
-    const paragraph = `<p>${escapeMarkup(expected.finalText)}</p>`;
+    const heading = `<h2>${escapeMarkup(finalSection.h)}</h2>`;
+    const paragraph = renderedParagraphs(finalSection.p);
     const headings = [...postBody.matchAll(/<h2>[\s\S]*?<\/h2>/g)];
     const lastHeading = headings.at(-1);
     if (!lastHeading || lastHeading[0] !== heading) violations.push('정적 글 마지막 소제목 불일치');
@@ -422,6 +484,7 @@ if (!privacyViolations({ title: '목양마을아파트 , 제2단지' }, allowedA
 if (!privacyViolations({ title: '목양마을아파트 — 제2단지' }, allowedApartment).length) failures.push('허용 아파트명의 공백 대시 단지 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트에서(제2단지)' }, allowedApartment).length) failures.push('허용 아파트명의 조사 뒤 괄호 단지 변형이 통과한다');
 if (!privacyViolations({ title: '목양마을아파트 가람아파트 배관 보수' }, allowedApartment).length) failures.push('허용 아파트명과 다른 단지명이 함께 통과한다');
+if (!privacyViolations({ title: '목양마을아파트 (제2단지)' }, { allowedBuildingNames: ['목양마을아파트'], allowedBuildingSuffixes: { 목양마을아파트: [' (제2단지)'] } }).length) failures.push('정본 문맥 허용목록이 다른 단지 확장 차단을 우회한다');
 if (!/\.nav-toggle\s*\{[^}]*min-width:\s*44px;[^}]*min-height:\s*44px;/s.test(styles)) failures.push('메뉴 토글 44px 터치 영역 CSS 계약이 없다');
 
 const leakHeroRelative = 'assets/cases/case-hanbat-drain.jpg';
@@ -437,14 +500,17 @@ if (!/<meta property="og:image:width" content="1400" \/>/.test(leak)
 }
 
 if (!/시행일 2026-08-30/.test(privacy)) failures.push('개인정보처리방침 시행일이 2026-08-30이 아니다');
+const latestDay = latestPublicDay(site.insights);
+if (!latestDay) failures.push('공개 글의 유효한 최신 날짜가 없다');
 for (const page of ['leak', 'blog']) {
   const entry = sitemap.match(new RegExp(`<url>\\s*<loc>https://01023978629\\.github\\.io/manmool/${page}\\.html</loc>\\s*<lastmod>([^<]+)</lastmod>`));
-  if (entry?.[1] !== '2026-09-04') failures.push(`${page}.html sitemap lastmod가 2026-09-04가 아니다`);
+  if (entry?.[1] !== latestDay) failures.push(`${page}.html sitemap lastmod가 최신 공개 글 수정일 ${latestDay}와 다르다`);
 }
 const privacyEntry = sitemap.match(/<url>\s*<loc>https:\/\/01023978629\.github\.io\/manmool\/privacy\.html<\/loc>\s*<lastmod>([^<]+)<\/lastmod>/);
 if (privacyEntry?.[1] !== '2026-08-30') failures.push('privacy.html sitemap lastmod가 2026-08-30이 아니다');
-if (!/<lastBuildDate>Fri, 04 Sep 2026 00:00:00 \+0900<\/lastBuildDate>/.test(rss)) {
-  failures.push('RSS lastBuildDate가 가장 최근 공개 글 날짜 2026-09-04가 아니다');
+const expectedBuildDate = latestDay ? new Date(`${latestDay}T00:00:00.000Z`).toUTCString().replace('GMT', '+0900') : '';
+if (!expectedBuildDate || !rss.includes(`<lastBuildDate>${expectedBuildDate}</lastBuildDate>`)) {
+  failures.push(`RSS lastBuildDate가 가장 최근 공개 글 수정일 ${latestDay}와 다르다`);
 }
 
 for (const expected of expectedContent) {
@@ -453,15 +519,17 @@ for (const expected of expectedContent) {
   const item = matches[0];
   const media = [item.image, ...(item.body || []).filter((section) => section.img).map((section) => section.img)];
   const wantedMedia = WEEKLY_CASES.find((entry) => entry.slug === expected.slug).images;
-  if (item.title !== expected.title || item.date !== expected.date || item.updated !== expected.updated) failures.push(`${expected.slug}: 제목·날짜·수정일이 다르다`);
-  if (expected.excerpt && item.excerpt !== expected.excerpt) failures.push(`${expected.slug}: 첫 설명이 다르다`);
-  if (expected.caseSummarySite && !item.excerpt.startsWith(`${expected.caseSummarySite}에서`)) failures.push(`${expected.slug}: 첫 설명에 공개 아파트명이 없다`);
+  if (item.published === false) failures.push(`${expected.slug}: 승인된 공개 사례가 비공개로 바뀌었다`);
+  if (item.date !== expected.date || !validIsoDay(item.updated || item.date) || (item.updated || item.date) < item.date) failures.push(`${expected.slug}: 최초 발행일 또는 수정일이 유효하지 않다`);
+  if (typeof item.title !== 'string' || !item.title.includes(expected.publicApartmentName)) failures.push(`${expected.slug}: 제목에 공개 아파트명이 없다`);
+  if (typeof item.excerpt !== 'string' || !item.excerpt.includes(expected.publicApartmentName)) failures.push(`${expected.slug}: 첫 설명에 공개 아파트명이 없다`);
   if (expected.caseSummarySite && item.caseSummary?.site !== expected.caseSummarySite) failures.push(`${expected.slug}: 사례 핵심 요약 현장명이 다르다`);
   if (item.imageAlt !== expected.coverAlt) failures.push(`${expected.slug}: 표지 사진 설명이 다르다`);
   if (expected.finalImage) {
     const finalSection = (item.body || []).at(-1);
-    if (!finalSection || finalSection.h !== expected.finalHeading || finalSection.img !== expected.finalImage) failures.push(`${expected.slug}: 완료 사진이 본문 마지막에 없다`);
-    if (finalSection?.p !== expected.finalText) failures.push(`${expected.slug}: 완료 작업 설명이 다르다`);
+    if (!finalSection || !String(finalSection.h || '').trim() || finalSection.img !== expected.finalImage) failures.push(`${expected.slug}: 완료 사진이 본문 마지막에 없다`);
+    const finalText = String(finalSection?.p || '').replace(/\s+/g, '');
+    if (!/우수관/.test(finalText) || !/(?:부품|부속)/.test(finalText) || !/교체/.test(finalText) || !/배수구그릴/.test(finalText)) failures.push(`${expected.slug}: 완료 작업 설명에서 우수관 부품 교체·배수구 그릴 사실이 빠졌다`);
     if (finalSection?.imgAlt !== expected.finalAlt) failures.push(`${expected.slug}: 완료 사진 alt가 다르다`);
     if (finalSection?.imgCaption !== expected.finalCaption) failures.push(`${expected.slug}: 완료 사진 캡션이 다르다`);
   }
@@ -469,9 +537,16 @@ for (const expected of expectedContent) {
   if ((item.body || []).length < 4 || item.body.length > 6) failures.push(`${expected.slug}: 본문 소제목이 4~6개가 아니다`);
   if (JSON.stringify(media) !== JSON.stringify(wantedMedia)) failures.push(`${expected.slug}: 사진 순서 또는 수가 다르다`);
   const approvedApartmentSuffixes = expected.publicApartmentName
-    ? [expected.title, expected.excerpt, expected.caseSummarySite]
+    ? publicTextValues(item)
         .filter((value) => typeof value === 'string' && value.includes(expected.publicApartmentName))
-        .map((value) => value.slice(value.indexOf(expected.publicApartmentName) + expected.publicApartmentName.length))
+        .flatMap((value) => {
+          const suffixes = []; let from = 0;
+          for (let index = value.indexOf(expected.publicApartmentName, from); index >= 0; index = value.indexOf(expected.publicApartmentName, from)) {
+            from = index + expected.publicApartmentName.length;
+            suffixes.push(value.slice(from));
+          }
+          return suffixes;
+        })
     : [];
   const publicPrivacy = privacyViolations(item, {
     allowedBuildingNames: expected.publicApartmentName ? [expected.publicApartmentName] : [],
@@ -486,6 +561,13 @@ for (const expected of expectedContent) {
   for (const violation of artifactParityViolations({ item, expected, post, blog, rss })) {
     failures.push(`${expected.slug}: ${violation}`);
   }
+  for (const violation of bodyParagraphViolations({ item, post })) {
+    failures.push(`${expected.slug}: ${violation}`);
+  }
+  const firstParagraphs = renderedParagraphs(item.body?.[0]?.p);
+  const withoutFirstParagraph = firstParagraphs ? post.replace(firstParagraphs, '') : post;
+  mutationChecks += 1;
+  if (withoutFirstParagraph === post || !bodyParagraphViolations({ item, post: withoutFirstParagraph }).includes('정적 글 본문 1 문단 불일치')) failures.push(`${expected.slug}: 실제 첫 문단 누락 변이를 잡지 못했다`);
   for (const violation of caseSummaryViolations({ item, post })) {
     failures.push(`${expected.slug}: ${violation}`);
   }
@@ -497,10 +579,11 @@ for (const expected of expectedContent) {
   }
 
   if (expected.finalImage) {
+    const finalSection = (item.body || []).at(-1) || {};
     const titleMarkup = `<h1 class="post-title">${escapeMarkup(item.title)}</h1>`;
     const excerptMarkup = `<p class="post-excerpt">${escapeMarkup(item.excerpt)}</p>`;
-    const headingMarkup = `<h2>${escapeMarkup(expected.finalHeading)}</h2>`;
-    const paragraphMarkup = `<p>${escapeMarkup(expected.finalText)}</p>`;
+    const headingMarkup = `<h2>${escapeMarkup(finalSection.h)}</h2>`;
+    const paragraphMarkup = renderedParagraphs(finalSection.p);
     const blogTitleMarkup = `<b>${escapeMarkup(item.title)}</b>`;
     const blogExcerptMarkup = `<span class="ic-excerpt">${escapeMarkup(item.excerpt)}</span>`;
     const rssTitleMarkup = `<title>${escapeMarkup(item.title)}</title>`;
@@ -525,6 +608,7 @@ for (const expected of expectedContent) {
       { label: 'RSS 요약', source: 'rss', original: rss, mutated: rss.replace(rssExcerptMarkup, '<description>오염된 RSS 요약</description>'), expectedViolation: 'RSS 요약 불일치' }
     ];
     for (const fixture of mutationFixtures) {
+      mutationChecks += 1;
       if (fixture.mutated === fixture.original) {
         failures.push(`${expected.slug}: 생성물 오염 fixture 대상을 찾지 못했다 (${fixture.label})`);
         continue;
@@ -548,7 +632,7 @@ for (const expected of expectedContent) {
     if (typeof section.imgCaption === 'string' && section.imgCaption.trim() && !post.includes(`<figcaption>${section.imgCaption}</figcaption>`)) failures.push(`${expected.slug}: 정적 글에 사진 캡션이 없다 ${section.img}`);
   }
   if (!blog.includes(expected.slug) || !rss.includes(expected.slug) || !sitemap.includes(expected.slug)) failures.push(`${expected.slug}: 목록·RSS·sitemap 연결이 빠졌다`);
-  if (sitemapLastmod(sitemap, expected.slug) !== expected.updated) failures.push(`${expected.slug}: sitemap lastmod가 수정일과 다르다`);
+  if (sitemapLastmod(sitemap, expected.slug) !== (item.updated || item.date)) failures.push(`${expected.slug}: sitemap lastmod가 수정일과 다르다`);
 }
 
 function accessibilityViolations(post) {
@@ -578,4 +662,4 @@ if (failures.length) {
   failures.forEach((message) => console.error('  - ' + message));
   process.exit(1);
 }
-console.log('PASS 최근 누수 사례 3건 · 사진 16장');
+console.log(`PASS 최근 누수 사례 3건 · 사진 16장 · 원고/문단 오염 변이 ${mutationChecks}건 차단`);

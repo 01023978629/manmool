@@ -30,6 +30,19 @@
   const image = (a, className, priority) => a.image
     ? `<img class="${className}" src="${esc(a.image)}"${caseExtra(a.image, priority)} alt="${esc(a.imageAlt || a.title)}"${priority ? ' loading="eager" fetchpriority="high"' : ' loading="lazy"'} decoding="async">`
     : '';
+  // Keep paragraph breaks and inline photos in the legacy ?post= view as well.
+  const paragraphMarkup = (value) => String(value == null ? '' : value)
+    .replace(/\r\n?/g, '\n').trim().split(/\n[\t ]*\n+/)
+    .map((p) => p.trim()).filter(Boolean)
+    .map((p) => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`).join('');
+  const sectionMarkup = (section) => {
+    let out = `<h2>${esc(section.h)}</h2>${paragraphMarkup(section.p)}`;
+    if (section.img) {
+      const extra = caseExtra(section.img, true).replace('(max-width: 1160px) 94vw, 1112px', '(max-width: 800px) 94vw, 712px');
+      out += `<figure class="post-figure"><img src="${esc(section.img)}"${extra} alt="${esc(section.imgAlt || section.h)}" loading="lazy" decoding="async">${section.imgCaption ? `<figcaption>${esc(section.imgCaption)}</figcaption>` : ''}</figure>`;
+    }
+    return out;
+  };
   const absoluteImage = (a) => a.image
     ? 'https://01023978629.github.io/manmool/' + String(a.image).replace(/^\.\//, '')
     : 'https://01023978629.github.io/manmool/og-image.png';
@@ -145,12 +158,12 @@
         <a class="post-back" href="blog.html">← 인사이트 목록</a>
         <span class="post-cat">${esc(a.category)}</span>
         <h1 class="post-title">${esc(a.title)}</h1>
-        <p class="post-meta">${esc(a.date)} · ${esc(a.readMin)}분 읽기</p>
+        <p class="post-meta">${esc(a.date)} · ${esc(a.readMin)}분 읽기${a.updated && a.updated !== a.date ? ` · 수정 ${esc(a.updated)}` : ''}</p>
         <div class="post-cover" style="background:${cover(a)}">${image(a, 'post-cover-image', true)}</div>
         ${caseSummaryMarkup(a)}
         <div class="post-body">
           <p class="post-excerpt">${esc(a.excerpt)}</p>
-          ${(a.body || []).map((s) => `<h2>${esc(s.h)}</h2><p>${esc(s.p)}</p>`).join('')}
+          ${(a.body || []).map(sectionMarkup).join('')}
           ${sourceMarkup}
         </div>
         ${articleCta}

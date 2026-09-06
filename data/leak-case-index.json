@@ -3,61 +3,61 @@
   "cases": [
     {
       "slug": "daejeon-jung-gu-heating-pipe-leak-repair",
-      "title": "대전 중구 주택 안방 난방관 누수 보수 — 손상 부위 절단 후 피팅 연결",
+      "title": "대전 문화동 안방 난방관 누수, 손상 부위를 잘라 피팅으로 연결했습니다",
       "service": "leak",
       "published": true
     },
     {
       "slug": "daejeon-jung-gu-yard-water-valve-leak",
-      "title": "대전 중구 주택 마당 수도밸브 누수 보수 — 매설부 확인 후 문제 밸브 제거",
+      "title": "대전 문화동 마당 수도밸브 누수, 땅속 배관을 확인하고 문제 밸브 제거",
       "service": "leak",
       "published": true
     },
     {
       "slug": "apartment-balcony-rain-pipe-replacement",
-      "title": "대전 한밭우성아파트 베란다 우수관 보수 — 바닥 배수구와 하부 연결 부속 교체",
+      "title": "대전 한밭우성아파트 베란다 우수관 보수, 바닥 배수구부터 하부 부속까지",
       "service": "leak",
       "published": true
     },
     {
       "slug": "apartment-upper-lower-rain-pipe-repair",
-      "title": "대전 목양마을아파트 상·하층 우수관 보수 — 우수 배수부품 교체",
+      "title": "대전 목양마을아파트 우수관 보수, 배수부품 교체와 그릴 설치까지",
       "service": "leak",
       "published": true
     },
     {
       "slug": "apartment-basement-cast-iron-pipe-repair",
-      "title": "대전 유원아파트 지하실 주철관 보수 — 부식 구간부터 슬리브 마감까지",
+      "title": "대전 유원아파트 지하실 주철관 보수, 벌어진 관을 슬리브로 감싼 과정",
       "service": "leak",
       "published": true
     },
     {
       "slug": "mugunghwa-pipe-replacement",
-      "title": "대전 무궁화아파트 배관 교체 — 연결부와 관통부를 기록했습니다",
+      "title": "대전 무궁화아파트 배관 교체, 새 연결부와 관통부를 가까이 보기",
       "service": "leak",
       "published": true
     },
     {
       "slug": "geumseong-basement-pipe-valve",
-      "title": "대전 금성백조아파트 지하 공용배관 교체 — 세대 계량기 밸브까지 함께 정리했습니다",
+      "title": "대전 금성백조아파트 공용배관 교체, 계량기 밸브도 함께 손봤습니다",
       "service": "leak",
       "published": true
     },
     {
       "slug": "samsung-apartment-drain-pipe-replacement",
-      "title": "욕실 천장 배관에서 물이 샜습니다 — 대전 삼성아파트 오수관·생활하수 배관 교체",
+      "title": "대전 삼성아파트 욕실 천장 배관 교체 — 기존 관통부와 새 연결부를 따라",
       "service": "leak",
       "published": true
     },
     {
       "slug": "hanbat-drain-replacement",
-      "title": "한밭유성아파트 생활하수관 교체 — 물 테스트까지 확인하고 마무리했습니다",
+      "title": "대전 한밭유성아파트 생활하수관 교체 — 새 이음부와 청소구를 남긴 이유",
       "service": "leak",
       "published": true
     },
     {
       "slug": "seonbi-pipe-replacement",
-      "title": "대전 선비마을3단지 세대 배관 교체 — 문제 구간을 확인하고 갈았습니다",
+      "title": "대전 선비마을3단지 배관 교체, 천장 속 문제 구간을 손본 현장",
       "service": "leak",
       "published": true
     },
@@ -75,7 +75,7 @@
     },
     {
       "slug": "mokdong-trench-drain",
-      "title": "대전 목동 트렌치 배수 시공 — 비만 오면 고이던 물길을 잡았습니다",
+      "title": "대전 목동 트렌치 배수 시공 — 출입구 바닥에 물길을 만드는 과정",
       "service": "leak",
       "published": true
     },
@@ -87,13 +87,13 @@
     },
     {
       "slug": "beomjigi-bathroom-waterproof",
-      "title": "세종 범지기마을 욕실 방수 1·2차 — 두 세대를 같은 기간에 시공했습니다",
+      "title": "세종 범지기마을 욕실 1·2차 방수 — 타일을 덮기 전 바닥과 모서리 살피기",
       "service": "leak",
       "published": true
     },
     {
       "slug": "taesan-rain-pipe-replacement",
-      "title": "대전 태산그린아파트 우수관 교체 — 비 올 때만 새는 물의 원인을 잡았습니다",
+      "title": "대전 태산그린아파트 우수관 교체, 서로 다른 두 라인의 노후 구간 보수",
       "service": "leak",
       "published": true
     }
