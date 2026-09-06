@@ -93,10 +93,9 @@ test('①-2 지름길을 누르면 평수·범위·항목을 건너뛰고 연락
 test('② 손님이 안 고른 항목은 사실처럼 전달되지 않는다', async () => {
   const page = await openForm();
   // 이름·연락처·동의만 채우고, 범위·항목·거주여부·시기는 손도 대지 않는다
-  const next = () => page.evaluate(() => {
-    const b = [...document.querySelectorAll('#inquiry button')].find((x) => /다음/.test(x.textContent));
-    if (b) b.click();
-  });
+  // 실제 손님처럼 화면에 있는 버튼을 누른다. 문서 맨 위에서 smooth 이동 중
+  // 보이지 않는 버튼을 programmatic click하면 두 장거리 스크롤이 경합한다.
+  const next = () => page.locator('#nextStep').click();
   for (let i = 0; i < 3; i++) { await next(); await page.waitForTimeout(200); }
   await page.fill('#iName', '테스트고객');
   await page.fill('#iPhone', '010-1234-5678');
@@ -157,7 +156,13 @@ test('④ 폰에서 다음을 누르면 새 단계의 제목과 첫 칸이 화�
   });
   for (const expected of ['2', '3']) {
     await next();
-    await page.waitForTimeout(900);   // smooth scroll 이 끝날 시간
+    await page.waitForFunction(() => {
+      const title = document.querySelector('.inquiry-form .step:not([hidden]) legend');
+      const top = title && title.getBoundingClientRect().top;
+      const menu = document.querySelector('.service-jump-nav');
+      const edge = menu ? menu.getBoundingClientRect().bottom : 0;
+      return top >= edge && top < innerHeight * 0.5;
+    }, null, { timeout: 4000 });
     const w = await where();
     assert.equal(w.step, expected, '단계가 넘어가지 않았다: ' + JSON.stringify(w));
     assert.ok(w.legendTop !== null && w.legendTop >= 0 && w.legendTop < w.vh * 0.5,

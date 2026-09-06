@@ -181,7 +181,7 @@ test('관리사무소 페이지는 발주 판단 정보와 전화·직원 포털
     ['업무 접수', '현장 확인', '견적·승인', '시공·복구', '사진 보고·정산']
   );
   assert.equal(await page.locator('#officeCases a[href^="posts/"]').count() >= 3, true);
-  assert.equal(await page.getByRole('link', { name: '관리사무소', exact: true }).getAttribute('aria-current'), 'page');
+  assert.equal(await page.locator('#mainNav').getByRole('link', { name: '관리사무소', exact: true }).getAttribute('aria-current'), 'page');
   assert.equal(await page.getByRole('link', { name: '전화 상담', exact: true }).getAttribute('href'), 'tel:01023978629');
   assert.equal(await page.getByRole('link', { name: '직원 포털 안내', exact: true }).getAttribute('href'), '#officeRequestIntro');
   await page.close();

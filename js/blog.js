@@ -217,7 +217,9 @@
     // 검색어를 주소나 외부 서비스에 보내지 않고, 이 방문 기록 안에서만 복원한다.
     function restore() {
       const saved = history.state && history.state.manmoolCaseFinder;
-      group = saved && buttons.some((button) => button.dataset.caseFilter === saved.group) ? saved.group : 'all';
+      const category = new URLSearchParams(location.search).get('category');
+      const validGroup = (value) => buttons.some((button) => button.dataset.caseFilter === value);
+      group = saved && validGroup(saved.group) ? saved.group : validGroup(category) ? category : 'all';
       input.value = saved && typeof saved.query === 'string' ? saved.query.slice(0, 120) : '';
       sort.value = saved && saved.sort === 'oldest' ? 'oldest' : 'newest';
     }

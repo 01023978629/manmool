@@ -162,8 +162,10 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23b8895a'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="css/styles.css?v=20260830-followup1" />
   <link rel="stylesheet" href="css/brand-system.css?v=20260830-followup1" />
+  <link rel="stylesheet" href="css/service-design.css?v=20260906-services" />
+  <link rel="stylesheet" href="css/service-interior.css?v=20260906-services" />
 </head>
-<body class="interior-page">
+<body class="interior-page service-page">
   <a class="skip-link" href="#inquiry">상담 신청으로 건너뛰기</a>
   <!-- ===== Utility bar (업무 시스템) ===== -->
   <div class="utility-bar">
@@ -198,12 +200,17 @@
   </header>
 
   <main id="top">
+    <nav class="service-family" aria-label="만물 서비스">
+      <a href="index.html" aria-current="page">인테리어</a>
+      <a href="leak.html">누수·배관</a>
+      <a href="office.html">관리사무소</a>
+    </nav>
     <!-- ===== Hero ===== -->
     <section class="hero">
       <div class="hero-bg" aria-hidden="true"></div>
       <div class="container hero-inner">
         <div class="hero-text">
-          <span class="badge">🏠 대전 아파트·주택·상가 인테리어 · 대표 최종 확인</span>
+          <span class="badge">대전 · 아파트 · 주택 · 상가 인테리어</span>
           <h1 class="hero-title" data-bind="company.tagline">견적부터 보증까지,
 기록으로 확인하세요</h1>
           <p class="hero-desc" data-bind="company.description">대전 아파트·주택·상가의 공사 범위를 현장에서 확인하고, 자재·수량·제외사항을 나눈 서면 견적으로 안내합니다.</p>
@@ -218,15 +225,29 @@
             <span>✔ 공정 사진·보증 기록 보관</span>
           </div>
         </div>
-        <div class="hero-card">
-          <div class="consultation-proof">
+        <figure class="interior-hero-visual">
+          <img src="assets/site/hero-interior.jpg" width="1600" height="900" alt="밝은 원목과 아이보리 색감의 거실 인테리어 참고 시안" fetchpriority="high" decoding="async" />
+          <figcaption><span>공간을 생각하는 시작</span><small>디지털 참고 시안 · 실제 완공 사진 아님</small></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <nav class="service-jump-nav" aria-label="이 페이지 빠른 이동">
+      <a href="#projectGuide">공사 준비</a>
+      <a href="#realWork">실제 시공</a>
+      <a href="#process">진행 순서</a>
+      <a href="#inquiry">상담 신청</a>
+    </nav>
+
+    <section class="interior-proof-section" aria-label="공사 전 확인할 내용">
+      <div class="container">
+        <div class="consultation-proof">
             <div class="consultation-proof-head"><span>萬</span><div><strong>공사 전 확인할 내용</strong><small>말보다 항목과 기록으로 안내합니다</small></div></div>
             <ol class="consultation-proof-list">
               <li><b>01</b><div><strong>무료 1차 상담</strong><small>지역·평수·희망 공사와 일정을 먼저 확인합니다.</small></div></li>
               <li><b>02</b><div><strong>방문 실측·항목별 견적</strong><small>현장 상태와 치수를 보고 포함·제외 범위를 나눕니다.</small></div></li>
               <li><b>03</b><div><strong>시공 기록·준공 보증</strong><small>숨은 공정과 변경 내용을 남기고 공종별 보증을 안내합니다.</small></div></li>
             </ol>
-          </div>
         </div>
       </div>
     </section>
@@ -476,7 +497,7 @@
           <p class="section-sub">예산·공사 범위·관리사무소 신고·견적서·보증 기준을 먼저 확인하세요.</p>
         </div>
         <div class="insights-grid" id="insightsGrid" data-featured-slugs="apt-office-construction-notice,budget-guide-34py,partial-vs-full-remodel"></div>
-        <div class="insights-more"><a href="blog.html" class="btn btn-ghost">모든 글 보기 →</a></div>
+        <div class="insights-more"><a href="blog.html?category=interior" class="btn btn-ghost">인테리어 사례 모아보기 →</a><a href="blog.html" class="service-case-link">전체 사례와 안내 보기 →</a></div>
       </div>
     </section>
 
@@ -717,5 +738,6 @@
   <script src="js/lead-transport.js?v=20260830-followup1"></script>
   <script src="js/inquiry.js?v=20260901-webbridge1"></script>
   <script src="js/hj-link.js?v=20260719-fixes"></script>
+  <script src="js/service-nav.js?v=20260906-services" defer></script>
 </body>
 </html>

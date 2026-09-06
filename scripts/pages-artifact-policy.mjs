@@ -13,7 +13,7 @@ export const PUBLIC_JS_FILES = Object.freeze([
   'field.js', 'hj-link.js', 'inquiry.js', 'revenue-conversion.js', 'lead-inbox-api.js', 'lead-inbox.js', 'lead-transport.js', 'office-pilot.js', 'leak-inquiry.js', 'leak.js', 'lookbook.js', 'main.js', 'mypage.js',
   'office-request-api.js', 'office-request-core.js', 'office-request-photo.js', 'office-request.js',
   'office-frame-guard.js', 'office-portal-api.js', 'office-portal-core.js', 'office-login.js', 'office-portal.js', 'office-admin.js', 'pii-rules.js', 'project-state.js',
-  'public-nav.js', 'simulator.js',
+  'public-nav.js', 'service-nav.js', 'simulator.js',
 ]);
 export const PUBLIC_TREE_RULES = new Map([
   ['assets', /\.(?:avif|gif|jpe?g|png|svg|webp)$/i],

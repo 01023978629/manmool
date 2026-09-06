@@ -129,6 +129,12 @@ jobs:
       - name: Verify public artifact
         run: node scripts/ensure-pages-artifact.mjs
 
+      - name: Verify service navigation and responsive layouts
+        env:
+          CI: "true"
+          NODE_PATH: ${{ runner.temp }}/manmool-e2e/node_modules
+        run: node --test tests/service-design.e2e.cjs
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
 

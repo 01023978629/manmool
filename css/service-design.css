@@ -1,0 +1,86 @@
+/* Shared, public service pages only. Staff portals keep their own UI. */
+/* Older page styles reserve 78px on html; the measured margin below replaces it. */
+html:has(body.service-page) { scroll-padding-top: 0; }
+.service-page {
+  --service-accent: #815632;
+  --service-wash: #f2ebe2;
+  --service-header-offset: 72px;
+  --service-jump-height: 58px;
+  background: #fffdf9;
+  color: #263337;
+}
+.service-page main [id], .service-page #stepper {
+  scroll-margin-top: calc(var(--service-header-offset) + var(--service-jump-height) + 20px);
+}
+.service-page .service-family {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #fffdf9;
+  border-bottom: 1px solid #e5e2da;
+}
+.service-page .service-family a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 25px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #515e62;
+  text-decoration: none;
+}
+.service-page .service-family a[aria-current="page"] {
+  color: var(--service-accent);
+  background: var(--service-wash);
+}
+.service-page .service-family a:hover { background: #eeeae2; }
+.service-page .service-jump-nav {
+  position: sticky;
+  top: var(--service-header-offset);
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  min-height: 58px;
+  padding: 0 20px;
+  border-block: 1px solid #e5e2da;
+  background: #fffdf9;
+}
+.service-page .service-jump-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-height: 56px;
+  padding: 12px 16px;
+  border-bottom: 3px solid transparent;
+  color: #586368;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.service-page .service-jump-nav a:hover,
+.service-page .service-jump-nav a[aria-current="location"] {
+  color: var(--service-accent);
+  border-bottom-color: var(--service-accent);
+}
+.service-page .service-family a:focus-visible,
+.service-page .service-jump-nav a:focus-visible {
+  outline: 3px solid var(--service-accent);
+  outline-offset: -4px;
+}
+.service-page .section-head h2 { text-wrap: balance; }
+.service-page .section-head p { line-height: 1.85; }
+@media (max-width: 760px) {
+  .service-page { --service-header-offset: 64px; }
+  .service-page .service-family { gap: 3px; padding: 8px 12px; }
+  .service-page .service-family a { flex: 1; padding: 8px 6px; }
+  .service-page .service-jump-nav { justify-content: flex-start; overflow-x: auto; gap: 4px; padding-inline: 10px; scrollbar-width: thin; }
+  .service-page .service-jump-nav a { flex-grow: 1; padding-inline: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(.service-page) { scroll-behavior: auto; }
+}
