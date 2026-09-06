@@ -423,6 +423,15 @@ def article_html(a, insights):
 '''
 
 
+def case_search_text(a):
+    """목록에 공개한 정보와 요약만 검색한다. 원본 현장 기록은 포함하지 않는다."""
+    summary = a.get('caseSummary') or {}
+    return ' '.join(str(value or '') for value in [
+        a.get('title'), a.get('excerpt'), a.get('category'),
+        *[summary.get(key) for key in ('site', 'issue', 'work', 'result')],
+    ])
+
+
 def list_markup(insights):
     """js/blog.js 의 renderList 와 **같은 구조**의 목록 마크업.
 
@@ -445,12 +454,13 @@ def list_markup(insights):
                                  case_extra(featured.get('image'), '(max-width: 1160px) 94vw, 1112px'),
                                  esc(featured.get('imageAlt') or featured.get('title'))))
         featured_html = (
-            '        <a class="insight-featured" href="posts/%s.html" data-group="%s">\n'
+            '        <a class="insight-featured" href="posts/%s.html" data-group="%s" data-date="%s" data-search="%s">\n'
             '          <span class="ic-cover" style="background:%s">%s<span class="ic-cat">최신 현장 · %s</span></span>\n'
             '          <span class="ic-body"><span class="eyebrow">FEATURED CASE</span><b>%s</b>'
             '<span class="ic-excerpt">%s</span><span class="ic-meta">%s · %s분 읽기</span></span>\n'
             '        </a>' % (
-                esc(featured.get('slug')), case_group(featured), shade_cover(featured.get('cover') or '#d8c3a5'),
+                esc(featured.get('slug')), case_group(featured), esc(featured.get('date')), esc(case_search_text(featured)),
+                shade_cover(featured.get('cover') or '#d8c3a5'),
                 featured_image, esc(featured.get('category')), esc(featured.get('title')), esc(featured.get('excerpt')),
                 esc(featured.get('date')), esc(featured.get('readMin'))))
 
@@ -463,7 +473,7 @@ def list_markup(insights):
                    % (esc(a['image']), case_extra(a.get('image'), SIZES_CARD),
                       esc(a.get('imageAlt') or a.get('title')), priority))
         cards.append(
-            '          <a class="insight-card" href="posts/%s.html" data-group="%s">\n'
+            '          <a class="insight-card" href="posts/%s.html" data-group="%s" data-date="%s" data-search="%s">\n'
             '            <span class="ic-cover" style="background:%s">%s<span class="ic-cat">%s</span></span>\n'
             '            <span class="ic-body">\n'
             '              <b>%s</b>\n'
@@ -471,7 +481,8 @@ def list_markup(insights):
             '              <span class="ic-meta">%s · %s분 읽기</span>\n'
             '            </span>\n'
             '          </a>' % (
-                esc(a.get('slug')), case_group(a), shade_cover(a.get('cover') or '#d8c3a5'), img,
+                esc(a.get('slug')), case_group(a), esc(a.get('date')), esc(case_search_text(a)),
+                shade_cover(a.get('cover') or '#d8c3a5'), img,
                 esc(a.get('category')), esc(a.get('title')), esc(a.get('excerpt')),
                 esc(a.get('date')), esc(a.get('readMin'))))
     return (
@@ -481,14 +492,24 @@ def list_markup(insights):
         '          <h1>현장에서 한 일을 사진과 함께 기록합니다</h1>\n'
         '          <p class="section-sub">누수·배관 실제 현장과 인테리어 공정, 견적·보증 안내를 분야별로 확인하세요.</p>\n'
         '        </div>\n'
-        + featured_html + '\n'
+        '        <form class="case-finder" id="caseFinder" role="search" aria-label="시공 사례 검색" hidden>\n'
+        '          <div class="case-finder-fields">\n'
+        '            <div class="case-search-field"><label for="caseSearch">어떤 현장을 찾으세요?</label>\n'
+        '              <input id="caseSearch" type="search" maxlength="120" placeholder="아파트명·지역·작업명 검색" aria-describedby="caseSearchHint" autocomplete="off">\n'
+        '              <p id="caseSearchHint">예: 금호한사랑, 중구 난방관, 지하실 배관</p></div>\n'
+        '            <div class="case-sort-field"><label for="caseSort">정렬</label><select id="caseSort"><option value="newest">최신순</option><option value="oldest">오래된순</option></select></div>\n'
+        '          </div>\n'
         '        <div class="case-filter-bar" role="group" aria-label="사례 분야 선택">\n'
         '          <button type="button" class="case-filter" data-case-filter="all" aria-pressed="true">전체</button>\n'
         '          <button type="button" class="case-filter" data-case-filter="leak" aria-pressed="false">누수·배관</button>\n'
         '          <button type="button" class="case-filter" data-case-filter="interior" aria-pressed="false">인테리어</button>\n'
         '          <button type="button" class="case-filter" data-case-filter="info" aria-pressed="false">정보</button>\n'
         '        </div>\n'
+        '          <div class="case-finder-footer"><span>분야와 검색어를 함께 선택할 수 있습니다.</span><button type="button" class="case-reset" data-case-reset>전체 보기</button></div>\n'
+        '        </form>\n'
         f'        <p class="case-filter-status" id="caseFilterStatus" aria-live="polite">전체 {len(insights)}건</p>\n'
+        '        <section class="case-empty" id="caseEmpty" aria-labelledby="caseEmptyTitle" hidden><h2 id="caseEmptyTitle">조건에 맞는 사례가 없습니다</h2><p>아파트명이나 작업명을 짧게 입력하거나, 다른 분야를 선택해 보세요.</p><div class="case-empty-actions"><button type="button" class="btn btn-primary" data-case-reset>전체 사례 다시 보기</button><a class="btn btn-ghost" id="caseEmptyInquiry" href="leak.html#leakInquiry">누수·배관 상담</a></div></section>\n'
+        '        <div id="caseFeaturedSlot">\n' + featured_html + '\n        </div>\n'
         '        <div class="insights-grid">\n'
         + '\n'.join(cards) + '\n'
         '        </div>\n'

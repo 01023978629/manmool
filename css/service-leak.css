@@ -1,0 +1,338 @@
+/* 누수 서비스 화면: 기존 상담 동작 위에 얹는 시각 레이어. */
+body.leak-page.service-page {
+  --leak-navy: #132f3a;
+  --leak-teal: #216e6b;
+  --leak-mint: #b3d5ca;
+  --leak-paper: #faf8f3;
+  --leak-line: #dadfd8;
+  --service-accent: #216e6b;
+  --service-wash: #e5efea;
+  background: var(--leak-paper);
+}
+
+.leak-page.service-page .hero {
+  min-height: 630px;
+  grid-template-columns: minmax(0, 1.04fr) minmax(0, 1fr);
+  gap: clamp(30px, 4vw, 68px);
+  padding: 68px max(24px, calc((100vw - 1180px) / 2)) 64px;
+  background: var(--leak-navy);
+}
+.leak-page.service-page .hero::before { display: none; }
+.leak-page.service-page .hero-copy { min-width: 0; }
+.leak-page.service-page .eyebrow {
+  margin-bottom: 25px;
+  color: var(--leak-mint);
+  font-size: 12px;
+  letter-spacing: .1em;
+}
+.leak-page.service-page .eyebrow > span {
+  width: 22px;
+  height: 1px;
+  border-radius: 0;
+  background: currentColor;
+  box-shadow: none;
+}
+.leak-page.service-page .hero h1 {
+  color: #fffdf7;
+  font-size: clamp(38px, 3.75vw, 55px);
+  font-weight: 750;
+  line-height: 1.3;
+  letter-spacing: -.065em;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.leak-page.service-page .hero h1 em { color: var(--leak-mint); }
+.leak-page.service-page .hero-description {
+  max-width: 490px;
+  margin-top: 24px;
+  color: #d0dcd9;
+  font-size: 16px;
+  line-height: 1.9;
+  word-break: keep-all;
+}
+.leak-page .leak-hero-area {
+  margin: 16px 0 0;
+  color: #b6c9c3;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.leak-page.service-page .hero-actions {
+  flex-wrap: wrap;
+  gap: 12px 22px;
+  margin-top: 28px;
+}
+.leak-page.service-page .primary-button,
+.leak-page.service-page .primary-case-button {
+  min-height: 48px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: #fff;
+  background: var(--leak-teal);
+  box-shadow: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.5;
+  text-align: center;
+}
+.leak-page.service-page .primary-button:hover,
+.leak-page.service-page .primary-case-button:hover { background: #195957; }
+.leak-page.service-page .hero-actions .primary-button {
+  color: var(--leak-navy);
+  background: #d5e8da;
+}
+.leak-page.service-page .hero-actions .primary-button:hover { background: #e6f0e6; }
+.leak-page.service-page .outline-case-button {
+  min-height: 48px;
+  padding-block: 10px;
+  border-color: #acbeb7;
+  border-radius: 5px;
+  color: #34574f;
+  background: var(--leak-paper);
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+}
+.leak-page.service-page .hero-actions .text-button { color: #e2ece4; }
+.leak-page.service-page .trust-row {
+  gap: 10px 16px;
+  margin-top: 26px;
+  padding-top: 24px;
+  border-top: 1px solid #46605f;
+  color: #d1e0d9;
+  font-size: 13px;
+}
+.leak-page.service-page .trust-row svg { color: var(--leak-mint); }
+.leak-page.service-page .hero-safety {
+  margin-top: 15px;
+  color: #b8cbc4;
+  font-size: 12px;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+.leak-page.service-page .hero-visual { width: 100%; }
+.leak-page.service-page .leak-actual-card {
+  border: 0;
+  border-radius: 3px;
+  background: var(--leak-paper);
+  box-shadow: 16px 16px 0 #23434a;
+}
+.leak-page.service-page .leak-actual-card img {
+  aspect-ratio: 1.22;
+  height: auto;
+  object-position: center;
+}
+.leak-page.service-page .leak-actual-card figcaption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 23px 24px;
+  color: var(--leak-navy);
+}
+.leak-page.service-page .leak-actual-card figcaption > div { display: grid; gap: 7px; }
+.leak-page.service-page .leak-actual-card figcaption span { color: var(--leak-teal); font-size: 10px; letter-spacing: .04em; }
+.leak-page.service-page .leak-actual-card figcaption strong { font-size: 17px; line-height: 1.5; }
+.leak-page.service-page .leak-actual-card figcaption small { color: #62726b; font-size: 12px; line-height: 1.7; }
+.leak-page .leak-hero-case-link {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid #b8c4b9;
+  border-radius: 50%;
+}
+.leak-page.service-page .leak-hero-case-link span { font-size: 22px; }
+.leak-page .leak-hero-case-link:hover { background: #e8ede3; }
+
+.leak-page.service-page .proof-strip {
+  min-height: 116px;
+  padding-block: 25px;
+  border-bottom-color: var(--leak-line);
+  background: #eeefe7;
+  box-shadow: none;
+}
+.leak-page.service-page .proof-strip > div { border-color: #cbd3c9; }
+.leak-page.service-page .proof-strip strong { color: var(--leak-navy); font-size: 27px; }
+.leak-page.service-page .proof-strip strong small { color: var(--leak-teal); }
+.leak-page.service-page .proof-strip span { color: #56675e; }
+.leak-page.service-page .section { width: min(1180px, calc(100% - 48px)); }
+.leak-page.service-page .section-heading h2 { color: var(--leak-navy); font-size: clamp(30px, 3.1vw, 44px); font-weight: 750; line-height: 1.35; word-break: keep-all; }
+.leak-page.service-page .section-heading h2 em { color: var(--leak-teal); }
+.leak-page.service-page .section-heading > p { max-width: 490px; color: #637168; }
+.leak-page.service-page .section-kicker { color: var(--leak-teal); letter-spacing: .15em; }
+.leak-page.service-page .symptom-section { padding-block: 82px 74px; }
+.leak-page.service-page .symptom-heading { margin-bottom: 32px; }
+.leak-page.service-page .symptom-grid { gap: 0; border: 1px solid var(--leak-line); }
+.leak-page.service-page .symptom-grid a {
+  position: relative;
+  min-height: 190px;
+  padding: 27px 25px;
+  border: 0;
+  border-right: 1px solid var(--leak-line);
+  border-radius: 0;
+  background: transparent;
+}
+.leak-page.service-page .symptom-grid a:last-child { border-right: 0; }
+.leak-page.service-page .symptom-grid a::after {
+  content: '↗';
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  color: var(--leak-teal);
+  font-size: 20px;
+}
+.leak-page.service-page .symptom-grid a:hover { transform: none; background: #edf1e9; box-shadow: none; }
+.leak-page.service-page .symptom-grid span { color: var(--leak-teal); font-size: 11px; }
+.leak-page.service-page .symptom-grid strong { margin-top: 23px; color: var(--leak-navy); }
+.leak-page.service-page .symptom-grid small { color: #657368; font-size: 12px; }
+
+.leak-page.service-page .first-response-section { background: #e9eee7; }
+.leak-page.service-page .first-response-inner { padding-block: 76px; }
+.leak-page.service-page .response-checks label { border-color: #ced8cd; border-radius: 5px; box-shadow: none; }
+.leak-page.service-page .response-checks label:hover { transform: none; border-color: var(--leak-teal); }
+.leak-page.service-page .response-checks small { color: #5c6c62; font-size: 13px; }
+.leak-page.service-page .response-summary { border-radius: 5px; background: var(--leak-navy); box-shadow: none; }
+.leak-page.service-page .response-count { color: #cee5d7; }
+.leak-page.service-page .response-count.complete { color: var(--leak-navy); background: #cee5d7; }
+.leak-page.service-page .services-section { padding-block: 88px; }
+.leak-page.service-page .service-card { min-height: 315px; padding: 28px 24px; border-color: var(--leak-line); border-radius: 5px; box-shadow: none; }
+.leak-page.service-page .service-card:hover { transform: none; border-color: #87a79c; }
+.leak-page.service-page .featured-service { color: #fff; background: var(--leak-navy); }
+.leak-page.service-page .service-icon { border-radius: 3px; color: var(--leak-teal); background: #e9eee5; }
+.leak-page.service-page .featured-service .service-icon { color: #cae3d5; background: #31524f; }
+.leak-page.service-page .service-card p { color: #60716a; }
+.leak-page.service-page .featured-service p { color: #cadbd3; }
+.leak-page.service-page .service-card li { color: #52685c; background: #eef2e9; }
+.leak-page.service-page .featured-service li { color: #d3e4d7; background: #2b4a49; }
+.leak-page.service-page .service-area-section { background: #e3e9df; color: var(--leak-navy); }
+.leak-page.service-page .service-area-section::before { display: none; }
+.leak-page.service-page .service-area-inner { min-height: 310px; grid-template-columns: 250px 1fr; gap: 65px; padding-block: 46px; }
+.leak-page.service-page .area-radar { width: 210px; height: 210px; border-color: #b1c5b8; background: none; }
+.leak-page.service-page .area-radar::before,
+.leak-page.service-page .area-radar::after { background: #c3d0c0; }
+.leak-page.service-page .area-center { width: 60px; height: 60px; color: #fff; background: var(--leak-teal); box-shadow: 0 0 0 12px #d2e0d0; }
+.leak-page.service-page .area-ring { border-color: #b1c5b8; }
+.leak-page.service-page .ring-a { width: 125px; height: 125px; }
+.leak-page.service-page .ring-b { width: 176px; height: 176px; }
+.leak-page.service-page .area-radar b { color: var(--leak-teal); }
+.leak-page.service-page .area-copy h2 { font-size: clamp(27px, 2.7vw, 36px); }
+.leak-page.service-page .area-copy h2 em { color: var(--leak-teal); }
+.leak-page.service-page .area-copy > p { color: #556b5e; }
+.leak-page.service-page .area-tags span { border-color: #b4c7b7; color: #3a5e4d; background: transparent; }
+.leak-page.service-page .process-section { background: var(--leak-paper); }
+.leak-page.service-page .process-inner { padding-block: 84px; }
+.leak-page.service-page .process-index { border-color: #c7d4c7; color: var(--leak-teal); background: #edf1e8; box-shadow: none; }
+.leak-page.service-page .process-line { border-color: #ccd7c9; }
+.leak-page.service-page .insurance-section { padding-block: 70px 84px; }
+.leak-page.service-page .insurance-flow article { border-color: var(--leak-line); border-radius: 5px; background: #fffdf8; }
+.leak-page.service-page .insurance-docs { border-radius: 5px; background: var(--leak-navy); }
+.leak-page.service-page .insurance-note { color: #627366; line-height: 1.8; }
+.leak-page.service-page .cases-section { padding-block: 84px; border-top: 1px solid var(--leak-line); }
+.leak-page.service-page .case-grid { gap: 28px 24px; }
+.leak-page.service-page .case-card { overflow: hidden; border-color: var(--leak-line); border-radius: 4px; background: #fffdf8; box-shadow: none; }
+.leak-page.service-page .case-card:hover { transform: none; border-color: #9bb5a5; box-shadow: none; }
+.leak-page.service-page .case-photo-pair { height: 245px; }
+.leak-page.service-page .case-copy { padding: 25px 23px 18px; }
+.leak-page.service-page .case-copy > small { color: var(--leak-teal); font-size: 11px; letter-spacing: .02em; }
+.leak-page.service-page .case-copy h3 { font-size: 18px; }
+.leak-page.service-page .case-copy p { color: #667368; font-size: 13px; }
+.leak-page.service-page .case-copy .text-button { margin-top: 14px; color: var(--leak-teal); font-size: 13px; }
+.leak-page.service-page .case-actions { margin-top: 38px; }
+.leak-page.service-page .faq-section { padding-block: 65px 90px; }
+.leak-page.service-page .faq-list { border-color: var(--leak-navy); }
+.leak-page.service-page .faq-list details { border-bottom-color: var(--leak-line); }
+.leak-page.service-page .faq-list details p { color: #5a6b60; }
+.leak-page.service-page .leak-form-section { padding-block: 76px 90px; background: transparent; border-top: 1px solid var(--leak-line); }
+.leak-page.service-page .leak-form,
+.leak-page.service-page .leak-done { border-color: var(--leak-line); border-radius: 7px; background: #fffefb; box-shadow: none; }
+.leak-page.service-page .leak-field input[type="text"],
+.leak-page.service-page .leak-field input[type="tel"],
+.leak-page.service-page .leak-field input[type="date"],
+.leak-page.service-page .leak-field select,
+.leak-page.service-page .leak-field textarea { border-color: #cbd6ca; border-radius: 5px; }
+.leak-page.service-page .leak-hint { color: #637368; }
+.leak-page.service-page .leak-memo-fill,
+.leak-page.service-page .contact-online { min-height: 44px; }
+.leak-page.service-page .contact-section { background: var(--leak-teal); }
+.leak-page.service-page .contact-rings { display: none; }
+.leak-page.service-page .contact-phone { border-radius: 5px; box-shadow: none; color: var(--leak-teal); }
+.leak-page.service-page .contact-online { border-radius: 5px; }
+.leak-page.service-page footer { background: var(--leak-navy); }
+.leak-page.service-page .mobile-call-bar { border-radius: 5px; background: var(--leak-teal); }
+.leak-page.service-page a:focus-visible,
+.leak-page.service-page button:focus-visible,
+.leak-page.service-page summary:focus-visible { outline: 3px solid #bc8551; outline-offset: 4px; }
+
+@media (max-width: 1050px) {
+  .leak-page.service-page .hero { padding-inline: 30px; gap: 28px; }
+  .leak-page.service-page .hero h1 { font-size: 40px; }
+  .leak-page.service-page .leak-actual-card img { aspect-ratio: .95; }
+  .leak-page.service-page .leak-actual-card figcaption { padding: 20px; }
+  .leak-page.service-page .service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .leak-page.service-page .hero { grid-template-columns: 1fr; padding: 52px 30px; gap: 36px; }
+  .leak-page.service-page .hero-copy { max-width: 690px; }
+  .leak-page.service-page .hero h1 { font-size: clamp(37px, 6vw, 49px); }
+  .leak-page.service-page .hero-visual { max-width: none; margin: 0; }
+  .leak-page.service-page .leak-actual-card img { aspect-ratio: 1.7; }
+  .leak-page.service-page .symptom-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .leak-page.service-page .symptom-grid a:nth-child(2) { border-right: 0; }
+  .leak-page.service-page .symptom-grid a:nth-child(-n + 2) { border-bottom: 1px solid var(--leak-line); }
+  .leak-page.service-page .service-area-inner { grid-template-columns: 190px 1fr; gap: 35px; }
+  .leak-page.service-page .area-radar { width: 185px; height: 185px; }
+  .leak-page.service-page .case-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .leak-page.service-page .hero { padding: 38px 20px 38px; gap: 28px; }
+  .leak-page.service-page .hero h1 { font-size: clamp(30px, 8.7vw, 42px); line-height: 1.34; }
+  .leak-page.service-page .eyebrow { margin-bottom: 19px; font-size: 11px; }
+  .leak-page.service-page .hero-description { margin-top: 21px; font-size: 14px; }
+  .leak-page.service-page .leak-hero-area { font-size: 13px; }
+  .leak-page.service-page .hero-actions { flex-direction: row; gap: 6px 16px; margin-top: 23px; }
+  .leak-page.service-page .hero-actions .primary-button { min-height: 50px; }
+  .leak-page.service-page .hero-actions .text-button { margin-inline: auto; font-size: 13px; }
+  .leak-page.service-page .hero-actions .leak-kakao-cta { width: 100%; }
+  .leak-page.service-page .trust-row { margin-top: 18px; padding-top: 19px; gap: 10px; font-size: 13px; }
+  .leak-page.service-page .hero-safety { font-size: 12px; }
+  .leak-page.service-page .leak-actual-card { box-shadow: 6px 6px 0 #23434a; }
+  .leak-page.service-page .leak-actual-card img { aspect-ratio: 1.4; }
+  .leak-page.service-page .leak-actual-card figcaption { gap: 10px; padding: 17px 15px; }
+  .leak-page.service-page .leak-actual-card figcaption strong { font-size: 14px; }
+  .leak-page.service-page .leak-actual-card figcaption small { font-size: 12px; }
+  .leak-page.service-page .proof-strip { gap: 15px 0; padding: 22px 12px; }
+  .leak-page.service-page .proof-strip > div { margin: 0; gap: 11px; }
+  .leak-page.service-page .proof-strip strong { font-size: 23px; }
+  .leak-page.service-page .proof-strip span { font-size: 12px; }
+  .leak-page.service-page .section { width: calc(100% - 36px); }
+  .leak-page.service-page .section-heading h2 { font-size: 29px; }
+  .leak-page.service-page .section-heading > p { font-size: 13px; }
+  .leak-page.service-page .symptom-section { padding-block: 55px; }
+  .leak-page.service-page .symptom-grid { grid-template-columns: 1fr; }
+  .leak-page.service-page .symptom-grid a { min-height: 0; padding: 20px 22px; border-right: 0; border-bottom: 1px solid var(--leak-line); }
+  .leak-page.service-page .symptom-grid a:last-child { border-bottom: 0; }
+  .leak-page.service-page .symptom-grid strong { margin-top: 10px; }
+  .leak-page.service-page .symptom-grid small { margin-top: 6px; }
+  .leak-page.service-page .first-response-inner,
+  .leak-page.service-page .services-section,
+  .leak-page.service-page .process-inner,
+  .leak-page.service-page .insurance-section,
+  .leak-page.service-page .cases-section,
+  .leak-page.service-page .faq-section,
+  .leak-page.service-page .leak-form-section { padding-block: 60px; }
+  .leak-page.service-page .response-summary { padding: 25px 20px; }
+  .leak-page.service-page .service-grid { grid-template-columns: 1fr; }
+  .leak-page.service-page .service-card { min-height: 0; }
+  .leak-page.service-page .service-area-inner { grid-template-columns: 1fr; gap: 30px; }
+  .leak-page.service-page .area-copy { text-align: left; }
+  .leak-page.service-page .area-tags { justify-content: flex-start; }
+  .leak-page.service-page .case-grid { grid-template-columns: 1fr; gap: 24px; }
+  .leak-page.service-page .case-photo-pair { height: 240px; }
+  .leak-page.service-page .case-actions > a { width: 100%; }
+  .leak-page.service-page .leak-form,
+  .leak-page.service-page .leak-done { padding: 25px 18px; }
+  .leak-page.service-page .leak-submit-row { gap: 10px; }
+  .leak-page.service-page .leak-submit-row > a { font-size: 12px; }
+}

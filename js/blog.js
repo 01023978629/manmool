@@ -38,6 +38,25 @@
     : a.service === 'interior'
       ? 'interior'
       : (a.category === '방수·설비' || a.category === '누수탐지·수리') ? 'leak' : 'interior';
+  const caseGroup = (a) => articleService(a) === 'leak' ? 'leak'
+    : /견적|계약|보증|관리|브랜드/.test(a.category || '') ? 'info' : 'interior';
+  const searchText = (a) => [a.title, a.excerpt, a.category,
+    ...['site', 'issue', 'work', 'result'].map((key) => (a.caseSummary || {})[key])].filter(Boolean).join(' ');
+  const finderMarkup = () => `
+    <form class="case-finder" id="caseFinder" role="search" aria-label="시공 사례 검색" hidden>
+      <div class="case-finder-fields">
+        <div class="case-search-field"><label for="caseSearch">어떤 현장을 찾으세요?</label>
+          <input id="caseSearch" type="search" maxlength="120" placeholder="아파트명·지역·작업명 검색" aria-describedby="caseSearchHint" autocomplete="off">
+          <p id="caseSearchHint">예: 금호한사랑, 중구 난방관, 지하실 배관</p></div>
+        <div class="case-sort-field"><label for="caseSort">정렬</label><select id="caseSort"><option value="newest">최신순</option><option value="oldest">오래된순</option></select></div>
+      </div>
+      <div class="case-filter-bar" role="group" aria-label="사례 분야 선택">
+        ${[['all', '전체'], ['leak', '누수·배관'], ['interior', '인테리어'], ['info', '정보']].map(([value, label]) => `<button type="button" class="case-filter" data-case-filter="${value}" aria-pressed="${value === 'all'}">${label}</button>`).join('')}
+      </div>
+      <div class="case-finder-footer"><span>분야와 검색어를 함께 선택할 수 있습니다.</span><button type="button" class="case-reset" data-case-reset>전체 보기</button></div>
+    </form>
+    <p class="case-filter-status" id="caseFilterStatus" aria-live="polite"></p>
+    <section class="case-empty" id="caseEmpty" aria-labelledby="caseEmptyTitle" hidden><h2 id="caseEmptyTitle">조건에 맞는 사례가 없습니다</h2><p>아파트명이나 작업명을 짧게 입력하거나, 다른 분야를 선택해 보세요.</p><div class="case-empty-actions"><button type="button" class="btn btn-primary" data-case-reset>전체 사례 다시 보기</button><a class="btn btn-ghost" id="caseEmptyInquiry" href="leak.html#leakInquiry">누수·배관 상담</a></div></section>`;
   const caseSummaryFields = [
     ['site', '현장'],
     ['issue', '문제'],
@@ -71,9 +90,10 @@
         <h1>누수·배관 사례부터 인테리어까지</h1>
         <p class="section-sub" style="margin:12px auto 0">누수탐지·배관·방수 실제 현장을 먼저, 인테리어 시공·견적·보증 안내도 함께 기록합니다.</p>
       </div>
+      ${finderMarkup()}
       <div class="insights-grid" style="margin-top:40px">
         ${list.map((a, idx) => `
-          <a class="insight-card" href="posts/${encodeURIComponent(a.slug)}.html">
+          <a class="insight-card" href="posts/${encodeURIComponent(a.slug)}.html" data-group="${caseGroup(a)}" data-date="${esc(a.date)}" data-search="${esc(searchText(a))}">
             <span class="ic-cover" style="background:${cover(a)}">${image(a, 'ic-image', idx === 0)}<span class="ic-cat">${esc(a.category)}</span></span>
             <span class="ic-body">
               <b>${esc(a.title)}</b>
@@ -169,31 +189,97 @@
   }
 
   function setupCaseFilters() {
-    const buttons = Array.from(document.querySelectorAll('[data-case-filter]'));
-    const cards = Array.from(document.querySelectorAll('.insights-grid .insight-card[data-group]'));
-    const featured = document.querySelector('.insight-featured[data-group]');
+    const form = document.getElementById('caseFinder');
+    if (!form || form.dataset.ready) return;
+    const buttons = Array.from(form.querySelectorAll('[data-case-filter]'));
+    const grid = root.querySelector('.insights-grid');
+    const featured = root.querySelector('.insight-featured[data-group]');
+    const slot = document.getElementById('caseFeaturedSlot');
+    const cards = Array.from(root.querySelectorAll('a[data-group]'));
+    const input = document.getElementById('caseSearch');
+    const sort = document.getElementById('caseSort');
     const status = document.getElementById('caseFilterStatus');
-    if (!buttons.length || !cards.length || !status) return;
+    const empty = document.getElementById('caseEmpty');
+    const inquiry = document.getElementById('caseEmptyInquiry');
+    if (!buttons.length || !grid || !input || !sort || !status || !empty) return;
+    form.dataset.ready = 'true';
+    const normalize = (value) => String(value || '').normalize('NFKC').toLocaleLowerCase('ko-KR');
+    const records = cards.map((card, index) => ({ card, index,
+      text: normalize(card.dataset.search || card.textContent).replace(/\s/g, ''),
+      date: card.dataset.date || '', group: card.dataset.group }));
+    const featureLabel = featured && featured.querySelector('.ic-cat');
+    const originalLabel = featureLabel && featureLabel.textContent;
+    const featureImage = featured && featured.querySelector('img');
+    const originalSizes = featureImage && featureImage.getAttribute('sizes');
+    let group = 'all';
+    let composing = false;
 
-    const apply = (group) => {
-      let visible = 0;
-      cards.forEach((card) => {
-        const show = group === 'all' || card.dataset.group === group;
-        card.hidden = !show;
-        if (show) visible += 1;
+    // 검색어를 주소나 외부 서비스에 보내지 않고, 이 방문 기록 안에서만 복원한다.
+    function restore() {
+      const saved = history.state && history.state.manmoolCaseFinder;
+      const category = new URLSearchParams(location.search).get('category');
+      const validGroup = (value) => buttons.some((button) => button.dataset.caseFilter === value);
+      group = saved && validGroup(saved.group) ? saved.group : validGroup(category) ? category : 'all';
+      input.value = saved && typeof saved.query === 'string' ? saved.query.slice(0, 120) : '';
+      sort.value = saved && saved.sort === 'oldest' ? 'oldest' : 'newest';
+    }
+    function apply(save = true) {
+      const query = input.value.slice(0, 120).trim();
+      const terms = normalize(query).split(/\s+/).filter(Boolean);
+      const useFeatured = !query && group === 'all' && sort.value === 'newest';
+      const matches = records.filter((record) => (group === 'all' || record.group === group)
+        && terms.every((term) => record.text.includes(term)));
+      const visible = new Set(matches.map((record) => record.card));
+      const ordered = records.slice().sort((a, b) => {
+        const dateOrder = a.date.localeCompare(b.date);
+        return (sort.value === 'oldest' ? dateOrder : -dateOrder) || a.index - b.index;
       });
-      if (featured) {
-        const showFeatured = group === 'all' || featured.dataset.group === group;
-        featured.hidden = !showFeatured;
-        if (showFeatured) visible += 1;
+      if (featured && slot) {
+        featured.classList.toggle('insight-featured', useFeatured);
+        featured.classList.toggle('insight-card', !useFeatured);
+        const kicker = featured.querySelector('.eyebrow');
+        if (kicker) kicker.hidden = !useFeatured;
+        if (featureLabel) featureLabel.textContent = useFeatured ? originalLabel : originalLabel.replace(/^최신 현장 · /, '');
+        if (featureImage && originalSizes) featureImage.setAttribute('sizes', useFeatured ? originalSizes
+          : '(max-width: 720px) 94vw, (max-width: 1130px) 46vw, 356px');
+        slot.hidden = !useFeatured;
       }
+      ordered.forEach(({ card }) => {
+        card.hidden = !visible.has(card);
+        (card === featured && slot && useFeatured ? slot : grid).appendChild(card);
+      });
       buttons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.caseFilter === group)));
       const active = buttons.find((button) => button.dataset.caseFilter === group);
-      status.textContent = `${active ? active.textContent.trim() : '전체'} ${visible}건`;
-    };
-
-    buttons.forEach((button) => button.addEventListener('click', () => apply(button.dataset.caseFilter)));
-    apply('all');
+      status.textContent = `${active.textContent.trim()} ${matches.length}건${query ? ` · “${query}” 검색 결과` : ''}`;
+      empty.hidden = matches.length !== 0;
+      grid.hidden = matches.length === 0;
+      if (inquiry) {
+        const interior = group === 'interior';
+        const info = group === 'info';
+        inquiry.setAttribute('href', interior || info ? 'index.html#inquiry' : 'leak.html#leakInquiry');
+        inquiry.textContent = interior ? '인테리어 상담' : info ? '공사 상담' : '누수·배관 상담';
+      }
+      if (save) {
+        try {
+          history.replaceState({ ...history.state, manmoolCaseFinder: { group, query: input.value.slice(0, 120), sort: sort.value } }, '');
+        } catch (_) { /* 방문 기록 사용이 제한되어도 검색은 동작한다. */ }
+      }
+    }
+    buttons.forEach((button) => button.addEventListener('click', () => { group = button.dataset.caseFilter; apply(); }));
+    input.addEventListener('compositionstart', () => { composing = true; });
+    input.addEventListener('compositionend', () => { composing = false; apply(); });
+    input.addEventListener('input', (event) => { if (!composing && !event.isComposing) apply(); });
+    input.addEventListener('search', () => { if (!composing) apply(); });
+    sort.addEventListener('change', () => apply());
+    form.addEventListener('submit', (event) => { event.preventDefault(); if (!composing) apply(); });
+    root.querySelectorAll('[data-case-reset]').forEach((button) => button.addEventListener('click', () => {
+      input.value = ''; sort.value = 'newest'; group = 'all'; apply(); input.focus({ preventScroll: true });
+    }));
+    window.addEventListener('pageshow', (event) => { if (event.persisted) { restore(); apply(false); } });
+    window.addEventListener('popstate', () => { restore(); apply(false); });
+    restore();
+    apply(false);
+    form.hidden = false;
   }
 
   // 헤더 내비 토글 — main.js는 이 페이지에 로드되지 않으므로 여기서 배선한다
@@ -231,7 +317,7 @@
     }
     const found = slug && insights.find((x) => x.slug === slug);
     if (found) renderArticle(found, insights);
-    else { renderList(insights); setupCaseFilters(); }
+    else if (!root.querySelector('.insights-grid')) { renderList(insights); setupCaseFilters(); }
   }
 
   document.addEventListener('DOMContentLoaded', init);

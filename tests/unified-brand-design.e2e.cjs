@@ -79,7 +79,7 @@ test('사례 목록은 전체 링크를 유지하며 고객이 분야별로 좁�
 
   assert.equal(await page.locator('.logo-text em').first().innerText(), '인테리어·누수 전문');
   assert.equal(await page.locator('.insight-featured').count(), 1);
-  const allLinks = await page.locator('.insights-grid a[href^="posts/"]').count();
+  const allLinks = await page.locator('#blogRoot a[href^="posts/"]').count();
   assert.equal(allLinks > 0, true);
 
   const leakFilter = page.getByRole('button', { name: '누수·배관' });
@@ -87,7 +87,7 @@ test('사례 목록은 전체 링크를 유지하며 고객이 분야별로 좁�
   assert.equal(await leakFilter.getAttribute('aria-pressed'), 'true');
   assert.equal(await page.locator('.insights-grid a[href^="posts/"]:visible').count() < allLinks, true);
   assert.match(await page.locator('#caseFilterStatus').innerText(), /\d+건/);
-  assert.equal(await page.locator('.insights-grid a[href^="posts/"]').count(), allLinks, '필터가 정적 사례 링크를 DOM에서 삭제함');
+  assert.equal(await page.locator('#blogRoot a[href^="posts/"]').count(), allLinks, '필터가 정적 사례 링크를 DOM에서 삭제함');
   await page.close();
 });
 
@@ -181,7 +181,7 @@ test('관리사무소 페이지는 발주 판단 정보와 전화·직원 포털
     ['업무 접수', '현장 확인', '견적·승인', '시공·복구', '사진 보고·정산']
   );
   assert.equal(await page.locator('#officeCases a[href^="posts/"]').count() >= 3, true);
-  assert.equal(await page.getByRole('link', { name: '관리사무소', exact: true }).getAttribute('aria-current'), 'page');
+  assert.equal(await page.locator('#mainNav').getByRole('link', { name: '관리사무소', exact: true }).getAttribute('aria-current'), 'page');
   assert.equal(await page.getByRole('link', { name: '전화 상담', exact: true }).getAttribute('href'), 'tel:01023978629');
   assert.equal(await page.getByRole('link', { name: '직원 포털 안내', exact: true }).getAttribute('href'), '#officeRequestIntro');
   await page.close();

@@ -1,14 +1,15 @@
 # 코덱스 인수인계서 — manmool (공개 홈페이지 + 전자계약 서버 소스)
 
 > 이 저장소에서 작업하는 모든 AI 에이전트(Codex·Claude)가 시작 전에 읽는 문서.
-> 2026-08-10 기준. 낡은 내용을 발견하면 **이 문서부터 고쳐라.**
+> 2026-09-06 확인: 공개 배포는 `scripts/build-pages-artifact.mjs`가 만든 `_site` 허용목록을 사용한다.
+> 아래 2026-08-10 상태·커밋·검사 개수는 과거 기록이다. 작업 전 최신 `origin/main`과 배포 결과를 확인한다.
 
 ## 이 저장소가 무엇인가
 
 만물인테리어(대전, 1인 시공업체)의 두 덩어리가 산다:
 
 1. **공개 홈페이지** (루트) — GitHub Pages. **main 병합 = 즉시 공개 배포.**
-   루트 전체가 공개로 서빙되므로 **어떤 파일에도 비밀값을 넣으면 안 된다.**
+   `_site` 허용목록만 공개로 서빙하지만 **어떤 저장소 파일에도 비밀값을 넣으면 안 된다.**
 2. **`apps-script-contract/`** — 전자계약 Google Apps Script 서버의 **소스**.
    여기 커밋해도 배포되지 않는다 — 사장님이 자기 구글 계정에 붙여넣어 배포한다
    (`SETUP.md` 절차). 운영 배포·health·selfTest 는 2026-08-10 완료했지만,
@@ -20,7 +21,7 @@
 ## 🔴 절대 금지
 
 1. **비밀값을 어디에도 넣지 마라.** `ADMIN_TOKEN`·`PEPPER`·API 키·고객 전화번호
-   원문은 Script Properties 에만 산다. 루트는 통째로 공개된다.
+   원문은 Script Properties 에만 산다. 공개 파일에 민감정보를 포함하지 않는다.
    단, `data/config.json`의 `forms.accessKey`는 Web3Forms가 정적 웹 클라이언트에
    공개하도록 설계한 **public form identifier**이며 비밀 API 키가 아니다
    (`https://docs.web3forms.com/getting-started/faq`). 이 예외를 다른 키·토큰에
@@ -48,6 +49,8 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 정본은 `data/site.json` 의 `insights` 하나뿐이고, 거기에 항목을 넣은 뒤
 `python3 scripts/prerender-posts.py` 를 돌리면 `posts/<slug>.html` 과
 `blog.html` 목록이 함께 만들어진다. `sitemap.xml` 만 따로 챙기면 된다.
+목록 검색은 정적 카드의 공개 제목·설명·분류·`caseSummary`만 사용한다.
+필터 UI를 바꾸면 `tests/case-finder.e2e.cjs`와 브랜드 화면 검사를 실행한다.
 실제 현장 사례는 `scripts/new-case-post.mjs` 에 6항목(동네+단지/증상/탐지 방법/
 원인+전유·공용/공사 내용/소요시간)을 줘 **비공개 초안**부터 만든다. 이 도구는
 동·호수·고객명·연락처를 거부하고 `published:false` 로 저장한다. 실제 자료 없이
