@@ -79,6 +79,7 @@ jobs:
           tests/revenue-metadata.test.cjs
           tests/revenue-conversion.e2e.cjs
           tests/hero-kakao.e2e.cjs
+          tests/leak-kakao.e2e.cjs
 
       - name: Run management office artifact mutation tests
         shell: bash
