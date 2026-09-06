@@ -107,6 +107,19 @@ check(/<a class="skip-link" href="#inquiry">/.test(index), 'index.html 에 상�
     '첫 화면(hero-actions)에 #heroKakao 카톡 버튼이 없거나 기본 숨김이 아니다 — main.js 의 카톡 배선이 죽은 채 남는다',
     '첫 화면 카톡 버튼(#heroKakao, 기본 숨김·ready 때만 표시)');
 }
+/* ③-1b 누수 페이지도 접수 전에 카톡 문의 버튼이 있다 — 첫 화면·제출 줄·하단 연락 목록 세 자리, 정적 기본은 hidden(미개설 채널 노출 금지),
+   js/leak-inquiry.js renderKakaoCta 가 kakao.ready 일 때만 켠다 */
+{
+  const leakHtml = read('leak.html');
+  const anchors = leakHtml.match(/<a[^>]*data-leak-kakao-cta[^>]*>/g) || [];
+  const inHost = (host, id) => new RegExp(`class="${host}"[\\s\\S]{0,900}id="${id}"`).test(leakHtml);
+  check(anchors.length === 3 && anchors.every((a) => /\bhidden\b/.test(a) && !/href=/.test(a))
+    && inHost('hero-actions', 'lkKakaoHero') && inHost('leak-submit-row', 'lkKakaoSubmit') && inHost('contact-action-list', 'lkKakaoContact')
+    && /function renderKakaoCta/.test(leakInquiry) && /configReady\.then\(renderKakaoCta\)/.test(leakInquiry)
+    && /\.leak-kakao-cta\[hidden\]\s*\{\s*display:\s*none/.test(read('css/leak-theme.css')),
+    '누수 페이지 접수 전 카톡 버튼(data-leak-kakao-cta) 3개가 세 자리에 기본 숨김으로 없거나, renderKakaoCta 배선·[hidden] CSS 가 빠졌다',
+    '누수 페이지 접수 전 카톡 버튼 3자리(기본 숨김·ready 때만 표시)');
+}
 /* ③-2 주 버튼 글자 대비 — 흰 글자 16px 는 배경과 4.5:1 이상(WCAG AA). --brand(#b8895a)는 3.10 이라 버튼 배경으로 못 쓴다 */
 {
   const css = fs.readFileSync(path.join(ROOT, 'css/styles.css'), 'utf8');

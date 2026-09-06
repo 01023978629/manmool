@@ -637,6 +637,9 @@ footer { padding: 49px 24px 54px; background: #071a29; color: #76909f; }
 .leak-choice input { width:20px; height:20px; flex:none; accent-color:#079fb8; }
 #lkPurposeField > small { color:#647782; font-size:13px; line-height:1.6; }
 #lkNaverBookingHost[hidden] { display:none; }
+/* 접수 전 카톡 문의 버튼 — .outline-case-button 의 display 가 UA [hidden] 보다 세므로 따로 숨긴다 */
+.leak-kakao-cta[hidden] { display: none; }
+.leak-kakao-cta { min-height: 44px; }
 #lkNaverBookingHost { display:flex; }
 #lkNaverBookingHost .outline-case-button { min-height:44px; }
 

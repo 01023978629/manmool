@@ -272,12 +272,22 @@
     showStep(step + 1);
   }
 
-  // 전화번호 자동 하이픈 (010-1234-5678)
+  // 전화번호 자동 하이픈. 예전엔 모든 번호를 3-4-4 로 잘라 유선 번호가
+  // "042-1234-567"·"021-2345-67" 처럼 깨진 채 대표에게 갔다(collect 는 이 표시
+  // 문자열을 그대로 payload.phone 에 넣는다). 지역번호 길이(02 만 2자리)와
+  // 국번 길이(3 또는 4)를 자릿수로 정한다:
+  //   02 → 2-(3|4)-4, 0[3-6]x·070·050x → 3-(3|4)-4, 01x → 3-4-4
   function formatPhone(v) {
-    const d = String(v).replace(/[^0-9]/g, '').slice(0, 11);
-    if (d.length < 4) return d;
-    if (d.length < 8) return d.slice(0, 3) + '-' + d.slice(3);
-    return d.slice(0, 3) + '-' + d.slice(3, 7) + '-' + d.slice(7);
+    const all = String(v).replace(/[^0-9]/g, '');
+    const area = /^02/.test(all) ? 2 : 3;
+    const d = all.slice(0, area + 8); // 지역번호 + 국번(최대 4) + 가입자 4
+    const head = d.slice(0, area);
+    const rest = d.slice(area);
+    if (!rest) return d;
+    // 휴대폰은 4자리 국번이 기본. 유선은 다 친 자릿수로 정한다(042-123-4567·02-123-4567 은 3자리).
+    const localLen = rest.length >= 8 ? 4 : (/^01/.test(d) ? 4 : 3);
+    if (rest.length <= localLen) return head + '-' + rest;
+    return head + '-' + rest.slice(0, localLen) + '-' + rest.slice(localLen);
   }
 
   /* ----- 제출 ----- */

@@ -198,7 +198,7 @@
     if (!phone) {
       submitBtn.disabled = submitWasDisabled;
       submitBtn.textContent = submitLabel;
-      fail('연락처를 010-0000-0000 형식으로 입력해 주세요.', 'lkPhone');
+      fail('연락처를 숫자 10~11자리로 입력해 주세요 (예: 010-1234-5678, 042-123-4567)', 'lkPhone');
       return;
     }
     if (!data.consent) {
@@ -362,7 +362,25 @@
     host.append(link);
   }
 
+  /* 접수 전 카카오톡 문의 버튼(첫 화면·제출 줄·하단 연락 목록). 정적 HTML 은 hidden 이 기본이고
+     kakao.ready 이면서 채널 주소가 있을 때만 켠다 — 미개설 채널로는 절대 유도하지 않는다(index.html 의
+     js/main.js setupContactCtas 와 같은 규칙). 사진은 접수 폼으로 못 보내니 카톡이 그 통로다. */
+  function renderKakaoCta(config) {
+    const kakao = config && config.kakao || {};
+    const href = kakao.ready === true ? String(kakao.chatUrl || kakao.channelAddUrl || '') : '';
+    document.querySelectorAll('[data-leak-kakao-cta]').forEach((link) => {
+      // 검사·디버깅용 표식: 설정을 읽고 판단이 끝났음을 정적 hidden 과 구분한다
+      link.setAttribute('data-leak-kakao-state', href ? 'ready' : 'off');
+      if (!href) { link.hidden = true; link.removeAttribute('href'); return; }
+      link.setAttribute('href', href);
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener');
+      link.hidden = false;
+    });
+  }
+
   configReady.then(renderNaverBooking);
+  configReady.then(renderKakaoCta);
 
   // 새 문서를 열 때는 자동 재시도하지 않는다. 같은 탭에서 실패한 최신 문의만 온라인 복귀 시 재시도한다.
   window.addEventListener('online', () => { retryVisibleFailure(); });

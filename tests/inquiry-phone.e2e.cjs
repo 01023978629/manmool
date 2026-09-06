@@ -90,3 +90,79 @@ test('번호가 아닌 입력은 계속 막는다', async () => {
     assert.ok(err && /번호/.test(err), `${number} 를 통과시켰다 — 연락 불가능한 리드가 쌓인다 (오류: ${err})`);
   }
 });
+
+/* ---------------------------------------------------------------------
+   자동 하이픈이 유선번호를 망가뜨리지 않는가 (2026-09-06)
+
+   보호하는 사고: js/inquiry.js formatPhone 이 모든 번호를 3-4-4 로 잘라
+   "0421234567" → "042-1234-567", "021234567" → "021-2345-67" 이 됐다.
+   validateStep 은 자릿수만 보고 collect() 는 칸의 표시 문자열을 그대로
+   payload.phone 에 넣으므로, 대표는 잘못 끊긴 번호를 받아 되걸기 어려웠다.
+   여기서는 390px 화면에서 실제로 치고 제출해, 칸의 값과 가로챈 전송
+   payload.phone 을 함께 본다(실제 web3forms 로는 절대 보내지 않는다). */
+async function formatAndSubmit(number, { typeKeys = false } = {}) {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  page.setDefaultTimeout(9000);
+  let payload = null;
+  await page.route('https://api.web3forms.com/**', (route) => {
+    try { payload = route.request().postDataJSON(); } catch { payload = { parseError: true }; }
+    return route.fulfill({ status: 200, contentType: 'application/json', body: '{"success":true}' });
+  });
+  await page.goto(`${origin}/index.html`, { waitUntil: 'networkidle' });
+  await page.evaluate(() => document.querySelector('#inquiry').scrollIntoView());
+  const next = () => page.evaluate(() => {
+    const b = [...document.querySelectorAll('#inquiry button')].find((x) => /다음/.test(x.textContent));
+    if (b) b.click();
+  });
+  for (let i = 0; i < 3; i++) { await next(); await page.waitForTimeout(250); }
+  await page.fill('#iName', '테스트');
+  if (typeKeys) { await page.click('#iPhone'); await page.type('#iPhone', number, { delay: 20 }); }
+  else await page.fill('#iPhone', number);
+  const shown = await page.inputValue('#iPhone');
+  await next();
+  await page.waitForTimeout(250);
+  await page.check('#iConsent');
+  await page.click('#submitInquiry');
+  await page.waitForSelector('.inquiry-done');
+  await page.waitForTimeout(150);
+  await ctx.close();
+  return { shown, sent: payload ? payload.phone : null };
+}
+
+test('유선번호는 지역번호에 맞게 끊기고, 대표에게 가는 payload.phone 도 같은 값이다 (390px)', async () => {
+  for (const [typed, expected] of [
+    ['0421234567', '042-123-4567'],   // 대전 유선 3-3-4
+    ['021234567', '02-123-4567'],     // 서울 2-3-4
+    ['0212345678', '02-1234-5678'],   // 서울 2-4-4
+    ['01012345678', '010-1234-5678'], // 휴대폰은 종전대로 3-4-4
+  ]) {
+    const { shown, sent } = await formatAndSubmit(typed);
+    assert.equal(shown, expected, `${typed} 를 칸에 ${shown} 으로 보여줬다`);
+    assert.equal(sent, expected, `${typed} 가 대표에게 ${sent} 로 갔다 — 되걸 수 없는 번호`);
+  }
+});
+
+test('한 글자씩 쳐도(입력 리스너·커서 처리) 결과가 같다', async () => {
+  const { shown, sent } = await formatAndSubmit('0421234567', { typeKeys: true });
+  assert.equal(shown, '042-123-4567');
+  assert.equal(sent, '042-123-4567');
+});
+
+test('누수 폼: 잘못된 연락처 문구가 010 만 예로 들지 않는다 (042·02·070 도 받으므로)', async () => {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  page.setDefaultTimeout(9000);
+  let posts = 0;
+  await page.route('https://api.web3forms.com/**', (route) => { posts += 1; return route.fulfill({ status: 200, contentType: 'application/json', body: '{"success":true}' }); });
+  await page.goto(`${origin}/leak.html`, { waitUntil: 'networkidle' });
+  await page.waitForFunction(() => window.ManmulLead && document.querySelector('#lkSubmit'));
+  await page.fill('#lkPhone', '12345');
+  await page.check('#lkConsent');
+  await page.click('#lkSubmit');
+  await page.waitForFunction(() => /연락처/.test((document.querySelector('#lkStatus') || {}).textContent || ''));
+  const msg = await page.evaluate(() => document.querySelector('#lkStatus').textContent.trim());
+  assert.equal(msg, '연락처를 숫자 10~11자리로 입력해 주세요 (예: 010-1234-5678, 042-123-4567)');
+  assert.equal(posts, 0, '잘못된 번호가 전송됐다');
+  await ctx.close();
+});

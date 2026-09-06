@@ -2187,10 +2187,11 @@ test('전송 실패 시 두 폼 모두 PII를 저장하지 않고 현재 탭 재
       for (const selector of ids) assert.equal(await handle.page.locator(selector).count(), 1, `${kind} missing ${selector}`);
       assert.equal(await handle.page.locator('a[href^="tel:"]').count() > 0, true);
       assert.equal(await handle.page.locator('a[href^="sms:"]').count() > 0, true);
+      // 누수 페이지는 접수 전 카톡 문의 버튼(첫 화면·제출 줄·하단)도 같은 주소를 쓰므로 결과 상자(#lkDone) 안만 센다
       assert.equal(
         kind === 'general'
           ? await handle.page.locator('#doneKakao').count()
-          : await handle.page.locator('a[href*="chat.test.invalid"]').count(),
+          : await handle.page.locator('#lkDone a[href*="chat.test.invalid"]').count(),
         1,
         `${kind} missing Kakao action`
       );
