@@ -67,7 +67,7 @@ const coreSrc = read('js/office-request-core.js');
 const requestSrc = read('js/office-request.js');
 check(/value\.residentContact && data\.residentInformed !== true/.test(coreSrc),
   '접수 검증이 입주민 연락처가 있을 때 residentInformed 확인을 요구하지 않는다');
-const payloadBody = (coreSrc.match(/function buildCreatePayload[\s\S]*?\n  }\n/) || [''])[0];
+const payloadBody = (coreSrc.match(/function buildCreatePayload[\s\S]*?\r?\n  }\r?\n/) || [''])[0];
 check(payloadBody.length > 0 && !/residentInformed/.test(payloadBody),
   '전송 본문(buildCreatePayload)에 residentInformed 가 실린다 — 서버 allowlist 계약이 바뀐다');
 // 오류 칸이 접힌 <details> 안이면 펼치고 포커스한다 — 닫힌 채로는 focus() 가 무효라 직원이 고칠 곳을 못 찾는다.

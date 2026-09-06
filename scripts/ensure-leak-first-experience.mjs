@@ -213,8 +213,8 @@ check(/styles\.css\?v=20260830-followup1/.test(index)
     && /brand-system\.css\?v=20260830-followup1/.test(index)
     && /main\.js\?v=20260830-followup1/.test(index)
     && /styles\.css\?v=20260830-followup1/.test(blog)
-    && /brand-system\.css\?v=20260830-followup1/.test(blog)
-    && /blog\.js\?v=20260830-followup1/.test(blog)
+    && /brand-system\.css\?v=20260906-case-finder/.test(blog)
+    && /blog\.js\?v=20260906-case-finder/.test(blog)
     && /styles\.css\?v=20260830-followup1/.test(insurancePost)
     && /brand-system\.css\?v=20260830-followup1/.test(insurancePost),
   '변경된 CSS/JS의 캐시 버전이 갱신되지 않아 기존 방문자에게 이전 화면이 남을 수 있다',

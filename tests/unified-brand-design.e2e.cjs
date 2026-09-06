@@ -79,7 +79,7 @@ test('사례 목록은 전체 링크를 유지하며 고객이 분야별로 좁�
 
   assert.equal(await page.locator('.logo-text em').first().innerText(), '인테리어·누수 전문');
   assert.equal(await page.locator('.insight-featured').count(), 1);
-  const allLinks = await page.locator('.insights-grid a[href^="posts/"]').count();
+  const allLinks = await page.locator('#blogRoot a[href^="posts/"]').count();
   assert.equal(allLinks > 0, true);
 
   const leakFilter = page.getByRole('button', { name: '누수·배관' });
@@ -87,7 +87,7 @@ test('사례 목록은 전체 링크를 유지하며 고객이 분야별로 좁�
   assert.equal(await leakFilter.getAttribute('aria-pressed'), 'true');
   assert.equal(await page.locator('.insights-grid a[href^="posts/"]:visible').count() < allLinks, true);
   assert.match(await page.locator('#caseFilterStatus').innerText(), /\d+건/);
-  assert.equal(await page.locator('.insights-grid a[href^="posts/"]').count(), allLinks, '필터가 정적 사례 링크를 DOM에서 삭제함');
+  assert.equal(await page.locator('#blogRoot a[href^="posts/"]').count(), allLinks, '필터가 정적 사례 링크를 DOM에서 삭제함');
   await page.close();
 });
 
