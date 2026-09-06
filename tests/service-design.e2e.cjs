@@ -127,17 +127,46 @@ async function assertCurrentTarget(page, hash, label) {
   }
 }
 
+async function assertServiceMenu(page, selector, currentFile) {
+  for (const { file } of SERVICES) {
+    const link = page.locator(`${selector} a[href="${file}"]`);
+    assert.equal(await link.count(), 1, `${selector}의 ${file} 서비스 링크 누락/중복`);
+    assert.equal(await link.isVisible(), true, `${selector}의 ${file} 링크를 사용할 수 없음`);
+    assert.equal(await page.locator(`#mainNav a[href="${file}"]:visible, .service-family a[href="${file}"]:visible`).count(), 1,
+      `${file} 상단 서비스 메뉴가 한 벌로 표시되지 않음`);
+  }
+  assert.equal(await page.locator(`${selector} [aria-current="page"]`).count(), 1);
+  assert.equal(await page.locator(`${selector} [aria-current="page"]`).getAttribute('href'), currentFile);
+}
+
+async function followAnotherService(page, selector, currentFile) {
+  const next = SERVICES[(SERVICES.findIndex(({ file }) => file === currentFile) + 1) % SERVICES.length].file;
+  await page.locator(`${selector} a[href="${next}"]`).click();
+  await page.waitForURL(`${origin}/${next}`);
+  await page.waitForLoadState('networkidle');
+  assert.equal(await page.locator('body.service-page').count(), 1, '서비스 전환 후 페이지 로드 실패');
+  assert.equal(await page.locator(`${selector} [aria-current="page"]`).getAttribute('href'), next,
+    '전환한 서비스의 현재 메뉴 표시가 다름');
+}
+
 for (const service of SERVICES) {
   for (const width of [320, 390, 1280]) {
     test(`${service.file} ${width}px: 서비스 전환·상담 경로·44px 버튼·고정 섹션 이동`, async (t) => {
       const page = await openPublic(t, service.file, { viewport: { width, height: 900 } });
       assert.equal(await page.locator('body.service-page').count(), 1);
       assert.equal(await page.locator(service.form).count(), 1, '기존 상담 폼 ID 누락');
-      const family = page.locator('.service-family a');
-      assert.deepEqual(await family.evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
-        SERVICES.map(({ file }) => file));
-      assert.equal(await page.locator('.service-family [aria-current="page"]').count(), 1);
-      assert.equal(await page.locator('.service-family [aria-current="page"]').getAttribute('href'), service.file);
+      assert.equal(await page.locator('.service-family').count(), 0,
+        'JavaScript 사용 중 대체 서비스 메뉴가 중복으로 생성됨');
+      const mobile = width <= 960;
+      if (mobile) {
+        assert.equal(await page.locator('#mainNav').isVisible(), false, '모바일 메뉴가 처음부터 열려 있음');
+        assert.equal(await page.locator('#navToggle').getAttribute('aria-expanded'), 'false');
+        await page.locator('#navToggle').click();
+        assert.equal(await page.locator('#navToggle').getAttribute('aria-expanded'), 'true');
+      }
+      await assertServiceMenu(page, '#mainNav', service.file);
+      assert.equal(await page.locator('.service-family:visible').count(), 0,
+        '주요 메뉴를 연 뒤 대체 서비스 메뉴가 함께 보임');
       assert.equal(await page.locator(`a[href="blog.html?category=${service.category}"]`).count() > 0, true,
         '서비스에 맞는 사례 필터 링크 누락');
 
@@ -145,7 +174,7 @@ for (const service of SERVICES) {
         width: document.documentElement.clientWidth,
         scroll: document.documentElement.scrollWidth,
         short: [...document.querySelectorAll([
-          '.service-family a', '.service-jump-nav a', '.btn', '.primary-button',
+          '#mainNav a', '#navToggle', '.service-jump-nav a', '.btn', '.primary-button',
           '.office-button', '.hero-actions a', '.hero-actions button',
           '.office-hero-actions a', '.leak-hero-cta a', '.leak-hero-cta button',
           '.mobile-call-bar', '.mobile-service-dock a',
@@ -158,6 +187,11 @@ for (const service of SERVICES) {
       }));
       assert.equal(metrics.scroll, metrics.width, '페이지 가로 넘침');
       assert.deepEqual(metrics.short, [], '44px 미만 핵심 조작 영역');
+      if (mobile) {
+        await page.locator('#navToggle').click();
+        assert.equal(await page.locator('#navToggle').getAttribute('aria-expanded'), 'false');
+        assert.equal(await page.locator('#mainNav').isVisible(), false, '모바일 메뉴가 닫히지 않음');
+      }
 
       const jumpLinks = page.locator('.service-jump-nav a');
       const hashes = await jumpLinks.evaluateAll((links) => links.map((link) => link.getAttribute('href')));
@@ -179,12 +213,27 @@ for (const service of SERVICES) {
         width: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth,
       }));
       assert.equal(afterScroll.scroll, afterScroll.width, '섹션 이동 후 페이지 가로 넘침');
+      if (mobile) await page.locator('#navToggle').click();
+      await assertServiceMenu(page, '#mainNav', service.file);
+      await followAnotherService(page, '#mainNav', service.file);
+      assert.equal(await page.locator('.service-family').count(), 0, '서비스 전환 뒤 대체 메뉴가 중복으로 생성됨');
+      if (mobile) assert.equal(await page.locator('#navToggle').getAttribute('aria-expanded'), 'false');
     });
   }
 
   test(`${service.file}: 키보드 이동과 수동 스크롤은 현재 섹션을 표시하고 포커스를 빼앗지 않는다`, async (t) => {
     const page = await openPublic(t, service.file, { viewport: { width: 390, height: 844 } });
-    for (const selector of ['.service-family a', '.service-jump-nav a']) {
+    await page.locator('#navToggle').focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await page.locator('#navToggle').getAttribute('aria-expanded'), 'true',
+      '키보드로 주요 메뉴를 열 수 없음');
+    await assertServiceMenu(page, '#mainNav', service.file);
+    for (const selector of ['#mainNav a', '.service-jump-nav a']) {
+      if (selector === '.service-jump-nav a') {
+        await page.locator('#navToggle').focus();
+        await page.keyboard.press('Enter');
+        assert.equal(await page.locator('#navToggle').getAttribute('aria-expanded'), 'false');
+      }
       const links = page.locator(selector);
       await links.first().focus();
       for (let index = 1; index < await links.count(); index++) {
@@ -216,11 +265,14 @@ for (const service of SERVICES) {
       '스크롤 위치 추적이 키보드 포커스를 옮김');
   });
 
-  test(`${service.file}: JavaScript가 없어도 서비스 전환과 섹션 앵커가 사용 가능하다`, async (t) => {
+  test(`${service.file}: JavaScript 없는 모바일은 대체 메뉴 한 벌과 섹션 앵커를 사용할 수 있다`, async (t) => {
     const page = await openPublic(t, service.file, {
       viewport: { width: 320, height: 844 }, javaScriptEnabled: false,
     });
+    assert.equal(await page.locator('.service-family').count(), 1);
     assert.equal(await page.locator('.service-family a:visible').count(), 3);
+    assert.equal(await page.locator('#mainNav').isVisible(), false);
+    await assertServiceMenu(page, '.service-family', service.file);
     const links = page.locator('.service-jump-nav a');
     assert.equal(await links.count() >= 3, true);
     const hash = await links.nth(1).getAttribute('href');
@@ -229,6 +281,18 @@ for (const service of SERVICES) {
     // this native anchor jump immediate, so geometry can be inspected directly.
     assert.equal(new URL(page.url()).hash, hash);
     await assertTargetUncovered(page, hash, `${service.file}/no-JavaScript`);
+    await followAnotherService(page, '.service-family', service.file);
+    assert.equal(await page.locator('.service-family a:visible').count(), 3);
+  });
+
+  test(`${service.file}: JavaScript 없는 데스크톱은 대체 메뉴를 숨기고 주요 메뉴로 전환한다`, async (t) => {
+    const page = await openPublic(t, service.file, {
+      viewport: { width: 1280, height: 900 }, javaScriptEnabled: false,
+    });
+    assert.equal(await page.locator('.service-family:visible').count(), 0, '데스크톱 대체 메뉴가 주요 메뉴와 중복됨');
+    await assertServiceMenu(page, '#mainNav', service.file);
+    await followAnotherService(page, '#mainNav', service.file);
+    assert.equal(await page.locator('.service-family:visible').count(), 0, '서비스 전환 뒤 대체 메뉴가 중복됨');
   });
 }
 
