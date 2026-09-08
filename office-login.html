@@ -25,7 +25,7 @@
     <section class="portal-auth-card" aria-labelledby="portalLoginTitle">
       <span class="portal-eyebrow">관리사무소 계정 전용</span>
       <h1 id="portalLoginTitle">관리자 발급 비밀번호로 로그인</h1>
-      <p class="portal-lead">관리사무소 코드, 등록 이메일과 관리자가 발급한 6자리 비밀번호를 입력하세요. 직책과 열람 범위는 관리자가 설정한 권한을 따릅니다.</p>
+      <p class="portal-lead">관리사무소 코드, 등록 이메일과 비밀번호를 입력하세요. 직원은 기존 6자리 숫자를 사용하고, 관리자 계정은 별도로 설정한 비밀번호도 사용할 수 있습니다. 직책과 열람 범위는 서버가 확인한 권한을 따릅니다.</p>
       <div id="portalConfigNotice" class="portal-notice" role="status" aria-live="polite">서버 연결 상태를 확인하고 있습니다.</div>
 
       <form id="portalLoginForm" class="portal-form" novalidate>
@@ -35,10 +35,10 @@
         <label for="portalEmail">등록 이메일
           <input id="portalEmail" name="email" type="email" maxlength="254" autocomplete="username" inputmode="email" />
         </label>
-        <label for="portalLoginCode">6자리 로그인 비밀번호
-          <input id="portalLoginCode" name="loginCode" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" aria-describedby="portalLoginError" />
+        <label for="portalLoginCode">로그인 비밀번호
+          <input id="portalLoginCode" name="loginCode" type="password" inputmode="text" autocomplete="current-password" maxlength="64" autocapitalize="none" spellcheck="false" aria-describedby="portalPasswordHelp portalLoginError" />
         </label>
-        <p class="portal-help">비밀번호는 관리자가 발급하며 브라우저에 저장하지 않습니다. 5회 연속 오류 시 15분간 잠깁니다.</p>
+        <p id="portalPasswordHelp" class="portal-help">관리자 계정은 기존 6자리 숫자 또는 공백 없는 8~64자 영문·숫자·특수문자를 사용할 수 있습니다. 문자 종류를 모두 섞을 필요는 없습니다. 앱은 비밀번호를 저장하지 않으며, 브라우저의 비밀번호 저장 여부는 본인이 선택합니다. 5회 연속 오류 시 15분간 잠깁니다.</p>
         <p id="portalLoginError" class="portal-error" role="alert" aria-live="polite"></p>
         <button id="portalLoginButton" class="portal-button portal-button-primary" type="submit">로그인</button>
       </form>
@@ -51,8 +51,8 @@
       <p class="portal-support">계정 등록과 권한 확인은 <a href="tel:01023978629">010-2397-8629</a>로 문의해 주세요.</p>
     </section>
   </main>
-  <script src="js/office-portal-core.js?v=20260902-office-pin1"></script>
+  <script src="js/office-portal-core.js?v=20260908-master-password1"></script>
   <script src="js/office-portal-api.js?v=20260902-office-pin1"></script>
-  <script src="js/office-login.js?v=20260902-office-pin1"></script>
+  <script src="js/office-login.js?v=20260908-master-password1"></script>
 </body>
 </html>
