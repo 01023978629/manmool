@@ -5,8 +5,15 @@
     <link>https://01023978629.github.io/manmool/blog.html</link>
     <description>대전 만물인테리어의 시공 사례와 견적·계약·보증 안내</description>
     <language>ko-KR</language>
-    <lastBuildDate>Tue, 08 Sep 2026 00:00:00 +0900</lastBuildDate>
+    <lastBuildDate>Wed, 09 Sep 2026 00:00:00 +0900</lastBuildDate>
     <atom:link href="https://01023978629.github.io/manmool/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>인테리어 계약서 비교 방법, 견적서 사진부터 살펴보세요</title>
+      <link>https://01023978629.github.io/manmool/posts/interior-quote-contract-comparison.html</link>
+      <guid isPermaLink="true">https://01023978629.github.io/manmool/posts/interior-quote-contract-comparison.html</guid>
+      <description>견적 합계보다 세부 내역을 먼저 비교해 보세요. 목공 자재, 도장 바탕 보수, 타일 부분 보수, 전기·소방 수량을 같은 기준에 놓는 방법을 정리했습니다. AI 편집 이미지에 세부 내역은 남기고 식별정보와 금액은 공개하지 않았습니다.</description>
+      <pubDate>Wed, 09 Sep 2026 00:00:00 +0900</pubDate>
+    </item>
     <item>
       <title>부여 부영아파트 베란다 방수, 1차 몰탈에서 2차 도막까지</title>
       <link>https://01023978629.github.io/manmool/posts/buyeo-buyeong-balcony-waterproofing.html</link>
@@ -209,13 +216,6 @@
       <guid isPermaLink="true">https://01023978629.github.io/manmool/posts/beomjigi-bathroom-waterproof.html</guid>
       <description>세종 범지기마을 두 세대에서 진행한 욕실 1·2차 방수 공정입니다. 바닥과 벽 하단을 정리한 모습부터 도포 범위와 배관 주변까지, 마감 뒤에는 가려질 부분을 사진으로 살펴봅니다.</description>
       <pubDate>Thu, 02 Jul 2026 00:00:00 +0900</pubDate>
-    </item>
-    <item>
-      <title>세종 도램마을 욕실 도막방수·난방 작업 — 바닥과 벽 배관을 함께 살폈습니다</title>
-      <link>https://01023978629.github.io/manmool/posts/doram-waterproof-heating.html</link>
-      <guid isPermaLink="true">https://01023978629.github.io/manmool/posts/doram-waterproof-heating.html</guid>
-      <description>세종 도램마을에서 진행한 욕실 도막방수와 난방 관련 작업입니다. 벽 하단의 방수면과 수전 배관 연결부를 구분해, 타일 뒤에 가려질 공정을 짧게 풀어봅니다.</description>
-      <pubDate>Mon, 29 Jun 2026 00:00:00 +0900</pubDate>
     </item>
   </channel>
 </rss>
