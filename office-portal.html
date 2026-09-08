@@ -11,7 +11,7 @@
   <script src="js/office-frame-guard.js?v=20260901-office-rbac2"></script>
   <link rel="stylesheet" href="css/styles.css?v=20260901-office-rbac1" />
   <link rel="stylesheet" href="css/brand-system.css?v=20260901-office-rbac1" />
-  <link rel="stylesheet" href="css/office-portal.css?v=20260901-office-ops1" />
+  <link rel="stylesheet" href="css/office-portal.css?v=20260908-office-intake-link1" />
 </head>
 <body class="portal-page">
   <header class="portal-header">
@@ -41,7 +41,7 @@
         <button type="button" data-panel="notices" data-requires="notices.view" hidden>공지</button>
         <button type="button" data-panel="costs" data-requires="costs.view" hidden>비용·정산</button>
         <button type="button" data-panel="reports" data-requires="reports.view" hidden>운영보고</button>
-        <a href="office-request.html" data-requires="requests.view" hidden>기존 비밀번호 시설접수</a>
+        <a data-intake-link data-requires="requests.view" hidden>우리 단지 시설접수</a>
       </nav>
 
       <p id="portalStatusMessage" class="portal-live" role="status" aria-live="polite"></p>
@@ -109,13 +109,21 @@
 
       <section id="portalReportsPanel" class="portal-panel" data-panel-view="reports" data-requires="reports.view" hidden aria-labelledby="portalReportsTitle"><div class="portal-panel-head"><div><span class="portal-eyebrow">개인정보 없는 집계</span><h1 id="portalReportsTitle" tabindex="-1">운영보고</h1></div><button id="portalReportPrint" class="portal-button portal-button-secondary" type="button">인쇄</button></div><div class="portal-list-tools"><label>시작일<input id="portalReportFrom" type="date" /></label><label>종료일<input id="portalReportTo" type="date" /></label><button id="portalReportLoad" class="portal-button portal-button-primary" type="button">조회</button><button id="portalReportCsv" class="portal-button portal-button-secondary" type="button" disabled>CSV 다운로드</button></div><p id="portalReportPeriod" role="status" aria-live="polite"></p><div id="portalReportCards" class="portal-kpi-grid" aria-live="polite"></div></section>
 
-      <section class="portal-panel portal-intake-card" data-requires="requests.view" hidden><h2>기존 비밀번호 시설보수 접수</h2><p>시설보수 접수는 기존 단지 전용 주소와 6자리 비밀번호 화면에서 계속 처리합니다. 이메일 포털의 작업지시는 접수 이후 내부 운영 기록입니다.</p><a class="portal-button portal-button-secondary" href="office-request.html">기존 시설접수 열기</a></section>
+      <section id="portalIntakeCard" class="portal-panel portal-intake-card" data-requires="requests.view" hidden aria-labelledby="portalIntakeTitle">
+        <span class="portal-eyebrow">관리사무소 ↔ 현장 앱</span>
+        <h2 id="portalIntakeTitle">우리 단지 시설보수 접수</h2>
+        <p id="portalIntakeOffice" class="portal-intake-office"></p>
+        <ol class="portal-intake-steps" aria-label="시설보수 처리 순서"><li><b>시설접수</b><span>사진과 보수 내용을 접수합니다.</span></li><li><b>대표 검토</b><span>접수 내용을 확인한 뒤 수락합니다.</span></li><li><b>현장 오더</b><span>대표가 현장과 작업을 연결합니다.</span></li><li><b>진행상태 확인</b><span>시설접수 화면에서 반영된 진행상태를 확인합니다.</span></li></ol>
+        <p id="portalIntakeHelp" class="portal-help">직원 포털 로그인과 시설접수의 6자리 PIN(접수 비밀번호)은 별도입니다. 양쪽에 등록된 단지 코드가 같아야 합니다. 다른 단지명이 보이거나 코드가 맞지 않으면 접수하지 말고 관리자에게 확인해 주세요.</p>
+        <p class="portal-help">이 링크는 접수 화면만 엽니다. 자동 로그인하거나 사진·작업지시를 보내지 않습니다. 직원 포털의 작업지시는 별도 내부 운영 기록입니다.</p>
+        <a class="portal-button portal-button-primary" data-intake-link data-requires="requests.view" aria-describedby="portalIntakeHelp" hidden>우리 단지 시설접수 열기</a>
+      </section>
 
       <section id="portalEmpty" class="portal-state-card" hidden><h1>열람 가능한 메뉴가 없습니다</h1><p>관리자에게 보기 권한을 요청해 주세요.</p><a id="portalEmptyAdmin" class="portal-button portal-button-primary" href="office-admin.html" hidden>권한 관리로 이동</a></section>
     </div>
   </main>
   <script src="js/office-portal-core.js?v=20260901-office-ops1"></script>
   <script src="js/office-portal-api.js?v=20260901-office-ops1"></script>
-  <script src="js/office-portal.js?v=20260901-office-ops1"></script>
+  <script src="js/office-portal.js?v=20260908-office-intake-link1"></script>
 </body>
 </html>
