@@ -81,8 +81,19 @@
       fields.namedItem('userId').value = ''; fields.namedItem('active').checked = true;
       fields.namedItem('email').readOnly = false; fields.namedItem('role').disabled = false; fields.namedItem('active').disabled = false;
       applyAssignableRoleOptions();
+      updateUserPasswordHelp();
     }
     if (userError) userError.textContent = '';
+  }
+  function updateUserPasswordHelp() {
+    const fields = userForm.elements, role = fields.namedItem('role').value;
+    const previous = users.find((user) => user.id === fields.namedItem('userId').value);
+    fields.namedItem('loginCode').inputMode = role === 'system_admin' ? 'text' : 'numeric';
+    byId('portalUserPasswordHelp').textContent = previous?.role === 'system_admin' && role !== 'system_admin'
+      ? '관리자 역할을 직원 역할로 바꾸려면 새 6자리 숫자 비밀번호가 반드시 필요합니다.'
+      : role === 'system_admin'
+        ? '관리자는 기존 6자리 숫자 또는 공백 없는 8~64자 영문·숫자·특수문자를 사용할 수 있습니다. 문자 종류를 모두 섞을 필요는 없습니다. 기존 사용자는 비워 두면 유지됩니다.'
+        : '직원은 6자리 숫자를 사용합니다. 기존 사용자 수정 시 비워 두면 현재 비밀번호가 유지됩니다.';
   }
   function selectPermissions(user) {
     if (!canChangePermissions(user) || !permissionForm) return;
@@ -116,6 +127,7 @@
     if (user.id === session.user.id) {
       fields.namedItem('email').readOnly = true; fields.namedItem('role').disabled = true; fields.namedItem('active').disabled = true;
     }
+    updateUserPasswordHelp();
     fields.namedItem('name').focus();
   }
   function renderUsers() {
@@ -154,7 +166,7 @@
       role: fields.namedItem('role').value, active: fields.namedItem('active').checked,
       unit: fields.namedItem('unit').value.trim().slice(0, 40),
     };
-    const loginCode = fields.namedItem('loginCode').value.trim(); if (loginCode) payload.loginCode = loginCode;
+    const loginCode = fields.namedItem('loginCode').value; if (loginCode !== '') payload.loginCode = loginCode;
     const userId = fields.namedItem('userId').value.trim(); if (userId) payload.userId = userId;
     return payload;
   }
@@ -200,12 +212,15 @@
     event.preventDefault(); if (!can('admin.users.manage')) return;
     const payload = userPayload(); userError.textContent = '';
     if (!payload.email || !payload.name || !core.canAssignRole(session.user.role, payload.role)) { userError.textContent = '이름, 이메일과 지정할 수 있는 역할을 확인해 주세요.'; return; }
-    if ((!payload.userId && !/^\d{6}$/.test(payload.loginCode || '')) || (payload.loginCode && !/^\d{6}$/.test(payload.loginCode))) { userError.textContent = '신규 사용자는 관리자가 정한 6자리 숫자 인증번호가 필요합니다.'; return; }
+    const previous = users.find((user) => user.id === payload.userId);
+    const credential = core.validateUserLoginCode(userForm.elements.namedItem('loginCode').value, payload.role, { required: !payload.userId, previousRole: previous?.role || '' });
+    if (!credential.ok) { userError.textContent = credential.message; userForm.elements.namedItem('loginCode').focus(); return; }
     payload.requestId = operationRequestId(userForm);
     try { await portalCall('portalUserSave', payload); clearOperationRequest(userForm); resetUserForm(); await loadUsers(); }
     catch (error) { if (session) userError.textContent = message(error); }
   });
   userForm?.addEventListener('reset', () => clearOperationRequest(userForm));
+  userForm?.elements.namedItem('role').addEventListener('change', updateUserPasswordHelp);
   permissionForm?.addEventListener('reset', () => clearOperationRequest(permissionForm));
   byId('portalUserReset')?.addEventListener('click', resetUserForm);
   permissionForm?.addEventListener('submit', async (event) => {

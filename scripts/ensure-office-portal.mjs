@@ -32,9 +32,11 @@ check((files.office.match(/href="office-login\.html"/g) || []).length >= 1, '관
 check(/href="office-request\.html"[^>]*>(?:관리사무소 )?시설보수 접수/.test(files.office), '시설보수 접수(접수 비밀번호) 진입 링크가 없습니다.');
 for (const page of ['login', 'portal', 'admin']) check(/name="robots" content="noindex,nofollow"/.test(files[page]), `${page} 페이지가 noindex,nofollow가 아닙니다.`);
 check(!/(office-login|office-portal|office-admin)\.html/.test(files.sitemap), '비공개 포털 페이지가 sitemap에 들어갔습니다.');
-// 인증번호 칸은 one-time-code 여야 한다 — current/new-password 면 브라우저가 '비밀번호 저장?'을 띄워
-// 관리자 PC 의 비밀번호 관리자에 직원·입주민 인증번호가 평문으로 남는다(화면 문구 '브라우저에 저장하지 않습니다'와 어긋남).
-check(files.login.includes('type="email"') && files.login.includes('name="loginCode"') && files.login.includes('autocomplete="one-time-code"'), '로그인 페이지가 관리자 발급 인증번호 방식이 아닙니다.');
+// 2026-09-08: 직원 6자리 유지 + system_admin만 긴 비밀번호. 앱 저장과 사용자가 선택하는 브라우저 저장은 구분한다.
+check(files.login.includes('type="email"') && /name="loginCode"[^>]*inputmode="text"[^>]*autocomplete="current-password"[^>]*maxlength="64"/.test(files.login) && !/pattern="\[0-9\]\{6\}"/.test(files.login), '로그인 페이지가 직원·관리자 비밀번호 입력을 지원하지 않습니다.');
+check(/validLoginCredential/.test(files.core) && /role === 'system_admin' && isMasterPassword\(value\)/.test(files.core) && /masterDowngrade && !isSixDigitCode\(value\)/.test(files.core) && /core\.validateUserLoginCode/.test(files.adminJs), '관리자 비밀번호 역할 제한 또는 직원 강등 시 6자리 필수 검증이 없습니다.');
+check(!/loginCode[^\n;]*\.trim\(/.test(files.core + files.adminJs + files.loginJs), '비밀번호 원문을 trim 처리합니다.');
+check(['login', 'portal', 'admin'].every((page) => files[page].includes('js/office-portal-core.js?v=20260908-master-password1')), '공통 비밀번호 검증 코드의 캐시 버전이 일치하지 않습니다.');
 check(/"enabled": false[\s\S]*"apiUrl": ""/.test(files.config) && Object.keys(JSON.parse(files.config)).sort().join(',') === 'apiUrl,enabled', '포털 API 기본 설정이 exact disabled가 아닙니다.');
 check(actions.every((action) => files.api.includes(`'${action}'`)), '포털 API action 계약이 불완전합니다.');
 check(/sessionStorage/.test(files.loginJs + files.portalJs + files.adminJs) && !/(localStorage|indexedDB)/.test(files.core + files.api + files.loginJs + files.portalJs + files.adminJs), '포털이 허용되지 않은 영구 브라우저 저장소를 사용합니다.');
@@ -42,7 +44,7 @@ check(/token,user,office,permissions,expiresAt/.test(files.core.replace(/\s+/g, 
 check(/portalMe/.test(files.portalJs) && /portalMe/.test(files.adminJs) && /data-requires/.test(files.portal + files.admin), '서버 권한 재확인 또는 fail-closed 화면 계약이 없습니다.');
 check(/source\.active;/.test(files.core) && /typeof active !== 'boolean'/.test(files.core) && /active !== true/.test(files.core), '사용자 active 값이 exact boolean과 활성 세션으로 검증되지 않습니다.');
 check(/loginButton\.disabled\s*=\s*value/.test(files.loginJs) && /if \(busy\s*\|\|/.test(files.loginJs), '로그인 처리 중 중복 제출이 차단되지 않습니다.');
-check(/name="loginCode"[^>]*autocomplete="one-time-code"/.test(files.admin) && /loginCodeConfigured/.test(files.adminJs), '관리자 인증번호 발급·설정 상태 화면이 없습니다.');
+check(/name="loginCode"[^>]*autocomplete="new-password"[^>]*maxlength="64"/.test(files.admin) && /loginCodeConfigured/.test(files.adminJs) && /portalUserPasswordHelp/.test(files.admin), '역할별 비밀번호 발급·설정 상태 화면이 없습니다.');
 // 로그인 실패 뒤 포커스는 인증번호 칸으로 돌아와야 한다(제출 버튼 disabled 로 포커스 소실).
 check(/loginError\.textContent = loginMessage\(error\);\s*\n[^\n]*\n\s*focusField\('loginCode'\)/.test(files.loginJs), '로그인 실패 뒤 포커스가 인증번호 칸으로 돌아오지 않습니다.');
 // 실패·잠금·미설정 문구에 전화 안내 — 재시도만 말하면 직원은 갈 곳이 없다.

@@ -33,7 +33,11 @@ html[data-office-frame-pending] { display:none !important; }
 .portal-support a { color:var(--portal-teal); font-weight:800; }
 .portal-header { position:sticky; top:0; z-index:20; border-bottom:1px solid rgba(16,59,77,.12); background:rgba(255,255,255,.96); backdrop-filter:blur(14px); }
 .portal-header-inner { min-height:74px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
+.portal-header .logo { flex:1 1 0; min-width:0; }
+.portal-header .logo-text { min-width:0; }
+#portalOfficeName { overflow-wrap:anywhere; }
 .portal-account { display:flex; align-items:center; justify-content:flex-end; gap:12px; }
+.portal-account .portal-button { min-height:44px; }
 .portal-account span { display:grid; text-align:right; }
 .portal-account small { color:#647980; }
 .portal-small-link { color:var(--portal-teal); font-size:13px; font-weight:800; }
@@ -75,6 +79,14 @@ html[data-office-frame-pending] { display:none !important; }
 .portal-list-tools span { margin-left:auto; padding:10px 0; color:#587079; font-weight:800; }
 .portal-list-tools .portal-button { flex:0 0 auto; }
 .portal-panel h1:focus { outline:3px solid rgba(8,127,136,.25); outline-offset:5px; }
+.portal-intake-card { min-width:0; overflow-wrap:anywhere; }
+.portal-intake-card h2 { margin:8px 0 12px; color:var(--portal-navy); }
+.portal-intake-office { margin:12px 0; font-weight:800; }
+.portal-intake-steps { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:18px 0; padding:0; list-style:none; counter-reset:intake-step; }
+.portal-intake-steps li { min-width:0; padding:14px; border:1px solid var(--portal-line); border-radius:12px; background:var(--portal-mist); counter-increment:intake-step; }
+.portal-intake-steps b::before { content:counter(intake-step) '. '; }
+.portal-intake-steps span { display:block; margin-top:7px; font-size:14px; line-height:1.6; }
+.portal-intake-card .portal-help { line-height:1.7; }
 
 @media (max-width:800px) {
   .portal-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -83,11 +95,14 @@ html[data-office-frame-pending] { display:none !important; }
   .portal-account span { width:100%; text-align:right; }
 }
 @media (max-width:600px) {
+  .portal-intake-steps { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .portal-intake-card > .portal-button { width:100%; }
   .portal-main { padding:26px 12px 70px; }
   .portal-auth-card,.portal-state-card { padding:24px 17px; border-radius:18px; }
-  .portal-header-inner { align-items:flex-start; }
+  .portal-header-inner { align-items:flex-start; flex-wrap:wrap; }
+  .portal-header .logo { flex:1 0 100%; }
   .portal-header .logo-text em { display:none; }
-  .portal-account { gap:7px; }
+  .portal-account { gap:7px; width:100%; }
   .portal-small-link { min-height:42px; display:inline-flex; align-items:center; }
   .portal-panel { padding:20px 15px; }
   .portal-panel-head { display:grid; }

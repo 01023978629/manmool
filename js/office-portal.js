@@ -22,10 +22,41 @@
   const loadGeneration = { dashboard: 0, status: 0, logs: 0, workorders: 0, notices: 0, costs: 0, reports: 0 };
   let currentPanel = '';
   let logoutStarted = false;
+  let intakeSession = null, intakeExpiryTimer = null;
 
   if (!core || !api || !loading || !denied || !app) return;
 
   function can(permission) { return Boolean(session && core.hasPermission(session.permissions, permission)); }
+  function clearIntakeLink() {
+    intakeSession = null;
+    if (intakeExpiryTimer !== null) { window.clearTimeout(intakeExpiryTimer); intakeExpiryTimer = null; }
+    document.querySelectorAll('[data-intake-link]').forEach((link) => { link.removeAttribute('href'); link.hidden = true; });
+    if (byId('portalIntakeOffice')) byId('portalIntakeOffice').textContent = '';
+    if (byId('portalIntakeCard')) byId('portalIntakeCard').hidden = true;
+  }
+  function intakeLinkAllowed() {
+    return Boolean(intakeSession && intakeSession === session && session.expiresAt > Date.now() &&
+      can('requests.view') && core.roleCeiling(session.user.role).includes('requests.view'));
+  }
+  function bindIntakeLink(verifiedSession) {
+    clearIntakeLink();
+    intakeSession = verifiedSession;
+    const slug = core.normalizeOfficeCode(verifiedSession?.office?.slug);
+    if (!slug || !intakeLinkAllowed()) { clearIntakeLink(); return; }
+    const href = 'office-request.html?office=' + encodeURIComponent(slug);
+    document.querySelectorAll('[data-intake-link]').forEach((link) => { link.setAttribute('href', href); link.hidden = false; });
+    byId('portalIntakeOffice').textContent = `${verifiedSession.office.complexName} · 단지 코드: ${slug}`;
+    byId('portalIntakeCard').hidden = false;
+    intakeExpiryTimer = window.setTimeout(clearIntakeLink, Math.max(0, verifiedSession.expiresAt - Date.now()));
+  }
+  document.querySelectorAll('[data-intake-link]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      if (!intakeLinkAllowed()) { event.preventDefault(); clearIntakeLink(); }
+    });
+  });
+  function checkIntakeExpiry() { if (intakeSession && !intakeLinkAllowed()) clearIntakeLink(); }
+  window.addEventListener('pageshow', checkIntakeExpiry);
+  document.addEventListener('visibilitychange', checkIntakeExpiry);
   function operationRequestId(form) {
     let requestId = String(form?.dataset.requestId || '');
     if (!REQUEST_ID.test(requestId)) { requestId = crypto.randomUUID(); form.dataset.requestId = requestId; }
@@ -33,12 +64,16 @@
   }
   function clearOperationRequest(form) { if (form) delete form.dataset.requestId; }
   function showDenied(message) {
+    clearIntakeLink();
+    byId('portalOfficeName').textContent = '아파트 관리 포털';
     loading.hidden = true; app.hidden = true; denied.hidden = false;
     byId('portalAccount').hidden = true;
     if (deniedMessage) deniedMessage.textContent = message || '다시 로그인해 주세요.';
   }
   function errorText(error) { return error && typeof error.message === 'string' ? error.message : '처리 중 문제가 생겼습니다.'; }
   function purgePrivateUi() {
+    clearIntakeLink();
+    byId('portalOfficeName').textContent = '아파트 관리 포털';
     Object.keys(loadGeneration).forEach((key) => { loadGeneration[key] += 1; });
     statusMessage.textContent = '';
     dashboardCards.textContent = ''; dashboardNotices.textContent = '';
@@ -59,6 +94,7 @@
       return response;
     }
     catch (error) {
+      if (error && error.code === 'forbidden' && session === expectedSession) clearIntakeLink();
       if (error && error.code === 'session-expired' && session === expectedSession) clearSessionAndDeny(error.message);
       throw error;
     }
@@ -581,6 +617,7 @@
       byId('portalAccount').hidden = false;
       loading.hidden = true; denied.hidden = true; app.hidden = false;
       applyPermissions();
+      bindIntakeLink(session);
       scheduleSessionNotice(session.expiresAt);
       const localDate = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       const today = new Date(), from = new Date(today); from.setDate(from.getDate() - 29); byId('portalReportTo').value = localDate(today); byId('portalReportFrom').value = localDate(from);

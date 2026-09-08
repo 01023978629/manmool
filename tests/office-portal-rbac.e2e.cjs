@@ -14,11 +14,41 @@ const MIME = { '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=u
 let browser;
 let server;
 let origin;
+const INTAKE_MUTATION = process.env.PORTAL_INTAKE_MUTATION || '';
+assert.ok(['', 'preverify', 'purge', 'header', 'headerstack'].includes(INTAKE_MUTATION), '알 수 없는 접수연결 변이');
+const PASSWORD_MUTATION = process.env.PORTAL_PASSWORD_MUTATION || '';
+assert.ok(['', 'trim', 'role', 'demote'].includes(PASSWORD_MUTATION), '알 수 없는 관리자 비밀번호 변이');
 
 function serve(req, res) {
   const relative = decodeURIComponent(new URL(req.url, 'http://127.0.0.1').pathname).replace(/^\/+/, '') || 'index.html';
   const target = path.resolve(ROOT, relative);
   if (!target.startsWith(ROOT + path.sep) || !fs.existsSync(target) || fs.statSync(target).isDirectory()) { res.writeHead(404).end('not found'); return; }
+  if (relative === 'js/office-portal-core.js' && PASSWORD_MUTATION) {
+    const source = fs.readFileSync(target, 'utf8');
+    const changed = PASSWORD_MUTATION === 'trim'
+      ? source.replace('const loginCode = data && data.loginCode;', "const loginCode = String(data && data.loginCode || '').trim();")
+      : PASSWORD_MUTATION === 'role'
+        ? source.replace("role === 'system_admin' && isMasterPassword(value)", 'isMasterPassword(value)')
+        : source.replace('if (masterDowngrade && !isSixDigitCode(value))', 'if (false && masterDowngrade && !isSixDigitCode(value))');
+    assert.notEqual(changed, source, '관리자 비밀번호 변이가 적용되지 않았다');
+    res.writeHead(200, { 'content-type': MIME['.js'] }); res.end(changed); return;
+  }
+  if (relative === 'css/office-portal.css' && ['header', 'headerstack'].includes(INTAKE_MUTATION)) {
+    const source = fs.readFileSync(target, 'utf8');
+    const changed = INTAKE_MUTATION === 'header'
+      ? source.replace('.portal-header .logo { flex:1 1 0; min-width:0; }', '.portal-header .logo { flex:0 0 auto; min-width:0; }')
+      : source.replace('.portal-header-inner { align-items:flex-start; flex-wrap:wrap; }', '.portal-header-inner { align-items:flex-start; }').replace('  .portal-header .logo { flex:1 0 100%; }', '').replace('.portal-account { gap:7px; width:100%; }', '.portal-account { gap:7px; }');
+    assert.notEqual(changed, source, '헤더 줄바꿈 변이가 소스에 적용되지 않았다');
+    res.writeHead(200, { 'content-type': MIME['.css'] }); res.end(changed); return;
+  }
+  if (relative === 'js/office-portal.js' && ['preverify', 'purge'].includes(INTAKE_MUTATION)) {
+    let source = fs.readFileSync(target, 'utf8');
+    const before = source;
+    if (INTAKE_MUTATION === 'preverify') source = source.replace("const me = await portalCall('portalMe', {});", "bindIntakeLink(session); const me = await portalCall('portalMe', {});");
+    if (INTAKE_MUTATION === 'purge') source = source.replace("link.removeAttribute('href');", '/* mutation: retain old intake URL */');
+    assert.notEqual(source, before, '접수연결 변이가 소스에 적용되지 않았다');
+    res.writeHead(200, { 'content-type': MIME['.js'] }); res.end(source); return;
+  }
   res.writeHead(200, { 'content-type': MIME[path.extname(target)] || 'application/octet-stream' }); fs.createReadStream(target).pipe(res);
 }
 function user(role, extra = {}) { return { id: `user-${role}`, email: `${role}@example.com`, name: `테스트 ${core.roleLabel(role)}`, role, active: true, loginCodeConfigured: true, ...extra }; }
@@ -565,4 +595,316 @@ test('로그인·포털·관리 화면은 다른 페이지의 iframe 안에서 a
     });
   }
   await page.close();
+});
+
+async function assertNoIntakeLink(page) {
+  assert.equal(await page.locator('[data-intake-link][href]').count(), 0, '허용되지 않은 접수 URL이 DOM에 남았다');
+  assert.equal(await page.locator('#portalIntakeOffice').textContent(), '', '단지 안내가 DOM에 남았다');
+  assert.equal(await page.locator('#portalIntakeCard').isHidden(), true);
+  for (const link of await page.locator('[data-intake-link]').all()) assert.equal(await link.isHidden(), true);
+}
+function intakeLogin(role = 'manager_chief', permissions = ['dashboard.view', 'requests.view']) {
+  return sessionResponse(role, permissions);
+}
+function emptyDashboard() { return { ok: true, metrics: [], notices: [], statuses: [], logs: [], workOrders: [] }; }
+
+test('접수연결: 로그인 전·서버 확인 중에는 링크가 없고 서버가 교체한 단지만 사용한다', async () => {
+  const gate = deferred();
+  const cached = intakeLogin();
+  const verified = { ...cached, office: { id: 'verified-office', slug: 'verified-apt', complexName: '서버확인아파트' } };
+  const { page, calls, errors } = await openPortal(async (body) => {
+    if (body.action === 'portalMe') return gate.promise;
+    if (body.action === 'portalDashboard') return emptyDashboard();
+    throw new Error(`unexpected ${body.action}`);
+  });
+  try {
+    await page.goto(`${origin}/office-portal.html`);
+    await page.locator('#portalDenied').waitFor({ state: 'visible' });
+    await assertNoIntakeLink(page); assert.equal(calls.length, 0);
+    await seedSession(page, cached); await page.goto(`${origin}/office-portal.html`);
+    await page.waitForFunction(() => document.getElementById('portalLoading') && !document.getElementById('portalLoading').hidden);
+    await waitForCall(calls, 'portalMe'); assert.equal(calls.filter((call) => call.action === 'portalMe').length, 1);
+    await assertNoIntakeLink(page);
+    gate.resolve(verified); await page.locator('#portalIntakeCard').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#portalIntakeOffice').textContent(), '서버확인아파트 · 단지 코드: verified-apt');
+    assert.deepEqual(await page.locator('[data-intake-link]').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), ['office-request.html?office=verified-apt', 'office-request.html?office=verified-apt']);
+    assert.equal(await page.locator('[href*="sample-apt"]').count(), 0);
+    assert.deepEqual(errors, []);
+  } finally { gate.resolve(verified); await page.close(); }
+});
+
+test('접수연결: 역할 상한과 서버 requests.view가 모두 있어야 열린다', async () => {
+  for (const [role, permissions, allowed] of [
+    ['facility_manager', ['dashboard.view', 'requests.view'], true],
+    ['manager_chief', ['dashboard.view'], false],
+    ['resident', ['dashboard.view', 'requests.view'], false],
+    ['resident_rep', ['dashboard.view', 'requests.view'], false],
+    ['system_admin', ['admin.users.view', 'requests.view'], false],
+  ]) {
+    const login = intakeLogin(role, permissions);
+    const { page, errors } = await openPortal(async (body) => {
+      if (body.action === 'portalMe') return login;
+      if (body.action === 'portalDashboard') return emptyDashboard();
+      throw new Error(`unexpected ${body.action}`);
+    });
+    try {
+      await seedSession(page, login); await page.goto(`${origin}/office-portal.html`); await page.locator('#portalApp').waitFor({ state: 'visible' });
+      if (allowed) assert.equal(await page.locator('#portalIntakeCard').isVisible(), true);
+      else await assertNoIntakeLink(page);
+      assert.deepEqual(errors, []);
+    } finally { await page.close(); }
+  }
+});
+
+test('접수연결: 서버 단지 코드가 잘못되거나 인증이 거부되면 기존 단지로 폴백하지 않는다', async () => {
+  for (const result of [
+    { ok: false, error: 'forbidden' },
+    { ...intakeLogin(), office: { id: 'invalid-office', slug: '../foreign?token=bad', complexName: '<img src=x onerror=alert(1)>' } },
+  ]) {
+    const { page, errors } = await openPortal(async (body) => {
+      assert.equal(body.action, 'portalMe'); return result;
+    });
+    try {
+      await seedSession(page, intakeLogin()); await page.goto(`${origin}/office-portal.html`); await page.locator('#portalDenied').waitFor({ state: 'visible' });
+      await assertNoIntakeLink(page); assert.equal(await page.locator('#portalOfficeName').textContent(), '아파트 관리 포털');
+      assert.deepEqual(errors, []);
+    } finally { await page.close(); }
+  }
+});
+
+test('접수연결: 후속 권한 거부·세션 만료 응답은 링크와 단지 안내를 제거한다', async () => {
+  for (const code of ['forbidden', 'session-expired']) {
+    const login = intakeLogin(); let reject = false;
+    const { page, errors } = await openPortal(async (body) => {
+      if (body.action === 'portalMe') return login;
+      if (body.action === 'portalDashboard') return reject ? { ok: false, error: code } : emptyDashboard();
+      throw new Error(`unexpected ${body.action}`);
+    });
+    try {
+      await seedSession(page, login); await page.goto(`${origin}/office-portal.html`); await page.locator('#portalIntakeCard').waitFor({ state: 'visible' });
+      await page.waitForFunction(() => !document.getElementById('portalDashboardRefresh').disabled);
+      reject = true; await page.locator('#portalDashboardRefresh').click();
+      await page.locator('#portalIntakeCard').waitFor({ state: 'hidden' }); await assertNoIntakeLink(page);
+      assert.deepEqual(errors, []);
+    } finally { await page.close(); }
+  }
+});
+
+test('접수연결: 로그아웃 응답을 기다리는 동안에도 접수 링크와 단지는 즉시 지운다', async () => {
+  const gate = deferred(), login = intakeLogin();
+  const { page, errors } = await openPortal(async (body) => {
+    if (body.action === 'portalMe') return login;
+    if (body.action === 'portalDashboard') return emptyDashboard();
+    if (body.action === 'portalLogout') return gate.promise;
+    throw new Error(`unexpected ${body.action}`);
+  });
+  try {
+    await seedSession(page, login); await page.goto(`${origin}/office-portal.html`); await page.locator('#portalIntakeCard').waitFor({ state: 'visible' });
+    await page.locator('#portalLogout').click();
+    await assertNoIntakeLink(page); assert.equal(await page.locator('#portalOfficeName').textContent(), '아파트 관리 포털');
+    assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), core.SESSION_KEY), null);
+    assert.deepEqual(errors, []);
+  } finally { gate.resolve({ ok: true }); await page.close(); }
+});
+
+test('접수연결: 서버 호출 없이 유효시간이 지나도 단지 링크를 폐기한다', async () => {
+  const login = intakeLogin();
+  const { page, calls, errors } = await openPortal(async (body) => {
+    if (body.action === 'portalMe') return login;
+    if (body.action === 'portalDashboard') return emptyDashboard();
+    throw new Error(`unexpected ${body.action}`);
+  });
+  try {
+    await page.clock.install({ time: new Date() });
+    await seedSession(page, login); await page.goto(`${origin}/office-portal.html`); await page.locator('#portalIntakeCard').waitFor({ state: 'visible' });
+    await page.waitForFunction(() => !document.getElementById('portalDashboardRefresh').disabled);
+    const before = calls.length;
+    await page.clock.fastForward(61 * 60 * 1000);
+    await assertNoIntakeLink(page); assert.equal(calls.length, before); assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+});
+
+test('접수연결: 320·390·1280px 한글·영문 단지명과 키보드 링크는 별도 PIN 화면만 열고 데이터를 전송하지 않는다', async () => {
+  const longNames = ['아주긴단지명'.repeat(8) + '<img src=x onerror=window.__intakeXss=1>', 'LongApartmentComplexNameWithoutSpaces'.repeat(4), '테스트아파트'];
+  for (const width of [320, 390, 1280]) for (const complexName of longNames) {
+    const login = intakeLogin();
+    login.office.complexName = complexName;
+    const { page, calls, errors } = await openPortal(async (body) => {
+      if (body.action === 'portalMe') return login;
+      if (body.action === 'portalDashboard') return emptyDashboard();
+      throw new Error(`unexpected ${body.action}`);
+    });
+    try {
+      await page.setViewportSize({ width, height: 900 });
+      await seedSession(page, login); await page.goto(`${origin}/office-portal.html`); await page.locator('#portalIntakeCard').waitFor({ state: 'visible' });
+      await page.waitForFunction(() => !document.getElementById('portalDashboardRefresh').disabled);
+      assert.equal(await page.locator('#portalIntakeOffice img').count(), 0); assert.equal(await page.evaluate(() => window.__intakeXss), undefined);
+      assert.equal(await page.locator('#portalOfficeName').textContent(), complexName, '헤더 단지명 원문이 잘렸다');
+      const pageWidth = await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
+      assert.ok(pageWidth.document <= width + 1 && pageWidth.body <= width + 1, `단지명 문서 전체 가로 넘침: ${JSON.stringify(pageWidth)}`);
+      if (width <= 600) {
+        const header = await page.locator('.portal-header').boundingBox();
+        assert.ok(header.height <= 450, `단지명이 한 글자씩 쌓여 모바일 헤더가 화면 절반을 넘었다: ${header.height}px`);
+      }
+      assert.equal(await page.locator('#portalUserName').textContent(), login.user.name);
+      const account = await page.locator('#portalAccount').boundingBox(), logout = await page.locator('#portalLogout').boundingBox();
+      assert.ok(account && account.x >= 0 && account.x + account.width <= width + 1, '계정 영역이 가로 화면을 벗어났다');
+      assert.ok(logout && logout.width >= 44 && logout.height >= 44 && logout.x >= account.x && logout.x + logout.width <= account.x + account.width + 1 && logout.y >= account.y && logout.y + logout.height <= account.y + account.height + 1, '로그아웃 44px 영역이 보존되지 않았다');
+      const card = page.locator('#portalIntakeCard'); await card.scrollIntoViewIfNeeded();
+      assert.match(await card.innerText(), /시설접수[\s\S]*대표 검토[\s\S]*현장 오더[\s\S]*진행상태 확인/);
+      assert.match(await card.innerText(), /6자리 PIN[\s\S]*별도[\s\S]*단지 코드가 같아야/);
+      assert.equal(await page.locator('#portalIntakeOffice').textContent(), `${login.office.complexName} · 단지 코드: sample-apt`);
+      const overflow = await card.evaluate((element) => [...element.querySelectorAll('p,li,a')].map((node) => ({ text: node.tagName, width: node.clientWidth, scroll: node.scrollWidth, left: node.getBoundingClientRect().left, right: node.getBoundingClientRect().right })).filter((row) => row.scroll > row.width + 1 || row.left < -1 || row.right > innerWidth + 1));
+      assert.deepEqual(overflow, [], `접수연결 ${width}px 가로 넘침`);
+      const link = page.locator('#portalIntakeCard [data-intake-link]'); const rect = await link.boundingBox(); assert.ok(rect.height >= 44 && rect.width >= 44);
+      if (process.env.PORTAL_INTAKE_CAPTURE === '1' && complexName !== longNames[1]) {
+        const captureDir = path.join(ROOT, 'test-results', 'office-intake-link'); fs.mkdirSync(captureDir, { recursive: true });
+        // Existing panel auto-scroll can move an element crop; capture the whole test page at a stable origin.
+        await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.body.style.scrollBehavior = 'auto'; window.scrollTo({ top: 0, behavior: 'instant' }); });
+        await page.waitForFunction(() => window.scrollY === 0);
+        await page.screenshot({ path: path.join(captureDir, `intake-${width}${complexName === longNames[2] ? '-normal' : ''}.png`), fullPage: true, animations: 'disabled' });
+      }
+      await link.focus(); assert.equal(await link.evaluate((node) => node === document.activeElement), true);
+      await page.route('**/office-request.html?office=sample-apt', (route) => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>별도 PIN 확인</title><p>모의 접수 화면</p>' }));
+      await link.press('Enter'); await page.waitForURL(`${origin}/office-request.html?office=sample-apt`);
+      assert.equal(new URL(page.url()).search, '?office=sample-apt');
+      assert.equal(calls.some((call) => !['portalMe', 'portalDashboard'].includes(call.action)), false);
+      const keys = await page.evaluate(() => Object.keys(sessionStorage)); assert.deepEqual(keys, [core.SESSION_KEY], '별도 PIN 세션을 생성하거나 복사했다');
+      assert.deepEqual(errors, []);
+    } finally { await page.close(); }
+  }
+});
+
+test('관리자 비밀번호: 숫자6자리·혼합·64자 로그인은 원문 API 호환과 비밀 미저장을 지킨다', async () => {
+  for (const code of ['012345', 'FakeOnly!8<>', 'X'.repeat(64)]) {
+    const login = sessionResponse('system_admin', ['admin.users.view']);
+    const { page, calls, errors } = await openPortal(async (body) => {
+      if (body.action === 'portalLogin') return { ...login, loginCode: code, user: { ...login.user, loginCode: code } };
+      if (body.action === 'portalMe') return login;
+      throw new Error(`unexpected ${body.action}`);
+    });
+    try {
+      await page.goto(`${origin}/office-login.html`); await page.waitForFunction(() => !document.getElementById('portalLoginButton').disabled);
+      const input = page.locator('#portalLoginCode');
+      assert.equal(await input.getAttribute('autocomplete'), 'current-password'); assert.equal(await input.getAttribute('maxlength'), '64');
+      assert.equal(await input.getAttribute('inputmode'), 'text'); assert.equal(await input.getAttribute('pattern'), null);
+      await page.locator('#portalOfficeCode').fill('sample-apt'); await page.locator('#portalEmail').fill('system_admin@example.com'); await input.fill(code);
+      assert.equal(await input.inputValue(), code);
+      await page.locator('#portalLoginForm').evaluate((form) => form.requestSubmit()); await page.waitForURL(`${origin}/office-portal.html`);
+      await page.locator('#portalApp').waitFor({ state: 'visible' });
+      const request = calls.find((call) => call.action === 'portalLogin');
+      assert.deepEqual(Object.keys(request.payload).sort(), ['email', 'loginCode', 'officeCode']); assert.equal(request.payload.loginCode, code);
+      const saved = await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }));
+      assert.equal(JSON.stringify(saved).includes(code), false, '비밀번호가 브라우저 저장 데이터에 포함됐다');
+      assert.equal((await page.locator('body').innerText()).includes(code), false); assert.equal(page.url().includes(code), false);
+      assert.deepEqual(errors, []);
+    } finally { await page.close(); }
+  }
+});
+
+test('관리자 비밀번호: 공백 입력을 trim하지 않고 서버 거부 후 입력·로그인 오류를 안전하게 정리한다', async () => {
+  const { page, calls, errors } = await openPortal(async (body) => {
+    assert.equal(body.action, 'portalLogin'); return { ok: false, error: 'invalid-credentials' };
+  });
+  try {
+    await page.goto(`${origin}/office-login.html`); await page.waitForFunction(() => !document.getElementById('portalLoginButton').disabled);
+    await page.locator('#portalOfficeCode').fill('sample-apt'); await page.locator('#portalEmail').fill('employee@example.com');
+    const input = page.locator('#portalLoginCode');
+    for (const invalid of [' FakeOnly!8', 'FakeOnly!8 ', '12a456', '가나다라마바사아']) {
+      await input.fill(invalid); await page.locator('#portalLoginForm').evaluate((form) => form.requestSubmit());
+      assert.equal(calls.length, 0, '잘못된 비밀번호 원문을 보정하거나 서버로 보냈다');
+      assert.ok((await page.locator('#portalLoginError').textContent()).length > 0);
+      assert.equal(await input.evaluate((node) => node === document.activeElement), true);
+    }
+    await input.fill('FakeOnly!8'); await page.locator('#portalLoginForm').evaluate((form) => form.requestSubmit());
+    await waitForCall(calls, 'portalLogin'); await page.waitForFunction(() => !document.getElementById('portalLoginButton').disabled && document.getElementById('portalLoginCode').value === '');
+    assert.equal(calls.length, 1); assert.equal(calls[0].payload.loginCode, 'FakeOnly!8');
+    assert.equal(await input.inputValue(), ''); assert.equal(await input.evaluate((node) => node === document.activeElement), true);
+    assert.match(await page.locator('#portalLoginError').innerText(), /코드, 이메일 또는 비밀번호/);
+    assert.equal((await page.locator('body').innerText()).includes('FakeOnly!8'), false);
+    assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), core.SESSION_KEY), null);
+    assert.equal(new URL(page.url()).search, ''); assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+});
+
+async function passwordAdminFixture() {
+  const login = sessionResponse('system_admin', ['admin.users.view', 'admin.users.manage']);
+  const people = [login.user, user('system_admin', { id: 'other-master', email: 'other-master@example.com' }), user('resident', { id: 'employee', email: 'employee@example.com' })];
+  const result = await openPortal(async (body) => {
+    if (body.action === 'portalMe') return login;
+    if (body.action === 'portalUserList') return { ok: true, users: people };
+    if (body.action === 'portalUserSave') return { ok: true };
+    throw new Error(`unexpected ${body.action}`);
+  });
+  await seedSession(result.page, login); await result.page.goto(`${origin}/office-admin.html`);
+  await result.page.locator('[data-user-edit="other-master"]').waitFor({ state: 'visible' });
+  return { ...result, login };
+}
+async function savePasswordForm(page) {
+  const request = page.waitForRequest((item) => item.url() === API_URL && item.postDataJSON()?.action === 'portalUserSave');
+  await page.locator('#portalUserForm').evaluate((form) => form.requestSubmit());
+  await request;
+  await page.waitForFunction(() => document.querySelector('#portalUserForm [name="name"]').value === '');
+}
+
+test('관리자 비밀번호: 발급은 대상 역할 제한·기존값 생략·합법적인 타인 관리를 보존한다', async () => {
+  const { page, calls, errors } = await passwordAdminFixture();
+  try {
+    const form = page.locator('#portalUserForm'), code = form.locator('[name="loginCode"]');
+    await page.locator('[data-user-edit="other-master"]').click();
+    assert.equal(await code.getAttribute('autocomplete'), 'new-password'); assert.equal(await code.getAttribute('inputmode'), 'text');
+    await code.fill('FakeOnly!8<>'); await savePasswordForm(page);
+    let saves = calls.filter((call) => call.action === 'portalUserSave');
+    assert.equal(saves.length, 1); assert.equal(saves[0].payload.userId, 'other-master'); assert.equal(saves[0].payload.loginCode, 'FakeOnly!8<>');
+    assert.equal(await code.inputValue(), '');
+    await page.locator('[data-user-edit="other-master"]').click(); await savePasswordForm(page);
+    saves = calls.filter((call) => call.action === 'portalUserSave'); assert.equal(saves.length, 2); assert.equal(Object.hasOwn(saves[1].payload, 'loginCode'), false);
+    await page.locator('[data-user-edit="employee"]').click(); assert.equal(await code.getAttribute('inputmode'), 'numeric');
+    await code.fill('FakeOnly!8'); await form.evaluate((node) => node.requestSubmit());
+    assert.match(await page.locator('#portalUserError').textContent(), /직원.*6자리/);
+    assert.equal(calls.filter((call) => call.action === 'portalUserSave').length, 2, '직원에게 긴 비밀번호를 발급했다');
+    await code.fill('012345'); await savePasswordForm(page);
+    saves = calls.filter((call) => call.action === 'portalUserSave'); assert.equal(saves.length, 3); assert.equal(saves[2].payload.loginCode, '012345');
+    assert.equal(saves[2].payload.role, 'resident');
+    const privateState = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage } }));
+    assert.equal(privateState.includes('FakeOnly!8'), false); assert.equal(privateState.includes('012345'), false);
+    assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+});
+
+test('관리자 비밀번호: 관리자 강등은 새 6자리 없으면 API 호출 없이 막는다', async () => {
+  const { page, calls, errors } = await passwordAdminFixture();
+  try {
+    const form = page.locator('#portalUserForm'); await page.locator('[data-user-edit="other-master"]').click();
+    await form.locator('[name="role"]').selectOption('resident');
+    assert.match(await page.locator('#portalUserPasswordHelp').innerText(), /새 6자리.*반드시/);
+    await form.evaluate((node) => node.requestSubmit());
+    assert.match(await page.locator('#portalUserError').textContent(), /관리자 역할.*새 6자리/);
+    assert.equal(calls.filter((call) => call.action === 'portalUserSave').length, 0, '새 6자리 없이 관리자 강등을 요청했다');
+    await form.locator('[name="loginCode"]').fill('012345'); await savePasswordForm(page);
+    const saved = calls.find((call) => call.action === 'portalUserSave').payload;
+    assert.equal(saved.userId, 'other-master'); assert.equal(saved.role, 'resident'); assert.equal(saved.loginCode, '012345');
+    assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+});
+
+test('관리자 비밀번호: 320·390·1280px 입력과 역할 안내는 원문을 잘라내지 않는다', async () => {
+  for (const width of [320, 390, 1280]) {
+    const { page, errors } = await openPortal(async () => { throw new Error('로그인 없이 API를 호출했다'); });
+    try {
+      await page.setViewportSize({ width, height: 900 }); await page.goto(`${origin}/office-login.html`);
+      await page.waitForFunction(() => !document.getElementById('portalLoginButton').disabled);
+      const field = page.locator('#portalLoginCode'); await field.fill('X'.repeat(64)); assert.equal((await field.inputValue()).length, 64);
+      const rect = await field.boundingBox(); assert.ok(rect.width >= 44 && rect.height >= 44);
+      assert.ok(rect.x >= 0 && rect.x + rect.width <= width + 1);
+      assert.equal(await page.evaluate((limit) => document.documentElement.scrollWidth <= limit + 1 && document.body.scrollWidth <= limit + 1, width), true);
+      assert.match(await page.locator('#portalPasswordHelp').innerText(), /8~64자.*모두 섞을 필요는 없습니다/);
+      await field.fill('');
+      if (process.env.PORTAL_PASSWORD_CAPTURE === '1' && width < 600) {
+        const captureDir = path.join(ROOT, 'test-results', 'master-password'); fs.mkdirSync(captureDir, { recursive: true });
+        await page.screenshot({ path: path.join(captureDir, `login-${width}-empty.png`), fullPage: true, animations: 'disabled' });
+      }
+      assert.deepEqual(errors, []);
+    } finally { await page.close(); }
+  }
 });

@@ -9,6 +9,7 @@
   const OFFICE_SLUG = /^[a-z0-9][a-z0-9-]{2,63}$/;
   const EMAIL = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,63}$/;
   const LOGIN_CODE = /^\d{6}$/;
+  const NON_PASSWORD_ASCII = /[^!-~]/;
   const ROLES = Object.freeze([
     'system_admin', 'manager_chief', 'facility_manager', 'resident_rep', 'resident',
   ]);
@@ -77,13 +78,30 @@
     const code = text(value, 64).toLowerCase();
     return OFFICE_SLUG.test(code) ? code : '';
   }
+  function isSixDigitCode(value) {
+    return typeof value === 'string' && value.length === 6 && LOGIN_CODE.test(value);
+  }
+  function isMasterPassword(value) {
+    return typeof value === 'string' && value.length >= 8 && value.length <= 64 && !NON_PASSWORD_ASCII.test(value);
+  }
+  function validLoginCredential(value) { return isSixDigitCode(value) || isMasterPassword(value); }
+  function validateUserLoginCode(value, role, { required = false, previousRole = '' } = {}) {
+    if (!ROLE_SET.has(role)) return { ok: false, message: '지정할 수 있는 역할을 확인해 주세요.' };
+    const masterDowngrade = previousRole === 'system_admin' && role !== 'system_admin';
+    if (masterDowngrade && !isSixDigitCode(value)) return { ok: false, message: '관리자 역할을 직원 역할로 바꾸려면 새 6자리 숫자 비밀번호를 입력해 주세요.' };
+    if (value === '' && !required) return { ok: true, message: '' };
+    const valid = isSixDigitCode(value) || (role === 'system_admin' && isMasterPassword(value));
+    return valid ? { ok: true, message: '' } : { ok: false, message: role === 'system_admin'
+      ? '관리자는 기존 6자리 숫자 또는 공백 없는 8~64자 영문·숫자·특수문자 비밀번호를 입력해 주세요.'
+      : '직원은 관리자가 정한 6자리 숫자 비밀번호를 입력해 주세요.' };
+  }
   function validateLogin(data) {
     const email = normalizeEmail(data && data.email);
     const officeCode = normalizeOfficeCode(data && data.officeCode);
     if (!officeCode) return { ok: false, field: 'officeCode', message: '관리사무소 코드를 확인해 주세요.' };
     if (!email) return { ok: false, field: 'email', message: '로그인 이메일을 확인해 주세요.' };
-    const loginCode = String(data && data.loginCode || '').trim();
-    if (!LOGIN_CODE.test(loginCode)) return { ok: false, field: 'loginCode', message: '관리자가 발급한 6자리 비밀번호를 입력해 주세요.' };
+    const loginCode = data && data.loginCode;
+    if (!validLoginCredential(loginCode)) return { ok: false, field: 'loginCode', message: '직원은 6자리 숫자, 관리자는 기존 6자리 숫자 또는 공백 없는 8~64자 영문·숫자·특수문자 비밀번호를 입력해 주세요.' };
     return { ok: true, value: { officeCode, email, loginCode }, field: null, message: '' };
   }
   function normalizePermissions(value) {
@@ -173,7 +191,7 @@
   return {
     SESSION_KEY, ROLES, ROLE_LABELS, ROLE_CEILINGS, PERMISSIONS, VIEW_PERMISSIONS, PERMISSION_LABELS,
     WORKORDER_STATUS_LABELS, NOTICE_STATE_LABELS, COST_STATUS_LABELS,
-    normalizeEmail, normalizeOfficeCode, validateLogin,
+    normalizeEmail, normalizeOfficeCode, validateLogin, isSixDigitCode, isMasterPassword, validLoginCredential, validateUserLoginCode,
     normalizePermissions, hasPermission, normalizeUser, safeUser, safeOffice, normalizeSession,
     storeSession, restoreSession, clearSession, roleLabel, permissionLabel,
     roleCeiling, viewPermissionsForRole, canAssignRole,

@@ -17,11 +17,48 @@ function response(overrides = {}) {
   };
 }
 
-test('관리자 발급 로그인 입력은 관리사무소 코드·이메일·6자리 번호만 허용한다', () => {
+test('로그인 입력은 기존 6자리 숫자를 보존하고 단지·이메일을 검증한다', () => {
   assert.deepEqual(core.validateLogin({ officeCode: 'Sample-Apt', email: 'Chief@Example.com', loginCode: '123456' }).value, { officeCode: 'sample-apt', email: 'chief@example.com', loginCode: '123456' });
   assert.equal(core.validateLogin({ officeCode: '../apt', email: 'chief@example.com', loginCode: '123456' }).ok, false);
   assert.equal(core.validateLogin({ officeCode: 'sample-apt', email: 'bad-email', loginCode: '123456' }).ok, false);
   assert.equal(core.validateLogin({ officeCode: 'sample-apt', email: 'chief@example.com', loginCode: '12a456' }).ok, false);
+});
+
+test('관리자 비밀번호 문법은 8~64자 인쇄 ASCII를 원문 그대로 받고 조합을 강제하지 않는다', () => {
+  const values = ['A'.repeat(8), '9'.repeat(8), '!'.repeat(8), 'aB8!<>[]', 'Z'.repeat(64), Array.from({ length: 64 }, (_, i) => String.fromCharCode(33 + i)).join('')];
+  for (const loginCode of values) {
+    const result = core.validateLogin({ officeCode: 'sample-apt', email: 'admin@example.com', loginCode });
+    assert.equal(result.ok, true); assert.equal(result.value.loginCode, loginCode);
+    assert.equal(core.validateUserLoginCode(loginCode, 'system_admin', { required: true }).ok, true);
+    for (const role of ['manager_chief', 'facility_manager', 'resident_rep', 'resident']) assert.equal(core.validateUserLoginCode(loginCode, role, { required: true }).ok, false);
+  }
+  for (const role of core.ROLES) assert.equal(core.validateUserLoginCode('012345', role, { required: true }).ok, true);
+});
+
+test('비밀번호 공백·제어·비ASCII·경계·객체는 변환 없이 거부하고 끝줄바꿈도 허용하지 않는다', () => {
+  let coercions = 0;
+  const bad = [undefined, null, 123456, new String('123456'), { toString() { coercions++; return '123456'; } }, '', '12345', '1234567', 'A'.repeat(7), 'A'.repeat(65)];
+  for (const marker of [' ', '\t', '\n', '\r', '\r\n', '\0', '\x1f', '\x7f', '\u2028', '\u2029', '가', 'é']) {
+    for (const base of ['123456', 'Abc!2345']) bad.push(marker + base, base + marker, base.slice(0, 3) + marker + base.slice(3));
+  }
+  for (const loginCode of bad) {
+    assert.equal(core.validateLogin({ officeCode: 'sample-apt', email: 'admin@example.com', loginCode }).ok, false);
+    assert.equal(core.validateUserLoginCode(loginCode, 'system_admin', { required: true }).ok, false);
+  }
+  assert.equal(coercions, 0);
+});
+
+test('기존 비밀번호 생략은 유지하되 관리자 강등 시 새 6자리 숫자가 필요하다', () => {
+  for (const role of core.ROLES) {
+    assert.equal(core.validateUserLoginCode('', role).ok, true);
+    assert.equal(core.validateUserLoginCode('', role, { required: true }).ok, false);
+  }
+  for (const role of ['manager_chief', 'facility_manager', 'resident_rep', 'resident']) {
+    for (const value of ['', 'OnlyTest!8', '123456\n']) assert.equal(core.validateUserLoginCode(value, role, { previousRole: 'system_admin' }).ok, false);
+    assert.equal(core.validateUserLoginCode('012345', role, { previousRole: 'system_admin' }).ok, true);
+  }
+  assert.equal(core.validateUserLoginCode('', 'system_admin', { previousRole: 'manager_chief' }).ok, true);
+  assert.equal(core.validateUserLoginCode('OnlyTest!8', 'unknown', { required: true }).ok, false);
 });
 
 test('서버 권한 allowlist 밖 값은 버리고 역할 기본 권한을 추론하지 않는다', () => {
