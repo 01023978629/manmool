@@ -12,6 +12,9 @@ const vm = require('node:vm');
 const ROOT = path.resolve(__dirname, '..');
 const SLUG = 'buyeo-buyeong-balcony-waterproofing';
 const DAY = '2026-09-08';
+const UPDATED = '2026-09-09';
+const PUBLIC_PLACE = '논산 강산부영아파트';
+const wrongPlace = value => /부여|(?<!강산)부영아파트/.test(value);
 const URL = `https://01023978629.github.io/manmool/posts/${SLUG}.html`;
 const PHOTOS = Array.from({ length: 6 }, (_, i) => `assets/cases/${SLUG}-${i + 1}.jpg`);
 const COVER = PHOTOS[4];
@@ -115,8 +118,11 @@ function validateCase(snapshot) {
   const item = matches[0];
   check(item.published !== false, 'canonical:published');
   check(item.date === DAY, 'canonical:date');
+  check(item.updated === UPDATED, 'canonical:updated');
   check(item.service === 'leak' && item.category === '방수·설비', 'canonical:classification');
-  check(/부여/.test(item.title) && /부영/.test(item.title) && /베란다/.test(item.title) && /방수/.test(item.title), 'canonical:title');
+  check(item.title.includes(PUBLIC_PLACE) && /베란다/.test(item.title) && /방수/.test(item.title), 'canonical:title');
+  check(item.place?.name === PUBLIC_PLACE && item.caseSummary?.site === `${PUBLIC_PLACE} 베란다`
+    && !strings(item).some(wrongPlace), 'canonical:location');
   check(item.image === COVER && !!item.imageAlt?.trim(), 'canonical:cover');
   const body = Array.isArray(item.body) ? item.body : [];
   check(body.length >= 6, 'canonical:sections');
@@ -140,6 +146,7 @@ function validateCase(snapshot) {
   check(hashes.size === 6, 'image:unique');
 
   const post = snapshot.post || '';
+  check(!wrongPlace(post), 'post:location');
   check(post.includes(`<link rel="canonical" href="${URL}"`), 'post:canonical');
   check(post.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/)?.[1] === esc(item.title), 'post:title');
   const coverTag = post.match(/<img\b[^>]*class="post-cover-image"[^>]*>/)?.[0] || '';
@@ -174,10 +181,12 @@ function validateCase(snapshot) {
     .map(match => match[0]).filter(card => card.includes(`href="posts/${SLUG}.html"`));
   check(blogCards.length === 1, 'blog:card');
   if (blogCards.length === 1) {
+    check(!wrongPlace(blogCards[0]), 'blog:location');
     check(blogCards[0].includes('data-group="leak"') && blogCards[0].includes(esc(item.title)) && blogCards[0].includes(COVER), 'blog:projection');
   }
   const feedItems = [...(snapshot.rss || '').matchAll(/<item>[\s\S]*?<\/item>/g)].map(match => match[0]).filter(entry => entry.includes(`<link>${URL}</link>`));
   check(feedItems.length === 1 && feedItems[0].includes(`<title>${esc(item.title)}</title>`), 'rss:entry');
+  check(!feedItems.some(wrongPlace), 'rss:location');
   const indexCases = (snapshot.index?.cases || []).filter(entry => entry.slug === SLUG);
   check(indexCases.length === 1 && indexCases[0].title === item.title && indexCases[0].service === 'leak' && indexCases[0].published === true, 'index:entry');
   const sitemapEntries = [...(snapshot.sitemap || '').matchAll(/<url>[\s\S]*?<\/url>/g)].map(match => match[0]).filter(entry => entry.includes(`<loc>${URL}</loc>`));
@@ -188,6 +197,7 @@ function validateCase(snapshot) {
   check(leakCards.length === 1, 'leak:latest-card');
   if (leakCards.length === 1) {
     const card = leakCards[0];
+    check(!wrongPlace(card), 'leak:location');
     check(card.includes(`<h3>${esc(item.title)}</h3>`), 'leak:title');
     const images = [...card.matchAll(/<img\b[^>]*>/g)].map(match => match[0]);
     check(images.length > 0, 'leak:images');
@@ -213,8 +223,8 @@ function readSnapshot() {
 
 // Synthetic local fixture, not a generated case or a publishable photo.
 function syntheticSnapshot() {
-  const item = { slug: SLUG, date: DAY, published: true, service: 'leak', category: '방수·설비',
-    title: '부여 부영아파트 베란다 방수', image: COVER, imageAlt: '2차 도막 단계 표면',
+  const item = { slug: SLUG, date: DAY, updated: UPDATED, published: true, service: 'leak', category: '방수·설비',
+    title: `${PUBLIC_PLACE} 베란다 방수`, place: { name: PUBLIC_PLACE }, caseSummary: { site: `${PUBLIC_PLACE} 베란다` }, image: COVER, imageAlt: '2차 도막 단계 표면',
     body: PHOTOS.map((img, i) => ({ h: `사진 ${i + 1} 작업 단계`,
       p: '1차 몰탈 방수 후 표면입니다.\n\n2차 도막 단계이며 최종 마감은 미확인입니다.',
       img, imgAlt: `방수 작업 단계 ${i + 1}`, imgCaption: `단계별 표면 ${i + 1}` })),
@@ -227,13 +237,36 @@ function syntheticSnapshot() {
     blog: `<a class="insight-card" href="posts/${SLUG}.html" data-group="leak">${esc(item.title)}${imgTag(COVER, item.imageAlt)}</a>`,
     rss: `<item><title>${esc(item.title)}</title><link>${URL}</link></item>`,
     index: { cases: [{ slug: SLUG, title: item.title, service: 'leak', published: true }] },
-    sitemap: `<url><loc>${URL}</loc><lastmod>${DAY}</lastmod></url>`,
+    sitemap: `<url><loc>${URL}</loc><lastmod>${UPDATED}</lastmod></url>`,
     leak: `<section id="cases"><article class="case-card registered-case"><a href="posts/${SLUG}.html">${imgTag(COVER, item.imageAlt)}</a><h3>${esc(item.title)}</h3></article></section>`,
   };
 }
 
-test('부여 부영 베란다 공개 정본·6장·짧은 문단·배포 연결 계약', () => {
+test('논산 강산부영 베란다 공개 정본·6장·짧은 문단·배포 연결 계약', () => {
   assert.deepEqual(validateCase(readSnapshot()), []);
+});
+
+test('변이: 잘못된 부여 표기·모호한 단지명·수정일 누락을 차단한다', () => {
+  for (const change of [
+    item => { item.title = item.title.replace(PUBLIC_PLACE, '부여 부영아파트'); },
+    item => { item.place.name = '부여 부영아파트'; },
+    item => { item.caseSummary.site = '부영아파트 베란다'; },
+    item => { item.imageAlt = '부여 부영아파트 베란다 바닥'; },
+    item => { item.body[0].imgCaption = '부여 부영아파트 공정 사진'; },
+  ]) {
+    const changed = syntheticSnapshot(); change(changed.insights[0]);
+    assert.ok(validateCase(changed).includes('canonical:location'));
+  }
+  const actual = readSnapshot();
+  const wrong = { ...actual, insights: structuredClone(actual.insights) };
+  wrong.insights.find(item => item.slug === SLUG).place.name = '부여 부영아파트';
+  assert.ok(validateCase(wrong).includes('canonical:location'));
+  const stale = syntheticSnapshot(); delete stale.insights[0].updated;
+  assert.ok(validateCase(stale).includes('canonical:updated'));
+  const post = syntheticSnapshot(); post.post += '<span>부여 부영아파트</span>';
+  assert.ok(validateCase(post).includes('post:location'));
+  const card = syntheticSnapshot(); card.leak = card.leak.replace('</h3>', '</h3><p>부여 부영아파트</p>');
+  assert.ok(validateCase(card).includes('leak:location'));
 });
 
 test('독립 검사 정상 fixture와 미확인 범위 표현을 허용한다', () => {

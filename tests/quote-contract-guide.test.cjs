@@ -2,7 +2,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'buyeo-buyeong-balcony-waterproofing', DAY = '2026-09-09', CHECKED = '2026-09-08';
-const OLD_HASH = '4ceed9ae1e1f772b6be625374b89c0502218d20bd86c4d0ed31207af901f1e9c'; // 38 public objects, captured before this guide existed.
+const OLD_HASH = '327a4cf7bdd0499a659107b20a17397b4537a8311e3067fa7c84b368885ae6b2'; // 38 public objects after the user-confirmed Nonsan Gangsan name correction (2026-09-09); other prose unchanged.
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');
