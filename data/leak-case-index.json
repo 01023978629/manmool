@@ -2,6 +2,12 @@
   "version": 1,
   "cases": [
     {
+      "slug": "buyeo-buyeong-balcony-waterproofing",
+      "title": "부여 부영아파트 베란다 방수, 1차 몰탈에서 2차 도막까지",
+      "service": "leak",
+      "published": true
+    },
+    {
       "slug": "daejeon-jung-gu-heating-pipe-leak-repair",
       "title": "대전 문화동 안방 난방관 누수, 손상 부위를 잘라 피팅으로 연결했습니다",
       "service": "leak",
