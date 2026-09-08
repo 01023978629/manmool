@@ -192,6 +192,15 @@ function latestPublicDay(insights) {
     .map((item) => item.updated || item.date).filter(validIsoDay).sort().at(-1) || '';
 }
 
+function latestLinkedCaseDay(insights, markup) {
+  // 누수 페이지에서 실제로 소개하는 카드만 날짜에 영향을 준다.
+  // 별도 정보 글의 발행 때문에 변경 없는 누수 페이지 날짜를 올리지 않는다.
+  const cases = String(markup || '').match(/<section\b[^>]*\bid=["']cases["'][^>]*>([\s\S]*?)<\/section>/i)?.[1] || '';
+  const linked = new Set([...cases.matchAll(/<a\b[^>]*\bhref=["']posts\/([a-z0-9-]+)\.html(?:[?#][^"']*)?["']/gi)]
+    .map((match) => match[1]));
+  return latestPublicDay((Array.isArray(insights) ? insights : []).filter((item) => item && linked.has(item.slug)));
+}
+
 function publicTextValues(value) {
   if (typeof value === 'string') return [value];
   if (Array.isArray(value)) return value.flatMap(publicTextValues);
@@ -225,6 +234,22 @@ function bodyParagraphViolations({ item, post }) {
 
 if (renderedParagraphs(' 첫 줄\r\n다음 <줄> & "인용"\r\n \r\n둘째 \'문단\'\n\n') !== '<p>첫 줄<br>다음 &lt;줄&gt; &amp; &quot;인용&quot;</p><p>둘째 &#x27;문단&#x27;</p>') failures.push('문단 렌더링 계약 fixture 불일치');
 if (latestPublicDay([{ date: '2026-08-28', updated: '2026-09-07' }, { date: '2026-09-04' }, { date: '2099-01-01', published: false }, { date: '2026-02-30' }]) !== '2026-09-07') failures.push('공개 글 수정일 최댓값 fixture 불일치');
+const linkedDayFixtures = [
+  { slug: 'linked-case', date: '2026-09-07', updated: '2026-09-08' },
+  { slug: 'new-guide', date: '2026-09-09', category: '견적·계약 가이드' },
+  { slug: 'unlinked-case', date: '2026-09-09', service: 'leak' },
+  { slug: 'private-case', date: '2099-01-01', published: false },
+  { slug: 'invalid-case', date: '2099-02-30' },
+  { slug: 'invalid-update', date: '2099-01-01', updated: 'invalid' }
+];
+const linkedDayMarkup = '<section id="cases"><a href="posts/linked-case.html">사례</a>'
+  + '<a href="posts/private-case.html">비공개</a><a href="posts/invalid-case.html">잘못된 날짜</a>'
+  + '<a href="posts/invalid-update.html">잘못된 수정일</a></section>'
+  + '<aside><a href="posts/new-guide.html">새 정보 글</a><a href="posts/unlinked-case.html">다른 링크</a></aside>';
+if (latestPublicDay(linkedDayFixtures) !== '2026-09-09') failures.push('전체 글 기준 blog/RSS 최신 날짜 fixture 불일치');
+if (latestLinkedCaseDay(linkedDayFixtures, linkedDayMarkup) !== '2026-09-08') failures.push('누수 카드 한정 수정일 fixture 불일치');
+if (latestLinkedCaseDay(linkedDayFixtures, linkedDayMarkup.replace('posts/linked-case.html', 'posts/absent.html')) !== '') failures.push('유효한 공개 카드 없는 누수 날짜 fixture 불일치');
+if (latestLinkedCaseDay(linkedDayFixtures, '<section id="other"><a href="posts/new-guide.html">정보</a></section>') !== '') failures.push('누수 사례 영역 밖 링크가 날짜에 포함된다');
 const paragraphFixture = { body: [{ h: '작업 과정', p: '첫 줄\n다음 줄\n\n둘째 <설명>' }] };
 const paragraphFixturePost = '<div class="post-body"><h2>작업 과정</h2><p>첫 줄<br>다음 줄</p><p>둘째 &lt;설명&gt;</p></div>';
 if (bodyParagraphViolations({ item: paragraphFixture, post: paragraphFixturePost }).length) failures.push('정상 다중 문단 fixture가 차단된다');
@@ -502,9 +527,11 @@ if (!/<meta property="og:image:width" content="1400" \/>/.test(leak)
 if (!/시행일 2026-08-30/.test(privacy)) failures.push('개인정보처리방침 시행일이 2026-08-30이 아니다');
 const latestDay = latestPublicDay(site.insights);
 if (!latestDay) failures.push('공개 글의 유효한 최신 날짜가 없다');
-for (const page of ['leak', 'blog']) {
+const latestLeakDay = latestLinkedCaseDay(site.insights, leak);
+if (!latestLeakDay) failures.push('누수 페이지 공개 사례 카드의 유효한 최신 날짜가 없다');
+for (const [page, expectedDay] of [['leak', latestLeakDay], ['blog', latestDay]]) {
   const entry = sitemap.match(new RegExp(`<url>\\s*<loc>https://01023978629\\.github\\.io/manmool/${page}\\.html</loc>\\s*<lastmod>([^<]+)</lastmod>`));
-  if (entry?.[1] !== latestDay) failures.push(`${page}.html sitemap lastmod가 최신 공개 글 수정일 ${latestDay}와 다르다`);
+  if (entry?.[1] !== expectedDay) failures.push(`${page}.html sitemap lastmod가 해당 목록의 최신 공개 글 수정일 ${expectedDay}와 다르다`);
 }
 const privacyEntry = sitemap.match(/<url>\s*<loc>https:\/\/01023978629\.github\.io\/manmool\/privacy\.html<\/loc>\s*<lastmod>([^<]+)<\/lastmod>/);
 if (privacyEntry?.[1] !== '2026-08-30') failures.push('privacy.html sitemap lastmod가 2026-08-30이 아니다');

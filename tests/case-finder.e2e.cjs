@@ -10,8 +10,16 @@ const ROOT = path.resolve(__dirname, '..');
 const published = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/site.json'), 'utf8'))
   .insights.filter((item) => item && item.published !== false)
   .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
-const featuredSlug = published[0].slug;
-const allSlugs = published.map((item) => item.slug);
+function caseGroup(item) {
+  const service = Object.hasOwn(item, 'service')
+    ? (item.service === 'leak' ? 'leak' : 'interior')
+    : (['방수·설비', '누수탐지·수리'].includes(item.category) ? 'leak' : 'interior');
+  return service === 'leak' ? 'leak' : /견적|계약|보증|관리|브랜드/.test(item.category || '') ? 'info' : 'interior';
+}
+const featured = published.find((item) => Object.keys(item.caseSummary || {}).length && caseGroup(item) !== 'info');
+const featuredSlug = featured?.slug;
+// 기본 화면은 실제 작업 대표가 먼저이고, 검색/분야 필터는 날짜순이다.
+const allSlugs = [featured, ...published.filter((item) => item !== featured)].filter(Boolean).map((item) => item.slug);
 const bySlug = new Map(published.map((item) => [item.slug, item]));
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
@@ -126,6 +134,18 @@ test('단지명 띄어쓰기·여러 단어·전각 숫자를 찾고 작업 요�
   assert.equal(await page.locator('#caseEmpty').isVisible(), true, '본문 전용 단어까지 검색됨');
   await search(page, '금호한사랑 존재하지않는공정', 0);
   assert.equal(await page.locator('#caseEmpty').isVisible(), true, '검색 단어를 OR로 처리함');
+});
+
+test('분야 필터는 대표 우선 대신 최신 날짜순이며 정보 글을 대표 시공으로 표시하지 않는다', async (t) => {
+  const { page } = await openBlog(t);
+  for (const group of ['info', 'interior', 'leak']) {
+    await page.locator(`[data-case-filter="${group}"]`).click();
+    assert.deepEqual(await slugs(page, true), published.filter((item) => caseGroup(item) === group).map((item) => item.slug));
+    assert.equal(await page.locator('.insight-featured:visible').count(), 0);
+  }
+  await reset(page);
+  assert.deepEqual(await slugs(page, true), allSlugs);
+  assert.notEqual(await page.locator('.insight-featured').getAttribute('data-group'), 'info');
 });
 
 test('검색과 분야를 함께 적용하고 결과 없음 안내에서 상담과 초기화로 이어진다', async (t) => {

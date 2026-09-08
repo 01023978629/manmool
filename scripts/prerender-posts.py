@@ -448,10 +448,13 @@ def list_markup(insights):
     sitemap 에 홈 다음 순위(priority 0.8)로 올려두고도 8편으로 가는 내부 링크가
     JS 실행 후에만 생겨, 개별 글로 넘어갈 경로 자체가 없었다.
 
-    blog.js 는 그대로 두면 로드 후 같은 내용으로 덮어쓰므로 화면 차이가 없다.
-    → 두 마크업이 어긋나면 깜빡이므로 반드시 함께 고칠 것.
+    blog.js 검색은 이 정적 카드와 대표 선택을 그대로 읽어 필터·정렬한다.
+    정보 글이 최신이어도 대표는 실제 작업으로 유지하고, 일반 카드는 최신순이다.
     """
-    featured = insights[0] if insights else None
+    # 최신 정보 글을 실제 시공으로 소개하지 않는다. 날짜 정렬은 호출자가
+    # 유지하고, 확인된 작업 요약이 있는 첫 실제 사례만 대표로 분리한다.
+    featured = next((a for a in insights
+                     if a.get('caseSummary') and case_group(a) != 'info'), None)
     featured_html = ''
     if featured:
         featured_image = ''
@@ -473,7 +476,9 @@ def list_markup(insights):
                 esc(featured.get('date')), esc(featured.get('readMin'))))
 
     cards = []
-    for idx, a in enumerate(insights[1:]):
+    for a in insights:
+        if a is featured:
+            continue
         img = ''
         if a.get('image'):
             priority = ' loading="lazy"'
