@@ -8,6 +8,7 @@ const { chromium } = require('playwright');
 const ROOT = path.resolve(__dirname, '..');
 const articles = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/site.json'), 'utf8')).insights;
 const slugs = [
+  'buyeo-buyeong-balcony-waterproofing',
   'daejeon-geumho-hansarang-balcony-floor-screed', 'daejeon-jung-gu-heating-pipe-leak-repair',
   'daejeon-jung-gu-yard-water-valve-leak', 'apartment-balcony-rain-pipe-replacement',
   'apartment-upper-lower-rain-pipe-repair', 'apartment-basement-cast-iron-pipe-repair',
@@ -64,7 +65,7 @@ async function contextFor(t, options = {}) {
   return context;
 }
 
-test('25개 사례의 문단·사진·캡션이 정적 글과 동적 글에서 정본과 일치', { timeout: 180000 }, async t => {
+test('26개 사례의 문단·사진·캡션이 정적 글과 동적 글에서 정본과 일치', { timeout: 180000 }, async t => {
   const context = await contextFor(t);
   const page = await context.newPage();
   for (const slug of slugs) {
