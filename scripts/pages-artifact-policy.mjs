@@ -16,7 +16,7 @@ export const PUBLIC_JS_FILES = Object.freeze([
   'public-nav.js', 'service-nav.js', 'simulator.js',
 ]);
 export const PUBLIC_TREE_RULES = new Map([
-  ['assets', /\.(?:avif|gif|jpe?g|png|svg|webp)$/i],
+  ['assets', /\.(?:avif|gif|jpe?g|png|svg|webp|mp4|webm)$/i],
   ['css', /\.css$/i],
   ['designs', /\.html$/i],
   ['posts', /\.html$/i],
