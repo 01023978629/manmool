@@ -389,6 +389,14 @@ body.content-preview .site-header { top: 46px; }
    현장 기록이 있어서, 해당 문단 바로 밑에 사진을 둔다. */
 .post-figure { margin: 18px 0 4px; }
 .post-figure img { width: 100%; height: auto; display: block; border-radius: var(--radius); background: var(--bg-alt); }
+.post-figure video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  display: block;
+  border-radius: var(--radius);
+  background: #111;
+}
 .post-figure figcaption { font-size: 13px; color: var(--ink-soft); margin-top: 8px; text-align: center; }
 .post-cta { margin: 40px 0 8px; padding: 28px; background: var(--brand-soft); border-radius: var(--radius); text-align: center; }
 .post-cta p { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
