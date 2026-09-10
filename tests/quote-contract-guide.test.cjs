@@ -2,7 +2,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'pyeonghaneul-apartment-leak-repair-20260909', DAY = '2026-09-09', CHECKED = '2026-09-08';
-const OLD_HASH = 'c177819592acad354e2dcc618a1d9f96c5c1b427047801c8b6dd0fed26a1890f'; // 39 public objects: the 38 pinned after the Nonsan Gangsan name correction (2026-09-09) + the owner's 평화로운아파트 leak case (2026-09-10, insights[0]); other prose unchanged.
+const OLD_HASH = '1950ce09796a06149ed1bc555ec2605f6cf834f43d88f45a0666dcfde0447762'; // 39 public objects: the 38 pinned after the Nonsan Gangsan name correction (2026-09-09) + the 평화로운아파트 leak case rewritten from the 2026-09-09 photos (insights[0]); other prose unchanged.
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');
