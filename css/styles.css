@@ -397,6 +397,8 @@ body.content-preview .site-header { top: 46px; }
   border-radius: var(--radius);
   background: #111;
 }
+/* 폰으로 세로로 찍은 현장 동영상 — 가로 상자에 넣으면 양옆이 검게 비고 화면이 작아진다. */
+.post-figure video[data-orientation="portrait"] { aspect-ratio: 9 / 16; max-width: 360px; margin: 0 auto; }
 .post-figure figcaption { font-size: 13px; color: var(--ink-soft); margin-top: 8px; text-align: center; }
 .post-cta { margin: 40px 0 8px; padding: 28px; background: var(--brand-soft); border-radius: var(--radius); text-align: center; }
 .post-cta p { font-size: 17px; font-weight: 700; margin-bottom: 16px; }

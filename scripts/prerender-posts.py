@@ -221,6 +221,15 @@ def article_html(a, insights):
             cap = f'<figcaption>{esc(s["imgCaption"])}</figcaption>' if s.get('imgCaption') else ''
             out += (f'<figure class="post-figure"><img src="../{esc(s["img"])}"{case_extra(s.get("img"), SIZES_POST, "../")} '
                     f'alt="{esc(s.get("imgAlt") or s.get("h"))}" loading="lazy" decoding="async">{cap}</figure>')
+        # 현장 동영상(선택). 누르기 전에는 포스터만 내려받는다(preload=none) — 폰 데이터를 아낀다.
+        # 세로 촬영이면 videoOrientation:"portrait" 로 표시해 세로 상자로 그린다(css .post-figure video).
+        if s.get('video'):
+            vcap = f'<figcaption>{esc(s["videoCaption"])}</figcaption>' if s.get('videoCaption') else ''
+            poster = f' poster="../{esc(s["videoPoster"])}"' if s.get('videoPoster') else ''
+            orient = f' data-orientation="{esc(s["videoOrientation"])}"' if s.get('videoOrientation') else ''
+            out += (f'<figure class="post-figure post-figure-video"><video controls preload="none" playsinline{poster}{orient} '
+                    f'aria-label="{esc(s.get("videoAlt") or s.get("videoCaption") or s.get("h"))}">'
+                    f'<source src="../{esc(s["video"])}" type="video/mp4">브라우저가 동영상 재생을 지원하지 않습니다.</video>{vcap}</figure>')
         return out
 
     body = '\n'.join(section_html(s) for s in (a.get('body') or []))

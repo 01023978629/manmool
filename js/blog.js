@@ -41,6 +41,12 @@
       const extra = caseExtra(section.img, true).replace('(max-width: 1160px) 94vw, 1112px', '(max-width: 800px) 94vw, 712px');
       out += `<figure class="post-figure"><img src="${esc(section.img)}"${extra} alt="${esc(section.imgAlt || section.h)}" loading="lazy" decoding="async">${section.imgCaption ? `<figcaption>${esc(section.imgCaption)}</figcaption>` : ''}</figure>`;
     }
+    if (section.video) {
+      // 현장 동영상 — 정적 글(prerender-posts.py)과 같은 표식. 누르기 전엔 포스터만 받는다.
+      const poster = section.videoPoster ? ` poster="${esc(section.videoPoster)}"` : '';
+      const orient = section.videoOrientation ? ` data-orientation="${esc(section.videoOrientation)}"` : '';
+      out += `<figure class="post-figure post-figure-video"><video controls preload="none" playsinline${poster}${orient} aria-label="${esc(section.videoAlt || section.videoCaption || section.h)}"><source src="${esc(section.video)}" type="video/mp4">브라우저가 동영상 재생을 지원하지 않습니다.</video>${section.videoCaption ? `<figcaption>${esc(section.videoCaption)}</figcaption>` : ''}</figure>`;
+    }
     return out;
   };
   const absoluteImage = (a) => a.image
