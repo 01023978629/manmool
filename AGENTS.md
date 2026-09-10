@@ -93,6 +93,12 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 정본은 `data/site.json` 의 `insights` 하나뿐이고, 거기에 항목을 넣은 뒤
 `python3 scripts/prerender-posts.py` 를 돌리면 `posts/<slug>.html` 과
 `blog.html` 목록이 함께 만들어진다. `sitemap.xml` 만 따로 챙기면 된다.
+**생성 전에 반드시 `origin/main` 의 `data/site.json` 을 기준으로 삼아라.** 오래된
+로컬 사본으로 생성해 푸시하면 그 사이 main 에 들어간 글 40건의 개정과 `leak.html`
+의 기능(카톡 문의 버튼·신청 목적·서비스 디자인)이 통째로 옛날로 돌아간다 —
+2026-09-10 에 실제로 일어나 배포 게이트가 3번 연속 떨어졌다(복구 커밋 "복구: 옛 site.json 재생성으로 되돌아간 글·leak.html").
+`leak.html` 은 생성물이 아니다. 사례 카드를 넣을 때는 손으로 한 장 추가하고
+`scripts/ensure-promo-pages.mjs` 의 카드 수 핀을 같이 올린다.
 목록 검색은 정적 카드의 공개 제목·설명·분류·`caseSummary`만 사용한다.
 필터 UI를 바꾸면 `tests/case-finder.e2e.cjs`와 브랜드 화면 검사를 실행한다.
 실제 현장 사례는 `scripts/new-case-post.mjs` 에 6항목(동네+단지/증상/탐지 방법/

@@ -1,8 +1,8 @@
 /* Local read-only checks. Image pixels/redaction and source-document accuracy need separate visual review. */
 const { test } = require('node:test');
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
-const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'buyeo-buyeong-balcony-waterproofing', DAY = '2026-09-09', CHECKED = '2026-09-08';
-const OLD_HASH = '327a4cf7bdd0499a659107b20a17397b4537a8311e3067fa7c84b368885ae6b2'; // 38 public objects after the user-confirmed Nonsan Gangsan name correction (2026-09-09); other prose unchanged.
+const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'pyeonghaneul-apartment-leak-repair-20260909', DAY = '2026-09-09', CHECKED = '2026-09-08';
+const OLD_HASH = 'c177819592acad354e2dcc618a1d9f96c5c1b427047801c8b6dd0fed26a1890f'; // 39 public objects: the 38 pinned after the Nonsan Gangsan name correction (2026-09-09) + the owner's 평화로운아파트 leak case (2026-09-10, insights[0]); other prose unchanged.
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');
@@ -40,7 +40,7 @@ function inspect(s, oldHash = OLD_HASH, expectedImages = IMAGE_PATHS) {
   check(matches.length === 1, 'canonical'); if (matches.length !== 1) return fail;
   check(a.date === DAY && a.category === '견적·계약 가이드' && a.service === 'interior' && a.published !== false, 'classification');
   check(s.insights[0]?.slug === FEATURED && s.insights[1]?.slug === SLUG, 'order');
-  const old = s.insights.filter(x => x.slug !== SLUG); check(old.length === 38 && hash(old) === oldHash, 'preservation');
+  const old = s.insights.filter(x => x.slug !== SLUG); check(old.length === 39 && hash(old) === oldHash, 'preservation');
   const body = a.body || [], prose = [a.title, a.excerpt, a.imageAlt, ...body.flatMap(b => [b.h, b.p, b.imgAlt, b.imgCaption])].filter(Boolean).join('\n');
   check(/AI\s*편집/.test(prose), 'ai-disclosure');
   check(/실제\s*시공[^.!?\n]{0,90}(?:아니|아닙)/.test(prose) && /만물[^.!?\n]{0,90}작성[^.!?\n]{0,50}(?:아니|아닙)/.test(prose), 'document-disclaimer');
@@ -74,7 +74,7 @@ function readActual() {
   return { insights, images: Object.fromEntries(photos.filter(f => fs.existsSync(path.join(ROOT, f))).map(f => [f, fs.readFileSync(path.join(ROOT, f))])), post: read(`posts/${SLUG}.html`), blog: read('blog.html'), rss: read('rss.xml'), sitemap: read('sitemap.xml'), index: JSON.parse(read('data/leak-case-index.json')) };
 }
 function fixture() {
-  const old = Array.from({ length: 38 }, (_, i) => ({ slug: i ? `synthetic-${i}` : FEATURED })), image = 'assets/cases/synthetic-guide.jpg';
+  const old = Array.from({ length: 39 }, (_, i) => ({ slug: i ? `synthetic-${i}` : FEATURED })), image = 'assets/cases/synthetic-guide.jpg';
   const a = { slug: SLUG, date: DAY, category: '견적·계약 가이드', service: 'interior', title: '견적서 비교 안내', image, imageAlt: 'AI 편집본', body: [{ h: '안내', p: '실제 시공 후기가 아니며 만물이 작성한 계약서가 아닙니다.\n\nAI 편집 참고 자료입니다. 원본이나 제출용 문서가 아닙니다.' }], sourcesChecked: CHECKED, sources: [{ url: 'https://www.ftc.go.kr/example' }, { url: 'https://www.kca.go.kr/example' }] };
   return { insights: [old[0], a, ...old.slice(1)], images: { [image]: Buffer.from('synthetic-only') }, post: `<link rel="canonical" href="https://01023978629.github.io/manmool/posts/${SLUG}.html">${a.title} AI 편집 <img src="../${image}"><div class="post-cta"><a href="../index.html#inquiry"></a></div>${a.sources.map(x => `<a href="${x.url}"></a>`).join('')}`, blog: `<a class="insight-featured" href="posts/${FEATURED}.html"></a><a href="posts/${SLUG}.html" data-group="info"></a>`, index: { cases: [] }, rss: `/posts/${SLUG}.html`, sitemap: `/posts/${SLUG}.html`, oldHash: hash(old), expectedImages: [image] };
 }
