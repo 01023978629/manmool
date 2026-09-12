@@ -119,3 +119,97 @@ test('공개 전환 스크립트는 명시 허용목록과 artifact에 정확히
   }
   assert.deepEqual(verifyPagesArtifact(tempRoot, artifactRoot), []);
 });
+
+test('공개 사례의 모든 동영상·poster는 허용목록에서 산출물까지 원본 바이트를 보존한다', () => {
+  const site = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'site.json'), 'utf8'));
+  const media = site.insights.filter((post) => post.published !== false)
+    .flatMap((post) => (post.body || []).flatMap((section) => section.video
+      ? [section.video, section.videoPoster].filter(Boolean) : []));
+  assert.ok(media.length > 0, '공개 동영상 회귀 대상을 찾지 못했습니다');
+  buildPagesArtifact(tempRoot, artifactRoot);
+  const expected = new Set(policy.expectedPublicFiles(tempRoot).map(({ relative }) => relative));
+  for (const relative of new Set(media)) {
+    assert.ok(expected.has(relative), `media missing from allowlist: ${relative}`);
+    assert.deepEqual(fs.readFileSync(path.join(artifactRoot, relative)), fs.readFileSync(path.join(tempRoot, relative)));
+  }
+  assert.deepEqual(verifyPagesArtifact(tempRoot, artifactRoot), []);
+});
+
+function withReferencePage(markup, check) {
+  const relative = 'posts/media-reference-check.html';
+  // 양쪽 HTML을 같게 바꿔 hash 불일치가 아닌 실제 참조 검사만으로 누락을 잡게 한다.
+  write(relative, markup);
+  write(`_site/${relative}`, markup);
+  try {
+    check(verifyPagesArtifact(tempRoot, artifactRoot));
+  } finally {
+    fs.rmSync(path.join(tempRoot, relative));
+    fs.rmSync(path.join(artifactRoot, relative));
+  }
+}
+
+test('사례 미디어와 링크는 상대·프로젝트 루트·같은 호스트 URL을 해석하고 외부 URL은 제외한다', () => {
+  buildPagesArtifact(tempRoot, artifactRoot);
+  withReferencePage(`
+    <video poster = "../assets/cases/pyeonghaneul-leak-video-4-poster.jpg">
+      <source src = "/manmool/assets/cases/pyeonghaneul-leak-video-4.mp4?rev=1&amp;view=full#play">
+    </video>
+    <img srcset="../assets/cases/resized/pyeonghaneul-leak-cover-480w.jpg 480w,
+      https://01023978629.github.io/manmool/assets/cases/resized/pyeonghaneul-leak-cover-960w.jpg 960w">
+    <img srcset="data:image/gif;base64,R0lGODlhAQABAAAAACw= 1x, ../assets/cases/pyeonghaneul-leak-cover.jpg 2x">
+    <a href = /manmool/blog.html>목록</a>
+    <a href="//01023978629.github.io/manmool/%62log.html?q=누수#list">인코딩된 목록</a>
+    <a href="https://01023978629.github.io/manmool/">홈</a>
+    <a href="/manmool">홈 리디렉션</a>
+    <a href="https://01023978629.github.io/hyeonjang/">현장 앱</a>
+    <a href="/hyeonjang/">현장 앱</a>
+    <img src="https://example.invalid/external-image.jpg">
+    <a href="mailto:example@example.invalid">메일</a>
+    <!-- <img src="../assets/commented-out.jpg"> -->
+  `, (failures) => assert.deepEqual(failures, []));
+});
+
+test('poster·srcset·source와 프로젝트 내부 절대 링크의 누락을 각각 배포 전에 보고한다', () => {
+  buildPagesArtifact(tempRoot, artifactRoot);
+  const cases = [
+    ['../assets/cases/missing-poster.jpg', '<video poster = "../assets/cases/missing-poster.jpg"></video>'],
+    ['../assets/cases/missing-large.jpg', '<img SRCSET="../assets/cases/pyeonghaneul-leak-cover.jpg 1x, ../assets/cases/missing-large.jpg 2x">'],
+    ['../assets/cases/missing-video.mp4', '<video><source src="../assets/cases/missing-video.mp4"></video>'],
+    ['/manmool/posts/missing-root.html', '<a href="/manmool/posts/missing-root.html">사례</a>'],
+    ['https://01023978629.github.io/manmool/posts/missing-absolute.html', '<a href="https://01023978629.github.io/manmool/posts/missing-absolute.html">사례</a>'],
+    ['//01023978629.github.io/manmool/assets/cases/missing-protocol.jpg', '<video poster="//01023978629.github.io/manmool/assets/cases/missing-protocol.jpg"></video>'],
+    ['missing-entity.html', '<a href="missing&#45;entity.html">사례</a>'],
+    ['../../outside.html', '<a href="../../outside.html">잘못된 상대 경로</a>'],
+  ];
+  withReferencePage(cases.map(([, markup]) => markup).join('\n'), (failures) => {
+    assert.equal(failures.length, cases.length, failures.join('\n'));
+    for (const [ref] of cases) assert.ok(failures.some((message) => message.endsWith(` -> ${ref}`)), `누락을 놓침: ${ref}`);
+  });
+});
+
+test('잘못 인코딩된 URI도 예외로 검사를 중단하지 않고 다른 누락과 함께 보고한다', () => {
+  buildPagesArtifact(tempRoot, artifactRoot);
+  withReferencePage('<video poster="../assets/cases/bad%ZZ.jpg"></video><source src="../assets/cases/missing-after-invalid.mp4">', (failures) => {
+    assert.equal(failures.length, 2, failures.join('\n'));
+    assert.ok(failures.some((message) => /해석할 수 없는 링크 URL.*bad%ZZ/.test(message)));
+    assert.ok(failures.some((message) => /끊긴 링크.*missing-after-invalid/.test(message)));
+  });
+});
+
+test('poster가 소스와 산출물 양쪽에서 빠져도 남은 공개 사례 참조로 누락을 검출한다', () => {
+  buildPagesArtifact(tempRoot, artifactRoot);
+  const relative = 'assets/cases/pyeonghaneul-leak-video-4-poster.jpg';
+  const source = path.join(tempRoot, relative);
+  const output = path.join(artifactRoot, relative);
+  const bytes = fs.readFileSync(source);
+  fs.rmSync(source);
+  fs.rmSync(output);
+  try {
+    const failures = verifyPagesArtifact(tempRoot, artifactRoot);
+    assert.ok(failures.some((message) => /끊긴 링크/.test(message) && message.endsWith(` -> ../${relative}`)), failures.join('\n'));
+    assert.equal(failures.some((message) => /필수 공개 산출물 누락|신선한 빌드/.test(message)), false);
+  } finally {
+    fs.writeFileSync(source, bytes);
+    fs.writeFileSync(output, bytes);
+  }
+});

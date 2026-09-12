@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { PORTAL_PUBLIC_FILES, PUBLIC_ROOT_FILES, expectedPublicFiles, toPublicPath } from './pages-artifact-policy.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const PUBLIC_SITE = new URL('https://01023978629.github.io/manmool/');
 const googleVerificationFile = 'google11dc37fbc3ab6e98.html';
 const forbiddenTop = new Set(['.git', '.github', '.claude', '.codex', 'apps-script-contract', 'apps-script-lead-inbox', 'contract-backend', 'docs', 'integrations', 'scripts']);
 const textFile = /\.(?:html|css|js|json|txt|xml)$/i;
@@ -62,14 +63,62 @@ export function scanArtifactText(relative, content) {
 
 function checkRef(owner, raw, site, fileSystem, failures) {
   const ref = String(raw || '').trim();
-  if (!ref || /^(?:#|https?:|tel:|sms:|mailto:|data:|blob:|javascript:)/i.test(ref)) return;
-  const clean = ref.split('#')[0].split('?')[0];
-  if (!clean || clean.startsWith('/')) return;
-  let target = path.resolve(path.dirname(owner), decodeURIComponent(clean));
-  if (clean.endsWith('/')) target = path.join(target, 'index.html');
+  if (!ref || ref.startsWith('#') || (/^[a-z][a-z\d+.-]*:/i.test(ref) && !/^https?:/i.test(ref))) return;
+  const ownerRelative = toPublicPath(path.relative(site, owner));
+  const report = (message) => failures.push(`${message}: ${ownerRelative} -> ${ref}`);
+  let pathname;
+  try {
+    const ownerURL = new URL(ownerRelative.split('/').map(encodeURIComponent).join('/'), PUBLIC_SITE);
+    const targetURL = new URL(ref, ownerURL);
+    if (targetURL.host !== PUBLIC_SITE.host) return;
+    pathname = decodeURIComponent(targetURL.pathname);
+  } catch {
+    report('해석할 수 없는 링크 URL');
+    return;
+  }
+  if (pathname === PUBLIC_SITE.pathname.slice(0, -1)) pathname += '/';
+  if (!pathname.startsWith(PUBLIC_SITE.pathname)) {
+    // 같은 계정의 다른 저장소 링크는 이 Pages 산출물의 검사 범위가 아니다.
+    if (!/^(?:\/|https?:)/i.test(ref)) report('산출물 밖을 가리키는 링크');
+    return;
+  }
+  let target = path.resolve(site, pathname.slice(PUBLIC_SITE.pathname.length));
+  if (pathname.endsWith('/')) target = path.join(target, 'index.html');
   const relative = path.relative(site, target);
-  if (relative.startsWith('..') || path.isAbsolute(relative)) failures.push(`산출물 밖을 가리키는 링크: ${toPublicPath(path.relative(site, owner))} -> ${ref}`);
-  else if (!fileSystem.existsSync(target)) failures.push(`산출물에서 끊긴 링크: ${toPublicPath(path.relative(site, owner))} -> ${ref}`);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) report('산출물 밖을 가리키는 링크');
+  else if (!fileSystem.existsSync(target)) report('산출물에서 끊긴 링크');
+}
+
+function decodeHTMLAttribute(value) {
+  const entities = { amp: '&', quot: '"', apos: "'", lt: '<', gt: '>' };
+  return value.replace(/&(#x[\da-f]+|#\d+|amp|quot|apos|lt|gt);/gi, (match, entity) => {
+    if (!entity.startsWith('#')) return entities[entity.toLowerCase()];
+    const code = /^#x/i.test(entity) ? parseInt(entity.slice(2), 16) : Number(entity.slice(1));
+    return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : match;
+  });
+}
+
+function* srcsetReferences(value) {
+  let remaining = value;
+  while (remaining) {
+    remaining = remaining.replace(/^[\s,]+/, '');
+    const match = /^\S+/.exec(remaining);
+    if (!match) break;
+    const candidate = match[0];
+    yield candidate.replace(/,+$/, '');
+    remaining = remaining.slice(candidate.length);
+    // 쉼표를 포함하는 data: URL은 하나의 URL이며, 폭·배율 descriptor는 경로가 아니다.
+    if (!candidate.endsWith(',')) remaining = remaining.replace(/^[^,]*(?:,|$)/, '');
+  }
+}
+
+function* htmlReferences(content) {
+  const markup = content.replace(/<!--[\s\S]*?-->/g, '');
+  for (const match of markup.matchAll(/(?:^|\s)(href|src|poster|srcset)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'<>`=]+))/gi)) {
+    const value = decodeHTMLAttribute(match[2] ?? match[3] ?? match[4]);
+    if (match[1].toLowerCase() === 'srcset') yield* srcsetReferences(value);
+    else yield value;
+  }
 }
 
 export function verifyPagesArtifact(root = ROOT, site = path.join(root, '_site'), fileSystem = fs) {
@@ -107,7 +156,7 @@ export function verifyPagesArtifact(root = ROOT, site = path.join(root, '_site')
    * 오류도 안 나고, 검색엔진은 파일을 못 찾아 소유확인만 실패한다. 왜 안 되는지 알 길이
    * 없는 실패라서 여기서 크게 막는다. 허용목록은 계속 명시적으로 둔다(아무 파일이나
    * 공개되지 않게 하는 것이 이 목록의 존재 이유다). */
-  for (const name of fileSystem.readdirSync(ROOT)) {
+  for (const name of fileSystem.readdirSync(root)) {
     if (!/^(?:google|naver)[A-Za-z0-9_-]{8,}\.html$/i.test(name)) continue;
     if (PUBLIC_ROOT_FILES.includes(name)) continue;
     failures.push(`소유확인 파일 ${name} 이 공개 허용목록에 없어 배포에서 빠진다 — `
@@ -115,7 +164,7 @@ export function verifyPagesArtifact(root = ROOT, site = path.join(root, '_site')
   }
   for (const file of actual.files) {
     if (/\.html$/i.test(file)) {
-      for (const match of fileSystem.readFileSync(file, 'utf8').matchAll(/\b(?:href|src)=["']([^"']+)["']/gi)) checkRef(file, match[1], site, fileSystem, failures);
+      for (const ref of htmlReferences(fileSystem.readFileSync(file, 'utf8'))) checkRef(file, ref, site, fileSystem, failures);
     } else if (/\.css$/i.test(file)) {
       for (const match of fileSystem.readFileSync(file, 'utf8').matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/gi)) checkRef(file, match[1], site, fileSystem, failures);
     }
