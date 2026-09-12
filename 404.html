@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, follow">
+  <meta name="referrer" content="no-referrer">
+  <title>페이지를 찾을 수 없어요 | 만물인테리어 · 만물누수</title>
+  <meta name="description" content="만물의 시공 사례를 검색하거나 누수·배관, 인테리어, 관리사무소 안내로 이동하세요.">
+  <link rel="stylesheet" href="/manmool/css/page-recovery.css">
+  <script src="/manmool/js/page-recovery.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">본문 바로가기</a>
+  <header class="recovery-header">
+    <a class="brand" href="/manmool/index.html" aria-label="만물인테리어 홈">만물<span>인테리어 · 누수 · 배관</span></a>
+    <a class="home-link" href="/manmool/blog.html">시공 사례 전체 보기 <span aria-hidden="true">↗</span></a>
+  </header>
+  <main id="main" class="recovery-main">
+    <section class="recovery-intro" aria-labelledby="recovery-title">
+      <div class="page-number" aria-hidden="true">404<span>다른 길로 안내해 드릴게요</span></div>
+      <div>
+        <p class="eyebrow">만물 현장 이야기</p>
+        <h1 id="recovery-title">찾으시는 페이지를<br>열 수 없어요.</h1>
+        <p class="intro-text">주소가 바뀌었거나 잘못된 링크일 수 있습니다.<br>아파트명이나 작업명으로 사례를 다시 찾아보세요.</p>
+        <a class="primary-link" href="/manmool/blog.html">시공 사례 보러 가기 <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+    <nav class="service-links" aria-label="서비스 바로가기">
+      <a href="/manmool/leak.html"><span>누수 · 배관</span><small>누수탐지와 배관 보수</small><b aria-hidden="true">↗</b></a>
+      <a href="/manmool/index.html"><span>인테리어</span><small>공간에 맞는 공사 상담</small><b aria-hidden="true">↗</b></a>
+      <a href="/manmool/office.html"><span>관리사무소</span><small>공동주택 시설 보수 안내</small><b aria-hidden="true">↗</b></a>
+    </nav>
+    <section class="case-recovery" aria-labelledby="case-heading">
+      <div class="section-heading"><div><p class="eyebrow">공개된 시공 기록</p><h2 id="case-heading">찾으시던 현장은 어디인가요?</h2></div></div>
+      <p id="recovery-load-status" role="status" hidden>사례 검색을 준비하고 있습니다.</p>
+      <button id="recovery-retry" class="secondary-button" type="button" hidden>사례 목록 다시 불러오기</button>
+      <noscript><p>아래 <a href="/manmool/blog.html">시공 사례 목록</a>에서 현장 사진과 작업 내용을 확인할 수 있습니다.</p></noscript>
+      <form id="recovery-search" role="search" aria-label="공개 사례 검색" hidden>
+        <label for="recovery-query">아파트명 · 지역 · 작업명</label>
+        <div class="search-row"><input id="recovery-query" type="search" maxlength="120" autocomplete="off" placeholder="예: 평화로운아파트, 난방관, 방수"><button id="recovery-reset" class="secondary-button" type="button">초기화</button></div>
+        <div class="filter-row" aria-label="사례 분야">
+          <button type="button" data-group="all" aria-pressed="true">전체</button>
+          <button type="button" data-group="leak" aria-pressed="false">누수 · 배관</button>
+          <button type="button" data-group="interior" aria-pressed="false">인테리어</button>
+          <button type="button" data-group="info" aria-pressed="false">공사 안내</button>
+        </div>
+      </form>
+      <p id="recovery-results-status" role="status" hidden></p>
+      <ul id="recovery-results" class="case-results"></ul>
+      <p id="recovery-empty" hidden>검색어를 짧게 입력하거나 분야를 바꿔 보세요. 공사 문의는 위 서비스 안내에서 이어갈 수 있습니다.</p>
+      <button id="recovery-more" class="secondary-button more-button" type="button" hidden>사례 더 보기</button>
+    </section>
+  </main>
+  <footer><span>만물인테리어 · 만물누수</span><a href="/manmool/blog.html">전체 사례 목록으로 이동 →</a></footer>
+</body>
+</html>

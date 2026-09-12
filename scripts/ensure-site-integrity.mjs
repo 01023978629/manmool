@@ -294,7 +294,11 @@ for (const rel of htmlFiles) {
     const target = v.split('#')[0].split('?')[0];
     if (!target) continue;
     checked++;
-    if (!fs.existsSync(path.resolve(dir, target))) {
+    // 오류 문서는 임의의 깊은 URL에서 열리므로 프로젝트 루트 기준 링크를 쓴다.
+    const resolved = target.startsWith('/manmool/')
+      ? path.resolve(ROOT, target.slice('/manmool/'.length) || 'index.html')
+      : path.resolve(dir, target);
+    if (!fs.existsSync(resolved)) {
       fail.push(`${rel} 의 링크가 깨졌다: ${v} (손님이 누르면 404)`);
     }
   }
