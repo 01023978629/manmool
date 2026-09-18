@@ -255,6 +255,9 @@ function gwActions_() {
     { names: ['issueSignLink', 'signlink.issue'], handler: gwIssueLink_, admin: true, lock: true },
     { names: ['quickSend', 'contract.quickSend'], handler: gwQuickSend_, admin: true, lock: true },
     { names: ['voidContract', 'contract.void'], handler: gwVoid_, admin: true, lock: true },
+    // 서명 이미지 되가져오기. 읽기만 하므로 lock:false — 여기서 전체 잠금을 잡으면
+    // 앱이 보증서를 만드는 동안 다른 계약 처리가 멈춘다.
+    { names: ['contractSignature', 'contract.signature'], handler: gwSignature_, admin: true, lock: false },
     { names: ['backup', 'backup.export'], handler: gwBackup_, admin: true, lock: false },
     { names: ['exportCsv', 'contract.exportCsv', 'export.csv'], handler: gwExportCsv_, admin: true, lock: false },
     { names: ['notify.send', 'notifySend'], handler: gwNotify_, admin: true, lock: false },
@@ -585,6 +588,7 @@ function gwList_(rq) { return listContracts_(rq.payload); }
 function gwLock_(rq) { return lockContract_(gwId_(rq.payload), rq.ctx); }
 function gwVoid_(rq) { return voidContract_(gwId_(rq.payload), (rq.payload || {}).reason, rq.ctx); }
 function gwBackup_(rq) { return exportBackup_(rq.ctx); }
+function gwSignature_(rq) { return getSignature_(gwId_(rq.payload)); }
 function gwIssueLink_(rq) {
   var p = rq.payload || {};
   return issueSignLink_(gwId_(p), p.ttlHours, rq.ctx);
@@ -681,6 +685,7 @@ function gwQuickSend_(rq) {
     ok: true,
     contractId: created.id,
     contractNo: created.contractNo,
+    docKind: created.docKind,           // 앱이 어느 문서를 보냈는지 응답만 보고 알 수 있게
     status: STATUS.SENT,
     title: created.title,
     amount: created.amount,
@@ -736,7 +741,12 @@ function gwNotifyFor_(p, link, ctx) {
   if (!to || !link.url) return { sent: false, reason: 'NO_TARGET' };
 
   try {
-    var r = f({ to: to, text: '계약서 서명 링크입니다: ' + link.url, kind: 'contract_sign' }, ctx) || {};
+    var warranty = isWarrantyKind(p && p.docKind);
+    var r = f({
+      to: to,
+      text: (warranty ? '하자보증서 확인 서명 링크입니다: ' : '계약서 서명 링크입니다: ') + link.url,
+      kind: warranty ? 'warranty_sign' : 'contract_sign'
+    }, ctx) || {};
     return { sent: r.sent === true, reason: String(r.reason || (r.sent === true ? 'SENT' : 'FAILED')) };
   } catch (e) {
     return { sent: false, reason: 'SEND_FAILED' };

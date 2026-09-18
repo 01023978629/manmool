@@ -84,6 +84,10 @@ function makeFakeGoogle(props) {
   const byId = { ROOT_FOLDER: ROOT };
   const origCreate = Folder.prototype.createFolder;
   Folder.prototype.createFolder = function (n) { const f = origCreate.call(this, n); byId[f.getId()] = f; return f; };
+  // 만든 파일을 id 로 찾을 수 있어야 한다 — readSignature_ 가 보관된 서명을 되읽는 길이다.
+  const fileById = {};
+  const origCreateFile = Folder.prototype.createFile;
+  Folder.prototype.createFile = function (blob) { const f = origCreateFile.call(this, blob); fileById[f.getId()] = f; return f; };
 
   /* 가짜 스프레드시트 — 2차원 배열 그대로 */
   class Range {
@@ -173,7 +177,8 @@ function makeFakeGoogle(props) {
       getFolderById: (id) => { if (!byId[id]) throw new Error('없는 폴더'); return byId[id]; },
       getFoldersByName: (name) => new Iter(Object.values(byId).filter((f) => f.getName() === name)),
       createFolder: (name) => { const f = new Folder(name); byId[f.getId()] = f; return f; },
-      getFilesByName: (name) => new Iter(driveFiles.filter((f) => f.getName() === name))
+      getFilesByName: (name) => new Iter(driveFiles.filter((f) => f.getName() === name)),
+      getFileById: (id) => { const f = fileById[id]; if (!f) throw new Error('없는 파일: ' + id); return f; }
     },
     Utilities: {
       computeDigest: digest,
@@ -302,6 +307,39 @@ check(onlyProtocolLocks.length === 0,
 check(onlyCodeLocks.length === 0,
   '코드에서 잠그는데 PROTOCOL 동시성 목록에 없는 동작이 없다', onlyCodeLocks.join(', '));
 
+section('0-3) PROTOCOL 동작 목록이 실제로 불릴 수 있는가');
+/* 오류 코드표는 이미 대조하고 있었는데 **동작 이름**은 아무도 대조하지 않았다.
+   규약에 적어 놓고 배선을 잊으면 앱은 "모르는 동작입니다"만 보고, 그 문구로는
+   문서가 틀렸는지 서버가 덜 됐는지 알 수 없다. 여기서 한쪽 방향만 못박는다:
+   **규약에 적힌 것은 전부 불릴 수 있어야 한다**(별칭만 있는 동작은 반대로 허용한다). */
+const actionTables = [...protocol.matchAll(/### (?:관리자|고객)[^\n]*\n([\s\S]*?)(?=\n###|\n## |\n---)/g)]
+  .map((m) => m[1]).join('\n');
+const protocolActions = [...new Set(
+  actionTables.split('\n')
+    .filter((line) => /^\|\s*`/.test(line))
+    .flatMap((line) => [...String(line.split('|')[1] || '').matchAll(/`([a-z][A-Za-z.]*)`/g)].map((m) => m[1]))
+)].sort();
+const dispatchNames = new Set(
+  [...codeSource.matchAll(/\bnames:\s*\[([^\]]+)\]/g)]
+    .flatMap((m) => [...m[1].matchAll(/['"]([^'"]+)['"]/g)].map((x) => x[1]))
+);
+const undispatched = protocolActions.filter((a) => !dispatchNames.has(a));
+check(protocolActions.length >= 15 && dispatchNames.size >= 15,
+  '규약의 동작 목록과 Code.gs 동작표를 실제 원문에서 읽는다',
+  '문서 ' + protocolActions.length + '개 · 코드 ' + dispatchNames.size + '개');
+check(undispatched.length === 0,
+  '★ PROTOCOL 에 적힌 동작은 전부 실제로 배선되어 있다', undispatched.join(', '));
+
+// 새 동작은 관리자 전용이어야 한다. 고객 경로로 새면 토큰만 있으면 남의 서명을 가져간다.
+const sigDef = (codeSource.match(/\{\s*names:\s*\[[^\]]*['"]contract\.signature['"][^\]]*\][^\n]*\}/) || [])[0] || '';
+check(/admin:\s*true/.test(sigDef), '★ contract.signature 는 관리자 전용이다', sigDef || '동작표에서 못 찾음');
+check(/customer:\s*true/.test(sigDef) === false, '★ contract.signature 가 고객 경로에 없다', sigDef);
+check(/lock:\s*false/.test(sigDef), 'contract.signature 는 읽기라 전체 잠금을 잡지 않는다', sigDef);
+
+// 규약에 docKind 설명이 있어야 한다. 코드만 알고 문서가 모르면 다음 사람이 0원 계약을 만든다.
+check(/`docKind`/.test(protocol) && /warranty/.test(protocol),
+  'PROTOCOL 에 docKind 설명이 있다');
+
 section('1) Apps Script 에서 못 쓰는 문법·API');
 const BANNED = [
   { re: /^\s*(import|export)\s/m, why: 'Apps Script 에는 모듈이 없다' },
@@ -421,6 +459,7 @@ for (const fn of ['doGet', 'doPost', 'createContract_', 'getContract_', 'listCon
   'issueSignLink_', 'voidContract_', 'exportBackup_',
   'signView_', 'signSubmit_', 'doneView_', 'signBoot_', 'notifySend_',
   'contractFolder_', 'saveOriginal_', 'saveSignature_', 'saveCompletedPdf_', 'saveEvidenceJson_',
+  'getSignature_', 'readSignature_', 'normalizeDocKind', 'isWarrantyKind',
   'sha256Hex', 'hmacHex', 'randomToken', 'constantTimeEq',
   'ensureSheets_', 'readAll_', 'appendRow_', 'findRow_', 'updateRow_', 'logEvent_']) {
   check(typeof ctx[fn] === 'function', fn + ' 존재');
@@ -491,6 +530,114 @@ if (flow) {
   let relink = null;
   try { ctx.issueSignLink_(flow.made.contractId || flow.made.id, 72, { at: new Date().toISOString() }); } catch (e) { relink = String(e.message); }
   check(relink && relink.indexOf('LOCKED') === 0, '완료된 계약에 새 서명 링크를 낼 수 없다', relink || '링크가 나왔다');
+}
+
+section('5-1) 하자보증서도 같은 길로 끝까지 간다');
+/* 여기서 확인하려는 것은 '보증서가 계약서 흉내를 내지 않는가'다.
+   대금 없는 문서에 0원짜리 회차가 붙거나, 고객 화면이 '계약'이라 말하면
+   고객은 자기가 무엇에 서명했는지 모른 채 서명하게 된다. */
+let wflow = null, wflowErr = null;
+const WR_BODY = {
+  site: '한밭우성아파트 107동 1302호',
+  scope: '욕실 방수·타일',
+  doneAt: '2026-09-16',
+  warranty: '방수 3년 · 급배수 등 설비 2년 · 그 밖의 마감 1년',
+  clauses: [
+    { no: 1, title: '보증기간', text: '보증기간은 작업완료일로부터 최대 3년이며, 시작일과 종료일은 위 표에 기재합니다.' },
+    { no: 2, title: '보증범위', text: '보증기간 내 시공상 원인으로 발생한 하자는 시공업체가 무상으로 보수합니다.' }
+  ]
+};
+try {
+  const c = { at: new Date().toISOString(), uaHash: 'ua', requestHash: 'rqw', actor: 'admin' };
+  const made = ctx.createContract_({
+    docKind: 'warranty',
+    title: '한밭우성아파트 107동 1302호 하자보증서',
+    customer: { name: '김확인', phone: '010-2222-3333' },
+    body: WR_BODY
+  }, c);
+  const locked = ctx.lockContract_(made.id, c);
+  const link = ctx.issueSignLink_(made.id, 72, c);
+  const view = ctx.signView_(link.token, { at: new Date().toISOString(), actor: 'customer' });
+  const sub = ctx.signSubmit_(link.token, {
+    signerName: '김확인', signatureImage: PNG_DATA_URI,
+    agreed: true, docHashSeen: view.contract.docHash
+  }, { at: new Date().toISOString(), actor: 'customer', uaHash: 'ua' });
+  const sig = ctx.getSignature_(made.id);
+  wflow = { made, locked, link, view, sub, sig };
+} catch (e) { wflowErr = e; }
+check(!wflowErr, '보증서 생성 → 잠금 → 링크 → 열람 → 서명 → 서명 되가져오기',
+  wflowErr ? String(wflowErr.message) : '');
+
+if (wflow) {
+  check(wflow.made.docKind === 'warranty', '만든 문서가 보증서로 기록된다', String(wflow.made.docKind));
+  check(wflow.made.amount === 0, '대금 없이도 만들어진다 — 금액은 0원', String(wflow.made.amount));
+
+  // ★ 대금 회차를 만들지 않는다. 0원짜리 세 줄이 남으면 받을 돈이 있는 문서로 세어진다.
+  const pays = (ctx.readAll_(ctx.SHEETS.PAYMENTS) || []).filter((r) => String(r.contractId) === String(wflow.made.id));
+  check(pays.length === 0, '★ 보증서에는 대금 회차를 만들지 않는다', `${pays.length}줄이 생겼습니다`);
+
+  // 고객 화면에 대금이 가지 않는다
+  const cv = wflow.view.contract;
+  check(cv.docKind === 'warranty', '고객 응답이 문서 종류를 알려준다', String(cv.docKind));
+  check(Array.isArray(cv.payments) && cv.payments.length === 0,
+    '★ 고객 화면에 0원짜리 대금 회차를 보내지 않는다', JSON.stringify(cv.payments));
+  check(!cv.warranty, '서버의 표준 보증 문구를 덧대지 않는다 — 본문에 이미 있다', String(cv.warranty));
+  check(JSON.stringify(wflow.view).indexOf(wflow.made.id) < 0, '고객 응답에 문서 id 가 없다');
+
+  // 본문은 앱이 보낸 그대로여야 한다 — 서버가 조항을 지어내거나 고치지 않는다
+  check(cv.body && cv.body.clauses && cv.body.clauses.length === WR_BODY.clauses.length,
+    '★ 서버가 보증 조항을 더하거나 빼지 않는다',
+    JSON.stringify(cv.body && cv.body.clauses && cv.body.clauses.length));
+  check(!cv.body.payment, '★ 보증서 본문에 대금 지급 조건을 만들어 넣지 않는다', JSON.stringify(cv.body.payment));
+  check(cv.body.clauses[0].text === WR_BODY.clauses[0].text, '조항 문구가 앱이 보낸 그대로다');
+
+  // 서명 이미지를 앱이 되가져올 수 있다 — 보증서 완성본은 앱이 만든다
+  check(wflow.sig.signatureImage === PNG_DATA_URI, '★ 보관된 서명 PNG 를 그대로 되돌려준다');
+  check(wflow.sig.signatureSha256 && wflow.sig.signatureSha256.length === 64, '서명 지문이 함께 온다');
+  check(wflow.sig.signerName === '김확인', '확인자 이름이 함께 온다');
+  check(wflow.sig.docKind === 'warranty', '되가져온 서명도 문서 종류를 말한다');
+
+  // 원본·완료본 PDF 가 '공사 도급계약서'라고 적혀 있으면 안 된다
+  const names = (ctx.readAll_(ctx.SHEETS.CONTRACTS) || []).filter((r) => String(r.id) === String(wflow.made.id));
+  check(names.length === 1 && String(names[0].docKind) === 'warranty', '시트의 docKind 칸에 warranty 가 적힌다',
+    JSON.stringify(names.map((r) => r.docKind)));
+  const row = names[0];
+  const html = ctx.dvCompletedHtml_(row, JSON.parse(row.bodyJson), { signatureImage: PNG_DATA_URI, sha256: row.signatureSha256, signedAt: row.signedAt, signerName: row.signerName }, 1);
+  check(html.indexOf('공사 도급계약서') < 0, '★ 보증서 완료본이 스스로를 계약서라 부르지 않는다');
+  check(html.indexOf('하자보증서') >= 0, '완료본 표지에 하자보증서라고 적힌다');
+  check(html.indexOf('중도금') < 0, '★ 보증서 완료본에 0원짜리 중도금·잔금 줄이 없다');
+  check(html.indexOf('확인자') >= 0, '서명자를 확인자로 적는다');
+}
+
+// 조항 없는 보증서는 아예 만들어지지 않는다 — 서버가 보증 문구를 지어내지 않기 때문이다
+let noClause = null;
+try {
+  ctx.createContract_({ docKind: 'warranty', title: '조항 없는 보증서',
+    customer: { name: '박없음', phone: '010-4444-5555' }, body: { site: '둔산동' } },
+    { at: new Date().toISOString(), actor: 'admin' });
+} catch (e) { noClause = String(e.message); }
+check(noClause && noClause.indexOf('BAD_REQUEST') === 0,
+  '★ 조항 없는 보증서는 만들 수 없다', noClause || '만들어져 버렸다');
+
+// 서명 전에는 서명 이미지를 내주지 않는다 — 빈 서명을 문서에 붙이면 '서명란만 빈 서명본'이 된다
+let earlySig = null;
+try {
+  const c = { at: new Date().toISOString(), actor: 'admin' };
+  const d = ctx.createContract_({ docKind: 'warranty', title: '아직 서명 전 보증서',
+    customer: { name: '최대기', phone: '010-7777-8888' }, body: WR_BODY }, c);
+  ctx.lockContract_(d.id, c);
+  ctx.getSignature_(d.id);
+} catch (e) { earlySig = String(e.message); }
+check(earlySig && earlySig.indexOf('BAD_STATE') === 0,
+  '★ 서명 전에는 빈 서명을 내주지 않는다', earlySig || '빈 서명이 나왔다');
+
+// 계약서는 종전과 똑같이 동작한다 — docKind 를 안 보내면 계약서다
+if (flow) {
+  const ctRow = (ctx.readAll_(ctx.SHEETS.CONTRACTS) || []).find((r) => String(r.id) === String(flow.made.contractId || flow.made.id));
+  check(ctRow && ctx.normalizeDocKind(ctRow.docKind) === 'contract',
+    'docKind 를 안 보낸 계약은 계약서로 읽힌다', ctRow ? String(ctRow.docKind) : '줄 없음');
+  const ctPays = (ctx.readAll_(ctx.SHEETS.PAYMENTS) || []).filter((r) => String(r.contractId) === String(flow.made.contractId || flow.made.id));
+  check(ctPays.length === 3, '계약서는 종전대로 대금 3회차가 생긴다', `${ctPays.length}줄`);
 }
 
 section('6) 보안 경계와 실패 순서');

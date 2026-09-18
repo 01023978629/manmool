@@ -704,6 +704,123 @@ export default function register(T) {
   });
 
   /* ============================================================
+   * 10-2) 문서 종류 — 계약서와 하자보증서
+   * ------------------------------------------------------------
+   * 여기서 지키려는 것은 두 가지다.
+   *   ① 옛 줄(docKind 칸이 빈 줄)이 전부 계약서로 읽혀야 한다.
+   *   ② 보증서는 대금이 없어도 만들어지되, **조항 없이는 못 만든다**.
+   *      서버가 보증 문구를 지어내면 고객이 '받은 보증서'와 '서명한 보증서'가 갈라진다.
+   * ============================================================ */
+  group('10-2) 문서 종류 — docKind');
+
+  const WR_BODY = { clauses: [{ no: 1, title: '보증기간', text: '작업완료일로부터 최대 3년' }] };
+  const GOOD_WARRANTY = {
+    title: '한밭우성아파트 하자보증서',
+    docKind: 'warranty',
+    amount: 0,
+    customer: { name: '홍길동', phone: '010-9876-5432' },
+    body: WR_BODY
+  };
+
+  test('모르는 값·빈 값은 전부 계약서로 읽는다', () => {
+    eq(P.normalizeDocKind(undefined), 'contract', '없음');
+    eq(P.normalizeDocKind(null), 'contract', 'null');
+    eq(P.normalizeDocKind(''), 'contract', '빈 문자열');
+    eq(P.normalizeDocKind('   '), 'contract', '공백');
+    eq(P.normalizeDocKind('CONTRACT'), 'contract', '대문자');
+    eq(P.normalizeDocKind('무엇인가'), 'contract', '모르는 값');
+    eq(P.normalizeDocKind(0), 'contract', '숫자');
+  });
+
+  test('보증서만 warranty 로 읽는다 — 대소문자·공백은 봐준다', () => {
+    eq(P.normalizeDocKind('warranty'), 'warranty', '그대로');
+    eq(P.normalizeDocKind(' WARRANTY '), 'warranty', '대문자·공백');
+    ok(P.isWarrantyKind('warranty'), 'isWarrantyKind');
+    no(P.isWarrantyKind('contract'), '계약서는 아니다');
+    no(P.isWarrantyKind(''), '빈 값은 아니다');
+  });
+
+  test('종류 목록이 둘뿐이고 정규화 결과가 전부 그 안에 있다', () => {
+    eq(P.ALL_DOC_KIND.length, 2, '종류는 둘');
+    const seen = ['warranty', 'contract', '', null, 'x'].map(P.normalizeDocKind);
+    ok(seen.every((k) => P.ALL_DOC_KIND.indexOf(k) >= 0), '정규화 결과가 목록 밖으로 나갑니다');
+  });
+
+  test('보증서는 금액 0원으로도 만들어진다 — 계약서는 여전히 막는다', () => {
+    ok(P.validateCreateInput(GOOD_WARRANTY).ok,
+      `0원 보증서가 막혔습니다: ${P.validateCreateInput(GOOD_WARRANTY).errors}`);
+    no(P.validateCreateInput({ ...GOOD_CREATE, amount: 0 }).ok, '계약서 0원은 그대로 막힌다');
+  });
+
+  test('보증서도 100억 초과는 막는다 — 자릿수 사고는 종류를 가리지 않는다', () => {
+    no(P.validateCreateInput({ ...GOOD_WARRANTY, amount: 10000000001 }).ok, '100억 + 1원');
+    ok(P.validateCreateInput({ ...GOOD_WARRANTY, amount: 10000000000 }).ok, '정확히 100억');
+  });
+
+  test('[기록] 보증서에 음수 금액을 보내면 0원으로 떨어져 통과한다', () => {
+    // normalizeAmount 가 음수를 0 으로 만든다. 계약서에서는 그 0 이 '0원 이하'로 걸리지만
+    // 보증서는 0원을 허용하므로 그대로 통과한다. 보증서는 금액을 문서에 쓰지 않으므로
+    // 잘못된 숫자가 고객 눈에 닿지는 않는다 — 막지 않는 쪽을 택한 자리다.
+    const r = P.validateCreateInput({ ...GOOD_WARRANTY, amount: -1 });
+    ok(r.ok, '통과해야 합니다');
+    eq(r.amount, 0, '0원으로 떨어져야 합니다');
+  });
+
+  test('★ 조항 없는 보증서는 만들 수 없다 — 서버가 보증 문구를 지어내지 않는다', () => {
+    const noBody = P.validateCreateInput({ ...GOOD_WARRANTY, body: null });
+    no(noBody.ok, '본문 없이 통과했습니다');
+    ok(noBody.errors.some((e) => /보증서 본문/.test(e)), `본문 오류가 없습니다: ${noBody.errors}`);
+
+    no(P.validateCreateInput({ ...GOOD_WARRANTY, body: { clauses: [] } }).ok, '빈 조항 배열');
+    no(P.validateCreateInput({ ...GOOD_WARRANTY, body: { clauses: [{ text: '   ' }] } }).ok, '공백만 든 조항');
+    no(P.validateCreateInput({ ...GOOD_WARRANTY, body: { clauses: '조항' } }).ok, '배열이 아닌 조항');
+  });
+
+  test('계약서는 조항이 없어도 만들어진다 — 표준 본문을 서버가 만들기 때문이다', () => {
+    ok(P.validateCreateInput({ ...GOOD_CREATE, body: null }).ok, '조항 없는 계약');
+  });
+
+  test('hasClauseText — 글자가 든 조항이 하나라도 있으면 참', () => {
+    ok(P.hasClauseText({ clauses: ['한 줄짜리 조항'] }), '문자열 조항');
+    ok(P.hasClauseText({ clauses: [{ text: '' }, { text: '내용' }] }), '뒤쪽에 내용');
+    no(P.hasClauseText({ clauses: [{ text: '' }, '  '] }), '전부 빈 조항');
+    no(P.hasClauseText({}), '조항 키 없음');
+    no(P.hasClauseText(null), 'null');
+  });
+
+  test('검증 결과가 정규화된 docKind 를 함께 돌려준다', () => {
+    eq(P.validateCreateInput(GOOD_WARRANTY).docKind, 'warranty', '보증서');
+    eq(P.validateCreateInput(GOOD_CREATE).docKind, 'contract', '계약서');
+    eq(P.validateCreateInput({ ...GOOD_CREATE, docKind: '엉뚱' }).docKind, 'contract', '모르는 값');
+  });
+
+  test('보증서 오류 문구는 보증서라고 말한다 — 계약서라고 하지 않는다', () => {
+    const r = P.validateCreateInput({ docKind: 'warranty' });
+    no(r.ok, '통과하면 안 됩니다');
+    ok(r.errors.some((e) => /보증서 제목/.test(e)), `제목 문구: ${r.errors}`);
+    no(r.errors.some((e) => /계약금액/.test(e)), `보증서에 계약금액 오류가 섞였습니다: ${r.errors}`);
+  });
+
+  test('서명 동의 문구가 종류를 따라간다 — 보증서에서 "계약 내용 동의"라고 묻지 않는다', () => {
+    const noAgree = { signerName: '홍길동', signatureImage: 'data:image/png;base64,' + 'A'.repeat(1400), agreed: false, docHashSeen: 'a'.repeat(64) };
+    const wr = P.validateSignInput(noAgree, 'warranty');
+    const ct = P.validateSignInput(noAgree, 'contract');
+    ok(wr.errors.some((e) => /보증 내용 동의/.test(e)), `보증서 문구: ${wr.errors}`);
+    ok(ct.errors.some((e) => /계약 내용 동의/.test(e)), `계약서 문구: ${ct.errors}`);
+    // 종류를 안 주면 계약서로 본다 — 옛 호출부가 그대로 돌아야 한다.
+    ok(P.validateSignInput(noAgree).errors.some((e) => /계약 내용 동의/.test(e)), '기본값');
+  });
+
+  test('★ 시트에 docKind 열이 맨 뒤에 붙어 있다 — 가운데 끼우면 옛 시트와 어긋난다', () => {
+    const cols = S.COLS_CONTRACTS;
+    eq(cols[cols.length - 1], 'docKind', '맨 뒤가 아닙니다');
+    eq(cols.filter((c) => c === 'docKind').length, 1, '열이 두 번 들어 있습니다');
+    // 앞 열의 순서는 이미 만들어진 시트가 쓰고 있다. 하나라도 밀리면 금액 칸에 날짜가 들어간다.
+    eq(cols.indexOf('id'), 0, 'id 가 첫 열이 아닙니다');
+    eq(cols.indexOf('updatedAt'), cols.length - 2, 'updatedAt 앞자리가 밀렸습니다');
+  });
+
+  /* ============================================================
    * 11) 입력 검증 — 서명 제출
    * ============================================================ */
   group('11) 입력 검증 — 서명 제출');

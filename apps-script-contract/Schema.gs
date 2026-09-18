@@ -52,7 +52,9 @@ var COLS_CONTRACTS = [
   'signatureFileId',     // 서명 이미지 파일 ID
   'completedSha256',     // 완료 PDF 의 SHA-256
   'createdAt',
-  'updatedAt'
+  'updatedAt',
+  // ↓ 2026-09 추가. 규칙대로 **맨 뒤에만** 붙였다 — 이미 만들어진 시트의 앞 열이 그대로 맞는다.
+  'docKind'              // contract(기본·공사 도급계약서) | warranty(하자보증서). 빈 칸은 전부 contract 다.
 ];
 
 /* ContractEvents — 덧붙이기만 하는 원장. 지우거나 고치지 않는다.

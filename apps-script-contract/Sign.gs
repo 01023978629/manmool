@@ -123,8 +123,11 @@ function signView_(signToken, ctx) {
  */
 function sgCustomerView_(c) {
   var body = ctParseBody_(c.bodyJson);
+  var kind = normalizeDocKind(c.docKind);
+  var warranty = (kind === DOC_KIND.WARRANTY);
   return {
     contractNo: ctText_(c.contractNo),
+    docKind: kind,                        // 화면이 이 값으로 문구와 대금 칸을 가른다
     title: ctText_(c.title),
     status: ctText_(c.status),
     amount: normalizeAmount(c.amount),
@@ -133,9 +136,13 @@ function sgCustomerView_(c) {
     operatorName: ctText_(c.operatorName) || CT_OPERATOR.co,
     docHash: ctText_(c.docHash),          // 화면이 그대로 되돌려 보내 위변조를 대조한다
     lockedAt: ctText_(c.lockedAt),
-    payments: ctPlanView_(paymentPlan(c.amount)),
+    // 보증서에는 대금이 없다. paymentPlan(0) 을 그대로 주면 0원짜리 회차 세 줄이
+    // 고객 화면에 뜬다 — 없는 대금을 있는 것처럼 보이게 하지 않는다.
+    payments: warranty ? [] : ctPlanView_(paymentPlan(c.amount)),
     body: body,
-    warranty: CT_WARRANTY_LABEL,
+    // 보증 기간은 본문(앱이 만든 정본)에 이미 적혀 있다. 서버의 표준 문구를 덧대면
+    // 고객 화면에 서로 다른 두 기간이 나란히 뜬다.
+    warranty: warranty ? '' : CT_WARRANTY_LABEL,
     note: CT_BODY_NOTE
   };
 }
@@ -160,6 +167,8 @@ function signSubmit_(signToken, payload, ctx) {
   var c = r.c.obj;
   var now = sgNow_(ctx);
   var p = payload || {};
+  var warranty = isWarrantyKind(c.docKind);
+  var WHAT = warranty ? '보증서' : '계약';
 
   /* ---------- ① 검증 ---------- */
   if (!c.lockedAt || !c.docHash) {
@@ -174,21 +183,21 @@ function signSubmit_(signToken, payload, ctx) {
     // 정상 체결된 계약을 취소됐다고 말하는 것이라, 고객은 완료본도 못 받고 사장님께
     // "계약이 취소됐다는데요" 로 전화가 온다.
     if (String(c.status) === STATUS.COMPLETED) {
-      throw sgFail_('TOKEN_USED', '이미 서명이 끝난 계약입니다. 완료본은 담당자가 보내 드립니다.');
+      throw sgFail_('TOKEN_USED', '이미 서명이 끝난 ' + WHAT + '입니다. 완료본은 담당자가 보내 드립니다.');
     }
     if (String(c.status) === STATUS.VOID) {
-      throw sgFail_('TOKEN_REVOKED', '취소된 계약입니다. 담당자에게 문의해 주세요.');
+      throw sgFail_('TOKEN_REVOKED', '취소된 ' + WHAT + '입니다. 담당자에게 문의해 주세요.');
     }
     throw sgFail_('BAD_STATE', '아직 서명할 수 있는 상태가 아닙니다. 담당자에게 문의해 주세요.');
   }
-  var v = validateSignInput(p);      // Pure.gs — 성명·서명이미지·동의·지문
+  var v = validateSignInput(p, c.docKind);   // Pure.gs — 성명·서명이미지·동의·지문
   if (!v.ok) throw sgFail_('BAD_REQUEST', v.errors.join(' · '));
 
   // 고객이 본 지문과 서버의 지문이 다르면 중간에 내용이 바뀐 것이다.
   // 이건 절대 통과시키지 않는다 — 다른 계약서에 서명한 것이 되기 때문이다.
   if (String(p.docHashSeen) !== String(c.docHash)) {
     logEvent_(c.id, EVENTS.TOKEN_REJECTED, '고객이 본 지문과 서버 지문이 다릅니다 — 서명 거부', ctx);
-    throw sgFail_('DOC_TAMPERED', '계약 내용이 바뀌었습니다. 링크를 다시 받아 확인해 주세요.');
+    throw sgFail_('DOC_TAMPERED', WHAT + ' 내용이 바뀌었습니다. 링크를 다시 받아 확인해 주세요.');
   }
 
   /* ---------- ② Drive 저장 (실패하면 여기서 멈춘다) ---------- */
@@ -234,7 +243,8 @@ function signSubmit_(signToken, payload, ctx) {
     updatedAt: now
   });
   updateRow_(SHEETS.TOKENS, r.tok.rowIndex, { usedAt: now });
-  logEvent_(c.id, EVENTS.SIGN_SUBMITTED, '고객 서명 접수 · ' + v.signerName, ctx);
+  logEvent_(c.id, EVENTS.SIGN_SUBMITTED,
+    (warranty ? '확인자 서명 접수 · ' : '고객 서명 접수 · ') + v.signerName, ctx);
   logEvent_(c.id, EVENTS.CONTRACT_COMPLETED,
     '완료본 v' + completed.version + ' · 증거 ' + evidence.fileName, ctx);
 
@@ -258,6 +268,7 @@ function signSubmit_(signToken, payload, ctx) {
   return {
     ok: true,
     contractNo: ctText_(c.contractNo),
+    docKind: normalizeDocKind(c.docKind),
     signedAt: now,
     completedVersion: completed.version,
     completedSha256: completed.sha256,

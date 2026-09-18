@@ -93,7 +93,7 @@ node apps-script-contract/test/run.mjs
 열 순서는 `Schema.gs` 한 곳에서만 정합니다. **열은 뒤에 추가만 하세요.**
 중간에 끼우면 이미 만들어진 시트와 어긋나고, 시트에는 마이그레이션이 없습니다.
 
-#### `Contracts` — 계약 한 건이 한 줄 (27열)
+#### `Contracts` — 문서 한 건이 한 줄 (28열)
 
 | 열 | 뜻 |
 | --- | --- |
@@ -248,13 +248,14 @@ node apps-script-contract/test/run.mjs
 | --- | --- | --- | --- |
 | `health` | `contract.health` | 아무나 | 설정 상태·버전(값은 담지 않음) |
 | `selfTest` | `self.test` `diag.selfTest` | 관리자 | **이것이 통과해야 현장 앱의 계약 버튼이 열립니다** |
-| `createContract` | `contract.create` | 관리자 | 계약 생성(DRAFT) + 대금 3회차 |
+| `createContract` | `contract.create` | 관리자 | 문서 생성(DRAFT). 계약서면 대금 3회차도 함께 |
 | `getContract` | `contract.get` | 관리자·고객 | 자격증명으로 갈라집니다(섞어 보내면 거부) |
 | `listContracts` | `contract.list` | 관리자 | 목록(요약). 본문·해시 제외 |
 | `lockContract` | `contract.lock` | 관리자 | 본문 확정 → `docHash` 발급 + 원본 PDF |
 | `issueSignLink` | `signlink.issue` | 관리자 | **원문 토큰을 이때 한 번만** 돌려줍니다 |
 | `quickSend` | `contract.quickSend` | 관리자 | 생성→잠금→링크발급을 한 번에(현장에서 실제로 쓰는 것) |
 | `voidContract` | `contract.void` | 관리자 | 취소 + 미사용 토큰 전부 무효화 |
+| `contractSignature` | `contract.signature` | 관리자 | 체결된 문서의 서명 이미지·서명자·지문(서명 전에는 거절) |
 | `backup` | `backup.export` | 관리자 | 전체를 JSON 으로 Drive 백업 폴더에 |
 | `exportCsv` | `contract.exportCsv` `export.csv` | 관리자 | 목록을 CSV 로 |
 | `signContract` | `sign.submit` | 고객 | 서명 저장 → 완료 PDF → 토큰 소진 |
@@ -264,6 +265,24 @@ node apps-script-contract/test/run.mjs
 
 > `completeContract` 는 **고객 전용**입니다. 관리자가 서명 없이 계약을 '완료 처리'하는 길은
 > 만들지 않았습니다. 그 길이 있으면 전자계약의 근거가 통째로 무너집니다.
+
+### 문서 두 가지 — `docKind`
+
+2026-09 부터 이 서버는 **공사 도급계약서**와 **하자보증서**를 함께 다룹니다.
+`contract.create` · `contract.quickSend` 에 `docKind: 'warranty'` 를 넣으면 보증서입니다.
+보내지 않으면 계약서입니다(이 칸이 빈 옛 줄도 전부 계약서로 읽힙니다).
+
+| | 계약서 | 하자보증서 |
+| --- | --- | --- |
+| 금액 | 필수(0원 이하 거부) | 없어도 됨 |
+| 대금 3회차 | 만듦 | **만들지 않음** |
+| 본문 | 조항이 없으면 서버가 표준 계약 본문을 만듦 | **앱이 보낸 조항만. 서버가 지어내지 않음** |
+| 고객 화면 | 금액·대금 지급 조건 표시 | 표시하지 않음 |
+
+보증 문구를 서버가 만들지 않는 이유는 하나입니다 — 고객이 **받은 보증서**(현장 앱이 만든 것)와
+**서명한 보증서**가 갈라지면, 그 어긋남은 분쟁이 났을 때에만 드러납니다.
+보증서의 완성본도 앱이 만들기 때문에(사진이 들어갑니다), 서명 그림은 `contract.signature` 로
+앱이 되가져갑니다. 자세한 것은 PROTOCOL.md 의 `docKind` 절에 있습니다.
 
 자세한 요청·응답 모양은 [PROTOCOL.md](./PROTOCOL.md) 를 보세요.
 

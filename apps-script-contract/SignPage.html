@@ -227,7 +227,8 @@ footer{max-width:600px;margin:0 auto;padding:22px 16px 40px;color:var(--ink-fain
     <h1 id="ctTitle"></h1>
     <p class="lead" id="ctWho"></p>
 
-    <div class="card">
+    <!-- 대금 칸. 하자보증서에는 대금이 없어 통째로 숨긴다(render 참고) -->
+    <div class="card" id="ctMoney">
       <p class="note" style="margin-bottom:2px">총 계약금액</p>
       <p class="amount num"><span id="ctAmount"></span><small id="ctVat"></small></p>
       <div id="ctPays" style="margin-top:12px"></div>
@@ -236,7 +237,7 @@ footer{max-width:600px;margin:0 auto;padding:22px 16px 40px;color:var(--ink-fain
 
     <div class="card" id="ctFacts"></div>
 
-    <h2>계약 전문</h2>
+    <h2 id="ctDocH">계약 전문</h2>
     <p class="note" style="margin-bottom:8px">아래 내용을 끝까지 읽어 보신 뒤 서명해 주세요.</p>
     <div class="doc" id="ctDoc"></div>
     <button type="button" class="toggle" id="btnDoc">전문 접기</button>
@@ -244,7 +245,7 @@ footer{max-width:600px;margin:0 auto;padding:22px 16px 40px;color:var(--ink-fain
     <div class="card">
       <p class="note" style="margin-bottom:4px">문서 지문 (SHA-256)</p>
       <p class="hash" id="ctHash"></p>
-      <p class="note" style="margin:8px 0 0">이 지문은 위 계약 내용에서 계산된 값입니다.
+      <p class="note" id="ctHashNote" style="margin:8px 0 0">이 지문은 위 계약 내용에서 계산된 값입니다.
         내용이 한 글자라도 바뀌면 지문이 달라지므로, 나중에 계약서가 바뀌지 않았음을 확인할 수 있습니다.</p>
     </div>
 
@@ -260,26 +261,26 @@ footer{max-width:600px;margin:0 auto;padding:22px 16px 40px;color:var(--ink-fain
       <div class="padhint" id="padHint">여기에 서명해 주세요</div>
     </div>
     <div class="padbar">
-      <span class="note">그린 그대로 계약서에 들어갑니다.</span>
+      <span class="note" id="padNote">그린 그대로 계약서에 들어갑니다.</span>
       <button type="button" class="btn btn-sub btn-small" id="btnClear">다시 그리기</button>
     </div>
 
     <label class="consent" id="cAgree" for="fAgree">
       <input type="checkbox" id="fAgree">
       <span class="box" id="cAgreeBox" aria-hidden="true">✓</span>
-      <span class="txt">위 계약 내용과 대금 지급 조건을 모두 확인하였으며,
+      <span class="txt" id="cAgreeTxt">위 계약 내용과 대금 지급 조건을 모두 확인하였으며,
         전자적 방법으로 계약을 체결하는 데 동의합니다.</span>
     </label>
 
     <p class="err" id="signErr" role="alert" aria-live="assertive"></p>
     <button type="button" class="btn btn-main" id="btnNext" style="margin-top:14px">확인 화면으로</button>
-    <p class="note center" style="margin-top:10px">이 화면을 여는 것만으로는 계약이 체결되지 않습니다.</p>
+    <p class="note center" id="ctFoot" style="margin-top:10px">이 화면을 여는 것만으로는 계약이 체결되지 않습니다.</p>
   </section>
 
   <!-- ④ 최종 확인 -->
   <section id="scConfirm" class="hide">
     <h1>이대로 제출하시겠습니까?</h1>
-    <p class="lead">제출하면 계약이 체결되고, 고객님 스스로 되돌릴 수 없습니다.</p>
+    <p class="lead" id="cfLead">제출하면 계약이 체결되고, 고객님 스스로 되돌릴 수 없습니다.</p>
 
     <div class="card" id="cfSummary"></div>
 
@@ -593,6 +594,9 @@ footer{max-width:600px;margin:0 auto;padding:22px 16px 40px;color:var(--ink-fain
     var body = pickObj(raw.body, c.body) || {};
     var v = {
       contractNo: str(c.contractNo || raw.contractNo),
+      // 문서 종류. 서버가 말해 주지 않으면 계약서다 — 이 값이 없던 시절의 링크가
+      // 열렸을 때 '무슨 문서인지 모르겠다'는 화면을 띄우지 않기 위해서다.
+      docKind: (str(c.docKind || raw.docKind).toLowerCase() === 'warranty') ? 'warranty' : 'contract',
       title: str(c.title || raw.title),
       status: str(c.status || raw.status),
       amount: num(c.amount != null ? c.amount : (raw.amount != null ? raw.amount : body.amount)),
@@ -650,13 +654,40 @@ footer{max-width:600px;margin:0 auto;padding:22px 16px 40px;color:var(--ink-fain
    * 계약 그리기 — 전부 textContent 로만 넣는다
    * ============================================================ */
   function render(v) {
-    setText($('ctNo'), v.contractNo ? '계약번호 ' + v.contractNo : '계약서');
-    setText($('ctTitle'), v.title || '공사 도급계약서');
+    // 하자보증서는 대금이 없고 당사자 이름도 '갑/을'이 아니다.
+    // 계약서 문구를 그대로 두면 고객이 보증서를 계약서로 읽는다.
+    var wr = (v.docKind === 'warranty');
+
+    setText($('ctNo'), v.contractNo
+      ? (wr ? '문서번호 ' : '계약번호 ') + v.contractNo
+      : (wr ? '하자보증서' : '계약서'));
+    setText($('ctTitle'), v.title || (wr ? '하자보증서' : '공사 도급계약서'));
 
     var who = [];
     if (v.customerName) who.push(v.customerName + ' 고객님');
     if (v.operator.co || v.operatorName) who.push((v.operator.co || v.operatorName) + ' 드림');
     setText($('ctWho'), who.join(' · '));
+
+    // 대금 칸은 통째로 숨긴다. 0원이라고 적어 두면 '0원에 합의한 문서'로 읽힌다.
+    var money = $('ctMoney');
+    if (money) { if (wr) money.classList.add('hide'); else money.classList.remove('hide'); }
+
+    setText($('ctDocH'), wr ? '보증 내용' : '계약 전문');
+    setText($('ctHashNote'), wr
+      ? '이 지문은 위 보증 내용에서 계산된 값입니다. 내용이 한 글자라도 바뀌면 지문이 달라지므로, 나중에 보증서가 바뀌지 않았음을 확인할 수 있습니다.'
+      : '이 지문은 위 계약 내용에서 계산된 값입니다. 내용이 한 글자라도 바뀌면 지문이 달라지므로, 나중에 계약서가 바뀌지 않았음을 확인할 수 있습니다.');
+    setText($('padNote'), wr ? '그린 그대로 보증서에 들어갑니다.' : '그린 그대로 계약서에 들어갑니다.');
+    setText($('cAgreeTxt'), wr
+      ? '위 보증 내용을 모두 확인하였으며, 전자적 방법으로 확인 서명하는 데 동의합니다.'
+      : '위 계약 내용과 대금 지급 조건을 모두 확인하였으며, 전자적 방법으로 계약을 체결하는 데 동의합니다.');
+    setText($('ctFoot'), wr
+      ? '이 화면을 여는 것만으로는 확인 서명이 되지 않습니다.'
+      : '이 화면을 여는 것만으로는 계약이 체결되지 않습니다.');
+    setText($('cfLead'), wr
+      ? '제출하면 확인 서명이 접수되고, 고객님 스스로 되돌릴 수 없습니다.'
+      : '제출하면 계약이 체결되고, 고객님 스스로 되돌릴 수 없습니다.');
+    var nameIn = $('fName');
+    if (nameIn) nameIn.setAttribute('placeholder', wr ? '확인자 본인 성명' : '계약자 본인 성명');
 
     setText($('ctAmount'), won(v.amount) + '원');
     // 부가세 포함 여부는 서버가 말해 준 경우에만 적는다. 모르면서 '포함'이라고 쓰면
@@ -680,14 +711,15 @@ footer{max-width:600px;margin:0 auto;padding:22px 16px 40px;color:var(--ink-fain
     // 요약 표
     var f = $('ctFacts');
     f.textContent = '';
-    kv(f, '도급인(갑)', v.customerName + (v.customerPhoneMasked ? ' · ' + v.customerPhoneMasked : ''));
+    kv(f, wr ? '확인자(고객)' : '도급인(갑)',
+       v.customerName + (v.customerPhoneMasked ? ' · ' + v.customerPhoneMasked : ''));
     var opLine = (v.operator.co || v.operatorName || '');
     if (v.operator.rep) opLine += ' (' + v.operator.rep + ')';
     if (v.operator.bizNo) opLine += ' · 사업자 ' + v.operator.bizNo;
-    kv(f, '수급인(을)', opLine);
+    kv(f, wr ? '시공업체' : '수급인(을)', opLine);
     kv(f, '현장', v.body.site);
     kv(f, '공사 범위', v.body.scope);
-    kv(f, '공사기간', v.body.period);
+    kv(f, wr ? '작업완료일' : '공사기간', wr ? (v.body.doneAt || v.body.period) : v.body.period);
     kv(f, '하자보증', v.body.warranty);
     if (v.expiresAt) kv(f, '링크 유효기간', when(v.expiresAt) + ' 까지');
     if (!f.firstChild) f.classList.add('hide');
@@ -707,7 +739,8 @@ footer{max-width:600px;margin:0 auto;padding:22px 16px 40px;color:var(--ink-fain
         doc.appendChild(el('p', null, (c && c.text) || ''));
       }
     } else {
-      doc.appendChild(el('p', null, '계약 조항이 등록되어 있지 않습니다. 서명 전에 담당자에게 확인해 주세요.'));
+      doc.appendChild(el('p', null, (wr ? '보증 조항' : '계약 조항')
+        + '이 등록되어 있지 않습니다. 서명 전에 담당자에게 확인해 주세요.'));
     }
     if (v.body.note) {
       var n = el('p', null, v.body.note);
@@ -870,12 +903,13 @@ footer{max-width:600px;margin:0 auto;padding:22px 16px 40px;color:var(--ink-fain
   }
 
   function checkSign() {
+    var wr = !!(S.view && S.view.docKind === 'warranty');
     var name = String($('fName').value || '').trim();
     if (!name) return '성명을 입력해 주세요.';
     if (name.length > 40) return '성명이 너무 깁니다.';
     if (!S.strokes.length || S.inkLen < 60) return '서명을 그려 주세요. (지금은 너무 짧습니다)';
-    if (!$('fAgree').checked) return '계약 내용 동의에 체크해 주세요.';
-    if (!S.docHash) return '계약 지문이 없어 서명을 진행할 수 없습니다.';
+    if (!$('fAgree').checked) return (wr ? '보증 내용' : '계약 내용') + ' 동의에 체크해 주세요.';
+    if (!S.docHash) return '문서 지문이 없어 서명을 진행할 수 없습니다.';
     return '';
   }
 
@@ -891,15 +925,20 @@ footer{max-width:600px;margin:0 auto;padding:22px 16px 40px;color:var(--ink-fain
     }
 
     var v = S.view;
+    var wr = (v.docKind === 'warranty');
     var box = $('cfSummary');
     box.textContent = '';
-    kv(box, '계약번호', v.contractNo);
-    kv(box, '계약 제목', v.title);
-    kv(box, '총 계약금액', won(v.amount) + '원');
-    for (var i = 0; i < v.payments.length; i++) {
-      kv(box, v.payments[i].label, won(v.payments[i].amount) + '원');
+    kv(box, wr ? '문서번호' : '계약번호', v.contractNo);
+    kv(box, wr ? '문서 제목' : '계약 제목', v.title);
+    // 보증서에는 대금이 없다. 마지막 확인 화면에 0원을 찍으면 고객은
+    // '0원짜리 무언가'에 서명하는 것으로 읽는다.
+    if (!wr) {
+      kv(box, '총 계약금액', won(v.amount) + '원');
+      for (var i = 0; i < v.payments.length; i++) {
+        kv(box, v.payments[i].label, won(v.payments[i].amount) + '원');
+      }
     }
-    kv(box, '서명자 성명', String($('fName').value || '').trim());
+    kv(box, wr ? '확인자 성명' : '서명자 성명', String($('fName').value || '').trim());
 
     $('cfSig').src = S.sigData;      // 우리 캔버스가 만든 값이라 바깥에서 들어온 주소가 아니다
     setText($('cfErr'), '');
@@ -976,18 +1015,21 @@ footer{max-width:600px;margin:0 auto;padding:22px 16px 40px;color:var(--ink-fain
     S.done = d;
     var v = S.view || {};
 
+    var wr = (str(d.docKind).toLowerCase() === 'warranty') || (v.docKind === 'warranty');
+
     setText($('doneTitle'), d.already ? '이미 서명이 접수되었습니다' : '서명이 완료되었습니다');
     setText($('doneLead'), d.already
       ? '앞서 보내신 서명이 정상적으로 접수되어 있습니다. 다시 서명하실 필요는 없습니다.'
-      : '계약이 정상적으로 체결되었습니다. 감사합니다.');
+      : (wr ? '보증서 확인 서명이 정상적으로 접수되었습니다. 감사합니다.'
+            : '계약이 정상적으로 체결되었습니다. 감사합니다.'));
 
     var box = $('doneFacts');
     box.textContent = '';
-    kv(box, '계약번호', str(d.contractNo) || v.contractNo);
-    kv(box, '계약 제목', v.title);
-    kv(box, '서명자', str(d.signerName) || String($('fName').value || '').trim() || v.signerName);
+    kv(box, wr ? '문서번호' : '계약번호', str(d.contractNo) || v.contractNo);
+    kv(box, wr ? '문서 제목' : '계약 제목', v.title);
+    kv(box, wr ? '확인자' : '서명자', str(d.signerName) || String($('fName').value || '').trim() || v.signerName);
     var atIso = str(d.completedAt) || str(d.signedAt) || str(d.at);
-    if (atIso) kv(box, '체결 시각', when(atIso));
+    if (atIso) kv(box, wr ? '확인 시각' : '체결 시각', when(atIso));
     var hash = str(d.docHash) || v.docHash;
     if (hash) kv(box, '문서 지문', hash.slice(0, 24) + '…');
     if (!box.firstChild) box.classList.add('hide');
@@ -1021,16 +1063,17 @@ footer{max-width:600px;margin:0 auto;padding:22px 16px 40px;color:var(--ink-fain
   function toDoneView(v, extra) {
     S.view = v;
     var d = extra || {};
-    setText($('doneTitle'), '체결이 끝난 계약서입니다');
+    var wr = (v.docKind === 'warranty');
+    setText($('doneTitle'), wr ? '확인 서명이 끝난 보증서입니다' : '체결이 끝난 계약서입니다');
     setText($('doneLead'), '아래에서 완료본을 확인하실 수 있습니다.');
 
     var box = $('doneFacts');
     box.textContent = '';
-    kv(box, '계약번호', v.contractNo);
-    kv(box, '계약 제목', v.title);
-    kv(box, '총 계약금액', v.amount ? won(v.amount) + '원' : '');
-    kv(box, '서명자', v.signerName);
-    if (v.completedAt) kv(box, '체결 시각', when(v.completedAt));
+    kv(box, wr ? '문서번호' : '계약번호', v.contractNo);
+    kv(box, wr ? '문서 제목' : '계약 제목', v.title);
+    if (!wr) kv(box, '총 계약금액', v.amount ? won(v.amount) + '원' : '');
+    kv(box, wr ? '확인자' : '서명자', v.signerName);
+    if (v.completedAt) kv(box, wr ? '확인 시각' : '체결 시각', when(v.completedAt));
     if (v.docHash) kv(box, '문서 지문', v.docHash.slice(0, 24) + '…');
 
     var url = v.doneUrl || safeUrl(d.fileUrl || d.downloadUrl);
