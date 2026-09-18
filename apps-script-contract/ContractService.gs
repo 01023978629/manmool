@@ -83,6 +83,7 @@ function createContract_(p, ctx) {
   if (!v.ok) throw ctFail_('BAD_REQUEST', v.errors.join(' / '));
 
   var now = ctNow_(ctx);
+  var warranty = (v.docKind === DOC_KIND.WARRANTY);
   var phoneRaw = (input.customer && input.customer.phone) || '';
 
   // 번호 해시는 PEPPER 가 있어야 만들어진다. AuthService.gs 는 PEPPER 가 없으면 멈추는데,
@@ -111,7 +112,8 @@ function createContract_(p, ctx) {
     lockedAt: '', sentAt: '', viewedAt: '', signedAt: '', completedAt: '', voidedAt: '',
     folderId: '', originalFileId: '', completedFileId: '', completedFileVersion: 0,
     signerName: '', signatureSha256: '', signatureFileId: '', completedSha256: '',
-    createdAt: now, updatedAt: now
+    createdAt: now, updatedAt: now,
+    docKind: v.docKind          // contract | warranty — Pure.gs 가 정규화한 값만 들어온다
   };
 
   var body = ctBodyFor_(input, v);
@@ -125,7 +127,10 @@ function createContract_(p, ctx) {
 
   // 대금 3회차. 비율 계산과 나머지 처리는 Pure.gs 의 paymentPlan 이 한다
   // (잔금이 '나머지 전부'라서 셋의 합이 총액과 1원도 어긋나지 않는다).
-  var plan = paymentPlan(v.amount);
+  //
+  // 보증서에는 대금이 없다. 0원짜리 회차 세 줄을 남기면 Payments 시트를 합산하는 쪽이
+  // '받을 돈이 있는 문서'로 세게 된다 — 없는 것은 만들지 않는다.
+  var plan = warranty ? [] : paymentPlan(v.amount);
   for (var i = 0; i < plan.length; i++) {
     appendRow_(SHEETS.PAYMENTS, {
       contractId: contract.id,
@@ -139,7 +144,7 @@ function createContract_(p, ctx) {
   }
 
   logEvent_(contract.id, EVENTS.CONTRACT_CREATED,
-    contract.contractNo + ' · ' + formatWon(v.amount) + '원 · ' + v.customerName, ctx);
+    contract.contractNo + ' · ' + (warranty ? '하자보증서' : formatWon(v.amount) + '원') + ' · ' + v.customerName, ctx);
 
   return {
     ok: true,
@@ -150,6 +155,7 @@ function createContract_(p, ctx) {
     amount: v.amount,
     customerName: v.customerName,
     customerPhoneMasked: contract.customerPhoneMasked,
+    docKind: contract.docKind,
     payments: ctPlanView_(plan),
     createdAt: now
   };
@@ -175,6 +181,42 @@ function getContract_(id) {
     payments: payView,
     events: events.items,
     eventsTruncated: events.truncated
+  };
+}
+
+/* ============================================================
+ * 2-2) 서명 이미지 (관리자) — 앱이 자기 문서에 붙이기 위한 것
+ * ============================================================ */
+/**
+ * 왜 이 동작이 따로 있는가: 하자보증서의 완성본은 **현장 앱**이 만든다.
+ * 서버가 보증서를 한 벌 더 만들면 고객이 받은 것과 갈라지므로 그렇게 하지 않기로 했고,
+ * 그러면 링크에서 받은 서명 그림을 앱이 가져갈 길이 필요하다.
+ *
+ * 서명 전에는 빈 값을 주지 않고 거절한다 — 빈 서명을 받아 문서에 붙이면
+ * '서명란만 비어 있는 서명된 문서'가 만들어진다.
+ */
+function getSignature_(id) {
+  var hit = ctFindContract_(id);
+  var c = hit.obj;
+  var status = ctText_(c.status) || STATUS.DRAFT;
+
+  if (status !== STATUS.COMPLETED) {
+    throw ctFail_('BAD_STATE',
+      '아직 서명이 끝나지 않았습니다(현재 ' + status + ') — 빈 서명은 내주지 않습니다');
+  }
+
+  var sig = readSignature_(c);        // Drive 에서 되읽고 지문을 대조한다
+
+  return {
+    ok: true,
+    id: ctText_(c.id),
+    contractNo: ctText_(c.contractNo),
+    docKind: normalizeDocKind(c.docKind),
+    status: status,
+    signerName: ctText_(c.signerName),
+    signedAt: ctIso_(c.signedAt),
+    signatureSha256: ctText_(c.signatureSha256) || sig.sha256,
+    signatureImage: sig.dataUri
   };
 }
 
@@ -263,8 +305,12 @@ function lockContract_(id, ctx) {
 
   // 마지막 방어선. 예전 Fly 서버에서는 이 검사가 없어서 계약금·중도금·잔금이 모두 0원으로
   // 찍힌 계약서에 고객이 서명까지 간 적이 있다. 서명 뒤에는 되돌릴 방법이 없다.
-  var bad = ctValidateBody_(body, amount);
-  if (bad.length) throw ctFail_('BAD_REQUEST', '계약 본문이 완성되지 않았습니다 — ' + bad.join(', '));
+  var kind = normalizeDocKind(c.docKind);
+  var bad = ctValidateBody_(body, amount, kind);
+  if (bad.length) {
+    throw ctFail_('BAD_REQUEST',
+      (isWarrantyKind(kind) ? '보증서' : '계약') + ' 본문이 완성되지 않았습니다 — ' + bad.join(', '));
+  }
 
   // 지문의 재료에 금액을 함께 넣는 이유는 Pure.gs docHashSource 주석에 있다 —
   // 본문만 해시하면 잠근 뒤 금액 칸만 바꿔치기해도 지문이 그대로 맞는다.
@@ -704,6 +750,7 @@ function ctContractView_(c, withBody) {
     contractNo: ctText_(c.contractNo),
     title: ctText_(c.title),
     status: ctText_(c.status) || STATUS.DRAFT,
+    docKind: normalizeDocKind(c.docKind),     // 빈 칸(옛 줄)은 contract 로 읽힌다
     amount: normalizeAmount(c.amount),
     customerName: ctText_(c.customerName),
     customerPhoneMasked: ctText_(c.customerPhoneMasked),
@@ -793,6 +840,17 @@ function ctReserveContractNo_(nowIso) {
 // 앱이 본문을 직접 보내면 그 내용을 그대로 쓴다. 안 보내면 표준 본문을 만들어 넣는다.
 function ctBodyFor_(input, v) {
   var body = (input.body && typeof input.body === 'object' && !Array.isArray(input.body)) ? input.body : null;
+
+  // 보증서 본문은 현장 앱이 만든 정본이다(PROTOCOL.md 'docKind').
+  // 서버가 문구를 더하거나 고치면 고객이 '받은 보증서'와 '서명한 보증서'가 갈라진다.
+  // 딱 하나, 표기 당사자 성명이 비어 있으면 채운다 — 잠금 검사가 그것을 요구하는데
+  // 본문을 고치는 동작이 규약에 없어, 비어 있으면 취소 말고는 길이 없어진다.
+  if (v.docKind === DOC_KIND.WARRANTY) {
+    var wb = body || {};
+    if (!String(wb.customerName || '').trim()) wb.customerName = v.customerName;
+    return wb;
+  }
+
   // 조항이 없는 body 는 '계약서'가 아니라 '재료'다.
   // 현장 앱은 body:{site:'둔산동', scope:['욕실']} 처럼 아는 것만 담아 보낸다 —
   // 그것을 그대로 본문으로 삼으면 조항이 없어 잠글 수 없고, 본문을 고치는 동작이 규약에 없어
@@ -826,9 +884,10 @@ function ctBodyFor_(input, v) {
 
 // 잠그기 전 '이것을 계약서라 부를 수 있는가'를 본다.
 // contract-backend/src/standard-contract.mjs 의 validateBody 와 같은 규칙이다.
-function ctValidateBody_(body, amount) {
+function ctValidateBody_(body, amount, docKind) {
   var b = body || {};
   var bad = [];
+  var warranty = isWarrantyKind(docKind);
   // 조항은 {no,title,text} 가 표준이지만 문자열 한 줄로 들어오는 본문도 있어 둘 다 인정한다.
   // 막으려는 것은 '조항이 아예 없는 계약서'다.
   if (!ctIsArray_(b.clauses) || b.clauses.length === 0) {
@@ -840,7 +899,12 @@ function ctValidateBody_(body, amount) {
       if (!text.trim()) { bad.push('내용이 빈 조항이 있습니다'); break; }
     }
   }
-  if (!String(b.customerName || '').trim()) bad.push('고객(갑) 성명이 없습니다');
+  if (!String(b.customerName || '').trim()) {
+    bad.push(warranty ? '확인자(고객) 성명이 없습니다' : '고객(갑) 성명이 없습니다');
+  }
+
+  // 보증서에는 대금이 없다. 여기서 대금을 요구하면 보증서는 영영 잠기지 않는다.
+  if (warranty) return bad;
 
   var p = b.payment || {};
   var sum = normalizeAmount(p.down) + normalizeAmount(p.mid) + normalizeAmount(p.bal);

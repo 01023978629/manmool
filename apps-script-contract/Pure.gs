@@ -38,6 +38,39 @@ var TERMINAL_STATUS = [STATUS.COMPLETED, STATUS.VOID];
 
 /* ---------- 대금 분할 ---------- */
 // contract-backend/src/standard-contract.mjs 와 같은 비율. 바꾸면 이전 계약과 어긋난다.
+/* ---------- 문서 종류 ----------
+   이 서버는 원래 '공사 도급계약서'만 다뤘다. 하자보증서를 같은 길로 보내는 이유는
+   서명판·토큰·증거보관이 이미 여기 있기 때문이다(PROTOCOL.md 'docKind').
+   종류가 갈라 놓는 것은 딱 두 가지다:
+     ① 보증서에는 대금이 없다 — 금액 0 원을 허용한다
+     ② 보증서 본문은 앱이 만든 것을 그대로 받는다 — 서버가 보증 문구를 지어내지 않는다
+        (지어내면 고객이 '받은 보증서'와 '서명한 보증서'가 갈라진다) */
+var DOC_KIND = { CONTRACT: 'contract', WARRANTY: 'warranty' };
+var ALL_DOC_KIND = [DOC_KIND.CONTRACT, DOC_KIND.WARRANTY];
+
+/* 모르는 값은 계약서로 본다. 이 열이 생기기 전에 만들어진 줄은 칸이 비어 있고,
+   그 줄은 전부 계약서다 — 빈 칸을 '모르겠다'로 두면 옛 계약이 전부 길을 잃는다. */
+function normalizeDocKind(v) {
+  var t = String(v == null ? '' : v).trim().toLowerCase();
+  return (t === DOC_KIND.WARRANTY) ? DOC_KIND.WARRANTY : DOC_KIND.CONTRACT;
+}
+function isWarrantyKind(v) { return normalizeDocKind(v) === DOC_KIND.WARRANTY; }
+
+function pureIsArray_(v) { return Object.prototype.toString.call(v) === '[object Array]'; }
+
+/* 본문에 쓸 만한 조항이 있는가. '조항 배열이 있고, 글자가 든 조항이 하나라도 있는가'를 본다.
+   빈 문자열만 든 배열을 통과시키면 조항 없는 보증서가 서명까지 간다. */
+function hasClauseText(body) {
+  var b = body || {};
+  if (!pureIsArray_(b.clauses) || !b.clauses.length) return false;
+  for (var i = 0; i < b.clauses.length; i++) {
+    var c = b.clauses[i];
+    var text = (typeof c === 'string') ? c : String((c && c.text) || '');
+    if (text.trim()) return true;
+  }
+  return false;
+}
+
 var PAYMENT_RATIO = { down: 0.5, mid: 0.4, bal: 0.1 };
 var PAYMENT_LABEL = { down: '계약금', mid: '중도금', bal: '잔금' };
 var PAYMENT_SEQ = { down: 0, mid: 1, bal: 2 };
@@ -225,13 +258,28 @@ function canTransition(from, to) {
 function validateCreateInput(o) {
   var errs = [];
   var i = o || {};
+  var kind = normalizeDocKind(i.docKind);
+  var warranty = (kind === DOC_KIND.WARRANTY);
+  var what = warranty ? '보증서' : '계약';
+
   var title = String(i.title == null ? '' : i.title).trim();
-  if (!title) errs.push('계약 제목이 비어 있습니다');
-  if (title.length > 120) errs.push('계약 제목이 너무 깁니다(120자 이내)');
+  if (!title) errs.push(what + ' 제목이 비어 있습니다');
+  if (title.length > 120) errs.push(what + ' 제목이 너무 깁니다(120자 이내)');
 
   var amount = normalizeAmount(i.amount);
-  if (amount <= 0) errs.push('계약금액이 0원 이하입니다');
-  if (amount > 10000000000) errs.push('계약금액이 100억을 넘습니다 — 자릿수를 확인하세요');
+  // 보증서에는 대금이 없다. 0 원을 막으면 보증서를 만들 길이 없어지고,
+  // 그렇다고 아무 금액이나 넣게 하면 대금 없는 문서에 금액이 찍힌다.
+  // (음수는 검사할 필요가 없다 — normalizeAmount 가 이미 0 으로 떨어뜨린다.
+  //  계약서에서는 그 0 이 아래 줄에 걸리고, 보증서에서는 어차피 쓰지 않는 값이다.)
+  if (!warranty && amount <= 0) errs.push('계약금액이 0원 이하입니다');
+  if (amount > 10000000000) errs.push('금액이 100억을 넘습니다 — 자릿수를 확인하세요');
+
+  // 보증서 본문은 서버가 지어내지 않는다(PROTOCOL.md 'docKind').
+  // 조항 없이 만들어 두면 잠금에서 막히는데, 본문을 고치는 동작이 규약에 없어
+  // 그 문서는 취소 말고는 길이 없어진다. 그래서 만들기 전에 막는다.
+  if (warranty && !hasClauseText(i.body)) {
+    errs.push('보증서 본문(조항)이 없습니다 — 서버는 보증 문구를 지어내지 않습니다');
+  }
 
   var cname = String((i.customer && i.customer.name) || '').trim();
   if (!cname) errs.push('고객 성명이 비어 있습니다');
@@ -240,15 +288,21 @@ function validateCreateInput(o) {
   var cphone = (i.customer && i.customer.phone) || '';
   if (!isValidMobile(cphone)) errs.push('고객 휴대폰 번호 형식이 올바르지 않습니다');
 
-  if (i.body != null && typeof i.body !== 'object') errs.push('계약 본문 형식이 올바르지 않습니다');
+  if (i.body != null && typeof i.body !== 'object') errs.push(what + ' 본문 형식이 올바르지 않습니다');
 
-  return { ok: errs.length === 0, errors: errs, amount: amount, title: title, customerName: cname };
+  return {
+    ok: errs.length === 0, errors: errs,
+    amount: amount, title: title, customerName: cname, docKind: kind
+  };
 }
 
 // 서명 제출 입력.
-function validateSignInput(o) {
+// docKind 는 문구에만 쓴다 — 보증서에서 '계약 내용 동의'라고 물으면 고객은
+// 자기가 무엇에 동의하는지 모른 채 체크하게 된다.
+function validateSignInput(o, docKind) {
   var errs = [];
   var i = o || {};
+  var what = isWarrantyKind(docKind) ? '보증 내용' : '계약 내용';
   var name = String(i.signerName == null ? '' : i.signerName).trim();
   if (!name) errs.push('성명을 입력해 주세요');
   if (name.length > 40) errs.push('성명이 너무 깁니다');
@@ -259,8 +313,8 @@ function validateSignInput(o) {
   if (img.length < 1200) errs.push('서명이 비어 있습니다 — 직접 그려 주세요');
   if (img.length > 2 * 1024 * 1024) errs.push('서명 이미지가 너무 큽니다');
 
-  if (i.agreed !== true) errs.push('계약 내용 동의에 체크해 주세요');
-  if (!i.docHashSeen) errs.push('계약 지문이 없습니다 — 링크를 다시 열어 주세요');
+  if (i.agreed !== true) errs.push(what + ' 동의에 체크해 주세요');
+  if (!i.docHashSeen) errs.push('문서 지문이 없습니다 — 링크를 다시 열어 주세요');
 
   return { ok: errs.length === 0, errors: errs, signerName: name };
 }
@@ -283,6 +337,9 @@ var PURE_EXPORTS = {
   makeContractNo: makeContractNo, parseContractNo: parseContractNo, bytesToHex: bytesToHex,
   tokenState: tokenState, isExpired: isExpired, canEditBody: canEditBody,
   isTerminal: isTerminal, canTransition: canTransition,
+  DOC_KIND: DOC_KIND, ALL_DOC_KIND: ALL_DOC_KIND,
+  normalizeDocKind: normalizeDocKind, isWarrantyKind: isWarrantyKind,
+  hasClauseText: hasClauseText,
   validateCreateInput: validateCreateInput, validateSignInput: validateSignInput,
   formatWon: formatWon
 };

@@ -386,6 +386,52 @@ function saveSignature_(contract, dataUri) {
   };
 }
 
+/**
+ * 보관된 서명 PNG 를 data URI 로 되읽는다.
+ *
+ * 왜 되읽어야 하는가: 하자보증서의 완성본은 **현장 앱**이 만든다(사진이 들어가 시트 한 칸에
+ * 담기지 않는다). 고객이 링크에서 서명하면 그 그림이 여기 Drive 에만 남으므로,
+ * 앱이 가져다 자기 보증서에 붙일 길이 없으면 링크 서명은 반쪽짜리가 된다.
+ *
+ * 시트에 적힌 지문과 다시 계산한 지문을 대조한다. 다르면 내주지 않는다 —
+ * 그림은 있는데 대조가 안 되는 값은 증거가 아니고, 그것을 보증서에 붙이면
+ * 앱 쪽 문서가 서버 기록과 어긋난 채로 고객에게 나간다.
+ *
+ * 오류 메시지에 이미지 내용을 싣지 않는다. 고객의 자필이다.
+ */
+function readSignature_(contract) {
+  var c = contract || {};
+  var fileId = dvText_(c.signatureFileId);
+  if (!fileId) throw dvFail_('NOT_FOUND', '보관된 서명 이미지가 없습니다');
+
+  var file;
+  try {
+    file = DriveApp.getFileById(fileId);
+  } catch (e) {
+    throw dvFail_('NOT_FOUND', '서명 이미지 파일을 열지 못했습니다(' + dvShort_(e) + ')');
+  }
+
+  var bytes;
+  try {
+    bytes = file.getBlob().getBytes();
+  } catch (e2) {
+    throw dvFail_('SERVER_ERROR', '서명 이미지 파일을 읽지 못했습니다(' + dvShort_(e2) + ')');
+  }
+  if (!bytes || !bytes.length) throw dvFail_('NOT_FOUND', '서명 이미지 파일이 비어 있습니다');
+  if (bytes.length > DV_SIG_MAX_BYTES) throw dvFail_('SERVER_ERROR', '보관된 서명 이미지가 한도를 넘습니다');
+  if (!dvIsPng_(bytes)) throw dvFail_('SERVER_ERROR', '보관된 서명 파일이 PNG 가 아닙니다');
+
+  var dataUri = 'data:image/png;base64,' + Utilities.base64Encode(bytes);
+  var sha = sha256HexOfDataUri(dataUri);
+  var want = dvText_(c.signatureSha256);
+  if (want && sha !== want) {
+    throw dvFail_('SERVER_ERROR',
+      '보관된 서명 이미지의 지문이 시트의 값과 다릅니다 — 사람이 확인해야 합니다');
+  }
+
+  return { ok: true, dataUri: dataUri, sha256: sha, fileId: fileId, bytes: bytes.length, at: dvNow_() };
+}
+
 function dvIsPng_(bytes) {
   if (!bytes || bytes.length < 8) return false;
   return (bytes[0] & 0xff) === 0x89 && (bytes[1] & 0xff) === 0x50
@@ -622,7 +668,7 @@ function dvRow_(k, v, num) {
 // (contract-backend/public/sign.html 이 같은 규칙으로 그린다 — 두 화면이 다르게 보이면 안 된다).
 function dvClausesHtml_(body) {
   var cl = dvIsArray_(body.clauses) ? body.clauses : [];
-  if (!cl.length) return '<p>— 계약 조항이 등록되지 않았습니다 —</p>';
+  if (!cl.length) return '<p>— 조항이 등록되지 않았습니다 —</p>';
 
   var h = '';
   for (var i = 0; i < cl.length; i++) {
@@ -641,36 +687,52 @@ function dvSummaryTable_(c, body) {
   var op = body.operator || {};
   var pay = body.payment || {};
   var vatLabel = (body.vatIncluded === false) ? '부가세 별도' : '부가세 포함';
+  var warranty = isWarrantyKind(c.docKind);
+
+  // 보증서에는 대금이 없다. 0원짜리 계약금·중도금·잔금 줄을 찍으면
+  // '0원에 합의한 문서'처럼 읽힌다 — 없는 것은 적지 않는다.
+  var money = warranty ? ''
+    : dvRow_('계약금액', formatWon(c.amount) + '원 (' + vatLabel + ')', true)
+      + dvRow_('계약금', formatWon(pay.down) + '원', true)
+      + dvRow_('중도금', formatWon(pay.mid) + '원', true)
+      + dvRow_('잔금', formatWon(pay.bal) + '원', true);
 
   return '<table>'
-    + dvRow_('계약번호', dvEsc_(c.contractNo))
-    + dvRow_('도급인(갑)', dvEsc_(body.customerName || c.customerName) + ' · ' + dvEsc_(c.customerPhoneMasked))
-    + dvRow_('수급인(을)', dvEsc_(op.co || c.operatorName) + (op.rep ? ' (' + dvEsc_(op.rep) + ')' : '')
+    + dvRow_(warranty ? '문서번호' : '계약번호', dvEsc_(c.contractNo))
+    + dvRow_(warranty ? '확인자(고객)' : '도급인(갑)',
+        dvEsc_(body.customerName || c.customerName) + ' · ' + dvEsc_(c.customerPhoneMasked))
+    + dvRow_(warranty ? '시공업체' : '수급인(을)',
+        dvEsc_(op.co || c.operatorName) + (op.rep ? ' (' + dvEsc_(op.rep) + ')' : '')
         + (op.bizNo ? ' · 사업자 ' + dvEsc_(op.bizNo) : ''))
     + dvRow_('현장', dvEsc_(body.site))
     + dvRow_('공사 범위', dvEsc_(body.scope))
-    + dvRow_('계약금액', formatWon(c.amount) + '원 (' + vatLabel + ')', true)
-    + dvRow_('계약금', formatWon(pay.down) + '원', true)
-    + dvRow_('중도금', formatWon(pay.mid) + '원', true)
-    + dvRow_('잔금', formatWon(pay.bal) + '원', true)
-    + dvRow_('공사기간', dvEsc_(body.period))
+    + money
+    + dvRow_(warranty ? '작업완료일' : '공사기간', dvEsc_(warranty ? (body.doneAt || body.period) : body.period))
     + dvRow_('하자보증', dvEsc_(body.warranty))
     + '</table>';
 }
 
+/* 이 문서를 무엇이라 부를 것인가. 표지 제목을 한 곳에서만 정한다 —
+   원본과 완료본이 다른 이름을 달면 나란히 놓였을 때 같은 문서로 보이지 않는다. */
+function dvDocTitle_(c) {
+  return isWarrantyKind((c || {}).docKind) ? '하자보증서' : '공사 도급계약서';
+}
+
 /** 원본(서명 전) 문서 */
 function dvOriginalHtml_(c, body) {
-  var inner = '<h1>공사 도급계약서</h1>'
-    + '<p class="sub">' + dvEsc_(c.operatorName || '만물인테리어') + ' · 계약번호 ' + dvEsc_(c.contractNo) + '</p>'
+  var warranty = isWarrantyKind(c.docKind);
+  var inner = '<h1>' + dvEsc_(dvDocTitle_(c)) + '</h1>'
+    + '<p class="sub">' + dvEsc_(c.operatorName || '만물인테리어') + ' · '
+    + (warranty ? '문서번호 ' : '계약번호 ') + dvEsc_(c.contractNo) + '</p>'
     // 이 문서가 무엇인지 표지에 못박는다. 완료본과 나란히 놓였을 때 헷갈리면 안 된다.
     + '<p class="tag">[원본] 서명 전 · 잠금 시점 보관본</p>'
     + dvSummaryTable_(c, body)
-    + '<h2>계약 전문</h2>'
+    + '<h2>' + (warranty ? '보증 내용' : '계약 전문') + '</h2>'
     + dvClausesHtml_(body)
     + '<h2>문서 지문</h2>'
     + '<p class="hash">문서해시(SHA-256): ' + dvEsc_(c.docHash) + '</p>'
     + '<p class="foot">잠금 시각: ' + dvEsc_(dvWhen_(c.lockedAt)) + '<br>'
-    + '이 문서는 잠금 시점의 계약 본문을 그대로 보관한 것입니다. 이후 본문은 변경되지 않습니다.<br>'
+    + '이 문서는 잠금 시점의 본문을 그대로 보관한 것입니다. 이후 본문은 변경되지 않습니다.<br>'
     + dvEsc_(body.note || '') + '</p>';
 
   return dvHtmlPage_('원본 ' + dvText_(c.contractNo), inner);
@@ -690,23 +752,28 @@ function dvCompletedHtml_(c, body, sig, version) {
     ? '<img src="' + img + '" alt="서명">'
     : '<span class="hash">[서명 이미지를 문서에 담지 못했습니다 — 같은 폴더의 서명 PNG 파일을 확인하세요]</span>';
 
-  var inner = '<h1>공사 도급계약서</h1>'
-    + '<p class="sub">' + dvEsc_(c.operatorName || '만물인테리어') + ' · 계약번호 ' + dvEsc_(c.contractNo) + '</p>'
-    + '<p class="tag">[완료본 v' + dvEsc_(version) + '] 전자서명 체결본</p>'
+  var warranty = isWarrantyKind(c.docKind);
+  var inner = '<h1>' + dvEsc_(dvDocTitle_(c)) + '</h1>'
+    + '<p class="sub">' + dvEsc_(c.operatorName || '만물인테리어') + ' · '
+    + (warranty ? '문서번호 ' : '계약번호 ') + dvEsc_(c.contractNo) + '</p>'
+    + '<p class="tag">[완료본 v' + dvEsc_(version) + '] '
+    + (warranty ? '확인자 전자서명본' : '전자서명 체결본') + '</p>'
     + dvSummaryTable_(c, body)
-    + '<h2>계약 전문</h2>'
+    + '<h2>' + (warranty ? '보증 내용' : '계약 전문') + '</h2>'
     + dvClausesHtml_(body)
     + '<h2>전자서명</h2>'
     + '<table>'
-    + dvRow_('서명자', dvEsc_(signerName))
+    + dvRow_(warranty ? '확인자' : '서명자', dvEsc_(signerName))
     + dvRow_('서명 시각', dvEsc_(dvWhen_(signedAt)))
-    + dvRow_('체결 시각', dvEsc_(dvWhen_(c.completedAt || signedAt)))
+    + dvRow_(warranty ? '확인 시각' : '체결 시각', dvEsc_(dvWhen_(c.completedAt || signedAt)))
     + '</table>'
     + '<div class="sigbox">' + sigHtml + '</div>'
     + '<h2>문서 지문</h2>'
     + '<p class="hash">문서해시(SHA-256): ' + dvEsc_(c.docHash) + '</p>'
     + (sigHash ? '<p class="hash">서명해시(SHA-256): ' + dvEsc_(sigHash) + '</p>' : '')
-    + '<p class="foot">이 문서는 위 문서해시가 가리키는 계약 본문에 대하여 전자적으로 서명된 완료본입니다(제' + dvEsc_(version) + '판).<br>'
+    + '<p class="foot">이 문서는 위 문서해시가 가리키는 '
+    + (warranty ? '보증 내용을 확인자가' : '계약 본문에 대하여')
+    + ' 전자적으로 서명한 완료본입니다(제' + dvEsc_(version) + '판).<br>'
     // 이 문서가 증명하지 못하는 것을 문서 안에 적어 둔다. 나중에 과장된 주장에 쓰이지 않게 한다.
     + '기록된 모든 시각은 서버(구글) 기준입니다. 요청자 IP 는 ' + dvEsc_(DV_IP_NOTE) + '.<br>'
     + dvEsc_(body.note || '') + '</p>';

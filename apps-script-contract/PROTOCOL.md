@@ -78,13 +78,14 @@ HTTP 상태는 언제나 200 입니다(Apps Script 제약). **`ok` 를 보고 �
 | action | payload | 하는 일 |
 |---|---|---|
 | `health` | — | 설정 상태·버전. 토큰 없이도 되지만 값은 최소만. |
-| `contract.create` | `{title, amount, customer:{name,phone}, body?}` | 계약 생성(DRAFT) + 대금 3회차 |
+| `contract.create` | `{title, amount, customer:{name,phone}, body?, docKind?}` | 문서 생성(DRAFT). `docKind:'contract'`(기본)이면 대금 3회차도 함께 만든다 |
 | `contract.get` | `{id}` | 계약 1건 + 대금 + 사건 이력 |
 | `contract.list` | `{status?, limit?, offset?}` | 목록(요약). 본문·해시 제외 |
 | `contract.lock` | `{id}` | 본문 확정 → `docHash` 발급, 원본 파일 저장. 이후 본문 불변 |
 | `contract.void` | `{id, reason?}` | 취소 + 미사용 토큰 전부 무효화 |
+| `contract.signature` | `{id}` | 체결된 문서의 **서명 이미지**(PNG data URI)·서명자·서명해시. 완료 전에는 `BAD_STATE` |
 | `signlink.issue` | `{id, ttlHours?}` | **원문 토큰을 이때 한 번만** 돌려준다. 서버는 해시만 저장 |
-| `contract.quickSend` | `{title, amount, customer:{name,phone}, body?, ttlHours?}` | 생성 → 잠금 → 링크발급을 **한 번에**. 아래 참조 |
+| `contract.quickSend` | `{title, amount, customer:{name,phone}, body?, docKind?, ttlHours?}` | 생성 → 잠금 → 링크발급을 **한 번에**. 아래 참조 |
 | `notify.send` | `{to, text, kind}` | 임의 문자 발송 시도. 발송이 꺼져 있으면 `sent:false` |
 | `ai.ask` | `{provider, model, body}` | **AI 중계.** 아래 참조 |
 | `ai.status` | — | 어떤 AI 가 준비됐는지·오늘 몇 건 썼는지. 키 값은 안 준다 |
@@ -126,6 +127,56 @@ HTTP 상태는 언제나 200 입니다(Apps Script 제약). **`ok` 를 보고 �
 
 `notify.sent` 가 `false` 여도 계약과 링크는 정상입니다 — 사장님이 링크를 직접 보내면 됩니다.
 **`notify.sent` 를 보지 않고 "보냈습니다"라고 화면에 띄우지 마세요.**
+
+### `docKind` — 이 서버가 다루는 문서는 두 가지입니다
+
+원래 이 서버는 **공사 도급계약서**만 다뤘습니다. 2026-09 부터 **하자보증서**도 같은 길로
+보냅니다. 서명판·토큰·증거보관이 이미 여기 있는데 그것을 한 벌 더 만들 이유가 없기 때문입니다.
+
+| `docKind` | 뜻 | 금액 | 본문 |
+|---|---|---|---|
+| `contract` (기본) | 공사 도급계약서 | **필수**(0원 이하 거부) | 조항이 없으면 서버가 표준 계약 본문을 만든다 |
+| `warranty` | 하자보증서 | 없어도 된다(0원 허용) | **조항을 반드시 보내야 한다. 서버가 지어내지 않는다** |
+
+`docKind` 를 보내지 않으면 `contract` 입니다. 이 값이 비어 있는 옛 줄은 전부 계약서입니다.
+
+**보증서 본문을 서버가 만들지 않는 이유.** 하자보증서의 정본은 현장 앱입니다 — 고객이 받는
+보증서(기간표·조항·사진)는 앱이 만들어 앱에 보관합니다. 서버가 같은 문구를 따로 만들면
+고객이 **받은 보증서**와 **서명한 보증서**가 갈라지고, 그 어긋남은 분쟁이 났을 때만 드러납니다.
+그래서 서버는 앱이 보낸 조항을 그대로 받아 보여주고 서명만 받습니다.
+조항 없이 `docKind:'warranty'` 로 만들려 하면 `BAD_REQUEST` 입니다.
+
+보증서에는 대금이 없으므로 `Payments` 시트에 회차를 만들지 않고, 서명 화면에서도
+금액·대금 지급 조건을 보여주지 않습니다. 동의 문구도 "계약 내용과 대금 지급 조건"이 아니라
+"보증 내용"으로 바뀝니다.
+
+### `contract.signature` — 서명 이미지를 앱으로 되가져오기
+
+보증서의 완성본은 **앱이** 만듭니다(사진이 들어가므로 시트 한 칸에 담기지 않습니다).
+그래서 고객이 링크에서 서명하면 앱이 그 이미지를 받아 자기 보증서에 붙여야 합니다.
+
+```jsonc
+// 요청
+{ "action": "contract.signature", "adminToken": "…", "payload": { "id": "ct_…" } }
+
+// 응답
+{
+  "ok": true,
+  "id": "ct_…",
+  "contractNo": "MM-2026-0143",
+  "docKind": "warranty",
+  "status": "COMPLETED",
+  "signerName": "홍길동",
+  "signedAt": "2026-09-18T…Z",
+  "signatureSha256": "…",          // 시트에 남은 지문 — 받은 이미지와 대조하는 값
+  "signatureImage": "data:image/png;base64,…"
+}
+```
+
+- **관리자 전용**입니다. 고객 경로에는 없습니다.
+- 서명 전(`COMPLETED` 아님)에는 `BAD_STATE` 입니다. 빈 값을 주지 않습니다.
+- `signatureImage` 는 Drive 에 보관된 서명 PNG 를 그대로 읽어 온 것입니다.
+  파일이 없으면 `NOT_FOUND` 입니다 — 지문만 있고 그림이 없는 것을 성공이라 하지 않습니다.
 
 ### `ai.ask` — AI 키를 브라우저에서 서버로 옮기는 통과창구
 
