@@ -2,7 +2,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'pyeonghaneul-apartment-leak-repair-20260909', DAY = '2026-09-09', CHECKED = '2026-09-08';
-const OLD_HASH = '666560e3999551df12f98dbe55ec471d8844dc9bfc5ca991a5e0cdf6c8ef1803'; // 39 public objects. Re-pinned 2026-09-19: four explainer articles (apt-office-construction-notice, apt-office-repair-partner, warranty-periods-by-work, extra-work-dispute-prevention) had borrowed an unrelated case photo — one AI design render presented as a photo, and one drain photo shared by three articles. Only `image` and `imageAlt` changed on those four; no prose, dates, slugs or ordering moved. Previous pin 553871a8 covered the 38 after the Nonsan Gangsan name correction (2026-09-09) plus the 평화로운아파트 leak case rewritten from the 2026-09-09 photos.
+const OLD_COUNT = 47, OLD_HASH = 'aa74ea27bda117e6a30659589fdc803adafdbc7d0550470d42aceb16043d0a97'; // Re-pinned 2026-09-19 (두 번째): 공정 설명 글 8편(wallpaper-silk-paper, flooring-lifestyle, kitchen-countertop-under-sink, bathroom-tile-grout-slope, carpentry-storage-partition-molding, electrical-before-wallpaper, renovation-while-occupied, renovation-process-sequence)을 insights[2] 뒤에 넣어 39 → 47 이 됐다. 기존 39건의 글자·날짜·슬러그·순서는 그대로다. 앞 핀 666560e3 은 설명 글 네 편의 image/imageAlt 만 고친 39건이었고, 그 앞 553871a8 은 논산 강산 이름 정정(2026-09-09) 뒤의 38건이었다.
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');
@@ -35,12 +35,12 @@ function metadataStrings(bytes) {
 function sensitiveMetadata(bytes) {
   try { return /Exif\x00\x00|GPSLatitude|GPSLongitude|exif:GPS|\b[A-Za-z]:[\\/]|file:\/\/|[\\/]Users[\\/]|[\\/]home[\\/]|\.private[\\/]|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|[+-]?\d{1,3}\.\d{4,}\s*[,/]\s*[+-]?\d{1,3}\.\d{4,}/i.test(metadataStrings(bytes).strings.join('\n')); } catch { return true; }
 }
-function inspect(s, oldHash = OLD_HASH, expectedImages = IMAGE_PATHS) {
+function inspect(s, oldHash = OLD_HASH, expectedImages = IMAGE_PATHS, oldCount = OLD_COUNT) {
   const fail = [], check = (ok, code) => { if (!ok) fail.push(code); }, matches = s.insights.filter(a => a.slug === SLUG), a = matches[0];
   check(matches.length === 1, 'canonical'); if (matches.length !== 1) return fail;
   check(a.date === DAY && a.category === '견적·계약 가이드' && a.service === 'interior' && a.published !== false, 'classification');
   check(s.insights[0]?.slug === FEATURED && s.insights[1]?.slug === SLUG, 'order');
-  const old = s.insights.filter(x => x.slug !== SLUG); check(old.length === 39 && hash(old) === oldHash, 'preservation');
+  const old = s.insights.filter(x => x.slug !== SLUG); check(old.length === oldCount && hash(old) === oldHash, 'preservation');
   const body = a.body || [], prose = [a.title, a.excerpt, a.imageAlt, ...body.flatMap(b => [b.h, b.p, b.imgAlt, b.imgCaption])].filter(Boolean).join('\n');
   check(/AI\s*편집/.test(prose), 'ai-disclosure');
   check(/실제\s*시공[^.!?\n]{0,90}(?:아니|아닙)/.test(prose) && /만물[^.!?\n]{0,90}작성[^.!?\n]{0,50}(?:아니|아닙)/.test(prose), 'document-disclaimer');
@@ -74,11 +74,11 @@ function readActual() {
   return { insights, images: Object.fromEntries(photos.filter(f => fs.existsSync(path.join(ROOT, f))).map(f => [f, fs.readFileSync(path.join(ROOT, f))])), post: read(`posts/${SLUG}.html`), blog: read('blog.html'), rss: read('rss.xml'), sitemap: read('sitemap.xml'), index: JSON.parse(read('data/leak-case-index.json')) };
 }
 function fixture() {
-  const old = Array.from({ length: 39 }, (_, i) => ({ slug: i ? `synthetic-${i}` : FEATURED })), image = 'assets/cases/synthetic-guide.jpg';
+  const old = Array.from({ length: OLD_COUNT }, (_, i) => ({ slug: i ? `synthetic-${i}` : FEATURED })), image = 'assets/cases/synthetic-guide.jpg';
   const a = { slug: SLUG, date: DAY, category: '견적·계약 가이드', service: 'interior', title: '견적서 비교 안내', image, imageAlt: 'AI 편집본', body: [{ h: '안내', p: '실제 시공 후기가 아니며 만물이 작성한 계약서가 아닙니다.\n\nAI 편집 참고 자료입니다. 원본이나 제출용 문서가 아닙니다.' }], sourcesChecked: CHECKED, sources: [{ url: 'https://www.ftc.go.kr/example' }, { url: 'https://www.kca.go.kr/example' }] };
   return { insights: [old[0], a, ...old.slice(1)], images: { [image]: Buffer.from('synthetic-only') }, post: `<link rel="canonical" href="https://01023978629.github.io/manmool/posts/${SLUG}.html">${a.title} AI 편집 <img src="../${image}"><div class="post-cta"><a href="../index.html#inquiry"></a></div>${a.sources.map(x => `<a href="${x.url}"></a>`).join('')}`, blog: `<a class="insight-featured" href="posts/${FEATURED}.html"></a><a href="posts/${SLUG}.html" data-group="info"></a>`, index: { cases: [] }, rss: `/posts/${SLUG}.html`, sitemap: `/posts/${SLUG}.html`, oldHash: hash(old), expectedImages: [image] };
 }
-test('공개 안내 글·기존 38건 보존·AI 고지·연계', () => assert.deepEqual(inspect(readActual()), []));
+test('공개 안내 글·기존 47건 보존·AI 고지·연계', () => assert.deepEqual(inspect(readActual()), []));
 test('합성 fixture 정상 계약', () => { const s = fixture(); assert.deepEqual(inspect(s, s.oldHash, s.expectedImages), []); });
 test('합성 PNG: C2PA 보존, eXIf·GPS 차단', () => {
   const box = (type, b) => { const n = Buffer.alloc(4); n.writeUInt32BE(b.length + 8); return Buffer.concat([n, Buffer.from(type), b]); };

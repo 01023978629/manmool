@@ -14,7 +14,9 @@ function caseGroup(item) {
   const service = Object.hasOwn(item, 'service')
     ? (item.service === 'leak' ? 'leak' : 'interior')
     : (['방수·설비', '누수탐지·수리'].includes(item.category) ? 'leak' : 'interior');
-  return service === 'leak' ? 'leak' : /견적|계약|보증|관리|브랜드/.test(item.category || '') ? 'info' : 'interior';
+  // scripts/prerender-posts.py 의 case_group 과 일부러 따로 적어 둔 기대값이다 — 함께 고쳐야 한다.
+  // '가이드' 는 2026-09-19 '인테리어 공정 가이드' 8편이 정보 칸에 들어가면서 더했다.
+  return service === 'leak' ? 'leak' : /견적|계약|보증|관리|브랜드|가이드/.test(item.category || '') ? 'info' : 'interior';
 }
 const featured = published.find((item) => Object.keys(item.caseSummary || {}).length && caseGroup(item) !== 'info');
 const featuredSlug = featured?.slug;
