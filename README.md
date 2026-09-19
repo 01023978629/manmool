@@ -55,7 +55,7 @@ n8n 무료 워크플로(규칙엔진 + Google Sheets)로 리드 저장·알림·
 - **면허·보증·A/S 신뢰 섹션** — 고액 계약 신뢰 확보
 - **체계적·효율적 운영 프로세스 = n8n·카카오톡** — 자동화 파이프라인 + 효율 지표 시각화
 - **단계형 AI 상담 문의** → n8n 웹훅 · **카카오톡 챗봇** (평수·예산·스타일 슬롯 채우기)
-- **검색 노출 · 공유 미리보기** — Open Graph/Twitter 카드 + `og-image.png`(카카오톡 공유 시 브랜드 미리보기), JSON-LD 구조화 데이터, `sitemap.xml`·`robots.txt`
+- **검색 노출 · 공유 미리보기** — Open Graph/Twitter 카드 + `og-image.png`(카카오톡 공유 시 브랜드 미리보기), 공개 64장의 탭·홈화면 아이콘(`assets/site/`), JSON-LD 구조화 데이터, `sitemap.xml`·`robots.txt`
 
 ## 업무 시스템 (내부 화면)
 
@@ -90,7 +90,10 @@ js/field.js / js/as.js                  현장관리 / A/S 센터
 data/site.json                          홈 콘텐츠(회사·서비스·사례·견적)
 data/project.json                       프로젝트 데이터(계약·보증·결제·일정·사진·A/S·후기)
 data/config.json                        연동 설정(n8n 웹훅·카카오 채널·운영 앱 URL)
-og-image.png                            공유 미리보기 이미지(1200×630)
+og-image.png                            카톡·페북 공유 카드(1200×630) — 글자가 들어가므로 HTML 을 구워 만든다
+assets/site/favicon.svg                 탭 아이콘(글꼴에 안 기대게 path 로 그림). 내부 화면용 -admin/-as/-field 세 벌
+assets/site/favicon-32/16.png           탭 아이콘 래스터 폴백
+assets/site/apple-touch-icon.png        아이폰 홈 화면 아이콘(180). 없으면 스크린샷이 박힌다
 sitemap.xml / robots.txt                검색 노출
 integrations/INTEGRATION.md             n8n·카카오 연동 가이드
 integrations/n8n/*.workflow.json        n8n 워크플로(import용)

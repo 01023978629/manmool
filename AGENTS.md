@@ -118,6 +118,54 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 줄여 말한다고 책임이 줄지 않는다 — 계약서로 단축하려면 사유·보증수수료 명시
 요건(시행령 제30조②)이 붙고, 못 갖추면 법원은 법정기간을 적용해 왔다.
 
+## 그림·아이콘 (2026-09-19)
+
+**시안 카탈로그 300칸 중 사진 파일로 그려지는 것은 60칸뿐이다.** 나머지 240칸은
+`assets/design-sheets/` 스프라이트 시트(한 장에 방 16칸)로 그려지고, 그 칸들의
+`photo` 값은 **화면에 나오지 않는다**. `js/main.js` 의 카드 만드는 줄이 `__designSheet`
+를 먼저 보기 때문이다(격자·모달·유사 시안 썸네일 세 곳 모두). 사진을 쓰는 것은
+`catalogBatch: '2026-07-27-space300'` 60칸이다.
+
+그래서 `scripts/report-photo-duplicates.mjs` 가 말하는 **겹침 59건은 전부 안 보이는 칸이다.**
+그 숫자를 근거로 이미지를 사지 마라 — 2026-09-19 에 그 계산으로 19장을 주문했고 4장이 남았다.
+`ensure-lookbook-honesty.mjs` 의 `DUP_CEILING = 59` 도 같은 이유로 잘 안 내려간다.
+공간별 실제 부족분은 space300 60칸만 세야 나온다.
+
+**아이콘 파일은 `assets/site/` 에 둔다. 루트에 두지 마라.**
+`PUBLIC_ROOT_FILES`(scripts/pages-artifact-policy.mjs) 는 이름 고정 목록이라, 거기 없는
+루트 파일은 `_site` 에 복사되지 않는데 **`ensure-pages-artifact` 는 그래도 통과한다.**
+대표 폰에서 "아이콘이 안 뜨네" 로만 드러난다. `assets/` 아래 png·svg·webp 는 자동으로 나간다.
+단 **`.ico` 는 `assets/` 어디에 둬도 빌드가 통째로 실패한다**(허용 확장자에 없다).
+
+**아이콘 SVG 에 `<text>` 를 쓰지 마라.** 한중일 글꼴이 없는 기기에서 네모(두부)가 된다.
+글자가 필요하면 큰 크기로 굽고 윤곽을 따 `path` 로 박는다. 로고 글자는 **번체 萬** 이다
+(공개 HTML 65장이 전부 그렇다). 예전 파비콘만 간체 万 이었고 그래서 탭과 헤더가 달랐다.
+아이콘 바탕은 `--brand`(#b8895a) 가 아니라 `--brand-btn`(#8a6239) 을 쓴다 — 흰 글자 대비가
+3.10:1 대 5.40:1 이라 16px 탭에서 갈린다(css/styles.css:11 주석이 그 이유로 이 색을 따로 둔다).
+
+이것들을 `scripts/ensure-brand-icons.mjs` 가 지킨다(변이 11건 검증). 그 전에는 `ensure-*`
+어디에도 og:image·파비콘·head 를 보는 곳이 **하나도 없었고**, 실제로 공개 페이지 20장에
+탭 아이콘이 아예 없었다(광고로 들어오는 `leak.html` 포함).
+
+**공유 카드 `og-image.png` 은 이름과 1200×630 만 지키면 배선을 고칠 것이 없다.**
+치수를 바꾸면 `index.html`·`bathroom-check.html` 의 `og:image:width/height` 를 같이 고쳐라 —
+그 숫자를 보는 검사가 없어 조용히 틀린 채 나간다. 그림을 바꿨으면 그 카드를 쓰는 페이지의
+`og:image:alt` 도 같이 고친다. **글자가 들어가는 그림은 생성 모델에 맡기지 마라** — HTML 을
+헤드리스 크로미움으로 구우면 한글이 또렷하고 다시 만들 수 있다.
+
+**새 헤드리스 크로미움은 창 높이에서 87px 를 떼어 간다**(`--headless=old` 는 제거됐다).
+`--window-size=W,H` 로 굽으면 아래 87줄이 투명하게 남는다. `H+87` 로 요청해 잘라내라.
+이걸 모르고 구운 아이콘은 아래가 잘린 채로 나오고, 글리프가 가운데 있으면 눈치채기 어렵다.
+
+**`tests/quote-contract-guide.test.cjs` 의 `OLD_HASH`** 는 나머지 39편이 그대로인지 본다.
+글의 `image`·`imageAlt` 를 정당하게 고쳤으면 해시를 다시 고정하고 **주석에 무엇이 왜 바뀌었는지**
+적어라(그 줄의 기존 주석이 그 관례를 보여 준다). 다시 고정한 뒤에는 변이로 여전히 드리프트를
+잡는지 확인한다. 이 검사는 CI 에 있어서, 안 고치면 병합 즉시 배포가 멈춘다.
+
+**`office-request.html` 과 지원 파일 6개는 SHA-256 으로 고정돼 있다**
+(`tests/fixtures/office-request-commercial-baseline.json`). `<link rel="icon">` 한 줄만 넣어도
+`ensure-revenue-operations` 가 막는다. 손대지 마라.
+
 **전자계약 서버 변경:**
 ```bash
 node --test apps-script-contract/test/*.mjs   # Node 13파일; pure 118 + wiring 117, 화면은 Playwright 환경에서 별도
