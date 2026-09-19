@@ -359,7 +359,9 @@ def article_html(a, insights):
   <meta name="twitter:description" content="{esc(a.get('excerpt'))}" />
   <meta name="twitter:image" content="{img_abs}" />
   <meta name="twitter:image:alt" content="{esc(img_alt)}" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23b8895a'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%B8%87%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="../assets/site/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="../assets/site/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="../assets/site/apple-touch-icon.png" />
   <link rel="stylesheet" href="../css/styles.css?v={V}" />
   <link rel="stylesheet" href="../css/brand-system.css?v={V}" />
   <script type="application/ld+json">{ld}</script>
