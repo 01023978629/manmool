@@ -139,7 +139,12 @@ def case_group(a):
     if article_service(a) == 'leak':
         return 'leak'
     category = str(a.get('category') or '')
-    if any(word in category for word in ('견적', '계약', '보증', '관리', '브랜드')):
+    # '가이드'를 2026-09-19에 더했다. 공정 설명 글 8편이 '인테리어 공정 가이드'로
+    # 들어오는데, 이 목록의 '인테리어' 필터는 실제로 한 작업의 기록이다.
+    # 설명 글을 거기 섞으면 손님이 시공 실적으로 읽는다 — 정보 칸이 제자리다.
+    # 기존 40편 중 '가이드'가 든 category는 모두 '견적'·'계약'도 함께 들어 있어
+    # 이 낱말을 더해도 기존 글의 분류는 하나도 바뀌지 않는다.
+    if any(word in category for word in ('견적', '계약', '보증', '관리', '브랜드', '가이드')):
         return 'info'
     return 'interior'
 

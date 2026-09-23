@@ -157,10 +157,32 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 `--window-size=W,H` 로 굽으면 아래 87줄이 투명하게 남는다. `H+87` 로 요청해 잘라내라.
 이걸 모르고 구운 아이콘은 아래가 잘린 채로 나오고, 글리프가 가운데 있으면 눈치채기 어렵다.
 
-**`tests/quote-contract-guide.test.cjs` 의 `OLD_HASH`** 는 나머지 39편이 그대로인지 본다.
-글의 `image`·`imageAlt` 를 정당하게 고쳤으면 해시를 다시 고정하고 **주석에 무엇이 왜 바뀌었는지**
-적어라(그 줄의 기존 주석이 그 관례를 보여 준다). 다시 고정한 뒤에는 변이로 여전히 드리프트를
-잡는지 확인한다. 이 검사는 CI 에 있어서, 안 고치면 병합 즉시 배포가 멈춘다.
+**`tests/quote-contract-guide.test.cjs` 의 `OLD_COUNT`·`OLD_HASH`** 는 나머지 글(2026-09-19
+현재 47편)이 그대로인지 본다. 글을 더하거나 `image`·`imageAlt` 를 정당하게 고쳤으면 둘 다 다시
+고정하고 **주석에 무엇이 왜 바뀌었는지** 적어라(그 줄의 기존 주석이 그 관례를 보여 준다).
+개수는 `inspect` 와 합성 fixture 두 곳에서 쓰이므로 상수 하나로 둔다 — 숫자를 박으면 한쪽만
+고쳐진다. 다시 고정한 뒤에는 변이(기존 글 제목 바꾸기·한 편 빼기)로 여전히 드리프트를 잡는지
+확인한다. 이 검사는 CI 에 있어서, 안 고치면 병합 즉시 배포가 멈춘다.
+
+## 글을 더할 때 (2026-09-19)
+
+정본은 `data/site.json` 의 `insights` 하나다. 넣은 뒤에 **손으로 같이 고칠 곳이 네 군데** 있다.
+
+| 고칠 곳 | 안 고치면 |
+|---|---|
+| `python3 scripts/prerender-posts.py` | `posts/*.html`·`blog.html`·`rss.xml`·`data/leak-case-index.json` 이 안 생긴다. CI 첫 단계가 `git diff --exit-code` 로 막는다 |
+| `python3 scripts/prerender-designs.py` | 시안의 `tip`·`trendLabel` 을 고쳤다면 `designs/*.html` 8장이 옛 글을 들고 남는다. CI 마지막 `git diff --exit-code` 가 잡는다 |
+| `sitemap.xml` 에 `posts/<slug>.html` 줄 | `ensure-site-integrity` 가 "sitemap 에 없다" 로 막는다 — **생성기가 손대지 않는다** |
+| `sitemap.xml` 의 `blog.html` `<lastmod>` | `ensure-weekly-leak-cases` 가 "목록의 최신 공개 글 수정일과 다르다" 로 막는다 |
+
+**목록 분야 필터(`case_group`)의 규칙은 두 곳에 따로 적혀 있다** — `scripts/prerender-posts.py`
+의 `case_group()` 과 `tests/case-finder.e2e.cjs` 의 `caseGroup()`. 검사가 생성기를 독립적으로
+검증하려고 일부러 베낀 것이니 **같이 고쳐야 한다**(한쪽만 고치면 그 자리에서 빨간불이 난다).
+2026-09-19 에 `'가이드'` 를 더했다 — 공정 설명 글은 '인테리어' 칸(실제로 한 작업의 기록)이
+아니라 '정보' 칸에 들어가야 손님이 시공 실적으로 읽지 않는다.
+
+**설명 글에는 `image` 가 없어도 된다**(`cover` 색으로 그려진다 — 이미 2건이 그렇다). 다만
+카드가 색 덩어리로만 보이니, 사진이 생기면 `image`·`imageAlt` 를 같이 채워라.
 
 **`office-request.html` 과 지원 파일 6개는 SHA-256 으로 고정돼 있다**
 (`tests/fixtures/office-request-commercial-baseline.json`). `<link rel="icon">` 한 줄만 넣어도

@@ -79,9 +79,15 @@ test('기존 bathroom-fixtures 공개 URL·이미지는 허용되고 source와 a
   for (const relative of [post, cover, image]) assert.doesNotThrow(() => policy.assertAllowedPublicPath(relative));
   assert.doesNotThrow(() => policy.assertAllowedPublicPath('posts/company-history.html'));
   for (const relative of [post, cover, image]) assert.equal(fs.existsSync(path.join(ROOT, ...relative.split('/'))), true, `missing source: ${relative}`);
+  // 2026-09-19: RSS 는 최신 30편만 싣는다(prerender-posts.py). 글이 48편이 되면서 이 2026-07-15
+  // 사례가 그 창 밖으로 밀렸다 — 지키려는 것은 '이 글이 RSS 에 있다'가 아니라 '바꾼 slug 가
+  // 공개 경로에 그대로 쓰였고 옛 slug 는 아무 데도 안 남았다'이므로, 창이 없는 sitemap·목록에서 본다.
   const rss = fs.readFileSync(path.join(ROOT, 'rss.xml'), 'utf8');
-  assert.match(rss, /<guid isPermaLink="true">https:\/\/01023978629\.github\.io\/manmool\/posts\/daejayeon-bathroom-fixtures\.html<\/guid>/);
-  assert.doesNotMatch(rss, /daejayeon-bathroom-install/);
+  const sitemap = fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8');
+  const blog = fs.readFileSync(path.join(ROOT, 'blog.html'), 'utf8');
+  assert.match(sitemap, /<loc>https:\/\/01023978629\.github\.io\/manmool\/posts\/daejayeon-bathroom-fixtures\.html<\/loc>/);
+  assert.match(blog, /href="posts\/daejayeon-bathroom-fixtures\.html"/);
+  for (const text of [rss, sitemap, blog]) assert.doesNotMatch(text, /daejayeon-bathroom-install/);
   buildPagesArtifact(tempRoot, artifactRoot);
   for (const relative of [post, cover, image]) assert.equal(fs.existsSync(path.join(artifactRoot, ...relative.split('/'))), true, `missing artifact: ${relative}`);
   assert.equal(fs.existsSync(path.join(artifactRoot, 'posts', 'daejayeon-bathroom-install.html')), false);
