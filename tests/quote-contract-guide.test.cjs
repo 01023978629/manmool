@@ -2,8 +2,8 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'samho-apartment-rain-pipe-repair-202609', DAY = '2026-09-09', CHECKED = '2026-09-08';
-// 2026-09-25 추가: 삼호아파트 우수관 실제 사례 1건 추가. 직전 공개 글 50건의 객체·순서는 보존.
-const OLD_COUNT = 50, OLD_HASH = '69110f9d2680b4c8c8f4c437846379cebb28bd1edf2bcde83afe5a6b55edc2cc';
+// 2026-09-25 추가: 삼호아파트 사례 추가 후 대표가 확인한 두 현장임을 요약·본문에 명시. 나머지 글 객체·순서는 별도 대조로 보존 확인.
+const OLD_COUNT = 50, OLD_HASH = 'c1cac8be1d42d3ab4dfc724daf8791ae5be74fffc2e654ff92c8f61f8008d640';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');
