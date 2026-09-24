@@ -2,6 +2,18 @@
   "version": 1,
   "cases": [
     {
+      "slug": "jinjam-town-rain-pipe-repair-202609",
+      "title": "대전 진잠타운아파트 베란다 우수관 보수 — 바닥 연결부부터 천장 관통부까지",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "samsung-balcony-rain-pipe-repair-202609",
+      "title": "대전 삼성아파트 베란다 우수관 보수 — 기존 관 분리와 바닥 배수구 연결 과정",
+      "service": "leak",
+      "published": true
+    },
+    {
       "slug": "pyeonghaneul-apartment-leak-repair-20260909",
       "title": "대전 누수탐지 | 목상동 평화로운아파트 소화전 의심 누수 해결 — 원인은 수도계량기함 뒤 매립 배관, 내시경으로 찾아 당일 교체",
       "service": "leak",
