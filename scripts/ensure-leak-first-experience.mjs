@@ -119,7 +119,7 @@ check(listImages.length > 0 && /loading="eager"/.test(listImages[0]) && /fetchpr
 check(listImages.slice(1).every((tag) => /loading="lazy"/.test(tag) && !/fetchpriority="high"/.test(tag)),
   '블로그 두 번째 이후 이미지 중 eager/high가 남아 있다',
   '블로그 후속 이미지 lazy 로딩');
-check(/image\(a, 'ic-image', idx === 0\)/.test(blogJs),
+check(/image\(a, 'ic-image', a === list\[0\]\)/.test(blogJs),
   'blog.js 동적 목록이 첫 이미지만 우선 로딩하는 정적 목록 규칙과 다르다',
   'blog.js 목록 이미지 우선순위가 프리렌더와 일치');
 check(/const articleService\s*=\s*\(a\)[\s\S]*?a\.service\s*===\s*'leak'[\s\S]*?a\.service\s*===\s*'interior'/.test(blogJs)
@@ -213,8 +213,8 @@ check(/styles\.css\?v=20260830-followup1/.test(index)
     && /brand-system\.css\?v=20260830-followup1/.test(index)
     && /main\.js\?v=20260830-followup1/.test(index)
     && /styles\.css\?v=20260907-story-paragraphs/.test(blog)
-    && /brand-system\.css\?v=20260906-case-finder/.test(blog)
-    && /blog\.js\?v=20260907-story-paragraphs/.test(blog)
+    && /brand-system\.css\?v=20260925-category-groups/.test(blog)
+    && /blog\.js\?v=20260925-category-groups/.test(blog)
     && /styles\.css\?v=20260907-story-paragraphs/.test(insurancePost)
     && /brand-system\.css\?v=20260907-story-paragraphs/.test(insurancePost),
   '변경된 CSS/JS의 캐시 버전이 갱신되지 않아 기존 방문자에게 이전 화면이 남을 수 있다',

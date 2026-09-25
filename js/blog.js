@@ -58,7 +58,8 @@
       ? 'interior'
       : (a.category === '방수·설비' || a.category === '누수탐지·수리') ? 'leak' : 'interior';
   const caseGroup = (a) => articleService(a) === 'leak' ? 'leak'
-    : /견적|계약|보증|관리|브랜드/.test(a.category || '') ? 'info' : 'interior';
+    : /견적|계약|보증|관리|브랜드|가이드/.test(a.category || '') ? 'info' : 'interior';
+  const caseGroups = [['leak', '누수·배관'], ['interior', '인테리어'], ['info', '정보']];
   const searchText = (a) => [a.title, a.excerpt, a.category,
     ...['site', 'issue', 'work', 'result'].map((key) => (a.caseSummary || {})[key])].filter(Boolean).join(' ');
   const finderMarkup = () => `
@@ -72,7 +73,7 @@
       <div class="case-filter-bar" role="group" aria-label="사례 분야 선택">
         ${[['all', '전체'], ['leak', '누수·배관'], ['interior', '인테리어'], ['info', '정보']].map(([value, label]) => `<button type="button" class="case-filter" data-case-filter="${value}" aria-pressed="${value === 'all'}">${label}</button>`).join('')}
       </div>
-      <div class="case-finder-footer"><span>분야와 검색어를 함께 선택할 수 있습니다.</span><button type="button" class="case-reset" data-case-reset>전체 보기</button></div>
+      <div class="case-finder-footer"><span>전체는 분야별로 묶고, 각 분야 안에서 정렬합니다.</span><button type="button" class="case-reset" data-case-reset>전체 보기</button></div>
     </form>
     <p class="case-filter-status" id="caseFilterStatus" aria-live="polite"></p>
     <section class="case-empty" id="caseEmpty" aria-labelledby="caseEmptyTitle" hidden><h2 id="caseEmptyTitle">조건에 맞는 사례가 없습니다</h2><p>아파트명이나 작업명을 짧게 입력하거나, 다른 분야를 선택해 보세요.</p><div class="case-empty-actions"><button type="button" class="btn btn-primary" data-case-reset>전체 사례 다시 보기</button><a class="btn btn-ghost" id="caseEmptyInquiry" href="leak.html#leakInquiry">누수·배관 상담</a></div></section>`;
@@ -110,17 +111,19 @@
         <p class="section-sub" style="margin:12px auto 0">누수탐지·배관·방수 실제 현장을 먼저, 인테리어 시공·견적·보증 안내도 함께 기록합니다.</p>
       </div>
       ${finderMarkup()}
-      <div class="insights-grid" style="margin-top:40px">
-        ${list.map((a, idx) => `
+      ${caseGroups.map(([key, label]) => `<section class="case-category-section" data-case-group="${key}" aria-labelledby="caseGroup-${key}">
+        <h2 class="case-category-heading" id="caseGroup-${key}">${label} <span data-case-group-count>${list.filter(a => caseGroup(a) === key).length}건</span></h2>
+        <div class="insights-grid">
+        ${list.filter(a => caseGroup(a) === key).map((a) => `
           <a class="insight-card" href="posts/${encodeURIComponent(a.slug)}.html" data-group="${caseGroup(a)}" data-date="${esc(a.date)}" data-search="${esc(searchText(a))}">
-            <span class="ic-cover" style="background:${cover(a)}">${image(a, 'ic-image', idx === 0)}<span class="ic-cat">${esc(a.category)}</span></span>
+            <span class="ic-cover" style="background:${cover(a)}">${image(a, 'ic-image', a === list[0])}<span class="ic-cat">${esc(a.category)}</span></span>
             <span class="ic-body">
               <b>${esc(a.title)}</b>
               <span class="ic-excerpt">${esc(a.excerpt)}</span>
               <span class="ic-meta">${esc(a.date)} · ${esc(a.readMin)}분 읽기</span>
             </span>
           </a>`).join('')}
-      </div>`;
+        </div></section>`).join('')}`;
   }
 
   // 글별 SEO: 제목·설명·canonical·OG를 해당 글로 교체
@@ -211,7 +214,8 @@
     const form = document.getElementById('caseFinder');
     if (!form || form.dataset.ready) return;
     const buttons = Array.from(form.querySelectorAll('[data-case-filter]'));
-    const grid = root.querySelector('.insights-grid');
+    const sections = Array.from(root.querySelectorAll('[data-case-group]'));
+    const grids = new Map(sections.map(section => [section.dataset.caseGroup, section.querySelector('.insights-grid')]));
     const featured = root.querySelector('.insight-featured[data-group]');
     const slot = document.getElementById('caseFeaturedSlot');
     const cards = Array.from(root.querySelectorAll('a[data-group]'));
@@ -220,7 +224,7 @@
     const status = document.getElementById('caseFilterStatus');
     const empty = document.getElementById('caseEmpty');
     const inquiry = document.getElementById('caseEmptyInquiry');
-    if (!buttons.length || !grid || !input || !sort || !status || !empty) return;
+    if (!buttons.length || !sections.length || [...grids.values()].some(grid => !grid) || !input || !sort || !status || !empty) return;
     form.dataset.ready = 'true';
     const normalize = (value) => String(value || '').normalize('NFKC').toLocaleLowerCase('ko-KR');
     const records = cards.map((card, index) => ({ card, index,
@@ -263,15 +267,19 @@
           : '(max-width: 720px) 94vw, (max-width: 1130px) 46vw, 356px');
         slot.hidden = !useFeatured;
       }
-      ordered.forEach(({ card }) => {
+      ordered.forEach(({ card, group: cardGroup }) => {
         card.hidden = !visible.has(card);
-        (card === featured && slot && useFeatured ? slot : grid).appendChild(card);
+        (card === featured && slot && useFeatured ? slot : grids.get(cardGroup)).appendChild(card);
+      });
+      sections.forEach(section => {
+        const count = matches.filter(record => record.group === section.dataset.caseGroup).length;
+        section.hidden = count === 0;
+        section.querySelector('[data-case-group-count]').textContent = `${count}건`;
       });
       buttons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.caseFilter === group)));
       const active = buttons.find((button) => button.dataset.caseFilter === group);
       status.textContent = `${active.textContent.trim()} ${matches.length}건${query ? ` · “${query}” 검색 결과` : ''}`;
       empty.hidden = matches.length !== 0;
-      grid.hidden = matches.length === 0;
       if (inquiry) {
         const interior = group === 'interior';
         const info = group === 'info';

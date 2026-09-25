@@ -288,6 +288,11 @@ body .site-header .nav-toggle span {
 .stories-page .case-filter-status { overflow-wrap: anywhere; }
 .stories-page #caseFeaturedSlot { margin-bottom: 28px; }
 .stories-page #caseFeaturedSlot .insight-featured { margin-top: 0; }
+.stories-page .case-category-section { margin-top: 36px; min-width: 0; }
+.stories-page .case-category-section + .case-category-section { margin-top: 56px; }
+.stories-page .case-category-heading { display: flex; align-items: baseline; gap: 12px; margin: 0 0 24px; padding-bottom: 14px; border-bottom: 2px solid var(--mm-border, #ded5c8); font-size: clamp(22px, 4vw, 28px); }
+.stories-page .case-category-heading span { color: var(--mm-muted); font-size: 14px; font-weight: 500; }
+.stories-page .case-category-section > .insights-grid { margin-top: 0; }
 @media (max-width: 540px) {
   .case-finder { padding: 18px 16px; }
   .case-finder-fields { grid-template-columns: minmax(0, 1fr); gap: 14px; }
