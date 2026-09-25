@@ -56,12 +56,25 @@ class ListCardParser(HTMLParser):
     def __init__(self, markup):
         super().__init__()
         self.cards = []
+        self.groups = []
+        self.group_cards = {}
+        self.current_group = None
         self.feed(markup)
 
     def handle_starttag(self, tag, attrs):
         attributes = dict(attrs)
+        if tag == 'section' and 'data-case-group' in attributes:
+            self.current_group = attributes['data-case-group']
+            self.groups.append((self.current_group, 'hidden' in attributes))
+            self.group_cards[self.current_group] = []
         if tag == 'a' and attributes.get('class') in ('insight-featured', 'insight-card'):
             self.cards.append((attributes['class'], attributes['href'], attributes['data-group']))
+            if self.current_group:
+                self.group_cards[self.current_group].append(attributes['data-group'])
+
+    def handle_endtag(self, tag):
+        if tag == 'section':
+            self.current_group = None
 
 
 class FeaturedCaseTests(unittest.TestCase):
@@ -75,8 +88,8 @@ class FeaturedCaseTests(unittest.TestCase):
         insights = [guide, case, older]
         self.assertEqual(ListCardParser(PRERENDER.list_markup(insights)).cards, [
             ('insight-featured', 'posts/actual-work.html', 'leak'),
-            ('insight-card', 'posts/guide.html', 'info'),
             ('insight-card', 'posts/older-work.html', 'interior'),
+            ('insight-card', 'posts/guide.html', 'info'),
         ])
         self.assertEqual([a['slug'] for a in insights], ['guide', 'actual-work', 'older-work'])
 
@@ -98,6 +111,24 @@ class FeaturedCaseTests(unittest.TestCase):
         self.assertNotIn('FEATURED CASE', markup)
         self.assertEqual(ListCardParser(markup).cards,
                          [('insight-card', 'posts/interior-guide.html', 'interior')])
+
+    def test_all_groups_contain_only_their_cards_and_report_counts(self):
+        markup = PRERENDER.list_markup([
+            {'slug': 'guide', 'category': '인테리어 공정 가이드'},
+            {'slug': 'interior', 'category': '인테리어'},
+            {'slug': 'leak-a', 'category': '방수·설비'},
+            {'slug': 'leak-b', 'category': '방수·설비'},
+        ])
+        parsed = ListCardParser(markup)
+        self.assertEqual(parsed.groups, [('leak', False), ('interior', False), ('info', False)])
+        self.assertEqual(parsed.group_cards, {'leak': ['leak', 'leak'], 'interior': ['interior'], 'info': ['info']})
+        for group, label, count in [('leak', '누수·배관', 2), ('interior', '인테리어', 1), ('info', '정보', 1)]:
+            self.assertIn(f'id="caseGroup-{group}">{label} <span data-case-group-count>{count}건</span>', markup)
+
+    def test_empty_groups_stay_hidden_without_javascript(self):
+        parsed = ListCardParser(PRERENDER.list_markup([{'slug': 'guide', 'category': '계약'}]))
+        self.assertEqual(parsed.groups, [('leak', True), ('interior', True), ('info', False)])
+        self.assertEqual(len(parsed.cards), 1)
 
 
 if __name__ == '__main__':
