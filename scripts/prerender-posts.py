@@ -315,6 +315,17 @@ def article_html(a, insights):
                               'addressCountry': 'KR'}
         ld_obj['contentLocation'] = loc
     ld = json.dumps(ld_obj, ensure_ascii=False)
+    # 검색 결과의 경로 표시(홈 › 현장 기록 › 글). 글 하나가 어느 회사·어느 목록의 것인지 크롤러가 읽는다.
+    # 주소는 canonical 과 같은 절대주소만 쓴다 — 상대주소는 검색엔진이 다른 페이지로 푼다.
+    crumbs = json.dumps({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+            {'@type': 'ListItem', 'position': 1, 'name': '만물인테리어', 'item': BASE + '/'},
+            {'@type': 'ListItem', 'position': 2, 'name': '현장 기록', 'item': BASE + '/blog.html'},
+            {'@type': 'ListItem', 'position': 3, 'name': a['title'], 'item': url},
+        ],
+    }, ensure_ascii=False)
     sources = a.get('sources') or []
     sources_html = ''
     if sources:
@@ -370,6 +381,7 @@ def article_html(a, insights):
   <link rel="stylesheet" href="../css/styles.css?v={V}" />
   <link rel="stylesheet" href="../css/brand-system.css?v={V}" />
   <script type="application/ld+json">{ld}</script>
+  <script type="application/ld+json">{crumbs}</script>
 </head>
 <body class="story-page">
   <a class="skip-link" href="#main">본문으로 건너뛰기</a>
