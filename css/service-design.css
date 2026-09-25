@@ -88,3 +88,20 @@ html:has(body.service-page) { scroll-padding-top: 0; }
 @media (prefers-reduced-motion: reduce) {
   html:has(.service-page) { scroll-behavior: auto; }
 }
+
+/* 폰 터치 대상 44px — 2026-09-25 폰(360px)에서 실측: 푸터 링크 10~15px, 보험 안내·동의문 안의 글 링크 11~29px.
+   글 사이에 낀 링크는 글줄을 키우지 않고 세로 여백으로 누를 자리를 만든다(inline-block + padding). */
+@media (max-width: 720px) {
+  .service-page .footer-links a,
+  .service-page footer small a,
+  .service-page .admin-link,
+  .service-page .insurance-note a,
+  .service-page .leak-consent a,
+  .service-page .footer-info a,
+  .service-page .contact-list a,
+  .service-page .service-area a,
+  .service-page .site-footer a { display: inline-block; min-height: 44px; line-height: 44px; padding: 0 4px; margin: -2px 0; vertical-align: middle; }
+}
+@media (max-width: 720px) {
+  .service-page .footer-brand { display: inline-flex; align-items: center; min-height: 44px; }
+}
