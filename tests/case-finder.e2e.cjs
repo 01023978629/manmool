@@ -20,8 +20,10 @@ function caseGroup(item) {
 }
 const featured = published.find((item) => Object.keys(item.caseSummary || {}).length && caseGroup(item) !== 'info');
 const featuredSlug = featured?.slug;
-// 기본 화면은 실제 작업 대표가 먼저이고, 검색/분야 필터는 날짜순이다.
-const allSlugs = [featured, ...published.filter((item) => item !== featured)].filter(Boolean).map((item) => item.slug);
+// 전체는 분야 순서로 묶고 각 분야 안에서 대표 우선/날짜순을 유지한다.
+const groupKeys = ['leak', 'interior', 'info'];
+const allSlugs = groupKeys.flatMap(group => [featured, ...published.filter(item => item !== featured)]
+  .filter(item => item && caseGroup(item) === group).map(item => item.slug));
 const bySlug = new Map(published.map((item) => [item.slug, item]));
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
@@ -55,17 +57,26 @@ after(async () => {
 });
 
 async function openBlog(t, options = {}) {
-  const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, ...options });
+  const { fallback = false, ...contextOptions } = options;
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, ...contextOptions });
   const requests = [];
   const errors = [];
   await context.route('**/*', (route) => {
     const request = route.request();
     requests.push({ url: request.url(), method: request.method() });
     if (!request.url().startsWith(origin + '/') || request.method() !== 'GET') return route.abort();
+    if (fallback && new URL(request.url()).pathname === '/blog.html') {
+      const html = fs.readFileSync(path.join(ROOT, 'blog.html'), 'utf8');
+      return route.fulfill({ contentType: 'text/html; charset=utf-8', body: html.replace(
+        /(<div class="container" id="blogRoot">)[\s\S]*?\r?\n      <\/div>/,
+        '$1</div>') });
+    }
     return route.continue();
   });
   const page = await context.newPage();
   page.setDefaultTimeout(6000);
+  // 사진 많은 실제 목록의 초기 로딩만 여유를 둔다. 조작·검증 제한은 6초 유지.
+  page.setDefaultNavigationTimeout(20000);
   page.on('pageerror', (error) => errors.push(error.message));
   t.after(async () => {
     await context.close();
@@ -185,8 +196,10 @@ test('오래된순은 대표 사례를 포함해 실제 DOM 순서를 바꾸고 
   assert.equal(oldest.length, published.length);
   assert.equal(new Set(oldest).size, published.length);
   assert.equal(await page.locator('.insights-grid .insight-card:visible').count(), published.length);
-  const dates = oldest.map((slug) => bySlug.get(slug).date);
-  assert.deepEqual(dates, [...dates].sort());
+  for (const group of groupKeys) {
+    const dates = oldest.filter(slug => caseGroup(bySlug.get(slug)) === group).map(slug => bySlug.get(slug).date);
+    assert.deepEqual(dates, [...dates].sort());
+  }
   assert.equal(oldest.includes(featuredSlug), true);
   await page.locator('#caseSort').selectOption('newest');
   assert.deepEqual(await slugs(page, true), allSlugs);
@@ -250,3 +263,52 @@ for (const width of [320, 390]) {
     assert.deepEqual(await slugs(page, true), allSlugs);
   });
 }
+
+for (const javaScriptEnabled of [false, true]) {
+  test(`전체 목록은 세 분야 제목·건수·사진 카드를 중복 없이 묶는다 (JS ${javaScriptEnabled})`, async (t) => {
+    const { page } = await openBlog(t, { javaScriptEnabled });
+    assert.deepEqual(await page.locator('[data-case-group]:visible').evaluateAll(items => items.map(el => el.dataset.caseGroup)), groupKeys);
+    for (const group of groupKeys) {
+      const section = page.locator(`[data-case-group="${group}"]`);
+      const expected = published.filter(item => caseGroup(item) === group).length;
+      assert.equal(await section.locator('[data-case-group-count]').innerText(), `${expected}건`);
+      assert.equal(await section.locator('a[data-group]').count(), expected);
+      assert.deepEqual(await section.locator('a[data-group]').evaluateAll(items => [...new Set(items.map(el => el.dataset.group))]), [group]);
+      assert.equal(await section.locator('h2').getAttribute('id'), `caseGroup-${group}`);
+      if (javaScriptEnabled && process.env.CASE_GROUP_SCREENSHOTS) {
+        fs.mkdirSync(process.env.CASE_GROUP_SCREENSHOTS, { recursive: true });
+        await page.setViewportSize({ width: 390, height: 844 });
+        await section.locator('h2').evaluate(el => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 90));
+        await page.screenshot({ path: path.join(process.env.CASE_GROUP_SCREENSHOTS, `${group}-390.png`) });
+      }
+    }
+    assert.equal(new Set(await slugs(page, true)).size, published.length);
+  });
+}
+
+test('검색·필터 후 전체로 돌아가도 분야별 결과 건수와 빈 구역 숨김을 유지한다', async (t) => {
+  const { page } = await openBlog(t);
+  await search(page, '삼호아파트', 2);
+  assert.equal(await page.locator('[data-case-group]:visible').count(), 1);
+  assert.equal(await page.locator('[data-case-group="leak"] [data-case-group-count]').innerText(), '2건');
+  await page.locator('[data-case-filter="info"]').click();
+  assert.equal(await page.locator('[data-case-group]:visible').count(), 0);
+  assert.equal(await page.locator('#caseEmpty').isVisible(), true);
+  await reset(page);
+  assert.equal(await page.locator('[data-case-group]:visible').count(), 3);
+  await page.locator('[data-case-filter="interior"]').click();
+  assert.deepEqual(await page.locator('[data-case-group]:visible').evaluateAll(items => items.map(el => el.dataset.caseGroup)), ['interior']);
+  await page.locator('[data-case-filter="all"]').click();
+  assert.deepEqual(await slugs(page, true), allSlugs);
+});
+
+test('정적 목록 복구 렌더도 동일한 세 분야와 가이드 분류를 사용한다', async (t) => {
+  const { page } = await openBlog(t, { fallback: true });
+  assert.equal(await cardLinks(page, true).count(), published.length);
+  for (const group of groupKeys) {
+    const actual = await page.locator(`[data-case-group="${group}"] a[data-group]`).evaluateAll(links => links.map(link => link.getAttribute('href')));
+    assert.deepEqual(actual, published.filter(item => caseGroup(item) === group).map(item => `posts/${item.slug}.html`));
+  }
+  await page.locator('[data-case-filter="info"]').click();
+  assert.deepEqual(await slugs(page, true), published.filter(item => caseGroup(item) === 'info').map(item => item.slug));
+});

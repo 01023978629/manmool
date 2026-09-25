@@ -190,8 +190,15 @@ for (const name of fs.readdirSync(path.join(ROOT, 'data')).filter((f) => f.endsW
     }
     const grids = blog.split('class="insights-grid"').length - 1;
     checked++;
-    if (grids !== 1)
-      fail.push(`blog.html 의 insights-grid 가 ${grids}개다(1개여야 함) — 옛 목록이 남아 있다`);
+    if (grids !== 3)
+      fail.push(`blog.html 의 insights-grid 가 ${grids}개다(분야별 3개여야 함) — 목록 구역 누락 또는 중복`);
+    for (const group of ['leak', 'interior', 'info']) {
+      const sections = [...blog.matchAll(new RegExp(`<section[^>]*data-case-group="${group}"[^>]*>([\\s\\S]*?)<\\/section>`, 'g'))];
+      if (sections.length !== 1 || (sections[0][1].match(/class="insights-grid"/g) || []).length !== 1)
+        fail.push(`blog.html ${group} 분야 구역과 카드 격자는 정확히 한 벌이어야 한다`);
+      if (sections.some(section => [...section[1].matchAll(/<a[^>]*data-group="([^"]+)"/g)].some(card => card[1] !== group)))
+        fail.push(`blog.html ${group} 분야에 다른 분야의 카드가 섞였다`);
+    }
   }
 }
 

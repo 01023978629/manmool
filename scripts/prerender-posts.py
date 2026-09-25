@@ -465,7 +465,7 @@ def list_markup(insights):
     JS 실행 후에만 생겨, 개별 글로 넘어갈 경로 자체가 없었다.
 
     blog.js 검색은 이 정적 카드와 대표 선택을 그대로 읽어 필터·정렬한다.
-    정보 글이 최신이어도 대표는 실제 작업으로 유지하고, 일반 카드는 최신순이다.
+    전체도 분야별로 묶는다. 대표는 실제 작업으로 유지하고 분야 안에서 최신순이다.
     """
     # 최신 정보 글을 실제 시공으로 소개하지 않는다. 날짜 정렬은 호출자가
     # 유지하고, 확인된 작업 요약이 있는 첫 실제 사례만 대표로 분리한다.
@@ -491,7 +491,8 @@ def list_markup(insights):
                 featured_image, esc(featured.get('category')), esc(featured.get('title')), esc(featured.get('excerpt')),
                 esc(featured.get('date')), esc(featured.get('readMin'))))
 
-    cards = []
+    groups = [('leak', '누수·배관'), ('interior', '인테리어'), ('info', '정보')]
+    cards = {key: [] for key, _ in groups}
     for a in insights:
         if a is featured:
             continue
@@ -501,7 +502,7 @@ def list_markup(insights):
             img = ('<img class="ic-image" src="%s"%s alt="%s"%s decoding="async">'
                    % (esc(a['image']), case_extra(a.get('image'), SIZES_CARD),
                       esc(a.get('imageAlt') or a.get('title')), priority))
-        cards.append(
+        cards[case_group(a)].append(
             '          <a class="insight-card" href="posts/%s.html" data-group="%s" data-date="%s" data-search="%s">\n'
             '            <span class="ic-cover" style="background:%s">%s<span class="ic-cat">%s</span></span>\n'
             '            <span class="ic-body">\n'
@@ -514,6 +515,17 @@ def list_markup(insights):
                 shade_cover(a.get('cover') or '#d8c3a5'), img,
                 esc(a.get('category')), esc(a.get('title')), esc(a.get('excerpt')),
                 esc(a.get('date')), esc(a.get('readMin'))))
+    grouped_html = ''
+    for key, label in groups:
+        count = sum(1 for a in insights if case_group(a) == key)
+        slot = ('        <div id="caseFeaturedSlot">\n' + featured_html + '\n        </div>\n'
+                if featured and case_group(featured) == key else '')
+        grouped_html += (
+            f'        <section class="case-category-section" data-case-group="{key}" aria-labelledby="caseGroup-{key}"'
+            + (' hidden' if not count else '') + '>\n'
+            f'          <h2 class="case-category-heading" id="caseGroup-{key}">{label} <span data-case-group-count>{count}건</span></h2>\n'
+            + slot + '          <div class="insights-grid">\n' + '\n'.join(cards[key])
+            + '\n          </div>\n        </section>\n')
     return (
         '      <div class="container" id="blogRoot">\n'
         '        <div class="section-head">\n'
@@ -534,14 +546,11 @@ def list_markup(insights):
         '          <button type="button" class="case-filter" data-case-filter="interior" aria-pressed="false">인테리어</button>\n'
         '          <button type="button" class="case-filter" data-case-filter="info" aria-pressed="false">정보</button>\n'
         '        </div>\n'
-        '          <div class="case-finder-footer"><span>분야와 검색어를 함께 선택할 수 있습니다.</span><button type="button" class="case-reset" data-case-reset>전체 보기</button></div>\n'
+        '          <div class="case-finder-footer"><span>전체는 분야별로 묶고, 각 분야 안에서 정렬합니다.</span><button type="button" class="case-reset" data-case-reset>전체 보기</button></div>\n'
         '        </form>\n'
         f'        <p class="case-filter-status" id="caseFilterStatus" aria-live="polite">전체 {len(insights)}건</p>\n'
         '        <section class="case-empty" id="caseEmpty" aria-labelledby="caseEmptyTitle" hidden><h2 id="caseEmptyTitle">조건에 맞는 사례가 없습니다</h2><p>아파트명이나 작업명을 짧게 입력하거나, 다른 분야를 선택해 보세요.</p><div class="case-empty-actions"><button type="button" class="btn btn-primary" data-case-reset>전체 사례 다시 보기</button><a class="btn btn-ghost" id="caseEmptyInquiry" href="leak.html#leakInquiry">누수·배관 상담</a></div></section>\n'
-        '        <div id="caseFeaturedSlot">\n' + featured_html + '\n        </div>\n'
-        '        <div class="insights-grid">\n'
-        + '\n'.join(cards) + '\n'
-        '        </div>\n'
+        + grouped_html +
         '      </div>')
 
 
