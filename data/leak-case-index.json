@@ -9,7 +9,13 @@
     },
     {
       "slug": "samho-apartment-rain-pipe-repair-202609",
-      "title": "삼호아파트 베란다 우수관 보수 — 하부 부속 분리부터 바닥 연결까지",
+      "title": "삼호아파트 첫 번째 세대 우수관 보수 — 갈색 타일 베란다 연결부",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "samho-apartment-rain-pipe-repair-second-home-202609",
+      "title": "삼호아파트 두 번째 세대 우수관 보수 — 녹색 타일 연결부와 배수구",
       "service": "leak",
       "published": true
     },

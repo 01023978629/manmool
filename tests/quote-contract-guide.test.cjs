@@ -2,8 +2,8 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'samho-apartment-rain-pipe-repair-202609', DAY = '2026-09-09', CHECKED = '2026-09-08';
-// 2026-09-25 추가: 삼호아파트 사례 추가 후 대표가 확인한 두 현장임을 요약·본문에 명시. 나머지 글 객체·순서는 별도 대조로 보존 확인.
-const OLD_COUNT = 50, OLD_HASH = 'c1cac8be1d42d3ab4dfc724daf8791ae5be74fffc2e654ff92c8f61f8008d640';
+// 2026-09-25: 대표 요청과 사진별 세대 배정에 따라 삼호 사례를 2건으로 분리. 다른 50개 글 객체·순서는 별도 대조로 보존 확인.
+const OLD_COUNT = 51, OLD_HASH = 'dc199b116bb8bb4afb47b3857e528f98bb0529c559bab76f0abdb7e06ebd8a0f';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');
@@ -79,7 +79,7 @@ function fixture() {
   const a = { slug: SLUG, date: DAY, category: '견적·계약 가이드', service: 'interior', title: '견적서 비교 안내', image, imageAlt: 'AI 편집본', body: [{ h: '안내', p: '실제 시공 후기가 아니며 만물이 작성한 계약서가 아닙니다.\n\nAI 편집 참고 자료입니다. 원본이나 제출용 문서가 아닙니다.' }], sourcesChecked: CHECKED, sources: [{ url: 'https://www.ftc.go.kr/example' }, { url: 'https://www.kca.go.kr/example' }] };
   return { insights: [old[0], a, ...old.slice(1)], images: { [image]: Buffer.from('synthetic-only') }, post: `<link rel="canonical" href="https://01023978629.github.io/manmool/posts/${SLUG}.html">${a.title} AI 편집 <img src="../${image}"><div class="post-cta"><a href="../index.html#inquiry"></a></div>${a.sources.map(x => `<a href="${x.url}"></a>`).join('')}`, blog: `<a class="insight-featured" href="posts/${FEATURED}.html"></a><a href="posts/${SLUG}.html" data-group="info"></a>`, index: { cases: [] }, rss: `/posts/${SLUG}.html`, sitemap: `/posts/${SLUG}.html`, oldHash: hash(old), expectedImages: [image] };
 }
-test('공개 안내 글·나머지 50건 보존·AI 고지·연계', () => assert.deepEqual(inspect(readActual()), []));
+test('공개 안내 글·나머지 51건 보존·AI 고지·연계', () => assert.deepEqual(inspect(readActual()), []));
 test('합성 fixture 정상 계약', () => { const s = fixture(); assert.deepEqual(inspect(s, s.oldHash, s.expectedImages), []); });
 test('합성 PNG: C2PA 보존, eXIf·GPS 차단', () => {
   const box = (type, b) => { const n = Buffer.alloc(4); n.writeUInt32BE(b.length + 8); return Buffer.concat([n, Buffer.from(type), b]); };
@@ -101,4 +101,33 @@ test('합성 변이: 민감정보·AI고지·원문 보존·분류·이미지', 
     ['unsupported-claim', s => { s.insights[1].body[0].p += '\n\n실제 시공 후기입니다.'; }],
   ];
   for (const [expected, change] of cases) { const s = fixture(); change(s); assert.ok(inspect(s, s.oldHash, s.expectedImages).includes(expected), expected); }
+});
+
+function inspectSamhoHomes(insights) {
+  const slugs = ['samho-apartment-rain-pipe-repair-202609', 'samho-apartment-rain-pipe-repair-second-home-202609'];
+  return slugs.every((slug, home) => {
+    const matches = insights.filter(a => a.slug === slug), article = matches[0];
+    if (matches.length !== 1 || article.published !== true) return false;
+    const expected = Array.from({length: 8}, (_, i) => `assets/cases/samho-rain-pipe-202609-${String(home * 8 + i + 1).padStart(2, '0')}.jpg`);
+    return JSON.stringify(article.body.map(b => b.img)) === JSON.stringify(expected)
+      && expected.includes(article.image)
+      && article.title.includes(home ? '두 번째 세대' : '첫 번째 세대');
+  });
+}
+test('삼호아파트 두 세대는 독립 글·사진 8장씩·세대별 표지 유지', () => {
+  assert.equal(inspectSamhoHomes(readActual().insights), true);
+});
+test('삼호아파트 세대 사진 혼입·누락·표지 혼입 변이 차단', () => {
+  const original = readActual().insights;
+  for (const change of [
+    a => { a[0].body[0].img = a[1].body[0].img; },
+    a => { a[1].body.pop(); },
+    a => { a[0].image = a[1].image; },
+    a => { a[1].slug = a[0].slug; }
+  ]) {
+    const copy = structuredClone(original);
+    const homes = copy.filter(a => a.slug.startsWith('samho-apartment-rain-pipe-repair'));
+    change(homes);
+    assert.equal(inspectSamhoHomes(copy), false);
+  }
 });
