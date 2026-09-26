@@ -65,8 +65,10 @@ ul, ol { list-style: none; }
   transition: border-color .25s ease, box-shadow .25s ease;
 }
 .site-header.scrolled { border-color: var(--line); box-shadow: var(--shadow-sm); }
+/* 건너뛰기 링크도 누르는 칸이다 — 글자 14px·위아래 10px 로는 43px 남짓이라 44px 를 따로 보장한다. */
 .skip-link {
   position: fixed; top: 8px; left: 8px; z-index: 1000; padding: 10px 14px;
+  display: inline-flex; align-items: center; min-height: 44px;
   border-radius: 8px; color: #fff; background: var(--brand-dark);
   font-size: 14px; font-weight: 800; transform: translateY(-150%);
 }
@@ -150,6 +152,8 @@ ul, ol { list-style: none; }
 .eyebrow.light { color: #e0b487; }
 .section-head h2 { font-size: clamp(26px, 3.6vw, 38px); letter-spacing: -.02em; font-weight: 800; }
 .section-head h1 { font-size: clamp(28px, 3.6vw, 38px); line-height: 1.3; letter-spacing: 0; font-weight: 800; overflow-wrap: anywhere; }
+/* 욕실 점검 페이지는 제목이 h2 였다가 페이지의 유일한 h1 이 됐다 — 보이는 모습은 예전 h2 그대로 둔다. */
+.section-head h1.bc-title { font-size: clamp(26px, 3.6vw, 38px); line-height: inherit; letter-spacing: -.02em; overflow-wrap: normal; }
 .section-head p { margin-top: 12px; color: var(--ink-soft); font-size: 17px; }
 .section-dark .section-head p { color: #c9bdae; }
 
@@ -1055,7 +1059,7 @@ img.lb-shot, img.lb-cand-shot { object-fit: cover; }
   border-radius: 12px; font-size: 16px; font-family: inherit; }
 .of-small { font-size: 13px; color: var(--ink-soft); }
 .of-benefit { margin-top: 30px; padding: 20px; background: var(--bg-alt); border-radius: var(--radius-sm); }
-.of-benefit h3 { font-size: 16px; margin-bottom: 10px; }
+.of-benefit h2, .of-benefit h3 { font-size: 16px; margin-bottom: 10px; }
 .of-benefit ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
 .of-benefit li { font-size: 14.5px; line-height: 1.65; color: var(--ink-soft); }
 .of-benefit b { color: var(--ink); }

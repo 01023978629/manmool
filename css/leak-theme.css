@@ -31,8 +31,10 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 svg { width: 1.25rem; height: 1.25rem; flex: 0 0 auto; }
+/* 건너뛰기 링크도 누르는 칸이다 — 이 테마의 줄 높이로는 37px 남짓이라 44px 를 따로 보장한다. */
 .skip-link {
   position: fixed; top: 8px; left: 8px; z-index: 1000; padding: 10px 14px;
+  display: inline-flex; align-items: center; min-height: 44px;
   border-radius: 8px; color: #071b2d; background: #9ee4e9;
   font-size: 14px; font-weight: 850; transform: translateY(-150%);
 }

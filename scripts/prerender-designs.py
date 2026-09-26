@@ -12,32 +12,67 @@
 #  - 디지털 참고 시안임을 명시한다(실제 시공 사진으로 오해 금지).
 #  - 데이터에 있는 것(자재·팔레트·팁)만 옮겨 적는다.
 #
+# 공유 카드(og:image): 시안 사진은 대부분 WebP 인데, 카카오톡·네이버 같은 공유 미리보기가 WebP 를
+# 그려 준다는 보장이 없다(스크래퍼마다 다르다). 그래서 WebP 시안은 같은 그림을 JPEG 로 구운
+# assets/designs/og/<이름>.jpg 를 공유 카드로 쓴다(scripts/build-design-og-images.py 가 만든다 —
+# Pillow 가 필요해 CI 가 아니라 사람이 돌린다). 그 파일이 없으면 회사 공유 카드(og-image.png)로 물러선다.
+# 치수(og:image:width/height)는 실제 파일에서 읽는다 — scripts/ensure-og-image-dims.mjs 가 대조한다.
+#
 # 실행: python3 scripts/prerender-designs.py   (site.json 의 portfolio 를 읽어 designs/ 재생성)
+# CI 도 이것을 돌려 designs/ 가 생성물과 같은지 git diff 로 본다.
 # sitemap 은 이 스크립트가 직접 갱신하지 않는다 — 파일이 늘면 ensure-site-integrity 가 알려준다.
-import json, os, html, collections
+import json, os, html, collections, importlib.util
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE = 'https://01023978629.github.io/manmool'
+OG_DIR = 'assets/designs/og'
 
-with open(os.path.join(ROOT, 'data', 'site.json'), encoding='utf-8') as f:
-    site = json.load(f)
-port = site['portfolio']
+# 치수 읽기·자산 토큰은 글 생성기와 한 곳에서 쓴다 — 규칙이 둘로 갈리지 않게.
+_spec = importlib.util.spec_from_file_location('manmool_prerender_posts', os.path.join(ROOT, 'scripts', 'prerender-posts.py'))
+POSTS = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(POSTS)
 
-use = collections.Counter((x.get('photo') or '').split('?')[0] for x in port)
-best = {}
-for x in port:
-    ph = (x.get('photo') or '').split('?')[0]
-    key = (use[ph], 0 if x.get('imageAlt') else 1, x['id'])
-    sp = x['spaceType']
-    if sp not in best or key < best[sp][0]:
-        best[sp] = (key, x)
+
+def load_portfolio():
+    with open(os.path.join(ROOT, 'data', 'site.json'), encoding='utf-8') as f:
+        return json.load(f)['portfolio']
+
+
+def featured_designs(port):
+    """공간별 대표 시안 — (공간, 시안) 목록. build-design-og-images.py 도 이것을 쓴다."""
+    use = collections.Counter((x.get('photo') or '').split('?')[0] for x in port)
+    best = {}
+    for x in port:
+        ph = (x.get('photo') or '').split('?')[0]
+        key = (use[ph], 0 if x.get('imageAlt') else 1, x['id'])
+        sp = x['spaceType']
+        if sp not in best or key < best[sp][0]:
+            best[sp] = (key, x)
+    return [(sp, x) for sp, (_k, x) in best.items()]
+
+
+def og_fallback_path(photo):
+    """WebP 시안 사진의 JPEG 공유 카드 경로(있든 없든)."""
+    return f'{OG_DIR}/{os.path.splitext(os.path.basename(photo))[0]}.jpg'
+
+
+def share_image(photo):
+    """공유 카드로 쓸 (상대경로, 시안 그림인지). WebP 는 JPEG 사본, 없으면 회사 카드."""
+    if not photo.lower().endswith('.webp'):
+        return photo, True
+    fallback = og_fallback_path(photo)
+    if os.path.exists(os.path.join(ROOT, *fallback.split('/'))):
+        return fallback, True
+    print(f'  주의: {fallback} 이 없어 회사 공유 카드로 대신합니다 — python3 scripts/build-design-og-images.py')
+    return 'og-image.png', False
 
 E = html.escape
-outdir = os.path.join(ROOT, 'designs')
-os.makedirs(outdir, exist_ok=True)
 
-made = []
-for sp, (_k, x) in best.items():
+# 표지 없는 글과 같은 회사 공유 카드 설명(index.html·blog.html 의 og:image:alt 와 같은 글).
+OG_CARD_ALT = POSTS.OG_CARD_ALT
+
+
+def render(sp, x):
     slug = x['id']
     url = f'{BASE}/designs/{slug}.html'
     title = f"{x['title']} — 대전 {sp} 인테리어 디자인 | 만물인테리어"
@@ -45,6 +80,15 @@ for sp, (_k, x) in best.items():
             f"주요 자재: {', '.join((x.get('materials') or [])[:3])}. "
             "무료 방문 실측으로 우리 집 기준 견적을 받아보세요. 대전·세종·충남 만물인테리어.")
     alt = x.get('imageAlt') or x['title']
+    photo = (x.get('photo') or '').split('?')[0]
+    og_rel, og_is_design = share_image(photo)
+    og_url = f'{BASE}/{og_rel}'
+    og_alt = alt if og_is_design else OG_CARD_ALT
+    og_size = POSTS.image_dimensions(og_rel)
+    og_size_meta = (f'\n  <meta property="og:image:width" content="{og_size[0]}" />'
+                    f'\n  <meta property="og:image:height" content="{og_size[1]}" />') if og_size else ''
+    styles_v = POSTS.asset_token('css/styles.css')
+    brand_v = POSTS.asset_token('css/brand-system.css')
     pal = ''.join(f'<span style="background:{E(c)}" aria-label="{E(c)}"></span>' for c in (x.get('palette') or [])[:4])
     mats = ''.join(f'<li>{E(m)}</li>' for m in (x.get('materials') or []))
     specs = []
@@ -68,13 +112,23 @@ for sp, (_k, x) in best.items():
   <link rel="canonical" href="{url}" />
   <meta name="theme-color" content="#b8895a" />
   <meta property="og:type" content="article" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:site_name" content="만물인테리어" />
+  <meta property="og:url" content="{url}" />
   <meta property="og:title" content="{E(x['title'])} — {E(sp)} 인테리어 디자인" />
   <meta property="og:description" content="{E(desc)}" />
-  <meta property="og:image" content="{BASE}/{E((x.get('photo') or '').split('?')[0])}" />
-  <link rel="stylesheet" href="../css/styles.css?v=20260823-brand1" />
-  <link rel="stylesheet" href="../css/brand-system.css?v=20260823-brand1" />
+  <meta property="og:image" content="{E(og_url)}" />{og_size_meta}
+  <meta property="og:image:alt" content="{E(og_alt)}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{E(x['title'])} — {E(sp)} 인테리어 디자인" />
+  <meta name="twitter:description" content="{E(desc)}" />
+  <meta name="twitter:image" content="{E(og_url)}" />
+  <meta name="twitter:image:alt" content="{E(og_alt)}" />
+  <link rel="stylesheet" href="../css/styles.css?v={styles_v}" />
+  <link rel="stylesheet" href="../css/brand-system.css?v={brand_v}" />
 </head>
 <body class="design-page">
+  <a class="skip-link" href="#top">본문으로 건너뛰기</a>
   <header class="site-header" id="siteHeader">
     <div class="container header-inner">
       <a href="../index.html#top" class="logo" aria-label="만물인테리어 홈">
@@ -127,9 +181,21 @@ for sp, (_k, x) in best.items():
 </body>
 </html>
 '''
-    with open(os.path.join(outdir, slug + '.html'), 'w', encoding='utf-8') as f:
-        f.write(page)
-    made.append((sp, slug))
-    print('생성:', f'designs/{slug}.html', f'({sp})')
+    return slug, page
 
-print('완료 ·', len(made), '건 — sitemap 에 designs/*.html 이 있는지는 ensure-site-integrity 가 확인한다')
+
+def main():
+    outdir = os.path.join(ROOT, 'designs')
+    os.makedirs(outdir, exist_ok=True)
+    made = []
+    for sp, x in featured_designs(load_portfolio()):
+        slug, page = render(sp, x)
+        with open(os.path.join(outdir, slug + '.html'), 'w', encoding='utf-8') as f:
+            f.write(page)
+        made.append((sp, slug))
+        print('생성:', f'designs/{slug}.html', f'({sp})')
+    print('완료 ·', len(made), '건 — sitemap 에 designs/*.html 이 있는지는 ensure-site-integrity 가 확인한다')
+
+
+if __name__ == '__main__':
+    main()

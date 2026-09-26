@@ -7,10 +7,12 @@
 페이지(본문·canonical·OG·BlogPosting 포함), RSS, 누수 접수용 경량 사례 색인을
 만들어 그 문제를 해소한다.
 
-사용: data/site.json의 insights를 수정할 때마다 실행 후 posts/·rss.xml·
-data/leak-case-index.json을 함께 커밋한다.
+사용: data/site.json의 insights를 수정할 때마다 실행 후 posts/·blog.html·rss.xml·
+data/leak-case-index.json·sitemap.xml을 함께 커밋한다(sitemap 은 글 항목과
+blog.html·leak.html 의 lastmod 만 고친다).
   python3 scripts/prerender-posts.py
 """
+import hashlib
 import html
 import json
 import re
@@ -21,7 +23,22 @@ from email.utils import format_datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE = 'https://01023978629.github.io/manmool'
-V = '20260907-story-paragraphs'  # 짧은 문단 간격 반영
+ASSET_TOKEN_CACHE = {}
+
+
+def asset_token(rel):
+    """css·js 캐시 토큰(?v=) — 파일 내용(CRLF→LF)의 SHA-256 앞 10자리.
+
+    왜: 토큰을 손으로 적던 시절 같은 styles.css 가 페이지마다 다른 ?v= 로 불려
+    손님이 페이지를 옮길 때마다 같은 CSS 를 새로 받았다. 내용에서 뽑으면 같은 자산은
+    어디서나 같은 토큰이고, 내용이 바뀌면 토큰도 바뀐다.
+    scripts/stamp-asset-versions.mjs 의 assetToken 과 같은 규칙이다 — 같이 고쳐라.
+    """
+    if rel not in ASSET_TOKEN_CACHE:
+        with open(os.path.join(ROOT, *rel.split('/')), 'rb') as f:
+            data = f.read().replace(b'\r\n', b'\n')
+        ASSET_TOKEN_CACHE[rel] = hashlib.sha256(data).hexdigest()[:10]
+    return ASSET_TOKEN_CACHE[rel]
 
 
 def esc(s):
@@ -54,58 +71,91 @@ JPEG_SOF_MARKERS = {
 }
 
 
+# 공유 카드(og:image)로 쓰는 공개 이미지. 사례 사진(assets/cases)만이 아니라 설명 글 삽화
+# (assets/insights)·기본 카드(og-image.png)까지 치수를 읽는다 — 예전에는 사례 JPEG 만 읽어서
+# 글 19편의 og:image 에 치수가 빠져 있었다(카톡·페이스북이 첫 공유 때 그림을 못 그린다).
+IMAGE_RE = re.compile(r'^(?:assets/[A-Za-z0-9._/-]+|[A-Za-z0-9._-]+)\.(?:jpe?g|png|webp)$', re.I)
+
+
+# 표지 없는 글이 쓰는 기본 공유 카드의 설명 — index.html·blog.html 의 og:image:alt 와 같은 글.
+# 글 제목을 alt 로 달면 그림(회사 공유 카드)과 설명이 어긋난다.
+OG_CARD_ALT = '만물인테리어 공유 카드 — 대전 아파트·주택·상가 인테리어, "견적부터 보증까지, 기록으로 확인하세요"'
+
+
+def jpeg_dimensions(data):
+    if data[:2] != b'\xff\xd8':
+        return None
+    pos = 2
+    while pos < len(data):
+        if data[pos] != 0xFF:
+            pos += 1
+            continue
+        pos += 1
+        while pos < len(data) and data[pos] == 0xFF:
+            pos += 1
+        if pos >= len(data):
+            return None
+        marker = data[pos]
+        pos += 1
+        if marker in (0xD8, 0xD9):
+            continue
+        if marker == 0xDA or pos + 2 > len(data):
+            return None
+        segment_length = int.from_bytes(data[pos:pos + 2], 'big')
+        if segment_length < 2:
+            return None
+        if marker in JPEG_SOF_MARKERS:
+            payload = data[pos + 2:pos + 7]
+            if len(payload) != 5:
+                return None
+            height = int.from_bytes(payload[1:3], 'big')
+            width = int.from_bytes(payload[3:5], 'big')
+            return (width, height) if width > 0 and height > 0 else None
+        pos += segment_length
+    return None
+
+
+def png_dimensions(data):
+    if data[:8] != b'\x89PNG\r\n\x1a\n' or data[12:16] != b'IHDR':
+        return None
+    width, height = int.from_bytes(data[16:20], 'big'), int.from_bytes(data[20:24], 'big')
+    return (width, height) if width > 0 and height > 0 else None
+
+
+def webp_dimensions(data):
+    if data[:4] != b'RIFF' or data[8:12] != b'WEBP':
+        return None
+    kind = data[12:16]
+    if kind == b'VP8 ' and data[23:26] == b'\x9d\x01\x2a':
+        size = (int.from_bytes(data[26:28], 'little') & 0x3FFF, int.from_bytes(data[28:30], 'little') & 0x3FFF)
+    elif kind == b'VP8L' and data[20:21] == b'\x2f':
+        bits = int.from_bytes(data[21:25], 'little')
+        size = ((bits & 0x3FFF) + 1, ((bits >> 14) & 0x3FFF) + 1)
+    elif kind == b'VP8X':
+        size = (int.from_bytes(data[24:27], 'little') + 1, int.from_bytes(data[27:30], 'little') + 1)
+    else:
+        return None
+    return size if size[0] > 0 and size[1] > 0 else None
+
+
 def image_dimensions(src):
-    """사례 JPEG의 실제 치수를 외부 라이브러리 없이 읽는다.
+    """공개 이미지(JPEG·PNG·WebP)의 실제 치수를 외부 라이브러리 없이 읽는다.
 
     CI에 Pillow를 추가하지 않고도 img·OG 메타의 치수를 원본과 맞춘다.
-    읽을 수 없는 파일은 추측하지 않고 None으로 닫는다.
+    주소 뒤 ?v= 는 캐시용이라 떼고 읽는다. 읽을 수 없는 파일은 추측하지 않고 None으로 닫는다.
+    scripts/ensure-og-image-dims.mjs 가 같은 치수를 따로 읽어 대조한다.
     """
-    value = str(src or '')
+    value = str(src or '').split('#', 1)[0].split('?', 1)[0]
     if value in IMAGE_SIZE_CACHE:
         return IMAGE_SIZE_CACHE[value]
-    if not CASE_RE.match(value):
-        IMAGE_SIZE_CACHE[value] = None
-        return None
-    path = os.path.join(ROOT, *value.split('/'))
     result = None
-    try:
-        with open(path, 'rb') as image:
-            if image.read(2) != b'\xff\xd8':
-                IMAGE_SIZE_CACHE[value] = None
-                return None
-            while True:
-                prefix = image.read(1)
-                if not prefix:
-                    break
-                if prefix != b'\xff':
-                    continue
-                marker_byte = image.read(1)
-                while marker_byte == b'\xff':
-                    marker_byte = image.read(1)
-                if not marker_byte:
-                    break
-                marker = marker_byte[0]
-                if marker in (0xD8, 0xD9):
-                    continue
-                if marker == 0xDA:
-                    break
-                raw_length = image.read(2)
-                if len(raw_length) != 2:
-                    break
-                segment_length = int.from_bytes(raw_length, 'big')
-                if segment_length < 2:
-                    break
-                if marker in JPEG_SOF_MARKERS:
-                    payload = image.read(5)
-                    if len(payload) == 5:
-                        height = int.from_bytes(payload[1:3], 'big')
-                        width = int.from_bytes(payload[3:5], 'big')
-                        if width > 0 and height > 0:
-                            result = (width, height)
-                    break
-                image.seek(segment_length - 2, os.SEEK_CUR)
-    except (OSError, ValueError):
-        result = None
+    if IMAGE_RE.match(value) and '..' not in value.split('/'):
+        try:
+            with open(os.path.join(ROOT, *value.split('/')), 'rb') as image:
+                data = image.read()
+            result = jpeg_dimensions(data) or png_dimensions(data) or webp_dimensions(data)
+        except (OSError, ValueError):
+            result = None
     IMAGE_SIZE_CACHE[value] = result
     return result
 
@@ -208,8 +258,9 @@ def write_rss(insights):
 def article_html(a, insights):
     url = f'{BASE}/posts/{a["slug"]}.html'
     img_abs = f'{BASE}/{a["image"]}' if a.get('image') else f'{BASE}/og-image.png'
-    img_alt = a.get('imageAlt') or a['title']
-    img_size = image_dimensions(a.get('image'))
+    img_alt = (a.get('imageAlt') or a['title']) if a.get('image') else OG_CARD_ALT
+    # 표지가 없으면 기본 공유 카드(og-image.png)를 쓰므로, 치수도 그 파일에서 읽는다.
+    img_size = image_dimensions(a.get('image') or 'og-image.png')
     image_dimension_meta = (
         f'\n  <meta property="og:image:width" content="{img_size[0]}" />'
         f'\n  <meta property="og:image:height" content="{img_size[1]}" />'
@@ -378,8 +429,8 @@ def article_html(a, insights):
   <link rel="icon" href="../assets/site/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="../assets/site/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="apple-touch-icon" href="../assets/site/apple-touch-icon.png" />
-  <link rel="stylesheet" href="../css/styles.css?v={V}" />
-  <link rel="stylesheet" href="../css/brand-system.css?v={V}" />
+  <link rel="stylesheet" href="../css/styles.css?v={asset_token("css/styles.css")}" />
+  <link rel="stylesheet" href="../css/brand-system.css?v={asset_token("css/brand-system.css")}" />
   <script type="application/ld+json">{ld}</script>
   <script type="application/ld+json">{crumbs}</script>
 </head>
@@ -622,6 +673,102 @@ def write_leak_case_index(insights):
     print('생성: data/leak-case-index.json(%d건)' % len(leak_cases))
 
 
+SITEMAP_BLOCK_RE = re.compile(r'[ \t]*<url>.*?</url>[ \t]*\n?', re.S)
+LEAK_CASES_RE = re.compile(r'<section\b[^>]*\bid=["\']cases["\'][^>]*>([\s\S]*?)</section>', re.I)
+LEAK_CARD_LINK_RE = re.compile(r'<a\b[^>]*\bhref=["\']posts/([a-z0-9-]+)\.html(?:[?#][^"\']*)?["\']', re.I)
+
+
+def latest_leak_card_day(insights):
+    """leak.html 의 사례 구역(#cases)에 카드로 걸린 글 중 가장 최근 수정일.
+
+    누수 페이지의 sitemap lastmod 규칙이다 — 거기 실제로 소개하는 글이 바뀔 때만 올린다.
+    scripts/ensure-weekly-leak-cases.mjs 의 latestLinkedCaseDay 와 같은 규칙(검사가 따로 대조한다).
+    """
+    path = os.path.join(ROOT, 'leak.html')
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding='utf-8') as f:
+        found = LEAK_CASES_RE.search(f.read())
+    linked = set(LEAK_CARD_LINK_RE.findall(found.group(1))) if found else set()
+    return latest_article_date([a for a in insights if a.get('slug') in linked])
+
+
+def set_lastmod(block, day):
+    if not day:
+        return block
+    try:
+        datetime.strptime(str(day), '%Y-%m-%d')
+    except ValueError:
+        return block  # 날짜가 틀린 글은 ensure-insights-schema 가 따로 막는다 — 여기서 지어내지 않는다
+    if '<lastmod>' in block:
+        return re.sub(r'<lastmod>[^<]*</lastmod>', f'<lastmod>{day}</lastmod>', block, count=1)
+    return block.replace('</loc>', f'</loc>\n    <lastmod>{day}</lastmod>', 1)
+
+
+def write_sitemap(insights):
+    """sitemap.xml 의 글(posts/) 항목과 목록·누수 페이지 lastmod 를 site.json 에서 맞춘다.
+
+    왜: 예전에는 글을 더하거나 고칠 때 sitemap 을 손으로 고쳤다. 그러다 글 9편의 lastmod 가
+    실제 수정일(updated, 없으면 date)과 달라진 채 남았다 — 관련 글 카드만 바뀐 날(2026-08-09)로
+    올라가 있었다. 규칙: 글 lastmod = updated 또는 date, blog.html = 공개 글 중 최신,
+    leak.html = 사례 구역에 걸린 글 중 최신. 그 밖의 페이지(홈·시안·개인정보…)는 손대지 않는다.
+    새 글은 blog.html 항목 바로 뒤에 넣고, 공개 글이 아닌 posts/ 주소는 뺀다.
+    """
+    path = os.path.join(ROOT, 'sitemap.xml')
+    if not os.path.exists(path):
+        print('건너뜀: sitemap.xml 이 없습니다')
+        return False
+    with open(path, encoding='utf-8') as f:
+        src = f.read()
+    blocks = list(SITEMAP_BLOCK_RE.finditer(src))
+    if not blocks:
+        print('건너뜀: sitemap.xml 에서 <url> 항목을 찾지 못했습니다')
+        return False
+    by_slug = {a['slug']: a for a in insights}
+    post_prefix = BASE + '/posts/'
+    seen, out, blog_at = set(), [], None
+    for found in blocks:
+        block = found.group(0)
+        loc_match = re.search(r'<loc>([^<]*)</loc>', block)
+        loc = loc_match.group(1) if loc_match else ''
+        if loc.startswith(post_prefix) and loc.endswith('.html'):
+            slug = loc[len(post_prefix):-len('.html')]
+            article = by_slug.get(slug)
+            if article is None or slug in seen:
+                print('sitemap 에서 뺌(공개 글 아님·중복):', loc)
+                continue
+            seen.add(slug)
+            block = set_lastmod(block, article.get('updated') or article.get('date'))
+        elif loc == BASE + '/blog.html':
+            block = set_lastmod(block, latest_article_date(insights))
+            blog_at = len(out)
+        elif loc == BASE + '/leak.html':
+            block = set_lastmod(block, latest_leak_card_day(insights))
+        out.append(block)
+    added = []
+    for a in insights:
+        if a['slug'] in seen:
+            continue
+        priority = '0.6' if case_group(a) == 'info' else '0.7'
+        added.append(
+            '  <url>\n'
+            f'    <loc>{post_prefix}{a["slug"]}.html</loc>\n'
+            f'    <lastmod>{a.get("updated") or a.get("date")}</lastmod>\n'
+            '    <changefreq>monthly</changefreq>\n'
+            f'    <priority>{priority}</priority>\n'
+            '  </url>\n')
+    at = blog_at + 1 if blog_at is not None else len(out)
+    out[at:at] = added
+    new = src[:blocks[0].start()] + ''.join(out) + src[blocks[-1].end():]
+    if new == src:
+        print('sitemap.xml 변경 없음')
+        return False
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(new)
+    print('생성: sitemap.xml(글 %d건 · 새로 넣음 %d건)' % (len(seen) + len(added), len(added)))
+    return True
+
+
 def main():
     with open(os.path.join(ROOT, 'data', 'site.json'), encoding='utf-8') as f:
         insights = json.load(f).get('insights', [])
@@ -646,6 +793,7 @@ def main():
     write_blog_list(insights)
     write_rss(insights)
     write_leak_case_index(insights)
+    write_sitemap(insights)
     print(f'완료 · {len(insights)}건')
 
 
