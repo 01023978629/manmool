@@ -6,6 +6,7 @@
  *     --method "..." --cause "..." --work "..." --duration "..."
  *
  * 현장앱의 [후기 재료 복사] 결과는 --material-file <파일> 또는 stdin 으로도 받는다.
+ * 현장앱 「📰 사례 내보내기」 zip(사진 포함)은 scripts/import-case-zip.mjs 로 들인다.
  * 초안은 published:false 로 저장하며, 공개 글 생성기는 이 항목을 건너뛴다. */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -41,22 +42,38 @@ export function piiFindings(text) {
   return PII_RULES.filter(([, pattern]) => pattern.test(src)).map(([name]) => name);
 }
 
+/* 재료 글의 라벨은 두 벌을 받는다 — 둘 다 현장 앱이 지금 내보내는 형식이다.
+ *   옛 형식  aptReviewMaterialText(아파트 오더 [후기 재료 복사])·case-new.html
+ *            '2. 어떤 연락:'  '3. 탐지 방법:'       '4. 원인+전유/공용:'
+ *   v321    「📰 사례 내보내기」 zip 의 사례재료.txt(앱 HJ_CASE_FIELDS)
+ *            '2. 어떤 연락(증상):'  '3. 탐지·확인 방법:'  '4. 원인 (전유/공용):'
+ * 한 벌만 받으면 다른 쪽 재료는 증상·방법·원인 세 칸이 조용히 빠지고 makeDraft 가
+ * '필수 항목 누락'으로 거부한다(2026-09-26 v321 출력으로 확인 — 6칸 중 3칸만 읽혔다).
+ * 콜론 뒤는 [ \t]* 다. \s* 이면 값이 빈 줄에서 줄바꿈을 건너 다음 줄 전체
+ * ('3. 탐지 방법: …')를 그 칸의 값으로 삼킨다. */
+const MATERIAL_LINES = [
+  ['place', /^(?:1\.[ \t]*)?동네\+단지[ \t]*:[ \t]*(.+)$/m],
+  ['symptom', /^(?:2\.[ \t]*)?(?:어떤 연락\(증상\)|어떤 연락|증상)[ \t]*:[ \t]*(.+)$/m],
+  ['method', /^(?:3\.[ \t]*)?(?:탐지·확인 방법|탐지 방법)[ \t]*:[ \t]*(.+)$/m],
+  ['cause', /^(?:4\.[ \t]*)?(?:원인 \(전유\/공용\)|원인\+전유\/공용)[ \t]*:[ \t]*(.+)$/m],
+  ['work', /^(?:5\.[ \t]*)?공사 내용[ \t]*:[ \t]*(.+)$/m],
+  ['duration', /^(?:6\.[ \t]*)?걸린 시간[ \t]*:[ \t]*(.+)$/m],
+  // 7·8번은 선택이다. 단지 위치와 네이버 지도 링크 — 동·호수는 넣지 않는다.
+  ['address', /^(?:7\.[ \t]*)?단지 주소[ \t]*:[ \t]*(.+)$/m],
+  ['mapUrl', /^(?:8\.[ \t]*)?지도 링크[ \t]*:[ \t]*(.+)$/m],
+];
+// 옛 형식은 아직 안 적은 칸을 '(직접 입력)' 으로 채워 보낸다. 그걸 값으로 받으면
+// 본문에 '(직접 입력)' 이 그대로 박힌 초안이 '6항목 완비'로 통과한다 — 빈 칸으로 본다.
+const UNFILLED = /^\(직접 입력\)$/;
+
 export function parseMaterial(text) {
   const out = {};
-  const map = [
-    ['place', /^(?:1\.\s*)?동네\+단지\s*:\s*(.+)$/m],
-    ['symptom', /^(?:2\.\s*)?(?:어떤 연락|증상)\s*:\s*(.+)$/m],
-    ['method', /^(?:3\.\s*)?탐지 방법\s*:\s*(.+)$/m],
-    ['cause', /^(?:4\.\s*)?원인\+전유\/공용\s*:\s*(.+)$/m],
-    ['work', /^(?:5\.\s*)?공사 내용\s*:\s*(.+)$/m],
-    ['duration', /^(?:6\.\s*)?걸린 시간\s*:\s*(.+)$/m],
-    // 7·8번은 선택이다. 단지 위치와 네이버 지도 링크 — 동·호수는 넣지 않는다.
-    ['address', /^(?:7\.\s*)?단지 주소\s*:\s*(.+)$/m],
-    ['mapUrl', /^(?:8\.\s*)?지도 링크\s*:\s*(.+)$/m],
-  ];
-  for (const [key, pattern] of map) {
-    const m = String(text || '').match(pattern);
-    if (m) out[key] = m[1].replace(/\s*←.*$/, '').trim();
+  const src = String(text || '').replace(/^\uFEFF/, '').normalize('NFC');
+  for (const [key, pattern] of MATERIAL_LINES) {
+    const m = src.match(pattern);
+    if (!m) continue;
+    const value = m[1].replace(/\s*←.*$/, '').trim();
+    if (value && !UNFILLED.test(value)) out[key] = value;
   }
   return out;
 }

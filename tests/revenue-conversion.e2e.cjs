@@ -8,6 +8,8 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
 const ROOT = path.resolve(__dirname, '..');
+// 2026-09-26: CSS·JS 의 ?v= 는 손으로 붙인 날짜 이름이 아니라 파일 내용 해시다(scripts/stamp-asset-versions.mjs 와 같은 셈).
+const assetRef = (asset) => asset + '?v=' + crypto.createHash('sha256').update(Buffer.from(fs.readFileSync(path.join(ROOT, asset)).toString('latin1').replace(/\r\n/g, '\n'), 'latin1')).digest('hex').slice(0, 10);
 const MIME = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.json':'application/json; charset=utf-8' };
 let server, browser, origin;
 const sha256 = value => crypto.createHash('sha256').update(String(value).replace(/\r\n/g, '\n')).digest('hex');
@@ -91,7 +93,7 @@ test('정적 전환 게이트는 공개 수익 경계 변이를 각각 좁은 �
     mutate('js/leak-inquiry.js', 'naver.ready === true', 'naver.ready !== true', /ready/);
     mutate('js/revenue-conversion.js', 'NAVER_HOSTS.has(url.hostname)', 'url.hostname.endsWith("naver.com")', /공식 네이버 host/);
     mutate('scripts/pages-artifact-policy.mjs', "'office-pilot.js', ", '', /artifact allowlist/);
-    mutate('office.html', '<script src="js/lead-transport.js?v=20260831-revenue1"></script>', '', /script 순서/);
+    mutate('office.html', `<script src="${assetRef('js/lead-transport.js')}"></script>`, '', /script 순서/);
     mutate('posts/apartment-basement-cast-iron-pipe-repair.html', '</body>', '<p>500만원 이하 표준 패키지</p></body>', /공개 artifact 판매 문구/);
     mutate('integrations/인수인계서.md', '# ', '# 500만원 이하 맞춤 표준 패키지\n\n# ', /운영 문서 판매 문구/);
   } finally {
@@ -170,7 +172,7 @@ test('pilot markup fixes limits, disclosure, privacy and script order', async()=
   const page=await newPage(); await page.goto(`${origin}/office.html`); for(const [id,n] of [['pilotComplexName',80],['pilotOfficeContactName',50],['pilotPhone',30],['pilotRegion',80],['pilotDesiredStart',80],['pilotMemo',500]]) assert.equal(await page.locator('#'+id).getAttribute('maxlength'),String(n));
   assert.match(await page.locator('#officePilot').innerText(),/접수 프로그램 이용료 0원/); assert.match(await page.locator('#officePilot').innerText(),/실제 작업은 별도 견적/); assert.match(await page.locator('#officePilot').innerText(),/입주민 이름·전화번호·동호수·현장사진 또는 사진 링크는 적지 마세요/);
   const scripts=await page.locator('script[src]').evaluateAll(xs=>xs.map(x=>x.getAttribute('src')));
-  const required=['js/revenue-conversion.js?v=20260831-revenue1','js/lead-transport.js?v=20260831-revenue1','js/office-pilot.js?v=20260831-revenue1'];
+  const required=['js/revenue-conversion.js','js/lead-transport.js','js/office-pilot.js'].map(assetRef);
   // 필요한 세 스크립트의 유일성과 의존 순서를 검사한다. 독립적인 화면 내비가
   // 뒤에 추가됐다는 이유로 정상적인 상담 의존성을 실패 처리하지 않는다.
   for (const src of required) assert.equal(scripts.filter(value=>value===src).length,1,src+' must be loaded exactly once');

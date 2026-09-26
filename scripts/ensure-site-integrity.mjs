@@ -363,6 +363,81 @@ for (const rel of [...htmlFiles, 'data/config.json', 'data/site.json']) {
   }
 }
 
+/* ⑥ 내부 링크에 옛 글 주소(blog.html?post=)를 쓰지 않는가 ----------------- */
+// 글은 posts/<slug>.html 정적 페이지가 정본이다. blog.html?post= 는 스크립트가 그려 주는 옛 주소라
+// 검색엔진이 같은 글을 두 주소로 보고, 스크립트가 늦으면 빈 화면이 먼저 뜬다. 2026-09-26 에 leak.html 의
+// 보험 안내 링크 하나가 아직 그 주소였다. 옛 주소로 들어오는 바깥 링크는 blog.js 가 계속 받아 준다 —
+// 우리 페이지가 새로 만들지만 않으면 된다.
+for (const rel of [...htmlFiles, 'data/site.json', 'rss.xml']) {
+  const src = readIf(rel);
+  if (src == null) continue;
+  for (const m of src.match(/blog\.html\?post=[A-Za-z0-9_-]*/g) || []) {
+    fail.push(`${rel}: 옛 글 주소 ${m} 로 링크한다 — posts/<slug>.html 정적 주소로 바꿔라`);
+  }
+}
+
+/* ⑦ 검색 결과에 잘리지 않는 제목·설명 길이 ----------------------------- */
+// 제목 60자·설명 160자를 넘기면 검색 결과에서 끝이 잘려 '…' 로 나간다(글자 수는 한글 한 자 = 1).
+// 설명이 80자 미만이면 검색엔진이 본문에서 아무 문장이나 뽑아 대신 쓰기 쉽다 — 실패가 아니라 경고만.
+{
+  const unescape = (s) => s.replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  const TITLE_MAX = 60, DESC_MAX = 160, DESC_SHORT = 80;
+  const short = [];
+  for (const rel of htmlFiles) {
+    const src = readIf(rel);
+    if (src == null || isInternal(src)) continue;
+    const head = src.split('</head>')[0] || '';
+    const title = unescape(head.match(/<title>([^<]*)<\/title>/)?.[1] || '').trim();
+    const desc = unescape(head.match(/name="description"\s+content="([^"]*)"/)?.[1] || '').trim();
+    const titleLength = [...title].length, descLength = [...desc].length;
+    if (titleLength > TITLE_MAX) fail.push(`${rel}: <title> 이 ${titleLength}자 — ${TITLE_MAX}자를 넘으면 검색 결과에서 잘린다`);
+    if (descLength > DESC_MAX) fail.push(`${rel}: meta description 이 ${descLength}자 — ${DESC_MAX}자를 넘으면 검색 결과에서 잘린다`);
+    if (descLength && descLength < DESC_SHORT) short.push(`${rel}(${descLength}자)`);
+  }
+  if (short.length) console.warn(`⚠ 설명이 ${DESC_SHORT}자 미만인 공개 페이지 ${short.length}장(경고만): ${short.join(', ')}`);
+}
+
+/* ⑧ sitemap 글 lastmod 가 site.json 의 실제 수정일과 같은가 ---------------- */
+// 규칙: 글 lastmod = updated 가 있으면 그것, 없으면 date. 2026-09-26 에 글 9편이 관련 글 카드만 바뀐 날
+// (2026-08-09)로 올라가 있었다 — 형식만 보던 ④ 는 못 잡았다. 지금은 prerender-posts.py 가 sitemap 의 글
+// 항목을 site.json 에서 다시 쓰므로, 여기서 어긋나면 생성기를 안 돌렸거나 손으로 고친 것이다.
+if (sm) {
+  let ins = [];
+  try { ins = (JSON.parse(readIf('data/site.json') || '{}').insights || []).filter((x) => x && x.published !== false); } catch (e) { /* ⓪ 에서 이미 보고 */ }
+  const bySlug = new Map(ins.map((a) => [a.slug, a]));
+  for (const block of sm.match(/<url>[\s\S]*?<\/url>/g) || []) {
+    const loc = block.match(/<loc>([^<]+)<\/loc>/)?.[1] || '';
+    const slug = loc.match(/\/posts\/([^/]+)\.html$/)?.[1];
+    if (!slug) continue;
+    const article = bySlug.get(slug);
+    if (!article) { fail.push(`sitemap 의 ${loc} 는 공개 글이 아니다(site.json insights 에 없거나 published:false)`); continue; }
+    const want = String(article.updated || article.date || '');
+    const lastmod = block.match(/<lastmod>([^<]+)<\/lastmod>/)?.[1] || '';
+    if (lastmod !== want) fail.push(`sitemap 의 posts/${slug}.html lastmod ${lastmod || '(없음)'} ≠ site.json ${article.updated ? 'updated' : 'date'} ${want} — python3 scripts/prerender-posts.py`);
+  }
+}
+
+/* ⑨ 공개 페이지마다 '본문으로 건너뛰기' 링크가 있고, 누를 수 있는 크기인가 ------ */
+// 키보드·화면 읽기 사용자는 이 링크가 없으면 페이지마다 머리 메뉴 전체를 지나야 본문에 닿는다.
+// 2026-09-26 에 공개 12장(blog·office·privacy·bathroom-check·시안 8장)에 없었다.
+// 링크는 body 의 첫 요소, 가리키는 id 가 실제로 있어야 한다. 크기는 누르는 칸 44px(스킵 링크를
+// 정의하는 스타일시트 세 곳 모두 — 없으면 글자 14px·위아래 10px 로 43px 남짓이었다).
+for (const rel of htmlFiles) {
+  const src = readIf(rel);
+  if (src == null || isInternal(src)) continue;
+  const afterBody = src.split(/<body\b[^>]*>/)[1] || '';
+  const first = afterBody.replace(/<!--[\s\S]*?-->/g, '').match(/<[a-z][^>]*>/i)?.[0] || '';
+  const target = first.match(/^<a\b[^>]*class="skip-link"[^>]*href="#([^"]+)"/)?.[1];
+  if (!target) { fail.push(`${rel}: body 첫 요소가 건너뛰기 링크(<a class="skip-link" href="#…">)가 아니다`); continue; }
+  if (!new RegExp(`\\bid="${target}"`).test(src)) fail.push(`${rel}: 건너뛰기 링크가 가리키는 #${target} 가 페이지에 없다`);
+}
+for (const css of ['css/styles.css', 'css/leak-theme.css', 'css/page-recovery.css']) {
+  const src = readIf(css);
+  if (src == null) { fail.push(`${css} 가 없다`); continue; }
+  const rule = src.match(/(?:^|\n)\s*\.skip-link\s*\{([^}]*)\}/)?.[1] || '';
+  if (!/min-height:\s*(?:4[4-9]|[5-9]\d)px/.test(rule)) fail.push(`${css}: .skip-link 에 min-height 44px 이상이 없다 — 누르는 칸이 44px 보다 작다`);
+}
+
 if (fail.length) {
   console.error('✗ 사이트 무결성 ' + fail.length + '건 문제\n');
   fail.forEach((f) => console.error('  - ' + f));

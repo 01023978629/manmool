@@ -92,7 +92,7 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 **블로그 글은 `posts/*.html` 을 손으로 만들지 마라.** 그건 생성물이다.
 정본은 `data/site.json` 의 `insights` 하나뿐이고, 거기에 항목을 넣은 뒤
 `python3 scripts/prerender-posts.py` 를 돌리면 `posts/<slug>.html` 과
-`blog.html` 목록이 함께 만들어진다. `sitemap.xml` 만 따로 챙기면 된다.
+`blog.html` 목록, `sitemap.xml` 의 글 항목·lastmod 가 함께 만들어진다(2026-09-26 부터).
 **생성 전에 반드시 `origin/main` 의 `data/site.json` 을 기준으로 삼아라.** 오래된
 로컬 사본으로 생성해 푸시하면 그 사이 main 에 들어간 글 40건의 개정과 `leak.html`
 의 기능(카톡 문의 버튼·신청 목적·서비스 디자인)이 통째로 옛날로 돌아간다 —
@@ -104,7 +104,9 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 실제 현장 사례는 `scripts/new-case-post.mjs` 에 6항목(동네+단지/증상/탐지 방법/
 원인+전유·공용/공사 내용/소요시간)을 줘 **비공개 초안**부터 만든다. 이 도구는
 동·호수·고객명·연락처를 거부하고 `published:false` 로 저장한다. 실제 자료 없이
-사례를 지어내지 마라.
+사례를 지어내지 마라. 재료 글은 옛 라벨('2. 어떤 연락:'·'3. 탐지 방법:'·'4. 원인+전유/공용:')과
+현장 앱 v321 라벨('2. 어떤 연락(증상):'·'3. 탐지·확인 방법:'·'4. 원인 (전유/공용):')을 둘 다 읽는다 —
+한쪽만 받으면 다른 쪽 재료는 세 칸이 빠져 거부된다. 사진까지 있는 앱 zip 은 아래 「글을 더할 때」의 들이기 도구로.
 
 손으로 `posts/*.html` 을 만들면 **고아 글**이 된다 — 파일은 있는데 목록·홈
 어디에도 안 떠서 손님이 볼 방법이 없다. 실제로 2026-08-02 관리사무소 대상
@@ -149,7 +151,7 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 
 **공유 카드 `og-image.png` 은 이름과 1200×630 만 지키면 배선을 고칠 것이 없다.**
 치수를 바꾸면 `index.html`·`bathroom-check.html` 의 `og:image:width/height` 를 같이 고쳐라 —
-그 숫자를 보는 검사가 없어 조용히 틀린 채 나간다. 그림을 바꿨으면 그 카드를 쓰는 페이지의
+지금은 `scripts/ensure-og-image-dims.mjs` 가 선언 치수를 파일 머리에서 읽은 실제 치수와 대조한다(2026-09-26 전에는 그런 검사가 없어 조용히 틀린 채 나갔다). 그림을 바꿨으면 그 카드를 쓰는 페이지의
 `og:image:alt` 도 같이 고친다. **글자가 들어가는 그림은 생성 모델에 맡기지 마라** — HTML 을
 헤드리스 크로미움으로 구우면 한글이 또렷하고 다시 만들 수 있다.
 
@@ -163,6 +165,57 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 개수는 `inspect` 와 합성 fixture 두 곳에서 쓰이므로 상수 하나로 둔다 — 숫자를 박으면 한쪽만
 고쳐진다. 다시 고정한 뒤에는 변이(기존 글 제목 바꾸기·한 편 빼기)로 여전히 드리프트를 잡는지
 확인한다. 이 검사는 CI 에 있어서, 안 고치면 병합 즉시 배포가 멈춘다.
+
+## 사진 축소본 — 사례·설명 글·대문 첫 그림 (2026-09-26)
+
+**사진을 `assets/cases/`·`assets/insights/` 에 넣었으면 `python3 scripts/build-image-variants.py`
+를 돌리고 `resized/` 를 같이 커밋하라.** 원본마다 `<폴더>/resized/<이름>-480w.jpg`·`-960w.jpg`
+가 생긴다(PNG 원본도 **JPEG** 축소본). 대문 첫 그림 `assets/site/hero-interior.jpg` 도 대상이다.
+원본은 `src` 에 그대로 두고 축소본은 `srcset` 으로만 건다 — 규칙은 세 곳에 있다:
+`scripts/prerender-posts.py` `VARIANT_RE`, `js/main.js` `caseImgExtra`, `js/blog.js` `caseExtra`.
+**한쪽만 고치면** JS 가 다시 그린 카드가 원본을 받는다 — `ensure-image-variants` 검사 6 이 셋을 대조한다.
+
+- 2026-09-26 전까지 규칙이 `^assets/cases/…\.jpg$` 뿐이라 설명 글 사진 9장(PNG 1.2MB 포함)이
+  356px 카드에 원본 그대로 나갔다 — blog.html 한 장(1배) 이미지 4,530KB 중 3,052KB. 지금 1,681KB.
+- 원본 주소 끝 캐시 쿼리(`?v=20260919-photofix`)는 `src` 에 두고 **축소본 주소에도 똑같이 붙인다**.
+  사진을 같은 이름으로 또 고치면 쿼리를 올리고 축소본을 다시 구워라(`--force`).
+- `build-image-variants.py` 는 원본보다 새 축소본이 있으면 건너뛴다(mtime). **git checkout 직후에는
+  mtime 이 뒤섞여 이미 커밋된 사례 축소본을 다시 굽는다** — 바꾼 적 없는 `assets/cases/resized/`
+  가 diff 에 뜨면 `git checkout -- assets/cases/resized` 로 되돌리고 새 사진 것만 커밋하라.
+- 검사 `scripts/ensure-image-variants.mjs`: 축소본 누락·비대·비율·고아, 공개 HTML 의 사진 `<img>`
+  srcset·sizes·**원본과 같은 width·height**, 첫 그림 preload 의 `imagesrcset`·`imagesizes` 가 `<img>` 와
+  같은지(다르면 폰이 두 장을 받는다), 대문 카드가 정적인지.
+- 검사 `scripts/ensure-img-dims.mjs`: 공개 HTML(noindex·해시 고정 파일 제외) 의 로컬 사진 `<img>` 중 width·height 를
+  가진 것은 **모든 폴더**에서 실제 파일(JPEG·PNG·WebP 머리, EXIF 방향 반영)과 비율이 같아야 한다(±1%). 한쪽만 적어도
+  실패. 2026-09-26 leak.html 진잠타운 카드(1600×1200 가로 사진)가 옆 카드 줄을 베껴 1200×1600 으로 적혀 있었다 —
+  손으로 쓴 줄이다(leak.html 을 쓰는 생성기는 없다). 사례 카드를 손으로 더할 때 치수는 파일에서 읽어 적어라.
+- **대문 `#insightsGrid` 는 이제 생성물이다.** `prerender-posts.py` 가 `data-featured-slugs` 순서대로
+  정적 카드 3장을 박는다(JS 없이도 보이게). `.reveal` 을 붙이지 마라 — JS 가 `in` 을 붙여야 보여서
+  JS 없이는 투명하다. `main.js renderInsights` 는 정적 카드가 있으면 다시 그리지 않는다(`?preview=1` 만 예외).
+  CI 의 `git diff` 단계는 index.html 을 보지 않으므로 `tests/test_prerender_posts.py`
+  `test_committed_index_is_current` 가 대신 막는다.
+- 첫 그림 `sizes` 는 칸 폭이 아니라 **높이**(450·420·260px, `object-fit: cover`)로 정했다 —
+  `css/service-interior.css` 의 그 높이를 바꾸면 `index.html` 의 `sizes`·preload `imagesizes` 를 같이 고쳐라.
+
+## 머리·접근성·색인 위생 (2026-09-26)
+
+- **CSS·JS 의 `?v=` 는 사람이 정하지 않는다 — 파일 내용 해시다.** CSS·JS 를 고쳤으면
+  `node scripts/stamp-asset-versions.mjs` 한 번(손으로 쓴 페이지·posts/·designs/ 전부), 생성기(`prerender-posts.py`·
+  `prerender-designs.py`)는 `asset_token()` 으로 같은 해시(CRLF→LF 뒤 SHA-256 앞 10자리)를 직접 계산한다.
+  예전에는 날짜 이름을 손으로 올려 같은 styles.css 를 7가지 주소로 불렀고, 손님은 페이지를 옮길 때마다 같은 CSS 를
+  다시 받았다. `ensure-asset-versions.mjs` 가 '같은 자산 = 한 주소 = 지금 내용의 해시'를 본다.
+  `office-request.html` 과 해시 고정 목록 파일은 도장 대상에서 빠진다.
+- **공개 페이지(noindex 아닌 것 66장)는 body 첫 요소가 `<a class="skip-link" href="#…">`** 이고 그 id 가 있어야 한다.
+  글 문구 `본문으로 건너뛰기`(#main)는 `ensure-weekly-leak-cases` 가 글자까지 고정한다. `.skip-link` 는 스타일시트 세 곳
+  (styles·leak-theme·page-recovery) 모두 `min-height:44px` — `ensure-site-integrity` ⑨.
+- **공유 카드**: 공개 페이지 전부 og:image(JPEG·PNG)·`og:image:width/height`(실제 파일 치수)·`og:image:alt`·`twitter:card`.
+  `ensure-og-image-dims.mjs`. 시안 사진은 WebP 라 공유 카드로는 `assets/designs/og/*.jpg` 사본을 쓴다 —
+  대표 시안이 바뀌면 `python3 scripts/build-design-og-images.py`(Pillow 필요, CI 밖) 뒤 `prerender-designs.py`.
+  사본이 없으면 생성기가 회사 카드(og-image.png)로 물러서고 경고를 찍는다.
+- **글 주소는 `posts/<slug>.html`** — 우리 페이지에 `blog.html?post=` 를 새로 쓰지 않는다(바깥 옛 링크는 blog.js 가 받아 준다). ⑥.
+- **제목 60자·설명 160자 초과는 실패, 설명 80자 미만은 경고만** — ⑦.
+- **글 정본 모양**: `ensure-insights-schema.mjs` — 필수 키·날짜·`readMin` 정수(따옴표 없이)·사진/영상 파일 존재·설명.
+  `imgAlt == imgCaption`(26장)은 경고만 — 새 문장을 지으면 사진에 없는 사실이 섞일 수 있어 사진을 보며 고친다.
 
 ## 업체 정보는 한 곳에서 (2026-09-25)
 
@@ -180,14 +233,13 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 
 ## 글을 더할 때 (2026-09-19)
 
-정본은 `data/site.json` 의 `insights` 하나다. 넣은 뒤에 **손으로 같이 고칠 곳이 네 군데** 있다.
+정본은 `data/site.json` 의 `insights` 하나다. 넣은 뒤에 **같이 돌리거나 확인할 곳이 세 군데** 있다(sitemap 은 2026-09-26 부터 생성기가 쓴다).
 
 | 고칠 곳 | 안 고치면 |
 |---|---|
 | `python3 scripts/prerender-posts.py` | `posts/*.html`·`blog.html`·`rss.xml`·`data/leak-case-index.json` 이 안 생긴다. CI 첫 단계가 `git diff --exit-code` 로 막는다 |
 | `python3 scripts/prerender-designs.py` | 시안의 `tip`·`trendLabel` 을 고쳤다면 `designs/*.html` 8장이 옛 글을 들고 남는다. CI 마지막 `git diff --exit-code` 가 잡는다 |
-| `sitemap.xml` 에 `posts/<slug>.html` 줄 | `ensure-site-integrity` 가 "sitemap 에 없다" 로 막는다 — **생성기가 손대지 않는다** |
-| `sitemap.xml` 의 `blog.html` `<lastmod>` | `ensure-weekly-leak-cases` 가 "목록의 최신 공개 글 수정일과 다르다" 로 막는다 |
+| `sitemap.xml` | **이제 손으로 고치지 않는다(2026-09-26).** `prerender-posts.py` 가 글 항목(없으면 `blog.html` 뒤에 새로 넣고, 공개 글이 아니면 뺀다)과 lastmod 를 다시 쓴다 — 글 = `updated` 또는 `date`, `blog.html` = 공개 글 최신, `leak.html` = 사례 구역(#cases)에 걸린 글 최신(`ensure-weekly-leak-cases` 의 규칙과 같다). 홈·시안·개인정보 같은 다른 줄은 건드리지 않는다. 손으로 고치면 `ensure-site-integrity` ⑧ 이 "lastmod ≠ site.json" 으로 막는다 — 예전 수작업 때 글 9편이 관련 글 카드만 바뀐 날(08-09)로 올라가 있었다 |
 
 **목록 분야 필터(`case_group`)의 규칙은 두 곳에 따로 적혀 있다** — `scripts/prerender-posts.py`
 의 `case_group()` 과 `tests/case-finder.e2e.cjs` 의 `caseGroup()`. 검사가 생성기를 독립적으로
@@ -197,6 +249,20 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 
 **설명 글에는 `image` 가 없어도 된다**(`cover` 색으로 그려진다 — 이미 2건이 그렇다). 다만
 카드가 색 덩어리로만 보이니, 사진이 생기면 `image`·`imageAlt` 를 같이 채워라.
+
+**현장 앱 「📰 사례 내보내기」 zip 은 `scripts/import-case-zip.mjs` 로 들인다(2026-09-26).**
+`node scripts/import-case-zip.mjs <사례_….zip 또는 푼 폴더> --slug <영문-소문자-slug>` — zip 은 node 기본
+모듈로 읽는다(윈도에 unzip 이 없어도 된다). 사례재료.txt 의 `※ 고객 사진 공개 동의: 받음` 이 아니면 거부,
+6항목·사진 공정 이름·파일 이름을 `js/pii-rules.js` 로 검사, 파일은 앱 규칙(`NN-전|중|후.jpg`·사례재료.txt)과
+목록에 있는 사진만, 사진마다 JPEG·긴 변 1800 이하·EXIF/XMP/IPTC 없음을 확인한다. **하나라도 걸리면 아무것도
+쓰지 않는다.** 통과하면 사진을 `assets/cases/<slug>-NN.jpg` 로 복사하고(앱이 구운 바이트 그대로),
+`python3 scripts/build-image-variants.py` 를 돌리고(`--no-variants` 면 안내만), `.private/case-drafts/<slug>.json`
+에 `published:false` 초안을 쓴다. 사진 소제목·문단·`imgAlt`·표지 `imageAlt` 는 `TODO:` 로 남는다 — **사진을
+보고 채워라, 지어내지 마라.** 공개 글이나 생성물에 `TODO:` 가 남으면 `scripts/ensure-case-import.mjs` 가 막는다.
+`imgCaption` 은 파일 이름의 전/중/후를 앱과 같은 말(시공 전·작업 중·완료)로 적는다. 초안의 분류는 누수
+(`service:'leak'`)로 시작하니 인테리어 현장이면 고쳐라. **`assets/cases` 사진은 병합되면 글이 비공개여도 주소로
+열린다** — 사진은 글을 공개하는 커밋에 같이 넣어라. 앱 형식이 바뀌면 `scripts/new-case-post.test.mjs` 의
+이웃 저장소 대조(`HYEONJANG_ROOT` 또는 `../hyeonjang`)가 먼저 빨간불을 낸다 — CI 에는 이웃이 없어 건너뛴다.
 
 **`office-request.html` 과 지원 파일 6개는 SHA-256 으로 고정돼 있다**
 (`tests/fixtures/office-request-commercial-baseline.json`). `<link rel="icon">` 한 줄만 넣어도

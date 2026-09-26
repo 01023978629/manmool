@@ -47,17 +47,20 @@ function safeContentUrl(value, fallback) {
   return url;
 }
 
-/* 사례 사진 축소본 — assets/cases/ 원본(최대 1800px·480KB)을 카드·본문에 그대로
-   내보내면 휴대폰 LTE에서 LCP가 5초를 넘는다. scripts/build-image-variants.py 가
-   만든 resized/<이름>-480w·960w.jpg 를 srcset 으로 걸어 브라우저가 칸 폭에 맞는
-   쪽을 받게 한다. 규칙에 안 맞는 경로(외부 URL·jpg 아님)는 조용히 원본만 쓴다. */
+/* 사진 축소본 — assets/cases/(사례, 최대 1800px·480KB)·assets/insights/(설명 글,
+   1600px JPEG·1774px PNG 1.2MB) 원본을 카드·본문에 그대로 내보내면 휴대폰 LTE에서
+   LCP가 5초를 넘는다. scripts/build-image-variants.py 가 만든
+   resized/<이름>-480w·960w.jpg(PNG 원본도 JPEG 축소본)를 srcset 으로 걸어 브라우저가
+   칸 폭에 맞는 쪽을 받게 한다. 원본 주소 끝 캐시 쿼리(?v=…)는 축소본에도 붙인다.
+   규칙에 안 맞는 경로(외부 URL 등)는 조용히 원본만 쓴다.
+   scripts/prerender-posts.py VARIANT_RE·js/blog.js caseExtra 와 같은 규칙이다. */
 const CASE_SIZES_CARD = '(max-width: 720px) 94vw, (max-width: 1130px) 46vw, 356px';
 const CASE_SIZES_HALF = '(max-width: 720px) 47vw, 178px';
 function caseImgExtra(src, sizes) {
-  const m = /^assets\/cases\/([A-Za-z0-9._-]+)\.jpg$/.exec(String(src || ''));
+  const m = /^assets\/(cases|insights)\/([A-Za-z0-9._-]+)\.(?:jpe?g|png)(\?[A-Za-z0-9._~=-]*)?$/.exec(String(src || ''));
   if (!m) return '';
-  const p = 'assets/cases/resized/' + m[1];
-  return ` srcset="${p}-480w.jpg 480w, ${p}-960w.jpg 960w" sizes="${sizes}"`;
+  const p = `assets/${m[1]}/resized/${m[2]}`, q = m[3] || '';
+  return ` srcset="${p}-480w.jpg${q} 480w, ${p}-960w.jpg${q} 960w" sizes="${sizes}"`;
 }
 
 function previewRequested() {
@@ -1204,6 +1207,10 @@ function renderLeakPricing(config) {
 function renderInsights(insights) {
   const grid = document.getElementById('insightsGrid');
   if (!grid || !Array.isArray(insights) || !insights.length) return;
+  // scripts/prerender-posts.py 가 같은 규칙으로 정적 카드(치수·srcset 포함)를 박아 둔다.
+  // 그걸 다시 그리면 이미 받은 그림을 버리고 치수 없는 카드로 바뀐다 — 그대로 둔다.
+  // 관리자 미리보기(?preview=1)만 초안 글을 보여 주려고 다시 그린다.
+  if (grid.querySelector('.insight-card') && !previewRequested()) return;
   insights = insights.filter((x) => x && x.published !== false);
   const featured = String(grid.dataset.featuredSlugs || '').split(',').map((x) => x.trim()).filter(Boolean);
   const bySlug = new Map(insights.map((x) => [x.slug, x]));

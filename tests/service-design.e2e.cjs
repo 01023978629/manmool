@@ -310,6 +310,44 @@ test('인테리어 참고 이미지는 실제 완공 사진과 구분하고 직�
   }
 });
 
+test('대문 인사이트 카드는 JS 없이도 보이고, 폰은 설명 글 사진·첫 그림의 원본 대신 축소본을 받는다', async (t) => {
+  // 2026-09-26 전: #insightsGrid 는 빈 div 였고(JS 없으면 카드 0장), 설명 글 사진은 356px 카드에
+  // 1600px 원본(카드 3장 887KB)이, 첫 그림은 폰에도 1600px 원본이 나갔다.
+  const featured = (fs.readFileSync(path.join(PUBLIC_ROOT, 'index.html'), 'utf8')
+    .match(/id="insightsGrid" data-featured-slugs="([^"]+)"/) || [])[1].split(',');
+  for (const javaScriptEnabled of [false, true]) {
+    const label = javaScriptEnabled ? 'JS 켜짐' : 'JS 꺼짐';
+    const page = await openPublic(t, 'index.html', { viewport: { width: 390, height: 844 }, javaScriptEnabled });
+    if (javaScriptEnabled) await page.waitForFunction(() => document.querySelectorAll('#faqList .faq-item').length > 0);
+    const cards = page.locator('#insightsGrid .insight-card');
+    assert.deepEqual(await cards.evaluateAll((els) => els.map((a) => a.getAttribute('href'))),
+      featured.map((slug) => `posts/${slug}.html`), `${label}: 대문 인사이트 카드가 추천 글 순서대로 정적으로 없다`);
+    for (let i = 0; i < featured.length; i++) {
+      const card = cards.nth(i);
+      await card.scrollIntoViewIfNeeded();
+      assert.equal(await card.isVisible(), true, `${label}: ${featured[i]} 카드가 보이지 않는다`);
+      const img = card.locator('img.ic-image');
+      await page.waitForFunction((el) => el.complete && el.naturalWidth > 0, await img.elementHandle());
+      const state = await img.evaluate((el) => ({ src: el.currentSrc, width: el.getAttribute('width'), cls: el.closest('a').className, opacity: getComputedStyle(el.closest('a')).opacity }));
+      assert.match(state.src, /\/assets\/insights\/resized\/[^/]+-480w\.jpg(?:\?|$)/, `${label}: ${featured[i]} 카드가 축소본을 받지 않았다`);
+      // JS 가 카드를 다시 그리면 치수 없는 .reveal 카드로 바뀐다(이미 받은 그림을 버린다)
+      assert.equal(state.width, '1600', `${label}: ${featured[i]} 카드가 정적 카드가 아니다(다시 그려짐)`);
+      assert.equal(/\breveal\b/.test(state.cls), false, `${label}: 정적 카드에 .reveal 이 붙었다`);
+      assert.equal(state.opacity, '1', `${label}: ${featured[i]} 카드가 투명하다`);
+    }
+    const hero = page.locator('img[src="assets/site/hero-interior.jpg"]');
+    await hero.scrollIntoViewIfNeeded();
+    await page.waitForFunction((el) => el.complete && el.naturalWidth > 0, await hero.elementHandle());
+    assert.match(await hero.evaluate((el) => el.currentSrc), /\/assets\/site\/resized\/hero-interior-480w\.jpg$/, `${label}: 폰 첫 그림이 축소본이 아니다`);
+    await page.waitForLoadState('networkidle');
+    // 요청 기록은 탐색 중(preload 포함)부터 있어야 하므로 리스너 대신 Resource Timing 을 읽는다
+    const originals = await page.evaluate(() => performance.getEntriesByType('resource')
+      .map((entry) => new URL(entry.name).pathname)
+      .filter((p) => /^\/assets\/(?:insights\/[^/]+\.(?:jpe?g|png)|site\/hero-interior\.jpg)$/.test(p)));
+    assert.deepEqual(originals, [], `${label}: 폰(1배)이 설명 글 사진·첫 그림 원본을 받았다(preload 포함)`);
+  }
+});
+
 test('섹션 메뉴가 고정된 채 데스크톱에서 모바일로 바뀌어도 제목을 가리지 않는다', async (t) => {
   const page = await openPublic(t, 'leak.html');
   const link = page.locator('.service-jump-nav a').nth(1);

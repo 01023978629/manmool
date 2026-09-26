@@ -159,14 +159,14 @@
   ]
 }
   </script>
-  <link rel="preload" as="image" href="assets/site/hero-interior.jpg" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/site/hero-interior.jpg" imagesrcset="assets/site/resized/hero-interior-480w.jpg 480w, assets/site/resized/hero-interior-960w.jpg 960w, assets/site/hero-interior.jpg 1600w" imagesizes="(max-width: 510px) 462px, (max-width: 760px) calc(100vw - 48px), (max-width: 960px) 747px, 800px" fetchpriority="high" />
   <link rel="icon" href="assets/site/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="assets/site/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="apple-touch-icon" href="assets/site/apple-touch-icon.png" />
-  <link rel="stylesheet" href="css/styles.css?v=20260830-followup1" />
-  <link rel="stylesheet" href="css/brand-system.css?v=20260830-followup1" />
-  <link rel="stylesheet" href="css/service-design.css?v=20260925-tap44" />
-  <link rel="stylesheet" href="css/service-interior.css?v=20260906-services" />
+  <link rel="stylesheet" href="css/styles.css?v=89b662b9ef" />
+  <link rel="stylesheet" href="css/brand-system.css?v=b0f1bfeaa7" />
+  <link rel="stylesheet" href="css/service-design.css?v=f98155f031" />
+  <link rel="stylesheet" href="css/service-interior.css?v=499bcfbfb8" />
 </head>
 <body class="interior-page service-page">
   <a class="skip-link" href="#inquiry">상담 신청으로 건너뛰기</a>
@@ -230,8 +230,10 @@
             <span>✔ 공정 사진·보증 기록 보관</span>
           </div>
         </div>
+        <!-- 첫 그림 sizes: 칸이 object-fit: cover 라 칸 폭이 아니라 높이(450·420·260px, css/service-interior.css)가
+             그림이 그려지는 폭(800·747·462px)을 정한다. 그 높이를 바꾸면 sizes 와 위 preload 의 imagesizes 를 같이 고쳐라. -->
         <figure class="interior-hero-visual">
-          <img src="assets/site/hero-interior.jpg" width="1600" height="900" alt="밝은 원목과 아이보리 색감의 거실 인테리어 참고 시안" fetchpriority="high" decoding="async" />
+          <img src="assets/site/hero-interior.jpg" width="1600" height="900" srcset="assets/site/resized/hero-interior-480w.jpg 480w, assets/site/resized/hero-interior-960w.jpg 960w, assets/site/hero-interior.jpg 1600w" sizes="(max-width: 510px) 462px, (max-width: 760px) calc(100vw - 48px), (max-width: 960px) 747px, 800px" alt="밝은 원목과 아이보리 색감의 거실 인테리어 참고 시안" fetchpriority="high" decoding="async" />
           <figcaption><span>공간을 생각하는 시작</span><small>디지털 참고 시안 · 실제 완공 사진 아님</small></figcaption>
         </figure>
       </div>
@@ -501,7 +503,32 @@
           <h2>계약 전에 꼭 알아야 할 인테리어 가이드</h2>
           <p class="section-sub">예산·공사 범위·관리사무소 신고·견적서·보증 기준을 먼저 확인하세요.</p>
         </div>
-        <div class="insights-grid" id="insightsGrid" data-featured-slugs="apt-office-construction-notice,budget-guide-34py,partial-vs-full-remodel"></div>
+        <div class="insights-grid" id="insightsGrid" data-featured-slugs="apt-office-construction-notice,budget-guide-34py,partial-vs-full-remodel">
+          <a class="insight-card" href="posts/apt-office-construction-notice.html">
+            <span class="ic-cover" style="background:linear-gradient(150deg, #cbb9a2, #bba992)"><img class="ic-image" src="assets/insights/apt-office-notice.jpg?v=20260919-photofix" width="1600" height="900" srcset="assets/insights/resized/apt-office-notice-480w.jpg?v=20260919-photofix 480w, assets/insights/resized/apt-office-notice-960w.jpg?v=20260919-photofix 960w" sizes="(max-width: 720px) 94vw, (max-width: 1130px) 46vw, 356px" alt="공사 신고 서류와 평면도, 현관 열쇠를 정리해 둔 책상 위 구성" loading="lazy" decoding="async"><span class="ic-cat">계약 가이드</span></span>
+            <span class="ic-body">
+              <b>아파트 인테리어 공사, 관리사무소 신고는 이렇게 진행됩니다</b>
+              <span class="ic-excerpt">공동주택 공사는 시작 전에 관리사무소 절차가 있습니다. 무엇을 언제 내는지, 보통 어떤 것을 요구받는지, 저희가 대신 처리하는 범위를 정리했습니다.</span>
+              <span class="ic-meta">2026-07-29 · 4분 읽기</span>
+            </span>
+          </a>
+          <a class="insight-card" href="posts/budget-guide-34py.html">
+            <span class="ic-cover" style="background:linear-gradient(150deg, #d8c3a5, #c8b395)"><img class="ic-image" src="assets/insights/budget-guide-34py.jpg" width="1600" height="900" srcset="assets/insights/resized/budget-guide-34py-480w.jpg 480w, assets/insights/resized/budget-guide-34py-960w.jpg 960w" sizes="(max-width: 720px) 94vw, (max-width: 1130px) 46vw, 356px" alt="아파트 평면도와 마감재 샘플로 리모델링 예산을 계획하는 테이블" loading="lazy" decoding="async"><span class="ic-cat">견적 가이드</span></span>
+            <span class="ic-body">
+              <b>34평 아파트 리모델링, 예산 6천만원으로 어디까지 될까?</b>
+              <span class="ic-excerpt">전체공사 기준으로 6천만원 예산이 어느 범위까지 커버되는지, 어디서 비용이 크게 갈리는지 실제 항목별로 정리했습니다.</span>
+              <span class="ic-meta">2026-07-10 · 5분 읽기</span>
+            </span>
+          </a>
+          <a class="insight-card" href="posts/partial-vs-full-remodel.html">
+            <span class="ic-cover" style="background:linear-gradient(150deg, #c9a86a, #b9985a)"><img class="ic-image" src="assets/insights/partial-vs-full-remodel.jpg" width="1600" height="900" srcset="assets/insights/resized/partial-vs-full-remodel-480w.jpg 480w, assets/insights/resized/partial-vs-full-remodel-960w.jpg 960w" sizes="(max-width: 720px) 94vw, (max-width: 1130px) 46vw, 356px" alt="기존 주방과 전체 리모델링 공간이 한 집 안에서 이어지는 모습" loading="lazy" decoding="async"><span class="ic-cat">견적 가이드</span></span>
+            <span class="ic-body">
+              <b>부분 리모델링 vs 전체 리모델링 — 우리 집엔 뭐가 유리할까?</b>
+              <span class="ic-excerpt">욕실만? 주방만? 아니면 한 번에 전체? 같은 예산이라도 순서를 잘못 잡으면 두 번 공사하게 됩니다. 부분과 전체의 갈림길에서 확인할 기준을 정리했습니다.</span>
+              <span class="ic-meta">2026-07-16 · 5분 읽기</span>
+            </span>
+          </a>
+        </div>
         <div class="insights-more"><a href="blog.html?category=interior" class="btn btn-ghost">인테리어 사례 모아보기 →</a><a href="blog.html" class="service-case-link">전체 사례와 안내 보기 →</a></div>
       </div>
     </section>
@@ -735,14 +762,14 @@
     </a>
   </div>
 
-  <script src="js/design-bom.js?v=20260727-sim2"></script>
-  <script src="js/main.js?v=20260830-followup1"></script>
-  <script src="js/estimate.js?v=20260830-case-summary1"></script>
-  <script src="js/simulator.js?v=20260727-sim4"></script>
-  <script src="js/lookbook.js?v=20260728-lookbook1"></script>
-  <script src="js/lead-transport.js?v=20260830-followup1"></script>
-  <script src="js/inquiry.js?v=20260901-webbridge1"></script>
-  <script src="js/hj-link.js?v=20260719-fixes"></script>
-  <script src="js/service-nav.js?v=20260906-services" defer></script>
+  <script src="js/design-bom.js?v=f89191abbc"></script>
+  <script src="js/main.js?v=cbe8ad7fa5"></script>
+  <script src="js/estimate.js?v=32009c4877"></script>
+  <script src="js/simulator.js?v=fbab695171"></script>
+  <script src="js/lookbook.js?v=484b9cdd0d"></script>
+  <script src="js/lead-transport.js?v=3e73c1e824"></script>
+  <script src="js/inquiry.js?v=a240f427e0"></script>
+  <script src="js/hj-link.js?v=9337be15b3"></script>
+  <script src="js/service-nav.js?v=dea7fff9f2" defer></script>
 </body>
 </html>

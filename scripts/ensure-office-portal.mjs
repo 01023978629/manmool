@@ -36,7 +36,9 @@ check(!/(office-login|office-portal|office-admin)\.html/.test(files.sitemap), '�
 check(files.login.includes('type="email"') && /name="loginCode"[^>]*inputmode="text"[^>]*autocomplete="current-password"[^>]*maxlength="64"/.test(files.login) && !/pattern="\[0-9\]\{6\}"/.test(files.login), '로그인 페이지가 직원·관리자 비밀번호 입력을 지원하지 않습니다.');
 check(/validLoginCredential/.test(files.core) && /role === 'system_admin' && isMasterPassword\(value\)/.test(files.core) && /masterDowngrade && !isSixDigitCode\(value\)/.test(files.core) && /core\.validateUserLoginCode/.test(files.adminJs), '관리자 비밀번호 역할 제한 또는 직원 강등 시 6자리 필수 검증이 없습니다.');
 check(!/loginCode[^\n;]*\.trim\(/.test(files.core + files.adminJs + files.loginJs), '비밀번호 원문을 trim 처리합니다.');
-check(['login', 'portal', 'admin'].every((page) => files[page].includes('js/office-portal-core.js?v=20260908-master-password1')), '공통 비밀번호 검증 코드의 캐시 버전이 일치하지 않습니다.');
+// 2026-09-26: 토큰이 내용 해시가 됐다(scripts/stamp-asset-versions.mjs) — 날짜 이름을 박지 않고 세 페이지가 같은 토큰을 쓰는지 본다.
+const coreTokens = ['login', 'portal', 'admin'].map((page) => (files[page].match(/js\/office-portal-core\.js\?v=([^"]+)"/) || [])[1]);
+check(coreTokens.every((token) => token && token === coreTokens[0]), '공통 비밀번호 검증 코드의 캐시 버전이 일치하지 않습니다.');
 check(/"enabled": false[\s\S]*"apiUrl": ""/.test(files.config) && Object.keys(JSON.parse(files.config)).sort().join(',') === 'apiUrl,enabled', '포털 API 기본 설정이 exact disabled가 아닙니다.');
 check(actions.every((action) => files.api.includes(`'${action}'`)), '포털 API action 계약이 불완전합니다.');
 check(/sessionStorage/.test(files.loginJs + files.portalJs + files.adminJs) && !/(localStorage|indexedDB)/.test(files.core + files.api + files.loginJs + files.portalJs + files.adminJs), '포털이 허용되지 않은 영구 브라우저 저장소를 사용합니다.');
