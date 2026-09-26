@@ -57,14 +57,8 @@ function imageSize(file) {
   return null;
 }
 const attr = (tag, name) => (tag.match(new RegExp(`\\s${name}="([^"]*)"`)) || [])[1];
-// 손으로 쓴 페이지에서 이미 알고 있는 치수 오기. 이 검사가 치수를 보기 시작한
-// 2026-09-26 에 찾았다 — 칸이 고정 높이 + object-fit: cover 라 화면에는 영향이 없어
-// 이 작업(설명 글 사진)에서는 고치지 않았다. 고쳤으면 이 줄을 지워라(남아 있으면 경고한다).
-const KNOWN_DIM_MISMATCH = new Set([
-  'leak.html assets/cases/jinjam-rain-pipe-202609-10.jpg', // 1600×1200 인데 1200×1600 으로 적혀 있다
-]);
-const seenKnown = new Set();
-const warn = [];
+// 2026-09-26 까지 leak.html 진잠타운 카드 사진(1600×1200)이 1200×1600 으로 적혀 있어 여기서 '알려진 오기'로
+// 허용했다. 고쳤으므로 허용 목록을 없앴다 — 모든 폴더의 <img> 비율은 ensure-img-dims.mjs 가 본다.
 
 // 검사 1 — 원본마다 두 축소본, 이름 겹침, 고아
 let originalCount = 0;
@@ -130,10 +124,8 @@ for (const page of pages) {
     if (srcset !== expected) fail.push(`${page}: srcset 이 규칙과 다르다(캐시 쿼리 포함) — 기대 "${expected}", 실제 "${srcset}"`);
     const o = originalSize.get(src.slice(prefix.length).split('?')[0]);
     if (!o) fail.push(`${page}: 사진 원본이 없다: ${src}`);
-    else if ((attr(tag, 'width') !== String(o.width) || attr(tag, 'height') !== String(o.height))) {
-      const key = `${page} ${src}`;
-      if (KNOWN_DIM_MISMATCH.has(key) && attr(tag, 'width') && attr(tag, 'height')) seenKnown.add(key);
-      else fail.push(`${page}: width·height 가 원본(${o.width}×${o.height})과 다르거나 없다 — 칸이 그림을 받은 뒤 밀린다: ${src}`);
+    else if (attr(tag, 'width') !== String(o.width) || attr(tag, 'height') !== String(o.height)) {
+      fail.push(`${page}: width·height 가 원본(${o.width}×${o.height})과 다르거나 없다 — 칸이 그림을 받은 뒤 밀린다: ${src}`);
     }
     for (const c of srcset.split(',')) {
       const rel = c.trim().split(/\s+/)[0].replace(/^\.\.\//, '').split('?')[0];
@@ -212,11 +204,6 @@ if (mainFn && blogFn) {
   if (!compared) fail.push('검사 6 에서 비교한 사진이 0장이다');
 }
 
-for (const key of KNOWN_DIM_MISMATCH) {
-  warn.push(seenKnown.has(key) ? `알려진 치수 오기(화면 영향 없음, 고칠 것): ${key}`
-    : `알려진 치수 오기 목록의 항목이 더는 어긋나지 않는다 — KNOWN_DIM_MISMATCH 에서 지워라: ${key}`);
-}
-for (const w of warn) console.warn('WARN  ' + w);
 if (fail.length) {
   for (const f of fail) console.error('FAIL  ' + f);
   process.exit(1);

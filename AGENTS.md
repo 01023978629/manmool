@@ -185,6 +185,10 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 - 검사 `scripts/ensure-image-variants.mjs`: 축소본 누락·비대·비율·고아, 공개 HTML 의 사진 `<img>`
   srcset·sizes·**원본과 같은 width·height**, 첫 그림 preload 의 `imagesrcset`·`imagesizes` 가 `<img>` 와
   같은지(다르면 폰이 두 장을 받는다), 대문 카드가 정적인지.
+- 검사 `scripts/ensure-img-dims.mjs`: 공개 HTML(noindex·해시 고정 파일 제외) 의 로컬 사진 `<img>` 중 width·height 를
+  가진 것은 **모든 폴더**에서 실제 파일(JPEG·PNG·WebP 머리, EXIF 방향 반영)과 비율이 같아야 한다(±1%). 한쪽만 적어도
+  실패. 2026-09-26 leak.html 진잠타운 카드(1600×1200 가로 사진)가 옆 카드 줄을 베껴 1200×1600 으로 적혀 있었다 —
+  손으로 쓴 줄이다(leak.html 을 쓰는 생성기는 없다). 사례 카드를 손으로 더할 때 치수는 파일에서 읽어 적어라.
 - **대문 `#insightsGrid` 는 이제 생성물이다.** `prerender-posts.py` 가 `data-featured-slugs` 순서대로
   정적 카드 3장을 박는다(JS 없이도 보이게). `.reveal` 을 붙이지 마라 — JS 가 `in` 을 붙여야 보여서
   JS 없이는 투명하다. `main.js renderInsights` 는 정적 카드가 있으면 다시 그리지 않는다(`?preview=1` 만 예외).
