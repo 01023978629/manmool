@@ -104,7 +104,9 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 실제 현장 사례는 `scripts/new-case-post.mjs` 에 6항목(동네+단지/증상/탐지 방법/
 원인+전유·공용/공사 내용/소요시간)을 줘 **비공개 초안**부터 만든다. 이 도구는
 동·호수·고객명·연락처를 거부하고 `published:false` 로 저장한다. 실제 자료 없이
-사례를 지어내지 마라.
+사례를 지어내지 마라. 재료 글은 옛 라벨('2. 어떤 연락:'·'3. 탐지 방법:'·'4. 원인+전유/공용:')과
+현장 앱 v321 라벨('2. 어떤 연락(증상):'·'3. 탐지·확인 방법:'·'4. 원인 (전유/공용):')을 둘 다 읽는다 —
+한쪽만 받으면 다른 쪽 재료는 세 칸이 빠져 거부된다. 사진까지 있는 앱 zip 은 아래 「글을 더할 때」의 들이기 도구로.
 
 손으로 `posts/*.html` 을 만들면 **고아 글**이 된다 — 파일은 있는데 목록·홈
 어디에도 안 떠서 손님이 볼 방법이 없다. 실제로 2026-08-02 관리사무소 대상
@@ -197,6 +199,20 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 
 **설명 글에는 `image` 가 없어도 된다**(`cover` 색으로 그려진다 — 이미 2건이 그렇다). 다만
 카드가 색 덩어리로만 보이니, 사진이 생기면 `image`·`imageAlt` 를 같이 채워라.
+
+**현장 앱 「📰 사례 내보내기」 zip 은 `scripts/import-case-zip.mjs` 로 들인다(2026-09-26).**
+`node scripts/import-case-zip.mjs <사례_….zip 또는 푼 폴더> --slug <영문-소문자-slug>` — zip 은 node 기본
+모듈로 읽는다(윈도에 unzip 이 없어도 된다). 사례재료.txt 의 `※ 고객 사진 공개 동의: 받음` 이 아니면 거부,
+6항목·사진 공정 이름·파일 이름을 `js/pii-rules.js` 로 검사, 파일은 앱 규칙(`NN-전|중|후.jpg`·사례재료.txt)과
+목록에 있는 사진만, 사진마다 JPEG·긴 변 1800 이하·EXIF/XMP/IPTC 없음을 확인한다. **하나라도 걸리면 아무것도
+쓰지 않는다.** 통과하면 사진을 `assets/cases/<slug>-NN.jpg` 로 복사하고(앱이 구운 바이트 그대로),
+`python3 scripts/build-image-variants.py` 를 돌리고(`--no-variants` 면 안내만), `.private/case-drafts/<slug>.json`
+에 `published:false` 초안을 쓴다. 사진 소제목·문단·`imgAlt`·표지 `imageAlt` 는 `TODO:` 로 남는다 — **사진을
+보고 채워라, 지어내지 마라.** 공개 글이나 생성물에 `TODO:` 가 남으면 `scripts/ensure-case-import.mjs` 가 막는다.
+`imgCaption` 은 파일 이름의 전/중/후를 앱과 같은 말(시공 전·작업 중·완료)로 적는다. 초안의 분류는 누수
+(`service:'leak'`)로 시작하니 인테리어 현장이면 고쳐라. **`assets/cases` 사진은 병합되면 글이 비공개여도 주소로
+열린다** — 사진은 글을 공개하는 커밋에 같이 넣어라. 앱 형식이 바뀌면 `scripts/new-case-post.test.mjs` 의
+이웃 저장소 대조(`HYEONJANG_ROOT` 또는 `../hyeonjang`)가 먼저 빨간불을 낸다 — CI 에는 이웃이 없어 건너뛴다.
 
 **`office-request.html` 과 지원 파일 6개는 SHA-256 으로 고정돼 있다**
 (`tests/fixtures/office-request-commercial-baseline.json`). `<link rel="icon">` 한 줄만 넣어도
