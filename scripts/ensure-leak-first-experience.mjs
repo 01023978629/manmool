@@ -188,7 +188,7 @@ check(plannedInteriorCases.every((slug) => published.find((item) => item.slug ==
   '일반 방수·난방 공정 사례는 인테리어 접수로 분리');
 check(insurance && insurance.service === 'leak'
     && insurance.sourcesChecked === '2026-08-23'
-    && insurance.updated === '2026-08-23'
+    && insurance.updated === '2026-09-26' // 2026-09-26 검토 반영(용어 풀이·문단 나눔) — 출처 확인일 2026-08-23 은 그대로
     && Array.isArray(insurance.sources) && insurance.sources.length === sourceUrls.length
     && sourceUrls.every((url) => insurance.sources.some((source) => source.url === url))
     && insurance.sources.slice(0, 2).every((source) => /금융감독원/.test(source.title))
@@ -205,9 +205,9 @@ check(/확인일\s*2026-08-23/.test(sourceBlock) && sourceUrls.every((url) => so
   '누수 보험 정적 글에 공식 출처 링크 6개와 확인일이 렌더되지 않았다',
   '누수 보험 정적 글에 공식 출처·확인일 렌더');
 check(/"datePublished":\s*"2026-08-09"/.test(insurancePost)
-    && /"dateModified":\s*"2026-08-23"/.test(insurancePost)
-    && /<loc>https:\/\/01023978629\.github\.io\/manmool\/posts\/leak-insurance-guide\.html<\/loc>\s*<lastmod>2026-08-23<\/lastmod>/.test(sitemap),
-  '누수 보험 글의 구조화 수정일 또는 sitemap lastmod가 2026-08-23으로 갱신되지 않았다',
+    && /"dateModified":\s*"2026-09-26"/.test(insurancePost)
+    && /<loc>https:\/\/01023978629\.github\.io\/manmool\/posts\/leak-insurance-guide\.html<\/loc>\s*<lastmod>2026-09-26<\/lastmod>/.test(sitemap),
+  '누수 보험 글의 구조화 수정일 또는 sitemap lastmod가 2026-09-26으로 갱신되지 않았다',
   '누수 보험 글의 구조화 수정일·sitemap 갱신일 일치');
 check(/styles\.css\?v=20260830-followup1/.test(index)
     && /brand-system\.css\?v=20260830-followup1/.test(index)
