@@ -164,10 +164,42 @@ const SOF = new Set([0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB,
 const EXIF_SIG = Buffer.from('Exif\0\0', 'latin1');
 const XMP_SIG = Buffer.from('http://ns.adobe.com/xap/1.0/', 'latin1');
 
+/* Safari(iOS·macOS)의 canvas.toBlob('image/jpeg') 는 위치·기기 없이 색공간·픽셀 크기만 든 작은 EXIF 를 쓴다
+   (IFD0 = Exif IFD 포인터 하나, Exif IFD = ColorSpace·PixelXDimension·PixelYDimension). 앱(hjCaseJpeg)도 canvas.toBlob
+   이라 아이폰에서 내보낸 zip 에는 이 EXIF 가 붙는다 — 그걸 원본으로 오해해 전부 거부하면 안 된다.
+   허용은 좁게, 목록 방식으로: 아래 태그 말고 하나라도 있거나(GPS 0x8825·Make·Model·DateTime·MakerNote 등),
+   썸네일 IFD 가 이어지거나, 구조를 끝까지 못 읽으면 '위치가 실릴 수 있는 EXIF' 로 보고 거부한다. */
+const BENIGN_IFD0 = new Set([0x8769]);                        // Exif IFD 포인터
+const BENIGN_EXIF_IFD = new Set([0x9000, 0xA000, 0xA001, 0xA002, 0xA003]);   // 버전 두 개·ColorSpace·픽셀 가로·세로
+export function exifIsBenign(seg) {
+  if (seg.length < 6 + 8 || !seg.subarray(0, 6).equals(EXIF_SIG)) return false;
+  const t = seg.subarray(6);
+  const le = t[0] === 0x49 && t[1] === 0x49;
+  if (!le && !(t[0] === 0x4D && t[1] === 0x4D)) return false;
+  const u16 = (o) => (o + 2 <= t.length ? (le ? t.readUInt16LE(o) : t.readUInt16BE(o)) : -1);
+  const u32 = (o) => (o + 4 <= t.length ? (le ? t.readUInt32LE(o) : t.readUInt32BE(o)) : -1);
+  if (u16(2) !== 42) return false;
+  // IFD 하나를 읽어 태그 목록을 돌려준다. 다음 IFD(썸네일)가 이어지면 null.
+  const readIfd = (off) => {
+    const n = u16(off);
+    if (off < 8 || n < 0 || off + 2 + n * 12 + 4 > t.length) return null;
+    const tags = new Map();
+    for (let k = 0; k < n; k++) tags.set(u16(off + 2 + k * 12), off + 2 + k * 12);
+    if (u32(off + 2 + n * 12) !== 0) return null;
+    return tags;
+  };
+  const ifd0 = readIfd(u32(4));
+  if (!ifd0 || ![...ifd0.keys()].every((tag) => BENIGN_IFD0.has(tag))) return false;
+  if (!ifd0.has(0x8769)) return true;
+  const exif = readIfd(u32(ifd0.get(0x8769) + 8));
+  return !!exif && [...exif.keys()].every((tag) => BENIGN_EXIF_IFD.has(tag));
+}
+
 /* 치수와 메타데이터 자리(EXIF·XMP·IPTC)를 SOS 전까지 마커로 읽는다. 위치 정보는 이 자리에 실린다. */
 export function inspectJpeg(buf) {
   if (buf.length < 4 || buf[0] !== 0xFF || buf[1] !== 0xD8) return { error: 'JPEG 이 아닙니다' };
   const meta = new Set();
+  const benignAt = new Set();   // Safari canvas 의 크기만 든 EXIF 가 시작하는 자리
   let width = 0, height = 0, i = 2, scan = false;
   while (i + 1 < buf.length) {
     if (buf[i] !== 0xFF) return { error: 'JPEG 구조를 읽지 못했습니다' };
@@ -180,7 +212,8 @@ export function inspectJpeg(buf) {
     const len = buf.readUInt16BE(i);
     if (len < 2 || i + len > buf.length) return { error: 'JPEG 구조를 읽지 못했습니다' };
     const seg = buf.subarray(i + 2, i + len);
-    if (marker === 0xE1) meta.add(seg.subarray(0, 6).equals(EXIF_SIG) ? 'EXIF' : seg.subarray(0, XMP_SIG.length).equals(XMP_SIG) ? 'XMP' : 'APP1');
+    if (marker === 0xE1 && exifIsBenign(seg)) benignAt.add(i + 2);
+    else if (marker === 0xE1) meta.add(seg.subarray(0, 6).equals(EXIF_SIG) ? 'EXIF' : seg.subarray(0, XMP_SIG.length).equals(XMP_SIG) ? 'XMP' : 'APP1');
     else if (marker === 0xED) meta.add('IPTC');
     else if (SOF.has(marker) && seg.length >= 5) { height = seg.readUInt16BE(1); width = seg.readUInt16BE(3); }
     if (marker === 0xDA) { scan = true; break; }
@@ -188,7 +221,10 @@ export function inspectJpeg(buf) {
   }
   if (!scan || !width || !height) return { error: '사진 크기를 읽지 못했습니다' };
   // 마커를 벗어난 자리에 숨은 EXIF 머리도 본다 — 6바이트가 우연히 맞을 확률은 무시할 만하다.
-  if (buf.includes(EXIF_SIG)) meta.add('EXIF');
+  // 봐 준 Safari EXIF 자리 하나만 빼고 본다.
+  for (let at = buf.indexOf(EXIF_SIG); at >= 0; at = buf.indexOf(EXIF_SIG, at + 1)) {
+    if (!benignAt.has(at)) { meta.add('EXIF'); break; }
+  }
   return { width, height, meta: [...meta] };
 }
 
@@ -197,6 +233,8 @@ const CONSENT_RE = /^※[ \t]*고객 사진 공개 동의[ \t]*:[ \t]*(.*?)[ \t]
 const PHOTO_LINE_RE = /^(\d{2,3}-(?:전|중|후)\.jpg)[ \t]*—[ \t]*(.*?)[ \t]*$/gm;
 
 export function parseCasePack(text) {
+  // CRLF 는 따로 바꾸지 않아도 된다 — JS 정규식의 '.' 은 \r 을 먹지 않고 m 플래그의 '$' 는 \r 앞에서도 맞는다
+  // (그래서 동의가 '받음\r' 로 잡히지 않는다). 테스트 '윈도 메모장으로 연 사례재료.txt(BOM·CRLF)' 가 이것을 지킨다.
   const src = String(text || '').replace(/^\uFEFF/, '').normalize('NFC');
   const consents = [...src.matchAll(CONSENT_RE)].map((m) => m[1]);
   const listed = new Map();

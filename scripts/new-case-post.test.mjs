@@ -165,12 +165,32 @@ try {
 const IMPORTER = path.join(ROOT, 'scripts', 'import-case-zip.mjs');
 const u16 = (n) => Buffer.from([n >> 8, n & 255]);
 const seg = (marker, body) => Buffer.concat([Buffer.from([0xFF, marker]), u16(body.length + 2), body]);
-function synthJpeg(w, h, { exif = false, tag = 0 } = {}) {
+/* Safari canvas.toBlob('image/jpeg') 가 쓰는 EXIF 모양(빅엔디언, APP1 길이 0x4C): IFD0 = Exif IFD 포인터(0x8769) 하나,
+   Exif IFD = ColorSpace(A001)·PixelXDimension(A002)·PixelYDimension(A003). extra0/extraExif 로 태그를 끼워 넣으면
+   폰 원본처럼 위치·기기가 실린 EXIF 가 된다(0x8825 GPS IFD 포인터·0x010F Make·0x927C MakerNote 등). */
+function safariExif(w, h, { extra0 = [], extraExif = [], nextIfd = 0 } = {}) {
+  const entry = (tag, type, value) => {
+    const e = Buffer.alloc(12); e.writeUInt16BE(tag, 0); e.writeUInt16BE(type, 2); e.writeUInt32BE(1, 4);
+    if (type === 3) e.writeUInt16BE(value, 8); else e.writeUInt32BE(value, 8);
+    return e;
+  };
+  const ifd = (entries, next) => {
+    const n = Buffer.alloc(2); n.writeUInt16BE(entries.length, 0);
+    const nx = Buffer.alloc(4); nx.writeUInt32BE(next, 0);
+    return Buffer.concat([n, ...entries, nx]);
+  };
+  const ifd0Len = 2 + (1 + extra0.length) * 12 + 4;
+  const ifd0 = ifd([...extra0.map(([t, v]) => entry(t, 4, v)), entry(0x8769, 4, 8 + ifd0Len)].sort((a, b) => a.readUInt16BE(0) - b.readUInt16BE(0)), nextIfd);
+  const exifIfd = ifd([entry(0xA001, 3, 1), entry(0xA002, 4, w), entry(0xA003, 4, h), ...extraExif.map(([t, v]) => entry(t, 4, v))], 0);
+  return seg(0xE1, Buffer.concat([Buffer.from('Exif\0\0MM\0*\0\0\0\x08', 'latin1'), ifd0, exifIfd]));
+}
+function synthJpeg(w, h, { exif = false, tag = 0, app1 = null } = {}) {
   return Buffer.concat([
     Buffer.from([0xFF, 0xD8]),
     seg(0xE0, Buffer.from('JFIF\0\x01\x01\0\0\x01\0\x01\0\0', 'latin1')),
     // 폰 원본처럼 촬영 위치가 실린 EXIF — 들이기 도구가 이것을 찾아 거부해야 한다
     ...(exif ? [seg(0xE1, Buffer.from('Exif\0\0MM\0*GPSLatitude 36.32 GPSLongitude 127.42', 'latin1'))] : []),
+    ...(app1 ? [app1] : []),
     seg(0xC0, Buffer.from([8, h >> 8, h & 255, w >> 8, w & 255, 3, 1, 0x22, 0, 2, 0x11, 1, 3, 0x11, 1])),
     seg(0xDA, Buffer.from([3, 1, 0, 2, 0x11, 3, 0x11, 0, 0x3F, 0])),
     Buffer.from([0x12, 0x34, tag & 255, 0x56]), Buffer.from([0xFF, 0xD9]),
@@ -335,6 +355,16 @@ try {
     const photos = PHOTOS.map((ph, i) => i === 2 ? { ...ph, data: synthJpeg(1600, 1200, { exif: true }) } : ph);
     assertRejected(importZip(packEntries({ photos }), SLUG), /03-중\.jpg: 사진에 EXIF/);
   });
+  test('들이기: 아이폰 Safari 가 구운 사진(크기만 든 EXIF)은 받는다 — 원본으로 오해해 거부하지 않는다', () => {
+    const photos = PHOTOS.map((ph) => ({ ...ph, data: synthJpeg(1800, 1200, { app1: safariExif(1800, 1200) }) }));
+    const r = importZip(packEntries({ photos }), SLUG);
+    assert.equal(r.status, 0, r.out);
+    assert.equal(r.cases.length, PHOTOS.length);
+  });
+  test('거부: Safari 모양 EXIF 에 GPS IFD 가 끼어 있다', () => {
+    const photos = PHOTOS.map((ph, i) => i === 1 ? { ...ph, data: synthJpeg(1200, 1800, { app1: safariExif(1200, 1800, { extra0: [[0x8825, 0]] }) }) } : ph);
+    assertRejected(importZip(packEntries({ photos }), SLUG), /02-중\.jpg: 사진에 EXIF/);
+  });
   test('거부: 긴 변이 1800px 을 넘는 사진(앱을 거치지 않은 원본)', () => {
     const photos = PHOTOS.map((ph, i) => i === 0 ? { ...ph, data: synthJpeg(4032, 3024) } : ph);
     assertRejected(importZip(packEntries({ photos }), SLUG), /긴 변이 4032px/);
@@ -403,6 +433,21 @@ test('들이기 도구의 사례 사진 경로 규칙이 prerender-posts.py CASE
 test('JPEG 검사: 치수와 EXIF 를 읽는다', () => {
   assert.deepEqual(inspectJpeg(synthJpeg(1800, 1200)), { width: 1800, height: 1200, meta: [] });
   assert.deepEqual(inspectJpeg(synthJpeg(10, 20, { exif: true })).meta, ['EXIF']);
+  // Safari canvas EXIF(크기만)는 봐 주고, 목록 밖 태그·썸네일 IFD·깨진 구조·두 번째 EXIF 는 거부
+  assert.deepEqual(inspectJpeg(synthJpeg(100, 100, { app1: safariExif(100, 100) })), { width: 100, height: 100, meta: [] });
+  for (const bad of [{ extra0: [[0x8825, 0]] }, { extra0: [[0x010F, 0]] }, { extra0: [[0x0132, 0]] }, { extraExif: [[0x927C, 0]] }, { nextIfd: 60 }]) {
+    assert.deepEqual(inspectJpeg(synthJpeg(100, 100, { app1: safariExif(100, 100, bad) })).meta, ['EXIF'], JSON.stringify(bad));
+  }
+  const cut = safariExif(100, 100);
+  assert.deepEqual(inspectJpeg(synthJpeg(100, 100, { app1: seg(0xE1, cut.subarray(4, cut.length - 6)) })).meta, ['EXIF'], '끝이 잘린 EXIF');
+  assert.deepEqual(inspectJpeg(synthJpeg(100, 100, { exif: true, app1: safariExif(100, 100) })).meta, ['EXIF'], '봐 준 EXIF 옆의 진짜 EXIF');
+  const farPtr = safariExif(100, 100); farPtr.writeUInt32BE(0xFFFFFFF0, 4 + 6 + 8 + 2 + 8);   // Exif IFD 포인터가 밖을 가리킨다
+  assert.deepEqual(inspectJpeg(synthJpeg(100, 100, { app1: farPtr })).meta, ['EXIF'], '밖을 가리키는 IFD 포인터');
+  const badMagic = safariExif(100, 100); badMagic.writeUInt16BE(43, 4 + 6 + 2);
+  assert.deepEqual(inspectJpeg(synthJpeg(100, 100, { app1: badMagic })).meta, ['EXIF'], 'TIFF 머리 42 가 아니다');
+  const safari = synthJpeg(100, 100, { app1: safariExif(100, 100) });
+  const hidden = Buffer.concat([safari.subarray(0, -2), Buffer.from('Exif\0\0MM\0*', 'latin1'), Buffer.from([0xFF, 0xD9])]);
+  assert.deepEqual(inspectJpeg(hidden).meta, ['EXIF'], '봐 준 EXIF 와 별개로 스캔 뒤에 숨은 EXIF 머리');
   assert.match(inspectJpeg(Buffer.from([0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A])).error || '', /읽지 못했습니다/);   // 중간에 끊긴 파일
   assert.match(inspectJpeg(Buffer.concat([synthJpeg(10, 10).subarray(0, 20), Buffer.from([0xFF, 0xD9])])).error || '', /크기를 읽지 못했습니다/);   // 크기 없이 끝
 });
