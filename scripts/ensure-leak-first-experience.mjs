@@ -7,6 +7,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { assetToken } from './stamp-asset-versions.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -209,14 +210,18 @@ check(/"datePublished":\s*"2026-08-09"/.test(insurancePost)
     && /<loc>https:\/\/01023978629\.github\.io\/manmool\/posts\/leak-insurance-guide\.html<\/loc>\s*<lastmod>2026-09-26<\/lastmod>/.test(sitemap),
   '누수 보험 글의 구조화 수정일 또는 sitemap lastmod가 2026-09-26으로 갱신되지 않았다',
   '누수 보험 글의 구조화 수정일·sitemap 갱신일 일치');
-check(/styles\.css\?v=20260830-followup1/.test(index)
-    && /brand-system\.css\?v=20260830-followup1/.test(index)
-    && /main\.js\?v=20260926-insight-images/.test(index) // 2026-09-26 설명 글 사진 축소본 규칙·정적 대문 카드
-    && /styles\.css\?v=20260907-story-paragraphs/.test(blog)
-    && /brand-system\.css\?v=20260925-category-groups/.test(blog)
-    && /blog\.js\?v=20260926-insight-images/.test(blog) // 2026-09-26 설명 글 사진 축소본 규칙
-    && /styles\.css\?v=20260907-story-paragraphs/.test(insurancePost)
-    && /brand-system\.css\?v=20260907-story-paragraphs/.test(insurancePost),
+// 2026-09-26: 캐시 토큰을 손으로 올리던 날짜 이름(20260830-followup1 …)에서 파일 내용 해시로 바꿨다
+// (scripts/stamp-asset-versions.mjs). 이 검사가 지키려던 것은 '고친 CSS/JS 의 토큰이 실제로 바뀌었는가'라서,
+// 이제는 세 페이지가 부르는 토큰이 지금 파일 내용의 해시인지를 본다 — 고치고 도장을 안 찍으면 여기서 걸린다.
+const currentAssetRef = (html, asset) => html.includes(`${asset}?v=${assetToken(ROOT, asset)}"`);
+check(currentAssetRef(index, 'css/styles.css')
+    && currentAssetRef(index, 'css/brand-system.css')
+    && currentAssetRef(index, 'js/main.js')
+    && currentAssetRef(blog, 'css/styles.css')
+    && currentAssetRef(blog, 'css/brand-system.css')
+    && currentAssetRef(blog, 'js/blog.js')
+    && currentAssetRef(insurancePost, 'css/styles.css')
+    && currentAssetRef(insurancePost, 'css/brand-system.css'),
   '변경된 CSS/JS의 캐시 버전이 갱신되지 않아 기존 방문자에게 이전 화면이 남을 수 있다',
   '누수 우선 CSS/JS 캐시 버전 갱신');
 

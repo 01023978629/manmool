@@ -265,3 +265,32 @@ class IndexCardTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ImageHeaderTests(unittest.TestCase):
+    """공유 카드 치수는 파일 머리에서 읽는다 — scripts/ensure-og-image-dims.mjs 가 같은 값을 따로 읽는다."""
+
+    def test_png_ihdr(self):
+        data = b'\x89PNG\r\n\x1a\n' + b'\x00\x00\x00\x0dIHDR' + (1200).to_bytes(4, 'big') + (630).to_bytes(4, 'big') + b'\x08\x02\x00\x00\x00'
+        self.assertEqual(PRERENDER.png_dimensions(data), (1200, 630))
+
+    def test_webp_lossy_lossless_and_extended(self):
+        lossy = b'RIFF\x00\x00\x00\x00WEBPVP8 ' + b'\x00' * 7 + b'\x9d\x01\x2a' + (800).to_bytes(2, 'little') + (600).to_bytes(2, 'little')
+        self.assertEqual(PRERENDER.webp_dimensions(lossy), (800, 600))
+        bits = (800 - 1) | ((600 - 1) << 14)
+        lossless = b'RIFF\x00\x00\x00\x00WEBPVP8L' + b'\x00' * 4 + b'\x2f' + bits.to_bytes(4, 'little')
+        self.assertEqual(PRERENDER.webp_dimensions(lossless), (800, 600))
+        extended = b'RIFF\x00\x00\x00\x00WEBPVP8X' + b'\x00' * 8 + (1599).to_bytes(3, 'little') + (1199).to_bytes(3, 'little')
+        self.assertEqual(PRERENDER.webp_dimensions(extended), (1600, 1200))
+
+    def test_real_share_card_and_query_token_is_ignored(self):
+        self.assertEqual(PRERENDER.image_dimensions('og-image.png?v=abc'), (1200, 630))
+        self.assertIsNone(PRERENDER.image_dimensions('../og-image.png'))
+
+
+class SitemapTests(unittest.TestCase):
+    def test_post_lastmod_follows_updated_or_date(self):
+        block = '  <url>\n    <loc>x</loc>\n    <lastmod>2026-08-09</lastmod>\n  </url>\n'
+        self.assertIn('<lastmod>2026-07-04</lastmod>', PRERENDER.set_lastmod(block, '2026-07-04'))
+        self.assertEqual(PRERENDER.set_lastmod(block, 'not-a-day'), block)
+        self.assertIn('</loc>\n    <lastmod>2026-07-04</lastmod>', PRERENDER.set_lastmod('<url><loc>x</loc></url>', '2026-07-04'))

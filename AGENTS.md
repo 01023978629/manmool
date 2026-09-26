@@ -92,7 +92,7 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 **블로그 글은 `posts/*.html` 을 손으로 만들지 마라.** 그건 생성물이다.
 정본은 `data/site.json` 의 `insights` 하나뿐이고, 거기에 항목을 넣은 뒤
 `python3 scripts/prerender-posts.py` 를 돌리면 `posts/<slug>.html` 과
-`blog.html` 목록이 함께 만들어진다. `sitemap.xml` 만 따로 챙기면 된다.
+`blog.html` 목록, `sitemap.xml` 의 글 항목·lastmod 가 함께 만들어진다(2026-09-26 부터).
 **생성 전에 반드시 `origin/main` 의 `data/site.json` 을 기준으로 삼아라.** 오래된
 로컬 사본으로 생성해 푸시하면 그 사이 main 에 들어간 글 40건의 개정과 `leak.html`
 의 기능(카톡 문의 버튼·신청 목적·서비스 디자인)이 통째로 옛날로 돌아간다 —
@@ -151,7 +151,7 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 
 **공유 카드 `og-image.png` 은 이름과 1200×630 만 지키면 배선을 고칠 것이 없다.**
 치수를 바꾸면 `index.html`·`bathroom-check.html` 의 `og:image:width/height` 를 같이 고쳐라 —
-그 숫자를 보는 검사가 없어 조용히 틀린 채 나간다. 그림을 바꿨으면 그 카드를 쓰는 페이지의
+지금은 `scripts/ensure-og-image-dims.mjs` 가 선언 치수를 파일 머리에서 읽은 실제 치수와 대조한다(2026-09-26 전에는 그런 검사가 없어 조용히 틀린 채 나갔다). 그림을 바꿨으면 그 카드를 쓰는 페이지의
 `og:image:alt` 도 같이 고친다. **글자가 들어가는 그림은 생성 모델에 맡기지 마라** — HTML 을
 헤드리스 크로미움으로 구우면 한글이 또렷하고 다시 만들 수 있다.
 
@@ -193,6 +193,26 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 - 첫 그림 `sizes` 는 칸 폭이 아니라 **높이**(450·420·260px, `object-fit: cover`)로 정했다 —
   `css/service-interior.css` 의 그 높이를 바꾸면 `index.html` 의 `sizes`·preload `imagesizes` 를 같이 고쳐라.
 
+## 머리·접근성·색인 위생 (2026-09-26)
+
+- **CSS·JS 의 `?v=` 는 사람이 정하지 않는다 — 파일 내용 해시다.** CSS·JS 를 고쳤으면
+  `node scripts/stamp-asset-versions.mjs` 한 번(손으로 쓴 페이지·posts/·designs/ 전부), 생성기(`prerender-posts.py`·
+  `prerender-designs.py`)는 `asset_token()` 으로 같은 해시(CRLF→LF 뒤 SHA-256 앞 10자리)를 직접 계산한다.
+  예전에는 날짜 이름을 손으로 올려 같은 styles.css 를 7가지 주소로 불렀고, 손님은 페이지를 옮길 때마다 같은 CSS 를
+  다시 받았다. `ensure-asset-versions.mjs` 가 '같은 자산 = 한 주소 = 지금 내용의 해시'를 본다.
+  `office-request.html` 과 해시 고정 목록 파일은 도장 대상에서 빠진다.
+- **공개 페이지(noindex 아닌 것 66장)는 body 첫 요소가 `<a class="skip-link" href="#…">`** 이고 그 id 가 있어야 한다.
+  글 문구 `본문으로 건너뛰기`(#main)는 `ensure-weekly-leak-cases` 가 글자까지 고정한다. `.skip-link` 는 스타일시트 세 곳
+  (styles·leak-theme·page-recovery) 모두 `min-height:44px` — `ensure-site-integrity` ⑨.
+- **공유 카드**: 공개 페이지 전부 og:image(JPEG·PNG)·`og:image:width/height`(실제 파일 치수)·`og:image:alt`·`twitter:card`.
+  `ensure-og-image-dims.mjs`. 시안 사진은 WebP 라 공유 카드로는 `assets/designs/og/*.jpg` 사본을 쓴다 —
+  대표 시안이 바뀌면 `python3 scripts/build-design-og-images.py`(Pillow 필요, CI 밖) 뒤 `prerender-designs.py`.
+  사본이 없으면 생성기가 회사 카드(og-image.png)로 물러서고 경고를 찍는다.
+- **글 주소는 `posts/<slug>.html`** — 우리 페이지에 `blog.html?post=` 를 새로 쓰지 않는다(바깥 옛 링크는 blog.js 가 받아 준다). ⑥.
+- **제목 60자·설명 160자 초과는 실패, 설명 80자 미만은 경고만** — ⑦.
+- **글 정본 모양**: `ensure-insights-schema.mjs` — 필수 키·날짜·`readMin` 정수(따옴표 없이)·사진/영상 파일 존재·설명.
+  `imgAlt == imgCaption`(26장)은 경고만 — 새 문장을 지으면 사진에 없는 사실이 섞일 수 있어 사진을 보며 고친다.
+
 ## 업체 정보는 한 곳에서 (2026-09-25)
 
 **정본은 `data/site.json` 의 `company`** (이름·전화 `010-2397-8629`·사업자번호·주소). 페이지마다 손으로 적힌
@@ -209,14 +229,13 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 
 ## 글을 더할 때 (2026-09-19)
 
-정본은 `data/site.json` 의 `insights` 하나다. 넣은 뒤에 **손으로 같이 고칠 곳이 네 군데** 있다.
+정본은 `data/site.json` 의 `insights` 하나다. 넣은 뒤에 **같이 돌리거나 확인할 곳이 세 군데** 있다(sitemap 은 2026-09-26 부터 생성기가 쓴다).
 
 | 고칠 곳 | 안 고치면 |
 |---|---|
 | `python3 scripts/prerender-posts.py` | `posts/*.html`·`blog.html`·`rss.xml`·`data/leak-case-index.json` 이 안 생긴다. CI 첫 단계가 `git diff --exit-code` 로 막는다 |
 | `python3 scripts/prerender-designs.py` | 시안의 `tip`·`trendLabel` 을 고쳤다면 `designs/*.html` 8장이 옛 글을 들고 남는다. CI 마지막 `git diff --exit-code` 가 잡는다 |
-| `sitemap.xml` 에 `posts/<slug>.html` 줄 | `ensure-site-integrity` 가 "sitemap 에 없다" 로 막는다 — **생성기가 손대지 않는다** |
-| `sitemap.xml` 의 `blog.html` `<lastmod>` | `ensure-weekly-leak-cases` 가 "목록의 최신 공개 글 수정일과 다르다" 로 막는다 |
+| `sitemap.xml` | **이제 손으로 고치지 않는다(2026-09-26).** `prerender-posts.py` 가 글 항목(없으면 `blog.html` 뒤에 새로 넣고, 공개 글이 아니면 뺀다)과 lastmod 를 다시 쓴다 — 글 = `updated` 또는 `date`, `blog.html` = 공개 글 최신, `leak.html` = 사례 구역(#cases)에 걸린 글 최신(`ensure-weekly-leak-cases` 의 규칙과 같다). 홈·시안·개인정보 같은 다른 줄은 건드리지 않는다. 손으로 고치면 `ensure-site-integrity` ⑧ 이 "lastmod ≠ site.json" 으로 막는다 — 예전 수작업 때 글 9편이 관련 글 카드만 바뀐 날(08-09)로 올라가 있었다 |
 
 **목록 분야 필터(`case_group`)의 규칙은 두 곳에 따로 적혀 있다** — `scripts/prerender-posts.py`
 의 `case_group()` 과 `tests/case-finder.e2e.cjs` 의 `caseGroup()`. 검사가 생성기를 독립적으로

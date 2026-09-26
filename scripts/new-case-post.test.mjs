@@ -138,7 +138,7 @@ try {
       throw new Error('끝을 못 찾음: ' + head);
     };
     const heads = ['const HJ_CASE_FIELDS=[', 'function hjCaseData(p){', 'function hjCaseVal(p,d,k){', 'function hjCaseSide(f){',
-      'function hjCaseSort(a,b){', 'function hjCaseSelected(p){', 'function hjCaseFileName(f,i){', 'function hjCaseCount(p){', 'function hjCaseText(p){'];
+      'function hjCaseSort(a,b){', ...(src.includes('function hjCaseRefs(p){') ? ['function hjCaseRefs(p){'] : []), 'function hjCaseSelected(p){', 'function hjCaseFileName(f,i){', 'function hjCaseCount(p){', 'function hjCaseText(p){'];
     const ctx = {
       pad: (n) => String(n).padStart(2, '0'), localDate: () => '2026-09-26', hjPhaseSideOf: (f) => f.side || null,
       hjCasePlaceOf: () => '', files: [
@@ -147,6 +147,8 @@ try {
       ],
     };
     ctx.hjCasePhotos = () => ctx.files;
+    // v328 부터 사진은 안정 참조(hjFilesByRefs)로 찾는다 — 이 대조는 글자만 보므로 id 로 찾는 대역을 둔다.
+    ctx.hjFilesByRefs = (refs, pool) => ({ files: pool.filter((f) => (refs || []).includes(f.id)), missing: [] });
     vm.createContext(ctx);
     vm.runInContext(heads.map(grab).join(';\n') + ';\nthis.hjCaseText=hjCaseText;', ctx, { filename: 'hyeonjang/index.html' });
     const edge = Number((src.match(/const HJ_CASE_MAX_EDGE=(\d+);/) || [])[1]);
@@ -424,11 +426,18 @@ try {
   for (const root of tempRoots) fs.rmSync(root, { recursive: true, force: true });
 }
 
-test('들이기 도구의 사례 사진 경로 규칙이 prerender-posts.py CASE_RE 와 같다(다르면 srcset·치수가 안 붙는다)', () => {
+test('들이기 도구가 받는 사례 사진 경로는 prerender-posts.py VARIANT_RE 도 받는다(아니면 srcset·치수가 안 붙는다)', () => {
   const py = fs.readFileSync(path.join(ROOT, 'scripts', 'prerender-posts.py'), 'utf8');
-  const m = py.match(/^CASE_RE = re\.compile\(r'([^']+)'\)$/m);
-  assert.ok(m, 'prerender-posts.py 에서 CASE_RE 를 못 찾음');
-  assert.equal(CASE_IMG_RE.source.replace(/\\\//g, '/'), m[1]);
+  const m = py.match(/^VARIANT_RE = re\.compile\(r'([^']+)'\)$/m);
+  assert.ok(m, 'prerender-posts.py 에서 VARIANT_RE 를 못 찾음');
+  const variant = new RegExp(m[1]);
+  // 이름 글자 규칙이 같아야 한다 — 들이기 도구가 받은 이름을 축소본 규칙이 떨어뜨리면 안 된다.
+  const nameClass = '[A-Za-z0-9._-]+';
+  assert.ok(CASE_IMG_RE.source.includes(nameClass) && m[1].includes(nameClass), '사진 이름 글자 규칙이 갈라졌다');
+  for (const ok of ['assets/cases/daejeon-bath-01.jpg', 'assets/cases/a.b_c-2.jpg']) {
+    assert.ok(CASE_IMG_RE.test(ok), ok);
+    assert.ok(variant.test(ok), 'VARIANT_RE 가 못 받음: ' + ok);
+  }
 });
 test('JPEG 검사: 치수와 EXIF 를 읽는다', () => {
   assert.deepEqual(inspectJpeg(synthJpeg(1800, 1200)), { width: 1800, height: 1200, meta: [] });

@@ -8,7 +8,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
 a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid #986536; outline-offset: 4px; }
 button { cursor: pointer; }
 button:disabled { cursor: wait; }
-.skip-link { position: absolute; left: 16px; top: -100px; padding: 12px; background: white; z-index: 2; }
+.skip-link { position: absolute; left: 16px; top: -100px; display: inline-flex; align-items: center; min-height: 44px; padding: 12px; background: white; z-index: 2; }
 .skip-link:focus { top: 12px; }
 .recovery-header, .recovery-main, footer { width: min(1120px, calc(100% - 48px)); margin-inline: auto; }
 .recovery-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 108px; border-bottom: 1px solid var(--line); }

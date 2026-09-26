@@ -40,7 +40,7 @@ export const PHOTO_NAME_RE = /^(\d{2,3})-(전|중|후)\.jpg$/;
 // 앱 hjCaseText 의 '사진: N장 (시공 전 a · 작업 중 b · 완료 c)' 와 같은 말. 공개 글 사진 설명도 이 말을 쓴다.
 export const SIDE_CAPTION = Object.freeze({ '전': '시공 전', '중': '작업 중', '후': '완료' });
 export const APP_MAX_EDGE = 1800;              // 앱 HJ_CASE_MAX_EDGE — 홈페이지 사례 사진 규격과 같다
-// scripts/prerender-posts.py 의 CASE_RE 와 같아야 한다 — 벗어나면 srcset·치수가 안 붙는다(검사가 대조한다).
+// scripts/prerender-posts.py 의 VARIANT_RE 가 받는 경로여야 한다 — 벗어나면 srcset·치수가 안 붙는다(검사가 대조한다).
 export const CASE_IMG_RE = /^assets\/cases\/([A-Za-z0-9._-]+)\.jpg$/;
 export const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const TODO_MARK = 'TODO:';
