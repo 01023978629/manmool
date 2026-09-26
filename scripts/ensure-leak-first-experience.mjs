@@ -211,10 +211,10 @@ check(/"datePublished":\s*"2026-08-09"/.test(insurancePost)
   '누수 보험 글의 구조화 수정일·sitemap 갱신일 일치');
 check(/styles\.css\?v=20260830-followup1/.test(index)
     && /brand-system\.css\?v=20260830-followup1/.test(index)
-    && /main\.js\?v=20260830-followup1/.test(index)
+    && /main\.js\?v=20260926-insight-images/.test(index) // 2026-09-26 설명 글 사진 축소본 규칙·정적 대문 카드
     && /styles\.css\?v=20260907-story-paragraphs/.test(blog)
     && /brand-system\.css\?v=20260925-category-groups/.test(blog)
-    && /blog\.js\?v=20260925-category-groups/.test(blog)
+    && /blog\.js\?v=20260926-insight-images/.test(blog) // 2026-09-26 설명 글 사진 축소본 규칙
     && /styles\.css\?v=20260907-story-paragraphs/.test(insurancePost)
     && /brand-system\.css\?v=20260907-story-paragraphs/.test(insurancePost),
   '변경된 CSS/JS의 캐시 버전이 갱신되지 않아 기존 방문자에게 이전 화면이 남을 수 있다',

@@ -164,6 +164,33 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 고쳐진다. 다시 고정한 뒤에는 변이(기존 글 제목 바꾸기·한 편 빼기)로 여전히 드리프트를 잡는지
 확인한다. 이 검사는 CI 에 있어서, 안 고치면 병합 즉시 배포가 멈춘다.
 
+## 사진 축소본 — 사례·설명 글·대문 첫 그림 (2026-09-26)
+
+**사진을 `assets/cases/`·`assets/insights/` 에 넣었으면 `python3 scripts/build-image-variants.py`
+를 돌리고 `resized/` 를 같이 커밋하라.** 원본마다 `<폴더>/resized/<이름>-480w.jpg`·`-960w.jpg`
+가 생긴다(PNG 원본도 **JPEG** 축소본). 대문 첫 그림 `assets/site/hero-interior.jpg` 도 대상이다.
+원본은 `src` 에 그대로 두고 축소본은 `srcset` 으로만 건다 — 규칙은 세 곳에 있다:
+`scripts/prerender-posts.py` `VARIANT_RE`, `js/main.js` `caseImgExtra`, `js/blog.js` `caseExtra`.
+**한쪽만 고치면** JS 가 다시 그린 카드가 원본을 받는다 — `ensure-image-variants` 검사 6 이 셋을 대조한다.
+
+- 2026-09-26 전까지 규칙이 `^assets/cases/…\.jpg$` 뿐이라 설명 글 사진 9장(PNG 1.2MB 포함)이
+  356px 카드에 원본 그대로 나갔다 — blog.html 한 장(1배) 이미지 4,530KB 중 3,052KB. 지금 1,681KB.
+- 원본 주소 끝 캐시 쿼리(`?v=20260919-photofix`)는 `src` 에 두고 **축소본 주소에도 똑같이 붙인다**.
+  사진을 같은 이름으로 또 고치면 쿼리를 올리고 축소본을 다시 구워라(`--force`).
+- `build-image-variants.py` 는 원본보다 새 축소본이 있으면 건너뛴다(mtime). **git checkout 직후에는
+  mtime 이 뒤섞여 이미 커밋된 사례 축소본을 다시 굽는다** — 바꾼 적 없는 `assets/cases/resized/`
+  가 diff 에 뜨면 `git checkout -- assets/cases/resized` 로 되돌리고 새 사진 것만 커밋하라.
+- 검사 `scripts/ensure-image-variants.mjs`: 축소본 누락·비대·비율·고아, 공개 HTML 의 사진 `<img>`
+  srcset·sizes·**원본과 같은 width·height**, 첫 그림 preload 의 `imagesrcset`·`imagesizes` 가 `<img>` 와
+  같은지(다르면 폰이 두 장을 받는다), 대문 카드가 정적인지.
+- **대문 `#insightsGrid` 는 이제 생성물이다.** `prerender-posts.py` 가 `data-featured-slugs` 순서대로
+  정적 카드 3장을 박는다(JS 없이도 보이게). `.reveal` 을 붙이지 마라 — JS 가 `in` 을 붙여야 보여서
+  JS 없이는 투명하다. `main.js renderInsights` 는 정적 카드가 있으면 다시 그리지 않는다(`?preview=1` 만 예외).
+  CI 의 `git diff` 단계는 index.html 을 보지 않으므로 `tests/test_prerender_posts.py`
+  `test_committed_index_is_current` 가 대신 막는다.
+- 첫 그림 `sizes` 는 칸 폭이 아니라 **높이**(450·420·260px, `object-fit: cover`)로 정했다 —
+  `css/service-interior.css` 의 그 높이를 바꾸면 `index.html` 의 `sizes`·preload `imagesizes` 를 같이 고쳐라.
+
 ## 업체 정보는 한 곳에서 (2026-09-25)
 
 **정본은 `data/site.json` 의 `company`** (이름·전화 `010-2397-8629`·사업자번호·주소). 페이지마다 손으로 적힌

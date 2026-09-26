@@ -5,10 +5,11 @@
 비어 있어, JS 렌더링이 불안정한 네이버 크롤러가 글을 개별 색인하지 못한다.
 이 스크립트가 data/site.json의 insights를 읽어 posts/<slug>.html 정적
 페이지(본문·canonical·OG·BlogPosting 포함), RSS, 누수 접수용 경량 사례 색인을
-만들어 그 문제를 해소한다.
+만들어 그 문제를 해소한다. blog.html 목록과 index.html 대문 인사이트 카드
+(#insightsGrid)도 같은 자료로 정적으로 채운다.
 
-사용: data/site.json의 insights를 수정할 때마다 실행 후 posts/·rss.xml·
-data/leak-case-index.json을 함께 커밋한다.
+사용: data/site.json의 insights를 수정할 때마다 실행 후 posts/·blog.html·
+index.html·rss.xml·data/leak-case-index.json을 함께 커밋한다.
   python3 scripts/prerender-posts.py
 """
 import html
@@ -40,84 +41,124 @@ def shade_cover(hexv):
     return hexv or '#d8c3a5'
 
 
-# 사례 사진 축소본 srcset — scripts/build-image-variants.py 가 만드는
-# assets/cases/resized/<이름>-480w·960w.jpg 를 쓴다. 원본(최대 1800px·480KB)을
-# 그대로 내보내면 휴대폰 LTE에서 LCP가 5초를 넘는다(종합평가 ⑤).
+# 사진 축소본 srcset — scripts/build-image-variants.py 가 만드는
+# assets/<cases|insights>/resized/<이름>-480w·960w.jpg 를 쓴다. 원본(사례 최대
+# 1800px·480KB, 설명 글 1600px JPEG·1774px PNG 1.2MB)을 그대로 내보내면 휴대폰
+# LTE에서 LCP가 5초를 넘는다(종합평가 ⑤). 2026-09-26 전까지는 cases 만 이 규칙을
+# 탔고, 설명 글 사진 9장이 356px 카드에 원본 그대로 나가 blog.html 이미지 전송
+# 4.5MB 중 3.0MB를 차지했다.
 # 칸 폭: 목록 카드 356px(3열), 본문 칼럼 712px — js/main.js·blog.js 와 같은 값.
+# 같은 규칙이 js/main.js caseImgExtra·js/blog.js caseExtra 에 있다 — 같이 고쳐라.
 SIZES_CARD = '(max-width: 720px) 94vw, (max-width: 1130px) 46vw, 356px'
 SIZES_POST = '(max-width: 800px) 94vw, 712px'
-CASE_RE = re.compile(r'^assets/cases/([A-Za-z0-9._-]+)\.jpg$')
+# 축소본은 늘 .jpg 다(PNG 원본도 JPEG 축소본). 원본 주소 끝의 캐시 무효화 쿼리
+# (예: '?v=20260919-photofix' — 같은 이름으로 사진을 고친 뒤 붙였다)는 src 에 그대로
+# 두고 축소본 주소에도 똑같이 붙인다. 다음에 사진을 또 고쳐 쿼리를 올리면 축소본
+# 캐시도 같이 풀린다. 쿼리에 이 문자들 밖의 것이 있으면 srcset 을 붙이지 않는다
+# (그럼 ensure-image-variants 가 'srcset 없음' 으로 알려 준다).
+VARIANT_RE = re.compile(r'^assets/(cases|insights)/([A-Za-z0-9._-]+)\.(?:jpe?g|png)(\?[A-Za-z0-9._~=-]*)?$')
 IMAGE_SIZE_CACHE = {}
 JPEG_SOF_MARKERS = {
     0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7,
     0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF,
 }
+PNG_SIGNATURE = b'\x89PNG\r\n\x1a\n'
+
+
+def read_jpeg_size(image):
+    """JPEG SOF 마커에서 (폭, 높이)를 읽는다. 못 읽으면 None."""
+    while True:
+        prefix = image.read(1)
+        if not prefix:
+            return None
+        if prefix != b'\xff':
+            continue
+        marker_byte = image.read(1)
+        while marker_byte == b'\xff':
+            marker_byte = image.read(1)
+        if not marker_byte:
+            return None
+        marker = marker_byte[0]
+        if marker in (0xD8, 0xD9):
+            continue
+        if marker == 0xDA:
+            return None
+        raw_length = image.read(2)
+        if len(raw_length) != 2:
+            return None
+        segment_length = int.from_bytes(raw_length, 'big')
+        if segment_length < 2:
+            return None
+        if marker in JPEG_SOF_MARKERS:
+            payload = image.read(5)
+            if len(payload) == 5:
+                height = int.from_bytes(payload[1:3], 'big')
+                width = int.from_bytes(payload[3:5], 'big')
+                if width > 0 and height > 0:
+                    return (width, height)
+            return None
+        image.seek(segment_length - 2, os.SEEK_CUR)
+
+
+def read_png_size(image):
+    """서명 8바이트 뒤 첫 청크(IHDR)에서 (폭, 높이)를 읽는다. 못 읽으면 None."""
+    header = image.read(8)
+    if header != b'\x00\x00\x00\x0dIHDR':
+        return None
+    payload = image.read(8)
+    if len(payload) != 8:
+        return None
+    width = int.from_bytes(payload[0:4], 'big')
+    height = int.from_bytes(payload[4:8], 'big')
+    return (width, height) if width > 0 and height > 0 else None
+
+
+def variant_parts(src):
+    """축소본 규칙에 맞는 원본이면 (폴더, 이름, 쿼리)를, 아니면 None을 돌려준다."""
+    m = VARIANT_RE.match(str(src or ''))
+    if not m:
+        return None
+    return m.group(1), m.group(2), m.group(3) or ''
 
 
 def image_dimensions(src):
-    """사례 JPEG의 실제 치수를 외부 라이브러리 없이 읽는다.
+    """축소본 대상 사진(JPEG·PNG)의 실제 치수를 외부 라이브러리 없이 읽는다.
 
     CI에 Pillow를 추가하지 않고도 img·OG 메타의 치수를 원본과 맞춘다.
-    읽을 수 없는 파일은 추측하지 않고 None으로 닫는다.
+    주소 끝 쿼리는 떼고 파일을 찾는다. 읽을 수 없는 파일은 추측하지 않고
+    None으로 닫는다.
     """
     value = str(src or '')
     if value in IMAGE_SIZE_CACHE:
         return IMAGE_SIZE_CACHE[value]
-    if not CASE_RE.match(value):
+    if not variant_parts(value):
         IMAGE_SIZE_CACHE[value] = None
         return None
-    path = os.path.join(ROOT, *value.split('/'))
+    path = os.path.join(ROOT, *value.split('?', 1)[0].split('/'))
     result = None
     try:
         with open(path, 'rb') as image:
-            if image.read(2) != b'\xff\xd8':
-                IMAGE_SIZE_CACHE[value] = None
-                return None
-            while True:
-                prefix = image.read(1)
-                if not prefix:
-                    break
-                if prefix != b'\xff':
-                    continue
-                marker_byte = image.read(1)
-                while marker_byte == b'\xff':
-                    marker_byte = image.read(1)
-                if not marker_byte:
-                    break
-                marker = marker_byte[0]
-                if marker in (0xD8, 0xD9):
-                    continue
-                if marker == 0xDA:
-                    break
-                raw_length = image.read(2)
-                if len(raw_length) != 2:
-                    break
-                segment_length = int.from_bytes(raw_length, 'big')
-                if segment_length < 2:
-                    break
-                if marker in JPEG_SOF_MARKERS:
-                    payload = image.read(5)
-                    if len(payload) == 5:
-                        height = int.from_bytes(payload[1:3], 'big')
-                        width = int.from_bytes(payload[3:5], 'big')
-                        if width > 0 and height > 0:
-                            result = (width, height)
-                    break
-                image.seek(segment_length - 2, os.SEEK_CUR)
+            magic = image.read(2)
+            if magic == b'\xff\xd8':
+                result = read_jpeg_size(image)
+            elif magic + image.read(6) == PNG_SIGNATURE:
+                result = read_png_size(image)
     except (OSError, ValueError):
         result = None
     IMAGE_SIZE_CACHE[value] = result
     return result
 
 
-def case_extra(src, sizes, prefix=''):
-    m = CASE_RE.match(str(src or ''))
-    if not m:
+def photo_extra(src, sizes, prefix=''):
+    """<img> 에 붙일 width·height·srcset·sizes 속성. 규칙 밖 주소면 빈 문자열."""
+    parts = variant_parts(src)
+    if not parts:
         return ''
-    p = f'{prefix}assets/cases/resized/{m.group(1)}'
+    folder, stem, query = parts
+    p = f'{prefix}assets/{folder}/resized/{stem}'
     size = image_dimensions(src)
     dimensions = f' width="{size[0]}" height="{size[1]}"' if size else ''
-    return f'{dimensions} srcset="{p}-480w.jpg 480w, {p}-960w.jpg 960w" sizes="{sizes}"'
+    return f'{dimensions} srcset="{p}-480w.jpg{query} 480w, {p}-960w.jpg{query} 960w" sizes="{sizes}"'
 
 
 def article_service(a):
@@ -216,7 +257,7 @@ def article_html(a, insights):
         if img_size else ''
     )
     cover_img = (
-        f'<img class="post-cover-image" src="../{esc(a["image"])}"{case_extra(a.get("image"), SIZES_POST, "../")} alt="{esc(a.get("imageAlt") or a["title"])}" loading="eager" fetchpriority="high" decoding="async">'
+        f'<img class="post-cover-image" src="../{esc(a["image"])}"{photo_extra(a.get("image"), SIZES_POST, "../")} alt="{esc(a.get("imageAlt") or a["title"])}" loading="eager" fetchpriority="high" decoding="async">'
         if a.get('image') else '')
     # 문단마다 사진을 한 장 붙일 수 있다(선택). 표지 한 장만으로는 '무엇을 갈았는지'가
     # 안 보이는 현장 기록이 있어서, 해당 문단 바로 아래에 근거 사진을 둔다.
@@ -224,7 +265,7 @@ def article_html(a, insights):
         out = f'<h2>{esc(s.get("h"))}</h2>' + render_paragraphs(s.get('p'))
         if s.get('img'):
             cap = f'<figcaption>{esc(s["imgCaption"])}</figcaption>' if s.get('imgCaption') else ''
-            out += (f'<figure class="post-figure"><img src="../{esc(s["img"])}"{case_extra(s.get("img"), SIZES_POST, "../")} '
+            out += (f'<figure class="post-figure"><img src="../{esc(s["img"])}"{photo_extra(s.get("img"), SIZES_POST, "../")} '
                     f'alt="{esc(s.get("imgAlt") or s.get("h"))}" loading="lazy" decoding="async">{cap}</figure>')
         # 현장 동영상(선택). 누르기 전에는 포스터만 내려받는다(preload=none) — 폰 데이터를 아낀다.
         # 세로 촬영이면 videoOrientation:"portrait" 로 표시해 세로 상자로 그린다(css .post-figure video).
@@ -290,7 +331,7 @@ def article_html(a, insights):
     other_service = [x for x in other_insights if article_service(x) != service]
     related = (same_service + other_service)[:3]
     related_html = '\n'.join(f'''          <a class="insight-card" href="{esc(x['slug'])}.html">
-            <span class="ic-cover" style="background:{shade_cover(x.get('cover'))}">{f'<img class="ic-image" src="../{esc(x["image"])}"{case_extra(x.get("image"), SIZES_CARD, "../")} alt="{esc(x.get("imageAlt") or x["title"])}" loading="lazy" decoding="async">' if x.get('image') else ''}<span class="ic-cat">{esc(x.get('category'))}</span></span>
+            <span class="ic-cover" style="background:{shade_cover(x.get('cover'))}">{f'<img class="ic-image" src="../{esc(x["image"])}"{photo_extra(x.get("image"), SIZES_CARD, "../")} alt="{esc(x.get("imageAlt") or x["title"])}" loading="lazy" decoding="async">' if x.get('image') else ''}<span class="ic-cat">{esc(x.get('category'))}</span></span>
             <span class="ic-body"><b>{esc(x['title'])}</b><span class="ic-meta">{esc(x.get('date'))} · {esc(x.get('readMin'))}분 읽기</span></span>
           </a>''' for x in related)
     ld_obj = {
@@ -490,7 +531,7 @@ def list_markup(insights):
             featured_image = ('<img class="ic-image" src="%s"%s alt="%s" loading="eager" '
                               'fetchpriority="high" decoding="async">'
                               % (esc(featured['image']),
-                                 case_extra(featured.get('image'), '(max-width: 1160px) 94vw, 1112px'),
+                                 photo_extra(featured.get('image'), '(max-width: 1160px) 94vw, 1112px'),
                                  esc(featured.get('imageAlt') or featured.get('title'))))
         featured_html = (
             '        <a class="insight-featured" href="posts/%s.html" data-group="%s" data-date="%s" data-search="%s">\n'
@@ -512,7 +553,7 @@ def list_markup(insights):
         if a.get('image'):
             priority = ' loading="lazy"'
             img = ('<img class="ic-image" src="%s"%s alt="%s"%s decoding="async">'
-                   % (esc(a['image']), case_extra(a.get('image'), SIZES_CARD),
+                   % (esc(a['image']), photo_extra(a.get('image'), SIZES_CARD),
                       esc(a.get('imageAlt') or a.get('title')), priority))
         cards[case_group(a)].append(
             '          <a class="insight-card" href="posts/%s.html" data-group="%s" data-date="%s" data-search="%s">\n'
@@ -594,6 +635,116 @@ def write_blog_list(insights):
     return True
 
 
+INDEX_GRID_OPEN = '<div class="insights-grid" id="insightsGrid"'
+
+
+def shade(hexv, amt):
+    """js/main.js shade() 와 같은 계산 — 카드 표지 그라데이션의 어두운 쪽 색."""
+    m = re.match(r'^#?([0-9a-fA-F]{6})$', str(hexv or ''))
+    if not m:
+        return hexv
+    n = int(m.group(1), 16)
+
+    def clamp(v):
+        return max(0, min(255, v))
+    r = clamp(((n >> 16) & 255) + amt)
+    g = clamp(((n >> 8) & 255) + amt)
+    b = clamp((n & 255) + amt)
+    return '#%06x' % ((r << 16) | (g << 8) | b)
+
+
+def index_featured(insights, slugs):
+    """대문 인사이트 3장 — js/main.js renderInsights 와 같은 선택 규칙.
+
+    지정 slug 가 있으면 그 순서대로(없는 slug 는 건너뜀), 없으면 최신순.
+    insights 는 공개 글만, 날짜 내림차순으로 정렬된 목록이어야 한다(main()).
+    """
+    by_slug = {a.get('slug'): a for a in insights}
+    chosen = [by_slug[x] for x in slugs if x in by_slug] if slugs else list(insights)
+    return chosen[:3]
+
+
+def index_insight_cards(insights, slugs, indent='        '):
+    """index.html #insightsGrid 안에 넣을 정적 카드 3장.
+
+    왜 정적으로 박나: 예전에는 빈 div 였고 js/main.js 가 site.json(650KB 넘음)을
+    받은 뒤에야 카드를 그렸다. JS 가 없거나 느린 폰에서는 대문 가이드 3편으로 가는
+    링크 자체가 없었고, 이미지 크기(srcset·width·height)도 JS 규칙에만 기댔다.
+    구조는 renderInsights 와 같게 두되 .reveal 은 붙이지 않는다 — reveal 은
+    JS 가 'in' 을 붙여야 보이므로(css/styles.css) JS 없이는 카드가 투명해진다.
+    main.js 는 정적 카드가 있으면 다시 그리지 않는다(관리자 미리보기만 예외).
+    """
+    cards = []
+    for a in index_featured(insights, slugs):
+        cover = a.get('cover') or '#d8c3a5'
+        img = ''
+        if a.get('image'):
+            img = ('<img class="ic-image" src="%s"%s alt="%s" loading="lazy" decoding="async">'
+                   % (esc(a['image']), photo_extra(a.get('image'), SIZES_CARD),
+                      esc(a.get('imageAlt') or a.get('title'))))
+        cards.append(
+            f'{indent}  <a class="insight-card" href="posts/{quote(str(a.get("slug") or ""), safe=chr(39) + "-_.!~*()")}.html">\n'
+            f'{indent}    <span class="ic-cover" style="background:linear-gradient(150deg, {esc(cover)}, {esc(shade(cover, -16))})">'
+            f'{img}<span class="ic-cat">{esc(a.get("category"))}</span></span>\n'
+            f'{indent}    <span class="ic-body">\n'
+            f'{indent}      <b>{esc(a.get("title"))}</b>\n'
+            f'{indent}      <span class="ic-excerpt">{esc(a.get("excerpt"))}</span>\n'
+            f'{indent}      <span class="ic-meta">{esc(a.get("date"))} · {esc(a.get("readMin"))}분 읽기</span>\n'
+            f'{indent}    </span>\n'
+            f'{indent}  </a>')
+    return '\n'.join(cards)
+
+
+def index_grid_bounds(html_src):
+    """#insightsGrid 여는 태그 끝과 닫는 </div> 시작 위치, 들여쓰기, 지정 slug.
+
+    카드 마크업에는 <div> 가 없으므로 여는 태그 뒤 첫 </div> 가 격자의 끝이다.
+    못 찾으면 None.
+    """
+    start = html_src.find(INDEX_GRID_OPEN)
+    if start < 0:
+        return None
+    open_end = html_src.find('>', start)
+    close = html_src.find('</div>', open_end)
+    if open_end < 0 or close < 0:
+        return None
+    tag = html_src[start:open_end + 1]
+    m = re.search(r'data-featured-slugs="([^"]*)"', tag)
+    slugs = [x.strip() for x in (m.group(1) if m else '').split(',') if x.strip()]
+    line_start = html_src.rfind('\n', 0, start) + 1
+    indent = html_src[line_start:start]
+    return open_end + 1, close, indent, slugs
+
+
+def index_with_cards(html_src, insights):
+    """index.html 원문에 정적 카드를 넣은 결과(격자가 없으면 원문 그대로)."""
+    bounds = index_grid_bounds(html_src)
+    if not bounds:
+        return html_src
+    inner_start, close, indent, slugs = bounds
+    cards = index_insight_cards(insights, slugs, indent)
+    inner = ('\n' + cards + '\n' + indent) if cards else ''
+    return html_src[:inner_start] + inner + html_src[close:]
+
+
+def write_index_cards(insights):
+    """index.html 의 #insightsGrid 를 정적 카드로 채운다(다른 곳은 건드리지 않는다)."""
+    path = os.path.join(ROOT, 'index.html')
+    with open(path, encoding='utf-8') as f:
+        html_src = f.read()
+    if not index_grid_bounds(html_src):
+        print('건너뜀: index.html 에서 #insightsGrid 를 찾지 못했습니다')
+        return False
+    new = index_with_cards(html_src, insights)
+    if new == html_src:
+        print('index.html 인사이트 카드 변경 없음')
+        return False
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(new)
+    print('생성: index.html 인사이트 카드(정적)')
+    return True
+
+
 def write_leak_case_index(insights):
     """누수 접수 폼이 500KB가 넘는 site.json 전체를 받지 않도록
     공개 누수 사례의 식별자와 제목만 따로 제공한다.
@@ -644,6 +795,7 @@ def main():
             os.remove(os.path.join(outdir, fn))
             print('삭제(글 없음):', 'posts/' + fn)
     write_blog_list(insights)
+    write_index_cards(insights)
     write_rss(insights)
     write_leak_case_index(insights)
     print(f'완료 · {len(insights)}건')
