@@ -12,7 +12,7 @@ const vm = require('node:vm');
 const ROOT = path.resolve(__dirname, '..');
 const SLUG = 'buyeo-buyeong-balcony-waterproofing';
 const DAY = '2026-09-08';
-const UPDATED = '2026-09-09';
+const UPDATED = '2026-09-26'; // 2026-09-26 사례 글 검토 반영(용어 풀이·문단 나눔·alt 정정)으로 수정일 갱신
 const PUBLIC_PLACE = '논산 강산부영아파트';
 const wrongPlace = value => /부여|(?<!강산)부영아파트/.test(value);
 const URL = `https://01023978629.github.io/manmool/posts/${SLUG}.html`;
