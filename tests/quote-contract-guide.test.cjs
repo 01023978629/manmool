@@ -6,7 +6,8 @@ const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comp
 // 2026-09-25: 대표 요청과 사진별 세대 배정에 따라 삼호 사례를 2건으로 분리. 다른 50개 글 객체·순서는 별도 대조로 보존 확인.
 // 2026-10-01: 같은 현장의 녹물 배출·분배기 설치 사례 2건 추가. 기존 54건은 전용 회귀 검사로 별도 보존.
 // 2026-10-01: 충무로 두 글만 블로그형 원고로 수정. 기존 54개 원고·사진 보존은 chungmu-cases 검사로 유지.
-const OLD_COUNT = 55, OLD_HASH = '8cd6c79a43856571a70bd14c773f90bc3fda49517d60041bbacef214fae9982b';
+// 2026-10-01: 승인된 5개 실제 사례의 독자용 설명·상담 안내 개선. 나머지 51건은 case-reader 검사로 별도 보존.
+const OLD_COUNT = 55, OLD_HASH = '19e41c36ea0f82401b1f5ac1ce43c16d4d77640386bd07559f117991a6806081';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');

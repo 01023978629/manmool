@@ -117,6 +117,7 @@ jobs:
           node --test tests/buyeo-balcony-case.test.cjs
           node --test tests/quote-contract-guide.test.cjs
           node --test tests/chungmu-cases.test.cjs
+          node --test tests/case-reader.e2e.cjs
           node --test scripts/new-case-post.test.mjs
           node --test apps-script-contract/test/*.mjs
           git diff --exit-code

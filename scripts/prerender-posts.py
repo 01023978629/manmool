@@ -21,7 +21,7 @@ from email.utils import format_datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE = 'https://01023978629.github.io/manmool'
-V = '20260907-story-paragraphs'  # 짧은 문단 간격 반영
+V = '20261001-case-readers'  # 사례별 상담 준비 안내
 
 
 def esc(s):
@@ -38,6 +38,33 @@ def render_paragraphs(value):
 
 def shade_cover(hexv):
     return hexv or '#d8c3a5'
+
+
+def consultation_markup(article):
+    """Optional case-specific preparation. Source fields remain plain text."""
+    guide = article.get('consultation')
+    if not isinstance(guide, dict) or not all(
+            isinstance(guide.get(key), str) and guide[key].strip() for key in ('photos', 'scope')):
+        return ''
+    return ('<h2>비슷한 작업을 상담하고 싶다면</h2>'
+            f'<p class="post-cta-prep"><strong>준비할 사진과 증상</strong>{esc(guide["photos"])}</p>'
+            f'<p class="post-cta-scope"><strong>견적에서 확인할 범위</strong>{esc(guide["scope"])}</p>')
+
+
+def select_related(article, insights):
+    others = [x for x in insights if x.get('published') is not False and x['slug'] != article['slug']]
+    same = [x for x in others if article_service(x) == article_service(article)]
+    other = [x for x in others if article_service(x) != article_service(article)]
+    requested = article.get('relatedSlugs')
+    requested = requested if isinstance(requested, list) else []
+    by_slug = {x['slug']: x for x in same}
+    chosen, seen = [], set()
+    # Explicitly related same-service cases first; malformed/self/hidden links are ignored.
+    for candidate in [by_slug[s] for s in requested if isinstance(s, str) and s in by_slug] + same + other:
+        if candidate['slug'] not in seen:
+            chosen.append(candidate)
+            seen.add(candidate['slug'])
+    return chosen[:3]
 
 
 # 사례 사진 축소본 srcset — scripts/build-image-variants.py 가 만드는
@@ -285,10 +312,7 @@ def article_html(a, insights):
             '</aside>')
         body = place_html + body
     service = article_service(a)
-    other_insights = [x for x in insights if x['slug'] != a['slug']]
-    same_service = [x for x in other_insights if article_service(x) == service]
-    other_service = [x for x in other_insights if article_service(x) != service]
-    related = (same_service + other_service)[:3]
+    related = select_related(a, insights)
     related_html = '\n'.join(f'''          <a class="insight-card" href="{esc(x['slug'])}.html">
             <span class="ic-cover" style="background:{shade_cover(x.get('cover'))}">{f'<img class="ic-image" src="../{esc(x["image"])}"{case_extra(x.get("image"), SIZES_CARD, "../")} alt="{esc(x.get("imageAlt") or x["title"])}" loading="lazy" decoding="async">' if x.get('image') else ''}<span class="ic-cat">{esc(x.get('category'))}</span></span>
             <span class="ic-body"><b>{esc(x['title'])}</b><span class="ic-meta">{esc(x.get('date'))} · {esc(x.get('readMin'))}분 읽기</span></span>
@@ -341,7 +365,7 @@ def article_html(a, insights):
             '</aside>')
     if service == 'leak':
         case_query = quote(str(a['slug']), safe='')
-        cta_html = f'''<div class="post-cta">
+        cta_html = f'''<div class="post-cta">{consultation_markup(a)}
             <p data-service="leak">누수 원인과 필요한 공사 범위는 현장 확인 후 안내합니다.</p>
             <a href="../leak.html?case={case_query}#leakInquiry" class="btn btn-primary">누수 증상 남기기</a>
             <a href="tel:01023978629" class="btn btn-ghost">전화 상담</a>
