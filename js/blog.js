@@ -173,6 +173,7 @@
           <a href="tel:01023978629" class="btn btn-ghost">전화 상담</a>
         </div>`
       : `<div class="post-cta">
+          ${consultationMarkup(a)}
           <p data-service="interior">예상 범위는 참고용이며, 최종 범위·금액은 실측 후 확정됩니다.</p>
           <a href="index.html#estimator" class="btn btn-primary">예상 범위 확인</a>
           <a href="index.html#inquiry" class="btn btn-ghost">인테리어 상담</a>

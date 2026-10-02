@@ -681,8 +681,9 @@ function sitemapLastmod(sitemapXml, slug) {
   return match?.[1] || '';
 }
 
-const legacyWithoutSummary = (site.insights || []).find((item) => item.slug === 'yeolmae-waterproof-screed');
-const legacyPost = fs.readFileSync(path.join(ROOT, 'posts', 'yeolmae-waterproof-screed.html'), 'utf8');
+// 열매 실제 사례에는 승인된 요약을 추가했다. 요약 없는 안내 글의 빈 카드 방지는 계속 검사한다.
+const legacyWithoutSummary = (site.insights || []).find((item) => item.slug === 'wallpaper-silk-paper');
+const legacyPost = fs.readFileSync(path.join(ROOT, 'posts', 'wallpaper-silk-paper.html'), 'utf8');
 if (legacyWithoutSummary?.caseSummary) failures.push('요약 미지정 레거시 글에 사례 핵심 요약 데이터가 생겼다');
 if (legacyPost.includes('<section class="post-summary"')) failures.push('요약 미지정 레거시 글에 빈 사례 핵심 요약 카드가 생겼다');
 

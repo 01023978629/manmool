@@ -12,7 +12,7 @@ const vm = require('node:vm');
 const ROOT = path.resolve(__dirname, '..');
 const SLUG = 'buyeo-buyeong-balcony-waterproofing';
 const DAY = '2026-09-08';
-const UPDATED = '2026-09-09';
+const UPDATED = '2026-10-02'; // 현장명·사진은 보존하고 사례별 상담 안내를 추가한 수정일
 const PUBLIC_PLACE = '논산 강산부영아파트';
 const wrongPlace = value => /부여|(?<!강산)부영아파트/.test(value);
 const URL = `https://01023978629.github.io/manmool/posts/${SLUG}.html`;
