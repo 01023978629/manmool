@@ -5,9 +5,10 @@ const slugs=['chungmu-heating-rust-water-flushing-20260930','chungmu-heating-man
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 // 2026-10-01: 선비마을·도안센트럴·진잠타운의 승인된 원고 개선 반영. 나머지 51건과 전체 사진은 별도 보존 검사.
-const baseline='c5fcd9e9b69ecbbd2d762975b588a0d28a72459412ff97017ed5ddf7d6d16990';
-function preserved(items){const old=items.filter(a=>!slugs.includes(a.slug));return old.length===54&&hash(old)===baseline;}
-test('기존 54개 원고 객체와 순서 보존, 변이 검출',()=>{
+// 2026-10-02: 나머지 실제 사례 보완·열매 분리 승인. 기존 사실 보존은 remaining-cases 검사.
+const baseline='2fdbfacc57f91d0751264002e8cf630f8ce7fccf8f3c81ad16e42679fc63e9bf';
+function preserved(items){const old=items.filter(a=>!slugs.includes(a.slug));return old.length===55&&hash(old)===baseline;}
+test('기준 갱신한 55개 원고 객체와 순서 보존, 변이 검출',()=>{
   const items=JSON.parse(read('data/site.json')).insights;
   assert.ok(preserved(items));
   const changed=structuredClone(items); changed[2].title+='변이'; assert.equal(preserved(changed),false);

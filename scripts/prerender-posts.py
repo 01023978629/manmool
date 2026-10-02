@@ -21,7 +21,7 @@ from email.utils import format_datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE = 'https://01023978629.github.io/manmool'
-V = '20261001-case-readers'  # 사례별 상담 준비 안내
+V = '20261002-case-readers'  # 남은 실제 사례와 인테리어 상담 준비 안내
 
 
 def esc(s):
@@ -371,7 +371,7 @@ def article_html(a, insights):
             <a href="tel:01023978629" class="btn btn-ghost">전화 상담</a>
           </div>'''
     else:
-        cta_html = '''<div class="post-cta">
+        cta_html = f'''<div class="post-cta">{consultation_markup(a)}
             <p data-service="interior">예상 범위는 참고용이며, 최종 범위·금액은 실측 후 확정됩니다.</p>
             <a href="../index.html#estimator" class="btn btn-primary">예상 범위 확인</a>
             <a href="../index.html#inquiry" class="btn btn-ghost">인테리어 상담</a>

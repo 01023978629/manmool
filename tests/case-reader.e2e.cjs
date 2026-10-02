@@ -9,15 +9,15 @@ const slugs = ['chungmu-heating-rust-water-flushing-20260930', 'chungmu-heating-
   'seonbi-boiler-pipe-leak-repair-20260929', 'doan-central-bathroom-pipe-waterproof-20260923', 'jinjam-town-rain-pipe-repair-202609'];
 const cases = slugs.map(slug => site.insights.find(a => a.slug === slug));
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
-// Pinned against main 81dcd9b, BEFORE the requested copy changes.
-const othersHash = '9d073fdcc3cf3ba2a7545fa7e2d0cdef8f1e8961ebaa1b45fb7bef76a66d38b6';
+// 2026-10-02: 30개 사례 보완·열매 공정 분리 승인 반영. 원본 사실·안내 글은 remaining-cases 검사로 별도 보존.
+const othersHash = '2e8b1aeb0bc4010ecb36fd4810a0aa2c87e20e70a6eb46c072acc84c2974d9a8';
 const factsHash = 'a0d49c6730aab650c175ec63a5f2b2a07aad7f4649b1d4de0059251e39e4b5e5';
 const others = items => items.filter(a => !slugs.includes(a.slug));
 const facts = items => items.filter(a => slugs.includes(a.slug)).map(({title, excerpt, updated, consultation, relatedSlugs, body, ...a}) =>
   ({...a, body: body.map(({h, p, ...b}) => b)}));
 
-test('원고 개선 외의 51개 글·정렬·5개 글의 날짜·분류·핵심 요약·사진 35장과 설명 보존', () => {
-  assert.equal(others(site.insights).length, 51);
+test('기준 갱신한 52개 글·정렬·기존 5개 글의 날짜·분류·핵심 요약·사진 35장과 설명 보존', () => {
+  assert.equal(others(site.insights).length, 52);
   assert.equal(hash(others(site.insights)), othersHash);
   assert.equal(hash(facts(site.insights)), factsHash);
   assert.equal(cases.flatMap(a => a.body.filter(b => b.img)).length, 35);
