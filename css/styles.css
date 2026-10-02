@@ -402,6 +402,10 @@ body.content-preview .site-header { top: 46px; }
 .post-figure figcaption { font-size: 13px; color: var(--ink-soft); margin-top: 8px; text-align: center; }
 .post-cta { margin: 40px 0 8px; padding: 28px; background: var(--brand-soft); border-radius: var(--radius); text-align: center; }
 .post-cta p { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+.post-cta h2 { font-size: 23px; line-height: 1.4; margin: 0 0 22px; }
+.post-cta .post-cta-prep, .post-cta .post-cta-scope { font-size: 15px; font-weight: 400; line-height: 1.8; text-align: left; word-break: keep-all; overflow-wrap: anywhere; }
+.post-cta-prep strong, .post-cta-scope strong { display: block; margin-bottom: 4px; color: var(--ink); }
+.post-cta .post-cta-scope { padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
 .post-cta .btn { margin: 0 6px; }
 .post-sources { margin: 34px 0 8px; padding: 20px 22px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg-alt); }
 .post-sources h2 { margin: 0 0 4px; font-size: 19px; }

@@ -4,7 +4,8 @@ const root=path.resolve(__dirname,'..');
 const slugs=['chungmu-heating-rust-water-flushing-20260930','chungmu-heating-manifold-installation-20260930'];
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
-const baseline='b4aa058c95a96c4ec8316a7a79ebdd11c79dc35e83aab911a5338552e7b57b95';
+// 2026-10-01: 선비마을·도안센트럴·진잠타운의 승인된 원고 개선 반영. 나머지 51건과 전체 사진은 별도 보존 검사.
+const baseline='c5fcd9e9b69ecbbd2d762975b588a0d28a72459412ff97017ed5ddf7d6d16990';
 function preserved(items){const old=items.filter(a=>!slugs.includes(a.slug));return old.length===54&&hash(old)===baseline;}
 test('기존 54개 원고 객체와 순서 보존, 변이 검출',()=>{
   const items=JSON.parse(read('data/site.json')).insights;
@@ -37,18 +38,19 @@ test('동일 현장의 두 공정: 사진 3장/4장 분리·분류·발견 경�
   });
   assert.equal(new Set(photos).size,7);
 });
-test('블로그형 원고: 짧은 문단·분량·관리 팁·상담·해시태그, 사진과 범위 유지',()=>{
+test('웹 사례 원고: 짧은 문단·관리 팁·별도 상담 안내, 과장 없는 작업 범위',()=>{
   const cases=JSON.parse(read('data/site.json')).insights.filter(a=>slugs.includes(a.slug));
   for(const a of cases){
     const prose=a.body.map(b=>b.p).join('\n');
-    assert.ok(prose.length>=1200&&prose.length<=1800);
+    assert.ok(prose.length>=700&&prose.length<=1800);
     assert.ok(a.body.flatMap(b=>b.p.split(/\n\n/)).every(p=>p.length<=220));
-    assert.match(prose,/안녕하세요/);assert.match(prose,/같은 현장/);
+    assert.match(prose,/같은 현장/);
     assert.match(prose,/직접.*(?:풀지|조이기보다)/);
-    assert.equal((prose.match(/010-2397-8629/g)||[]).length,1);
-    assert.equal((prose.match(/#[가-힣]+/g)||[]).length,10);
+    assert.ok(a.consultation.photos.length>20&&a.consultation.scope.length>20);
+    assert.ok(a.relatedSlugs.includes(slugs.find(slug=>slug!==a.slug)));
+    assert.doesNotMatch(prose,/#[가-힣]+|010-2397-8629/); // 실제 전화 링크를 상담 영역에 한 번 제공
     assert.doesNotMatch(prose,/최저가|100%|평생 보증|고객님께서.*만족/);
   }
   assert.match(cases[0].body.map(b=>b.p).join('\n'),/수질 측정값/);
-  assert.match(cases[1].body.map(b=>b.p).join('\n'),/특정 원인을 확정하기보다/);
+  assert.match(cases[1].body.map(b=>b.p).join('\n'),/특정 누수 원인을 확정할 수는 없습니다/);
 });

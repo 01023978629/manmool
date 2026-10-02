@@ -95,10 +95,24 @@
     </section>`;
   };
   const selectRelated = (a, list) => {
-    const others = list.filter((item) => item.slug !== a.slug);
+    const others = list.filter((item) => item.published !== false && item.slug !== a.slug);
     const sameService = others.filter((item) => articleService(item) === articleService(a));
     const otherService = others.filter((item) => articleService(item) !== articleService(a));
-    return sameService.concat(otherService).slice(0, 3);
+    const bySlug = new Map(sameService.map(item => [item.slug, item]));
+    const preferred = (Array.isArray(a.relatedSlugs) ? a.relatedSlugs : []).map(slug => bySlug.get(slug)).filter(Boolean);
+    const seen = new Set();
+    return preferred.concat(sameService, otherService).filter(item => {
+      if (seen.has(item.slug)) return false;
+      seen.add(item.slug);
+      return true;
+    }).slice(0, 3);
+  };
+  const consultationMarkup = (a) => {
+    const guide = a.consultation;
+    if (!guide || !['photos', 'scope'].every(key => typeof guide[key] === 'string' && guide[key].trim())) return '';
+    return `<h2>비슷한 작업을 상담하고 싶다면</h2>
+      <p class="post-cta-prep"><strong>준비할 사진과 증상</strong>${esc(guide.photos)}</p>
+      <p class="post-cta-scope"><strong>견적에서 확인할 범위</strong>${esc(guide.scope)}</p>`;
   };
 
   function renderList(list) {
@@ -153,6 +167,7 @@
       : '';
     const articleCta = leakArticle
       ? `<div class="post-cta">
+          ${consultationMarkup(a)}
           <p data-service="leak">누수 원인과 필요한 공사 범위는 현장 확인 후 안내합니다.</p>
           <a href="leak.html?case=${encodeURIComponent(a.slug)}#leakInquiry" class="btn btn-primary">누수 증상 남기기</a>
           <a href="tel:01023978629" class="btn btn-ghost">전화 상담</a>

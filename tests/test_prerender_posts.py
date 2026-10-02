@@ -52,6 +52,27 @@ class ParagraphTests(unittest.TestCase):
                          '<p>&lt;img onerror=&quot;bad()&quot;&gt; &amp;</p><p>끝</p>')
 
 
+class CaseReaderTests(unittest.TestCase):
+    def test_consultation_requires_both_fields_and_escapes_markup(self):
+        self.assertEqual(PRERENDER.consultation_markup({}), '')
+        self.assertEqual(PRERENDER.consultation_markup({'consultation': {'photos': '사진'}}), '')
+        self.assertEqual(PRERENDER.consultation_markup({'consultation': []}), '')
+        markup = PRERENDER.consultation_markup({'consultation': {'photos': '<img onerror="x">', 'scope': '관 & 부속'}})
+        self.assertIn('&lt;img onerror=&quot;x&quot;&gt;', markup)
+        self.assertIn('관 &amp; 부속', markup)
+        self.assertNotIn('<img', markup)
+
+    def test_related_ignores_self_duplicate_missing_hidden_and_cross_service(self):
+        current = {'slug': 'self', 'service': 'leak', 'relatedSlugs': ['self', 'missing', 'preferred', 'preferred', 'hidden', 'interior']}
+        items = [current, {'slug': 'new', 'service': 'leak'}, {'slug': 'preferred', 'service': 'leak'},
+                 {'slug': 'hidden', 'service': 'leak', 'published': False},
+                 {'slug': 'older', 'service': 'leak'}, {'slug': 'interior', 'service': 'interior'}]
+        self.assertEqual([x['slug'] for x in PRERENDER.select_related(current, items)], ['preferred', 'new', 'older'])
+        current['relatedSlugs'] = 'not-an-array'
+        self.assertEqual([x['slug'] for x in PRERENDER.select_related(current, items)], ['new', 'preferred', 'older'])
+        self.assertEqual(PRERENDER.select_related(current, [current]), [])
+
+
 class ListCardParser(HTMLParser):
     def __init__(self, markup):
         super().__init__()

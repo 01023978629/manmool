@@ -351,7 +351,9 @@ function relatedServiceViolations({ item, post, insights }) {
   const otherInsights = insights.filter((entry) => entry.slug !== item.slug);
   const sameServiceInsights = otherInsights.filter((entry) => articleService(entry) === currentService);
   const fallbackInsights = otherInsights.filter((entry) => articleService(entry) !== currentService);
-  const expectedLinks = sameServiceInsights.concat(fallbackInsights).slice(0, expectedCount).map((entry) => entry.slug);
+  const requested = Array.isArray(item.relatedSlugs) ? item.relatedSlugs : [];
+  const preferred = requested.map(slug => sameServiceInsights.find(entry => entry.slug === slug)).filter(Boolean);
+  const expectedLinks = [...new Set(preferred.concat(sameServiceInsights, fallbackInsights).map(entry => entry.slug))].slice(0, expectedCount);
   const sameServiceCount = sameServiceInsights.length;
   const priorityCount = Math.min(expectedCount, sameServiceCount);
   links.slice(0, priorityCount).forEach((slug) => {
@@ -363,7 +365,7 @@ function relatedServiceViolations({ item, post, insights }) {
     violations.push('같은 서비스 사례가 충분한데 다른 서비스 사례가 노출된다');
   }
   if (JSON.stringify(links) !== JSON.stringify(expectedLinks)) {
-    violations.push('관련 사례가 같은 서비스 우선·원본 순서를 따르지 않는다');
+    violations.push('관련 사례가 같은 서비스 내 지정 사례 우선·원본 순서를 따르지 않는다');
   }
   return violations;
 }
