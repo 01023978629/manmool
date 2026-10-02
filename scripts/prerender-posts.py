@@ -21,7 +21,7 @@ from email.utils import format_datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE = 'https://01023978629.github.io/manmool'
-V = '20261002-case-readers'  # 남은 실제 사례와 인테리어 상담 준비 안내
+V = '20261002-editorial'  # 공개 화면의 에디토리얼 디자인 레이어
 
 
 def esc(s):
@@ -404,6 +404,7 @@ def article_html(a, insights):
   <link rel="apple-touch-icon" href="../assets/site/apple-touch-icon.png" />
   <link rel="stylesheet" href="../css/styles.css?v={V}" />
   <link rel="stylesheet" href="../css/brand-system.css?v={V}" />
+  <link rel="stylesheet" href="../css/site-polish.css?v={V}" />
   <script type="application/ld+json">{ld}</script>
   <script type="application/ld+json">{crumbs}</script>
 </head>
@@ -520,7 +521,8 @@ def list_markup(insights):
             '        <a class="insight-featured" href="posts/%s.html" data-group="%s" data-date="%s" data-search="%s">\n'
             '          <span class="ic-cover" style="background:%s">%s<span class="ic-cat">최신 현장 · %s</span></span>\n'
             '          <span class="ic-body"><span class="eyebrow">FEATURED CASE</span><b>%s</b>'
-            '<span class="ic-excerpt">%s</span><span class="ic-meta">%s · %s분 읽기</span></span>\n'
+            '<span class="ic-excerpt">%s</span><span class="ic-meta">%s · %s분 읽기</span>'
+            '<span class="ic-readmore" aria-hidden="true">현장 기록 보기 ↗</span></span>\n'
             '        </a>' % (
                 esc(featured.get('slug')), case_group(featured), esc(featured.get('date')), esc(case_search_text(featured)),
                 shade_cover(featured.get('cover') or '#d8c3a5'),
@@ -544,7 +546,7 @@ def list_markup(insights):
             '            <span class="ic-body">\n'
             '              <b>%s</b>\n'
             '              <span class="ic-excerpt">%s</span>\n'
-            '              <span class="ic-meta">%s · %s분 읽기</span>\n'
+            '              <span class="ic-meta"><span>%s · %s분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>\n'
             '            </span>\n'
             '          </a>' % (
                 esc(a.get('slug')), case_group(a), esc(a.get('date')), esc(case_search_text(a)),
@@ -552,6 +554,11 @@ def list_markup(insights):
                 esc(a.get('category')), esc(a.get('title')), esc(a.get('excerpt')),
                 esc(a.get('date')), esc(a.get('readMin'))))
     grouped_html = ''
+    descriptions = {
+        'leak': '원인 확인부터 배관·방수 보수까지, 현장에서 진행한 작업을 살펴보세요.',
+        'interior': '공간을 만드는 공정과 자재·마감의 변화를 사진으로 확인하세요.',
+        'info': '견적·계약·보증, 공사를 시작하기 전에 알아둘 내용을 모았습니다.',
+    }
     for key, label in groups:
         count = sum(1 for a in insights if case_group(a) == key)
         slot = ('        <div id="caseFeaturedSlot">\n' + featured_html + '\n        </div>\n'
@@ -560,14 +567,23 @@ def list_markup(insights):
             f'        <section class="case-category-section" data-case-group="{key}" aria-labelledby="caseGroup-{key}"'
             + (' hidden' if not count else '') + '>\n'
             f'          <h2 class="case-category-heading" id="caseGroup-{key}">{label} <span data-case-group-count>{count}건</span></h2>\n'
+            f'          <p class="case-category-description">{descriptions[key]}</p>\n'
             + slot + '          <div class="insights-grid">\n' + '\n'.join(cards[key])
             + '\n          </div>\n        </section>\n')
     return (
         '      <div class="container" id="blogRoot">\n'
+        '        <div class="case-editorial-header">\n'
         '        <div class="section-head">\n'
         '          <span class="eyebrow">ACTUAL WORK</span>\n'
         '          <h1>현장에서 한 일을 사진과 함께 기록합니다</h1>\n'
         '          <p class="section-sub">누수·배관 실제 현장과 인테리어 공정, 견적·보증 안내를 분야별로 확인하세요.</p>\n'
+        '        </div>\n'
+        '        <aside class="case-archive-summary" aria-label="공개 기록 분야별 편수">\n'
+        '          <p>시공 사례와 공사 안내 · 공개 기록</p><dl>\n'
+        + ''.join(f'            <div><dt>{label}</dt><dd>{sum(1 for a in insights if case_group(a) == key)}<small>편</small></dd></div>\n'
+                  for key, label in groups) +
+        '          </dl>\n'
+        '        </aside>\n'
         '        </div>\n'
         '        <form class="case-finder" id="caseFinder" role="search" aria-label="시공 사례 검색" hidden>\n'
         '          <div class="case-finder-fields">\n'

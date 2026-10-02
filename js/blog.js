@@ -60,6 +60,11 @@
   const caseGroup = (a) => articleService(a) === 'leak' ? 'leak'
     : /견적|계약|보증|관리|브랜드|가이드/.test(a.category || '') ? 'info' : 'interior';
   const caseGroups = [['leak', '누수·배관'], ['interior', '인테리어'], ['info', '정보']];
+  const groupDescriptions = {
+    leak: '원인 확인부터 배관·방수 보수까지, 현장에서 진행한 작업을 살펴보세요.',
+    interior: '공간을 만드는 공정과 자재·마감의 변화를 사진으로 확인하세요.',
+    info: '견적·계약·보증, 공사를 시작하기 전에 알아둘 내용을 모았습니다.'
+  };
   const searchText = (a) => [a.title, a.excerpt, a.category,
     ...['site', 'issue', 'work', 'result'].map((key) => (a.caseSummary || {})[key])].filter(Boolean).join(' ');
   const finderMarkup = () => `
@@ -119,14 +124,22 @@
     document.title = '누수·배관 사례와 인테리어 기록 · 만물인테리어';
     list = list.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))); // 최신순
     root.innerHTML = `
-      <div class="section-head" style="text-align:center">
-        <span class="eyebrow">INSIGHTS</span>
-        <h1>누수·배관 사례부터 인테리어까지</h1>
-        <p class="section-sub" style="margin:12px auto 0">누수탐지·배관·방수 실제 현장을 먼저, 인테리어 시공·견적·보증 안내도 함께 기록합니다.</p>
+      <div class="case-editorial-header">
+      <div class="section-head">
+        <span class="eyebrow">ACTUAL WORK</span>
+        <h1>현장에서 한 일을 사진과 함께 기록합니다</h1>
+        <p class="section-sub">누수·배관 실제 현장과 인테리어 공정, 견적·보증 안내를 분야별로 확인하세요.</p>
+      </div>
+      <aside class="case-archive-summary" aria-label="공개 기록 분야별 편수">
+        <p>시공 사례와 공사 안내 · 공개 기록</p><dl>
+        ${caseGroups.map(([key, label]) => `<div><dt>${label}</dt><dd>${list.filter(a => caseGroup(a) === key).length}<small>편</small></dd></div>`).join('')}
+        </dl>
+      </aside>
       </div>
       ${finderMarkup()}
       ${caseGroups.map(([key, label]) => `<section class="case-category-section" data-case-group="${key}" aria-labelledby="caseGroup-${key}">
         <h2 class="case-category-heading" id="caseGroup-${key}">${label} <span data-case-group-count>${list.filter(a => caseGroup(a) === key).length}건</span></h2>
+        <p class="case-category-description">${groupDescriptions[key]}</p>
         <div class="insights-grid">
         ${list.filter(a => caseGroup(a) === key).map((a) => `
           <a class="insight-card" href="posts/${encodeURIComponent(a.slug)}.html" data-group="${caseGroup(a)}" data-date="${esc(a.date)}" data-search="${esc(searchText(a))}">
@@ -134,7 +147,7 @@
             <span class="ic-body">
               <b>${esc(a.title)}</b>
               <span class="ic-excerpt">${esc(a.excerpt)}</span>
-              <span class="ic-meta">${esc(a.date)} · ${esc(a.readMin)}분 읽기</span>
+              <span class="ic-meta"><span>${esc(a.date)} · ${esc(a.readMin)}분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>`).join('')}
         </div></section>`).join('')}`;
