@@ -18,8 +18,9 @@
   <link rel="icon" href="assets/site/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="assets/site/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="apple-touch-icon" href="assets/site/apple-touch-icon.png" />
-  <link rel="stylesheet" href="css/styles.css?v=20261002-case-readers" />
+  <link rel="stylesheet" href="css/styles.css?v=20261002-editorial" />
   <link rel="stylesheet" href="css/brand-system.css?v=20260925-category-groups" />
+  <link rel="stylesheet" href="css/site-polish.css?v=20261002-editorial" />
 </head>
 <body class="stories-page">
   <header class="site-header" id="siteHeader">
@@ -46,10 +47,19 @@
   <main id="top">
     <section class="section">
       <div class="container" id="blogRoot">
+        <div class="case-editorial-header">
         <div class="section-head">
           <span class="eyebrow">ACTUAL WORK</span>
           <h1>현장에서 한 일을 사진과 함께 기록합니다</h1>
           <p class="section-sub">누수·배관 실제 현장과 인테리어 공정, 견적·보증 안내를 분야별로 확인하세요.</p>
+        </div>
+        <aside class="case-archive-summary" aria-label="공개 기록 분야별 편수">
+          <p>시공 사례와 공사 안내 · 공개 기록</p><dl>
+            <div><dt>누수·배관</dt><dd>26<small>편</small></dd></div>
+            <div><dt>인테리어</dt><dd>13<small>편</small></dd></div>
+            <div><dt>정보</dt><dd>18<small>편</small></dd></div>
+          </dl>
+        </aside>
         </div>
         <form class="case-finder" id="caseFinder" role="search" aria-label="시공 사례 검색" hidden>
           <div class="case-finder-fields">
@@ -70,12 +80,13 @@
         <section class="case-empty" id="caseEmpty" aria-labelledby="caseEmptyTitle" hidden><h2 id="caseEmptyTitle">조건에 맞는 사례가 없습니다</h2><p>아파트명이나 작업명을 짧게 입력하거나, 다른 분야를 선택해 보세요.</p><div class="case-empty-actions"><button type="button" class="btn btn-primary" data-case-reset>전체 사례 다시 보기</button><a class="btn btn-ghost" id="caseEmptyInquiry" href="leak.html#leakInquiry">누수·배관 상담</a></div></section>
         <section class="case-category-section" data-case-group="leak" aria-labelledby="caseGroup-leak">
           <h2 class="case-category-heading" id="caseGroup-leak">누수·배관 <span data-case-group-count>26건</span></h2>
+          <p class="case-category-description">원인 확인부터 배관·방수 보수까지, 현장에서 진행한 작업을 살펴보세요.</p>
         <div id="caseFeaturedSlot">
         <a class="insight-featured" href="posts/chungmu-heating-rust-water-flushing-20260930.html" data-group="leak" data-date="2026-10-01" data-search="대전 난방배관 청소｜충무로 현장 방별 녹물 배출 작업 대전 충무로 인근에서 진행한 방별 난방배관 녹물 배출 사례입니다. 분배기 연결 상태와 작업 후 정상 가동 기록을 살펴보고, 분배기 교체와 구분해 상담할 범위를 안내합니다. 난방 배관 정비 충무로 인근 · 난방 배관 방별 난방 배관 녹물 배출 작업 방별 녹물 배출
 작업 후 가동 확인 현장 공정 기록상 정상 가동
 수질 수치·총 소요시간 미확인">
           <span class="ic-cover" style="background:#537b90"><img class="ic-image" src="assets/cases/chungmu-flushing-20260930-01.jpg" width="1600" height="1200" srcset="assets/cases/resized/chungmu-flushing-20260930-01-480w.jpg 480w, assets/cases/resized/chungmu-flushing-20260930-01-960w.jpg 960w" sizes="(max-width: 1160px) 94vw, 1112px" alt="방별 난방 배관 녹물 배출 작업 중 분배기 모습" loading="eager" fetchpriority="high" decoding="async"><span class="ic-cat">최신 현장 · 난방 배관 정비</span></span>
-          <span class="ic-body"><span class="eyebrow">FEATURED CASE</span><b>대전 난방배관 청소｜충무로 현장 방별 녹물 배출 작업</b><span class="ic-excerpt">대전 충무로 인근에서 진행한 방별 난방배관 녹물 배출 사례입니다. 분배기 연결 상태와 작업 후 정상 가동 기록을 살펴보고, 분배기 교체와 구분해 상담할 범위를 안내합니다.</span><span class="ic-meta">2026-10-01 · 2분 읽기</span></span>
+          <span class="ic-body"><span class="eyebrow">FEATURED CASE</span><b>대전 난방배관 청소｜충무로 현장 방별 녹물 배출 작업</b><span class="ic-excerpt">대전 충무로 인근에서 진행한 방별 난방배관 녹물 배출 사례입니다. 분배기 연결 상태와 작업 후 정상 가동 기록을 살펴보고, 분배기 교체와 구분해 상담할 범위를 안내합니다.</span><span class="ic-meta">2026-10-01 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">현장 기록 보기 ↗</span></span>
         </a>
         </div>
           <div class="insights-grid">
@@ -86,7 +97,7 @@
             <span class="ic-body">
               <b>대전 난방 분배기 교체｜충무로 현장 설치 전후와 바닥 보수</b>
               <span class="ic-excerpt">대전 충무로 인근 현장의 기존 분배기 확인부터 새 분배기·배관 연결, 하부 덮개 설치와 바닥 보수까지 소개합니다. 교체 전·설치 중·주변 보수 후를 실제 사진 4장으로 비교할 수 있습니다.</span>
-              <span class="ic-meta">2026-10-01 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-10-01 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/seonbi-boiler-pipe-leak-repair-20260929.html" data-group="leak" data-date="2026-09-29" data-search="대전 보일러 배관 누수 보수｜선비마을 배관 교체와 보온 마감 대전 선비마을아파트에서 보일러 아래 배관을 보수했습니다. 기존 관 분리, 새 금속 주름관·연결 부속 설치, 보온 마감까지의 작업 범위를 사진으로 소개합니다. 보일러 본체 교체 사례는 아닙니다. 누수탐지·수리 대전 선비마을아파트 보일러 아래 배관 누수
@@ -97,7 +108,7 @@
             <span class="ic-body">
               <b>대전 보일러 배관 누수 보수｜선비마을 배관 교체와 보온 마감</b>
               <span class="ic-excerpt">대전 선비마을아파트에서 보일러 아래 배관을 보수했습니다. 기존 관 분리, 새 금속 주름관·연결 부속 설치, 보온 마감까지의 작업 범위를 사진으로 소개합니다. 보일러 본체 교체 사례는 아닙니다.</span>
-              <span class="ic-meta">2026-09-29 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-29 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/doan-central-bathroom-pipe-waterproof-20260923.html" data-group="leak" data-date="2026-09-29" data-search="대전 욕실 방수 공사｜도안센트럴 배관 교체와 도막방수 과정 대전 도안센트럴 욕실의 기존 배관 확인, 1·2차 방수, 배관 교체 후 연결부와 도막방수·난방배관 배치 과정을 소개합니다. 타일 마감 전 공정으로, 욕실 전체 준공 사례와 구분해 보실 수 있습니다. 방수·설비 대전 도안센트럴 욕실 마감 전 배관·방수 공정
@@ -108,7 +119,7 @@
             <span class="ic-body">
               <b>대전 욕실 방수 공사｜도안센트럴 배관 교체와 도막방수 과정</b>
               <span class="ic-excerpt">대전 도안센트럴 욕실의 기존 배관 확인, 1·2차 방수, 배관 교체 후 연결부와 도막방수·난방배관 배치 과정을 소개합니다. 타일 마감 전 공정으로, 욕실 전체 준공 사례와 구분해 보실 수 있습니다.</span>
-              <span class="ic-meta">2026-09-29 · 4분 읽기</span>
+              <span class="ic-meta"><span>2026-09-29 · 4분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/samho-apartment-rain-pipe-repair-202609.html" data-group="leak" data-date="2026-09-25" data-search="삼호아파트 첫 번째 세대 우수관 보수 — 갈색 타일 베란다 연결부 삼호아파트 첫 번째 세대의 갈색 타일 베란다 우수관 보수입니다. 기존 하부 부속 분리부터 바닥 정리, 새 연결 부속 설치까지 소개하며 둘째 세대의 작업과 구분합니다. 방수·설비 삼호아파트 첫 번째 세대 수직 우수관 하부 연결부
@@ -119,7 +130,7 @@
             <span class="ic-body">
               <b>삼호아파트 첫 번째 세대 우수관 보수 — 갈색 타일 베란다 연결부</b>
               <span class="ic-excerpt">삼호아파트 첫 번째 세대의 갈색 타일 베란다 우수관 보수입니다. 기존 하부 부속 분리부터 바닥 정리, 새 연결 부속 설치까지 소개하며 둘째 세대의 작업과 구분합니다.</span>
-              <span class="ic-meta">2026-09-25 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-25 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/samho-apartment-rain-pipe-repair-second-home-202609.html" data-group="leak" data-date="2026-09-25" data-search="삼호아파트 두 번째 세대 우수관 보수 — 녹색 타일 연결부와 배수구 삼호아파트 두 번째 세대 우수관 보수입니다. 녹색 타일 구간의 기존 부속 분리·바닥 정리·새 연결부 설치와 다른 타일 구간의 준비 단계를 나누어 소개합니다. 방수·설비 삼호아파트 두 번째 세대 수직 우수관 하부 연결부
@@ -130,7 +141,7 @@
             <span class="ic-body">
               <b>삼호아파트 두 번째 세대 우수관 보수 — 녹색 타일 연결부와 배수구</b>
               <span class="ic-excerpt">삼호아파트 두 번째 세대 우수관 보수입니다. 녹색 타일 구간의 기존 부속 분리·바닥 정리·새 연결부 설치와 다른 타일 구간의 준비 단계를 나누어 소개합니다.</span>
-              <span class="ic-meta">2026-09-25 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-25 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/jinjam-town-rain-pipe-repair-202609.html" data-group="leak" data-date="2026-09-25" data-search="대전 베란다 우수관 보수｜진잠타운 상·하부 연결부 시공 대전 진잠타운아파트 베란다 우수관의 바닥 연결부와 천장 관통부를 보수한 사례입니다. 기존 관 분리부터 배수구 정리, 새 연결 부속과 마감 설치까지 상·하부 작업을 나누어 소개합니다. 방수·설비 대전 진잠타운아파트 베란다 수직 우수관·바닥 연결부
@@ -141,7 +152,7 @@
             <span class="ic-body">
               <b>대전 베란다 우수관 보수｜진잠타운 상·하부 연결부 시공</b>
               <span class="ic-excerpt">대전 진잠타운아파트 베란다 우수관의 바닥 연결부와 천장 관통부를 보수한 사례입니다. 기존 관 분리부터 배수구 정리, 새 연결 부속과 마감 설치까지 상·하부 작업을 나누어 소개합니다.</span>
-              <span class="ic-meta">2026-09-25 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-25 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/samsung-balcony-rain-pipe-repair-202609.html" data-group="leak" data-date="2026-09-25" data-search="대전 삼성아파트 베란다 우수관 보수 — 기존 관 분리와 바닥 배수구 연결 과정 대전 삼성아파트 베란다 우수관의 보양, 기존 관 분리, 바닥 연결 부속 설치와 천장 마감을 소개합니다. 서로 다른 바닥 구간은 구분하고 동일 위치의 전후로 묶지 않았습니다. 방수·설비 대전 삼성아파트 베란다 기존 수직관과 바닥 연결부
@@ -152,7 +163,7 @@
             <span class="ic-body">
               <b>대전 삼성아파트 베란다 우수관 보수 — 기존 관 분리와 바닥 배수구 연결 과정</b>
               <span class="ic-excerpt">대전 삼성아파트 베란다 우수관의 보양, 기존 관 분리, 바닥 연결 부속 설치와 천장 마감을 소개합니다. 서로 다른 바닥 구간은 구분하고 동일 위치의 전후로 묶지 않았습니다.</span>
-              <span class="ic-meta">2026-09-25 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-25 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/pyeonghaneul-apartment-leak-repair-20260909.html" data-group="leak" data-date="2026-09-09" data-search="대전 목상동 누수탐지｜평화로운아파트 계량기함 뒤 매립배관 보수 소화전 배관으로 의심한 물기를 점검하다 계량기함 뒤 매립배관에서 누수를 확인했습니다. 내시경 점검, 주변 개방, PB 배관 교체와 계량기 재설치까지 실제 사진·동영상으로 소개합니다. 누수탐지·수리 대전 목상동 평화로운아파트
@@ -164,7 +175,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 목상동 누수탐지｜평화로운아파트 계량기함 뒤 매립배관 보수</b>
               <span class="ic-excerpt">소화전 배관으로 의심한 물기를 점검하다 계량기함 뒤 매립배관에서 누수를 확인했습니다. 내시경 점검, 주변 개방, PB 배관 교체와 계량기 재설치까지 실제 사진·동영상으로 소개합니다.</span>
-              <span class="ic-meta">2026-09-09 · 6분 읽기</span>
+              <span class="ic-meta"><span>2026-09-09 · 6분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/buyeo-buyeong-balcony-waterproofing.html" data-group="leak" data-date="2026-09-08" data-search="논산 강산부영아파트 베란다 방수, 1차 몰탈에서 2차 도막까지 논산 강산부영아파트 베란다에서 진행한 방수 공정입니다. 처음의 거친 바닥과 배수구 주변, 1차 몰탈 방수 후의 회색 표면, 2차 도막을 바른 모습까지 같은 공간의 변화를 사진으로 이어 봅니다. 방수·설비 논산 강산부영아파트 베란다 기존 바닥 표면과 배수구 주변
@@ -175,7 +186,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>논산 강산부영아파트 베란다 방수, 1차 몰탈에서 2차 도막까지</b>
               <span class="ic-excerpt">논산 강산부영아파트 베란다에서 진행한 방수 공정입니다. 처음의 거친 바닥과 배수구 주변, 1차 몰탈 방수 후의 회색 표면, 2차 도막을 바른 모습까지 같은 공간의 변화를 사진으로 이어 봅니다.</span>
-              <span class="ic-meta">2026-09-08 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-08 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/daejeon-jung-gu-heating-pipe-leak-repair.html" data-group="leak" data-date="2026-09-04" data-search="대전 문화동 안방 난방관 누수, 손상 부위를 잘라 피팅으로 연결했습니다 대전 중구 문화동 주택의 안방 바닥 아래에서 작은 난방관 손상을 확인했습니다. 바닥을 열고 누수 부위를 절단해 피팅으로 연결한 뒤, 개방부를 미장으로 복구한 과정입니다. 누수탐지·수리 대전 중구 문화동 주택 안방 바닥 아래 난방관에서
@@ -186,7 +197,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 문화동 안방 난방관 누수, 손상 부위를 잘라 피팅으로 연결했습니다</b>
               <span class="ic-excerpt">대전 중구 문화동 주택의 안방 바닥 아래에서 작은 난방관 손상을 확인했습니다. 바닥을 열고 누수 부위를 절단해 피팅으로 연결한 뒤, 개방부를 미장으로 복구한 과정입니다.</span>
-              <span class="ic-meta">2026-09-04 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-04 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/daejeon-jung-gu-yard-water-valve-leak.html" data-group="leak" data-date="2026-09-04" data-search="대전 문화동 마당 수도밸브 누수, 땅속 배관을 확인하고 문제 밸브 제거 대전 중구 문화동 주택 마당에서 젖은 토사와 매설 수도배관을 확인했습니다. 밸브 주변을 굴착해 문제 밸브를 제거하고 계량기 주변을 살핀 작업을 사진 순서로 정리했습니다. 누수탐지·수리 대전 중구 문화동 주택 마당 수도밸브 주변 토사 젖음과
@@ -197,7 +208,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 문화동 마당 수도밸브 누수, 땅속 배관을 확인하고 문제 밸브 제거</b>
               <span class="ic-excerpt">대전 중구 문화동 주택 마당에서 젖은 토사와 매설 수도배관을 확인했습니다. 밸브 주변을 굴착해 문제 밸브를 제거하고 계량기 주변을 살핀 작업을 사진 순서로 정리했습니다.</span>
-              <span class="ic-meta">2026-09-04 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-04 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/apartment-balcony-rain-pipe-replacement.html" data-group="leak" data-date="2026-08-28" data-search="대전 한밭우성아파트 베란다 우수관 보수, 바닥 배수구부터 하부 부속까지 한밭우성아파트 베란다에서 바닥 배수구와 천장 관통부를 살핀 뒤 우수관 하부 연결 부속을 설치했습니다. 관이 이어지는 위치와 바닥 주변 작업을 사진으로 짚어 봅니다. 방수·설비 대전 한밭우성아파트 베란다 바닥 배수구·수직 우수관
@@ -208,7 +219,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 한밭우성아파트 베란다 우수관 보수, 바닥 배수구부터 하부 부속까지</b>
               <span class="ic-excerpt">한밭우성아파트 베란다에서 바닥 배수구와 천장 관통부를 살핀 뒤 우수관 하부 연결 부속을 설치했습니다. 관이 이어지는 위치와 바닥 주변 작업을 사진으로 짚어 봅니다.</span>
-              <span class="ic-meta">2026-08-28 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-08-28 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/apartment-upper-lower-rain-pipe-repair.html" data-group="leak" data-date="2026-08-28" data-search="대전 목양마을아파트 우수관 보수, 배수부품 교체와 그릴 설치까지 목양마을아파트의 바닥 배수구와 상·하층을 잇는 우수관 관통부를 확인했습니다. 테두리 보수부터 하부 연결 부품 교체, 배수구 그릴 설치까지 사진으로 이어 보세요. 방수·설비 대전 목양마을아파트 바닥 배수구와 상·하층 우수관
@@ -219,7 +230,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 목양마을아파트 우수관 보수, 배수부품 교체와 그릴 설치까지</b>
               <span class="ic-excerpt">목양마을아파트의 바닥 배수구와 상·하층을 잇는 우수관 관통부를 확인했습니다. 테두리 보수부터 하부 연결 부품 교체, 배수구 그릴 설치까지 사진으로 이어 보세요.</span>
-              <span class="ic-meta">2026-08-28 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-08-28 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/apartment-basement-cast-iron-pipe-repair.html" data-group="leak" data-date="2026-08-26" data-search="대전 유원아파트 지하실 주철관 보수, 벌어진 관을 슬리브로 감싼 과정 유원아파트 지하실에서 관벽이 벌어진 주철관을 확인했습니다. 손상 구간과 관 내부를 살핀 뒤 두 배관에 보수 슬리브와 금속 밴드를 설치한 모습을 순서대로 소개합니다. 방수·설비 대전 유원아파트 지하실 주철관 관벽 벌어짐과
@@ -230,7 +241,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 유원아파트 지하실 주철관 보수, 벌어진 관을 슬리브로 감싼 과정</b>
               <span class="ic-excerpt">유원아파트 지하실에서 관벽이 벌어진 주철관을 확인했습니다. 손상 구간과 관 내부를 살핀 뒤 두 배관에 보수 슬리브와 금속 밴드를 설치한 모습을 순서대로 소개합니다.</span>
-              <span class="ic-meta">2026-08-26 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-08-26 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/mugunghwa-pipe-replacement.html" data-group="leak" data-date="2026-08-19" data-search="대전 무궁화아파트 배관 교체, 새 연결부와 관통부를 가까이 보기 무궁화아파트에서 배관을 교체한 뒤의 모습입니다. 새 관이 꺾여 이어지는 부분과 구조체를 통과하는 위치를 나누어 소개합니다. 방수·설비 대전 무궁화아파트 배관 교체 후 연결부·관통부 기록 새 관과 연결 부속 설치 교체 후 배관·주변 마감 사진
@@ -239,7 +250,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 무궁화아파트 배관 교체, 새 연결부와 관통부를 가까이 보기</b>
               <span class="ic-excerpt">무궁화아파트에서 배관을 교체한 뒤의 모습입니다. 새 관이 꺾여 이어지는 부분과 구조체를 통과하는 위치를 나누어 소개합니다.</span>
-              <span class="ic-meta">2026-08-19 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-08-19 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/geumseong-basement-pipe-valve.html" data-group="leak" data-date="2026-08-14" data-search="대전 금성백조아파트 공용배관 교체, 계량기 밸브도 함께 손봤습니다 금성백조아파트 지하 공용배관의 노후 구간을 교체했습니다. 기존 분기부와 교체 후 배관, 함께 바꾼 계량기 밸브를 나누어 보여 드립니다. 방수·설비 대전 금성백조아파트 공용부 노후 배관·잠기지 않는 밸브 공용배관·계량기 밸브 교체 새 배관·보온·밸브 설치 사진
@@ -248,7 +259,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 금성백조아파트 공용배관 교체, 계량기 밸브도 함께 손봤습니다</b>
               <span class="ic-excerpt">금성백조아파트 지하 공용배관의 노후 구간을 교체했습니다. 기존 분기부와 교체 후 배관, 함께 바꾼 계량기 밸브를 나누어 보여 드립니다.</span>
-              <span class="ic-meta">2026-08-14 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-08-14 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/samsung-apartment-drain-pipe-replacement.html" data-group="leak" data-date="2026-08-13" data-search="대전 삼성아파트 욕실 천장 배관 교체 — 기존 관통부와 새 연결부를 따라 대전 삼성아파트 욕실 천장의 오수관과 생활하수 배관을 교체했습니다. 기존 배관 경로, 벽체 관통부, 교체한 흰색 배관과 연결부를 사진별로 구분해 보여 드립니다. 방수·설비 대전 삼성아파트 욕실 천장 천장 누수로 배관 경로 확인 오수관·생활하수관 구간 교체
@@ -258,7 +269,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 삼성아파트 욕실 천장 배관 교체 — 기존 관통부와 새 연결부를 따라</b>
               <span class="ic-excerpt">대전 삼성아파트 욕실 천장의 오수관과 생활하수 배관을 교체했습니다. 기존 배관 경로, 벽체 관통부, 교체한 흰색 배관과 연결부를 사진별로 구분해 보여 드립니다.</span>
-              <span class="ic-meta">2026-08-13 · 4분 읽기</span>
+              <span class="ic-meta"><span>2026-08-13 · 4분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/hanbat-drain-replacement.html" data-group="leak" data-date="2026-08-11" data-search="대전 한밭유성아파트 생활하수관 교체 — 새 이음부와 청소구를 남긴 이유 대전 한밭유성아파트의 생활하수관을 교체한 현장입니다. 새 배관 경로와 벽체 연결 위치, 청소구를 사진별로 나눠 보며 천장 안쪽 작업을 소개합니다. 방수·설비 대전 한밭유성 생활하수관 생활하수관 교체 작업 새 배관·이음부·청소구 설치 교체 후 경로·점검 위치 기록
@@ -267,7 +278,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 한밭유성아파트 생활하수관 교체 — 새 이음부와 청소구를 남긴 이유</b>
               <span class="ic-excerpt">대전 한밭유성아파트의 생활하수관을 교체한 현장입니다. 새 배관 경로와 벽체 연결 위치, 청소구를 사진별로 나눠 보며 천장 안쪽 작업을 소개합니다.</span>
-              <span class="ic-meta">2026-08-11 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-08-11 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/seonbi-pipe-replacement.html" data-group="leak" data-date="2026-08-10" data-search="대전 선비마을3단지 배관 교체, 천장 속 문제 구간을 손본 현장 선비마을3단지에서 천장 안쪽 배관을 확인하고 문제 구간을 교체했습니다. 작업 중 사진과 교체 후 사진에서 볼 부분, 보수 범위를 정할 때 필요한 점을 짧게 소개합니다. 방수·설비 대전 선비마을3단지 천장 천장 안쪽 문제 구간 확인 상태 확인 후 문제 구간 교체 작업 중·교체 후 사진
@@ -276,7 +287,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 선비마을3단지 배관 교체, 천장 속 문제 구간을 손본 현장</b>
               <span class="ic-excerpt">선비마을3단지에서 천장 안쪽 배관을 확인하고 문제 구간을 교체했습니다. 작업 중 사진과 교체 후 사진에서 볼 부분, 보수 범위를 정할 때 필요한 점을 짧게 소개합니다.</span>
-              <span class="ic-meta">2026-08-10 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-08-10 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/leak-insurance-guide.html" data-group="leak" data-date="2026-08-09" data-search="아랫집 천장에 물자국 — 누수, 보험으로 처리될까요? &quot;보험 되나요?&quot;가 누수 현장에서 가장 많이 받는 질문입니다. 되는 경우와 안 되는 경우, 자기부담금, 탐지비 이야기까지 — 대전에서 누수탐지를 하는 시공자가 사실대로 정리했습니다. 방수·설비    ">
@@ -284,7 +295,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>아랫집 천장에 물자국 — 누수, 보험으로 처리될까요?</b>
               <span class="ic-excerpt">&quot;보험 되나요?&quot;가 누수 현장에서 가장 많이 받는 질문입니다. 되는 경우와 안 되는 경우, 자기부담금, 탐지비 이야기까지 — 대전에서 누수탐지를 하는 시공자가 사실대로 정리했습니다.</span>
-              <span class="ic-meta">2026-08-09 · 5분 읽기</span>
+              <span class="ic-meta"><span>2026-08-09 · 5분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/rainy-season-waterproof-check.html" data-group="leak" data-date="2026-07-29" data-search="장마철 앞두고 봐야 할 욕실·베란다 방수 점검 포인트 비가 길어지면 평소에 숨어 있던 누수가 한꺼번에 드러납니다. 장마 전에 집에서 확인할 수 있는 것과, 발견했을 때 순서를 정리했습니다. 방수·설비    ">
@@ -292,7 +303,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>장마철 앞두고 봐야 할 욕실·베란다 방수 점검 포인트</b>
               <span class="ic-excerpt">비가 길어지면 평소에 숨어 있던 누수가 한꺼번에 드러납니다. 장마 전에 집에서 확인할 수 있는 것과, 발견했을 때 순서를 정리했습니다.</span>
-              <span class="ic-meta">2026-07-29 · 4분 읽기</span>
+              <span class="ic-meta"><span>2026-07-29 · 4분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/mokdong-trench-drain.html" data-group="leak" data-date="2026-07-27" data-search="대전 목동 트렌치 배수 시공 — 출입구 바닥에 물길을 만드는 과정 대전 목동 출입구 바닥에 트렌치 배수로를 설치했습니다. 부재를 놓아 위치를 살핀 모습부터 바닥 절개, 트렌치 본체 설치까지 실제 사진을 따라 공정별로 소개합니다. 방수·설비 대전 목동 출입구 바닥 출입구 배수로 설치 위치 확인·바닥 절개
@@ -302,7 +313,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 목동 트렌치 배수 시공 — 출입구 바닥에 물길을 만드는 과정</b>
               <span class="ic-excerpt">대전 목동 출입구 바닥에 트렌치 배수로를 설치했습니다. 부재를 놓아 위치를 살핀 모습부터 바닥 절개, 트렌치 본체 설치까지 실제 사진을 따라 공정별로 소개합니다.</span>
-              <span class="ic-meta">2026-07-27 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-07-27 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/bathroom-waterproof-signs.html" data-group="leak" data-date="2026-07-16" data-search="욕실 방수, 언제 다시 해야 할까? 누수 징후 5가지와 비용 아랫집 천장에 얼룩이 생겼다면 이미 늦었을 수 있습니다. 욕실 방수가 수명을 다했다는 신호 5가지와, 재시공 비용·기간의 현실적인 기준을 정리했습니다. 방수·설비    ">
@@ -310,7 +321,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>욕실 방수, 언제 다시 해야 할까? 누수 징후 5가지와 비용</b>
               <span class="ic-excerpt">아랫집 천장에 얼룩이 생겼다면 이미 늦었을 수 있습니다. 욕실 방수가 수명을 다했다는 신호 5가지와, 재시공 비용·기간의 현실적인 기준을 정리했습니다.</span>
-              <span class="ic-meta">2026-07-16 · 5분 읽기</span>
+              <span class="ic-meta"><span>2026-07-16 · 5분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/beomjigi-bathroom-waterproof.html" data-group="leak" data-date="2026-07-02" data-search="세종 범지기마을 욕실 1·2차 방수 — 타일을 덮기 전 바닥과 모서리 살피기 세종 범지기마을 두 세대에서 진행한 욕실 1·2차 방수 공정입니다. 바닥과 벽 하단을 정리한 모습부터 도포 범위와 배관 주변까지, 마감 뒤에는 가려질 부분을 사진으로 살펴봅니다. 방수·설비 세종 범지기마을 욕실 두 세대 타일 전 방수·배관 공정 현장 기록상 욕실 1·2차 방수 두 세대 공정 사진
@@ -319,7 +330,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>세종 범지기마을 욕실 1·2차 방수 — 타일을 덮기 전 바닥과 모서리 살피기</b>
               <span class="ic-excerpt">세종 범지기마을 두 세대에서 진행한 욕실 1·2차 방수 공정입니다. 바닥과 벽 하단을 정리한 모습부터 도포 범위와 배관 주변까지, 마감 뒤에는 가려질 부분을 사진으로 살펴봅니다.</span>
-              <span class="ic-meta">2026-07-02 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-07-02 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/taesan-rain-pipe-replacement.html" data-group="leak" data-date="2026-06-24" data-search="대전 태산그린아파트 우수관 교체, 서로 다른 두 라인의 노후 구간 보수 태산그린아파트에서 빗물을 내려보내는 우수관 두 라인의 노후 구간을 교체했습니다. 공개할 현장 사진이 없는 사례로, 확인된 작업 범위와 점검 시 참고할 내용을 글로 소개합니다. 방수·설비 대전 태산그린아파트 우수관 두 라인의 노후 구간 노후 구간 철거·새 관 연결 작업 내용으로 소개
@@ -328,13 +339,14 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 태산그린아파트 우수관 교체, 서로 다른 두 라인의 노후 구간 보수</b>
               <span class="ic-excerpt">태산그린아파트에서 빗물을 내려보내는 우수관 두 라인의 노후 구간을 교체했습니다. 공개할 현장 사진이 없는 사례로, 확인된 작업 범위와 점검 시 참고할 내용을 글로 소개합니다.</span>
-              <span class="ic-meta">2026-06-24 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-06-24 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           </div>
         </section>
         <section class="case-category-section" data-case-group="interior" aria-labelledby="caseGroup-interior">
           <h2 class="case-category-heading" id="caseGroup-interior">인테리어 <span data-case-group-count>13건</span></h2>
+          <p class="case-category-description">공간을 만드는 공정과 자재·마감의 변화를 사진으로 확인하세요.</p>
           <div class="insights-grid">
           <a class="insight-card" href="posts/daejeon-geumho-hansarang-balcony-floor-screed.html" data-group="interior" data-date="2026-09-04" data-search="대전 금호한사랑아파트 베란다 확장 미장, 바닥 속부터 높이까지 맞춘 과정 금호한사랑아파트 거실 확장부의 바닥을 정리했습니다. 단열재와 난방배관을 넣은 모습부터 모르타르로 덮은 뒤까지, 마감하면 보이지 않을 작업을 사진으로 소개합니다. 바닥·미장 대전 금호한사랑아파트 거실 확장부 거실과 베란다 경계의 단차
 확장부 바닥 기반 정리 필요 단열재 배치·난방배관 정리
@@ -344,7 +356,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 금호한사랑아파트 베란다 확장 미장, 바닥 속부터 높이까지 맞춘 과정</b>
               <span class="ic-excerpt">금호한사랑아파트 거실 확장부의 바닥을 정리했습니다. 단열재와 난방배관을 넣은 모습부터 모르타르로 덮은 뒤까지, 마감하면 보이지 않을 작업을 사진으로 소개합니다.</span>
-              <span class="ic-meta">2026-09-04 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-04 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/yeolmae-waterproof-screed.html" data-group="interior" data-date="2026-08-20" data-search="대전 열매마을 욕실 1차 방수｜바닥·벽 하단과 배관 주변 대전 열매마을 욕실의 바닥·벽 하단·배관 주변 1차 방수 공정입니다. 타일 전 도포 상태를 소개하며 같은 현장의 확장부 단열·난방배관·미장은 별도 사례로 나눴습니다. 방수·설비 대전 열매마을 욕실 타일 시공 전 1차 방수 바닥·벽 하단·배관 주변 도포 1차 방수 단계 기록
@@ -353,7 +365,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 열매마을 욕실 1차 방수｜바닥·벽 하단과 배관 주변</b>
               <span class="ic-excerpt">대전 열매마을 욕실의 바닥·벽 하단·배관 주변 1차 방수 공정입니다. 타일 전 도포 상태를 소개하며 같은 현장의 확장부 단열·난방배관·미장은 별도 사례로 나눴습니다.</span>
-              <span class="ic-meta">2026-08-20 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-08-20 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/yeolmae-extension-floor-screed.html" data-group="interior" data-date="2026-08-20" data-search="대전 열매마을 확장부 미장｜단열재·난방배관에서 바닥 정리까지 열매마을 거실·방 확장부의 단열재, 난방배관 배치와 모르타르 미장을 별도 사례로 소개합니다. 같은 현장의 욕실 방수와 구분하며 최종 바닥재 전 공정 사진을 비교합니다. 바닥·미장 대전 열매마을 거실·방 확장부 확장부 바닥 기반과 높이 정리 단열재·난방배관 배치
@@ -363,7 +375,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 열매마을 확장부 미장｜단열재·난방배관에서 바닥 정리까지</b>
               <span class="ic-excerpt">열매마을 거실·방 확장부의 단열재, 난방배관 배치와 모르타르 미장을 별도 사례로 소개합니다. 같은 현장의 욕실 방수와 구분하며 최종 바닥재 전 공정 사진을 비교합니다.</span>
-              <span class="ic-meta">2026-08-20 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-08-20 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/taesan-lexan-frame.html" data-group="interior" data-date="2026-08-15" data-search="대전 태산그린아파트 렉산 고정대 교체 — 판을 받치는 틀을 손봤습니다 대전 태산그린아파트의 렉산 고정대를 교체하고 도장으로 마감한 작업입니다. 투명한 판보다 눈에 덜 띄는 고정대와 하부 연결 부위를 중심으로 살펴봅니다. 시공 사례 대전 태산그린 렉산 고정대 판을 받치는 고정대 정비 기존 고정대 제거·새 틀 설치
@@ -373,7 +385,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 태산그린아파트 렉산 고정대 교체 — 판을 받치는 틀을 손봤습니다</b>
               <span class="ic-excerpt">대전 태산그린아파트의 렉산 고정대를 교체하고 도장으로 마감한 작업입니다. 투명한 판보다 눈에 덜 띄는 고정대와 하부 연결 부위를 중심으로 살펴봅니다.</span>
-              <span class="ic-meta">2026-08-15 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-08-15 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/dodam-floor-screed.html" data-group="interior" data-date="2026-07-25" data-search="세종 도담동 상가 바닥 미장 — 기존 바닥에서 새 미장면으로 이어지는 과정 세종 도담동 상가에서 바닥의 요철과 보수 흔적을 정리하고 미장을 진행했습니다. 기존 면, 미장 중인 경계, 넓게 정리된 바닥을 순서대로 보여 드립니다. 시공 사례 세종 도담동 상가 바닥 바닥 요철·보수 흔적 기존 면 정리·모르타르 미장
@@ -383,7 +395,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>세종 도담동 상가 바닥 미장 — 기존 바닥에서 새 미장면으로 이어지는 과정</b>
               <span class="ic-excerpt">세종 도담동 상가에서 바닥의 요철과 보수 흔적을 정리하고 미장을 진행했습니다. 기존 면, 미장 중인 경계, 넓게 정리된 바닥을 순서대로 보여 드립니다.</span>
-              <span class="ic-meta">2026-07-25 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-07-25 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/daejayeon-bathroom-fixtures.html" data-group="interior" data-date="2026-07-15" data-search="대전 대자연아파트 욕실 수전 홀 타공·위생기구 설치 — 작은 부속까지 맞추는 마감 대전 대자연아파트 욕실에서 수전 홀을 타공하고 위생기구를 설치했습니다. 물탱크 내부 부속을 조립하는 실제 사진과 함께 마감 단계의 작업을 소개합니다. 시공 사례 대전 대자연아파트 욕실 수전 홀 타공·기구 설치 타공·위생기구 설치
@@ -393,7 +405,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 대자연아파트 욕실 수전 홀 타공·위생기구 설치 — 작은 부속까지 맞추는 마감</b>
               <span class="ic-excerpt">대전 대자연아파트 욕실에서 수전 홀을 타공하고 위생기구를 설치했습니다. 물탱크 내부 부속을 조립하는 실제 사진과 함께 마감 단계의 작업을 소개합니다.</span>
-              <span class="ic-meta">2026-07-15 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-07-15 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/gaon-bathroom-waterproof.html" data-group="interior" data-date="2026-07-07" data-search="세종 가온마을 욕실 젠다이·매립수전과 방수 — 벽 안쪽부터 만드는 순서 세종 가온마을 욕실에서 매립수전을 고정하고 젠다이를 조적으로 만든 뒤 1·2차 방수를 진행했습니다. 선반턱과 벽, 바닥이 만나는 부분을 실제 공정 사진으로 소개합니다. 방수·설비 세종 가온마을 욕실 매립수전·선반턱과 방수 수전 고정·젠다이 조적·1·2차 방수 젠다이·모서리 방수 사진
@@ -402,7 +414,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>세종 가온마을 욕실 젠다이·매립수전과 방수 — 벽 안쪽부터 만드는 순서</b>
               <span class="ic-excerpt">세종 가온마을 욕실에서 매립수전을 고정하고 젠다이를 조적으로 만든 뒤 1·2차 방수를 진행했습니다. 선반턱과 벽, 바닥이 만나는 부분을 실제 공정 사진으로 소개합니다.</span>
-              <span class="ic-meta">2026-07-07 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-07-07 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/doram-waterproof-heating.html" data-group="interior" data-date="2026-06-29" data-search="세종 도램마을 욕실 도막방수·난방 작업 — 바닥과 벽 배관을 함께 살폈습니다 세종 도램마을에서 진행한 욕실 도막방수와 난방 관련 작업입니다. 벽 하단의 방수면과 수전 배관 연결부를 구분해, 타일 뒤에 가려질 공정을 짧게 풀어봅니다. 방수·설비 세종 도램마을 욕실 도막방수·난방 관련 작업 벽 하단 도포·수전 연결 기록 공개 사진은 방수면·벽 수전 중심
@@ -411,7 +423,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>세종 도램마을 욕실 도막방수·난방 작업 — 바닥과 벽 배관을 함께 살폈습니다</b>
               <span class="ic-excerpt">세종 도램마을에서 진행한 욕실 도막방수와 난방 관련 작업입니다. 벽 하단의 방수면과 수전 배관 연결부를 구분해, 타일 뒤에 가려질 공정을 짧게 풀어봅니다.</span>
-              <span class="ic-meta">2026-06-29 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-06-29 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/eunhasu-bathroom-waterproof.html" data-group="interior" data-date="2026-06-26" data-search="대전 은하수아파트 욕실 1차 방수, 바닥에서 벽 하단으로 이어 바르기 은하수아파트 욕실의 1차 방수 작업을 소개합니다. 바닥과 벽 하단, 배관이 나오는 모서리까지 타일 시공 전에 보이는 공정을 담았습니다. 방수·설비 대전 은하수아파트 욕실 타일 전 바닥·벽 하단 방수 바닥·벽 하단·배관 주변 1차 도포 1차 방수 공정 사진
@@ -420,7 +432,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 은하수아파트 욕실 1차 방수, 바닥에서 벽 하단으로 이어 바르기</b>
               <span class="ic-excerpt">은하수아파트 욕실의 1차 방수 작업을 소개합니다. 바닥과 벽 하단, 배관이 나오는 모서리까지 타일 시공 전에 보이는 공정을 담았습니다.</span>
-              <span class="ic-meta">2026-06-26 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-06-26 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/sejong-cafe-waterproof.html" data-group="interior" data-date="2026-06-20" data-search="세종 카페 화장실 도막방수 3차 — 방수면과 매립수전 연결부 살펴보기 세종 카페 화장실에서 도막방수 3차와 난방·환풍기 배관 작업을 진행했습니다. 이번 글에서는 실제 사진이 남은 바닥·벽 하단 방수면과 매립수전 연결부를 소개합니다. 방수·설비 세종 카페 화장실 타일 전 방수·설비 작업 현장 기록상 3차 도막방수
@@ -430,7 +442,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>세종 카페 화장실 도막방수 3차 — 방수면과 매립수전 연결부 살펴보기</b>
               <span class="ic-excerpt">세종 카페 화장실에서 도막방수 3차와 난방·환풍기 배관 작업을 진행했습니다. 이번 글에서는 실제 사진이 남은 바닥·벽 하단 방수면과 매립수전 연결부를 소개합니다.</span>
-              <span class="ic-meta">2026-06-20 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-06-20 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/daejeon-cafe-restroom-remodel.html" data-group="interior" data-date="2026-06-18" data-search="대전 카페 화장실 리모델링 — 철거 자리 정리부터 조적·배관 작업까지 대전 카페 건물 화장실에서 철거, 방수, 조적, 난방·미장과 보일러 설치를 진행했습니다. 실제 사진이 남은 기구 철거 자리와 벽 하단 조적을 중심으로 여러 공정의 연결을 풀어봅니다. 시공 사례 대전 카페 화장실 설비·바탕 공정 리모델링 철거·방수·조적·배관
@@ -440,7 +452,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 카페 화장실 리모델링 — 철거 자리 정리부터 조적·배관 작업까지</b>
               <span class="ic-excerpt">대전 카페 건물 화장실에서 철거, 방수, 조적, 난방·미장과 보일러 설치를 진행했습니다. 실제 사진이 남은 기구 철거 자리와 벽 하단 조적을 중심으로 여러 공정의 연결을 풀어봅니다.</span>
-              <span class="ic-meta">2026-06-18 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-06-18 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/daejeon-church-canopy.html" data-group="interior" data-date="2026-05-12" data-search="대전 교회 지붕·처마 교체 — 기존 판넬에서 새 물받이까지 대전 교회 건물의 지붕 판넬과 처마를 교체한 현장입니다. 기존 지붕의 전체 모습과 새 판넬·물받이 연결부를 나눠 보며, 철거부터 마감까지 작업 범위를 소개합니다. 시공 사례 대전 교회 지붕·처마 기존 판넬·처마 교체 철거·커팅·새 판넬 고정
@@ -450,7 +462,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>대전 교회 지붕·처마 교체 — 기존 판넬에서 새 물받이까지</b>
               <span class="ic-excerpt">대전 교회 건물의 지붕 판넬과 처마를 교체한 현장입니다. 기존 지붕의 전체 모습과 새 판넬·물받이 연결부를 나눠 보며, 철거부터 마감까지 작업 범위를 소개합니다.</span>
-              <span class="ic-meta">2026-05-12 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-05-12 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/nonsan-fire-door.html" data-group="interior" data-date="2026-01-10" data-search="논산 공장 방화문 교체 — 상부 방식과 잠금 부속을 함께 검토한 현장 논산 공장 방화문을 교체하면서 상부 고정형과 탈부착형을 비교하고 잠금 부속도 함께 정리했습니다. 공개용 현장 사진은 없어, 확인된 작업 내용 중심으로 소개합니다. 시공 사례 논산 공장 출입문 방화문 상부 방식·잠금 검토 상부 탈부착형 선택
@@ -460,20 +472,21 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>논산 공장 방화문 교체 — 상부 방식과 잠금 부속을 함께 검토한 현장</b>
               <span class="ic-excerpt">논산 공장 방화문을 교체하면서 상부 고정형과 탈부착형을 비교하고 잠금 부속도 함께 정리했습니다. 공개용 현장 사진은 없어, 확인된 작업 내용 중심으로 소개합니다.</span>
-              <span class="ic-meta">2026-01-10 · 2분 읽기</span>
+              <span class="ic-meta"><span>2026-01-10 · 2분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           </div>
         </section>
         <section class="case-category-section" data-case-group="info" aria-labelledby="caseGroup-info">
           <h2 class="case-category-heading" id="caseGroup-info">정보 <span data-case-group-count>18건</span></h2>
+          <p class="case-category-description">견적·계약·보증, 공사를 시작하기 전에 알아둘 내용을 모았습니다.</p>
           <div class="insights-grid">
           <a class="insight-card" href="posts/wallpaper-silk-paper.html" data-group="info" data-date="2026-09-19" data-search="아파트 도배, 실크와 합지 중 우리 집에는 무엇이 맞을까요? 벽지는 색상보다 생활 습관과 벽 상태를 먼저 보고 고릅니다. 실크와 합지의 관리 차이, 밑작업 범위, 이음매 확인법을 알아두면 견적서에서 무엇을 비교할지 분명해집니다. 인테리어 공정 가이드    ">
             <span class="ic-cover" style="background:#8a7f6d"><span class="ic-cat">인테리어 공정 가이드</span></span>
             <span class="ic-body">
               <b>아파트 도배, 실크와 합지 중 우리 집에는 무엇이 맞을까요?</b>
               <span class="ic-excerpt">벽지는 색상보다 생활 습관과 벽 상태를 먼저 보고 고릅니다. 실크와 합지의 관리 차이, 밑작업 범위, 이음매 확인법을 알아두면 견적서에서 무엇을 비교할지 분명해집니다.</span>
-              <span class="ic-meta">2026-09-19 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-19 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/flooring-lifestyle.html" data-group="info" data-date="2026-09-19" data-search="강마루·강화마루·장판, 우리 집 생활에는 어떤 바닥이 맞을까요? 바닥재는 무늬가 비슷해도 발에 닿는 느낌과 설치 방식이 다릅니다. 바닥에 앉는 생활, 가구 이동, 물기 관리에 따라 후보를 좁히고 기존 바닥의 상태까지 함께 확인해 보세요. 인테리어 공정 가이드    ">
@@ -481,7 +494,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>강마루·강화마루·장판, 우리 집 생활에는 어떤 바닥이 맞을까요?</b>
               <span class="ic-excerpt">바닥재는 무늬가 비슷해도 발에 닿는 느낌과 설치 방식이 다릅니다. 바닥에 앉는 생활, 가구 이동, 물기 관리에 따라 후보를 좁히고 기존 바닥의 상태까지 함께 확인해 보세요.</span>
-              <span class="ic-meta">2026-09-19 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-19 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/kitchen-countertop-under-sink.html" data-group="info" data-date="2026-09-19" data-search="주방 상판과 싱크 하부, 공사 전에 무엇부터 정해야 할까요? 상판 색상을 먼저 고르면 싱크볼과 가전이 들어갈 자리를 뒤늦게 바꿀 수 있습니다. 조리 습관에 맞는 재질을 고르고, 하부장 안의 배관과 점검 공간까지 함께 정리하는 순서를 안내합니다. 인테리어 공정 가이드    ">
@@ -489,7 +502,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>주방 상판과 싱크 하부, 공사 전에 무엇부터 정해야 할까요?</b>
               <span class="ic-excerpt">상판 색상을 먼저 고르면 싱크볼과 가전이 들어갈 자리를 뒤늦게 바꿀 수 있습니다. 조리 습관에 맞는 재질을 고르고, 하부장 안의 배관과 점검 공간까지 함께 정리하는 순서를 안내합니다.</span>
-              <span class="ic-meta">2026-09-19 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-19 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/bathroom-tile-grout-slope.html" data-group="info" data-date="2026-09-19" data-search="욕실 타일 크기와 줄눈, 물매는 어떤 순서로 정해야 할까요? 욕실 바닥은 큰 타일을 고르는 것보다 물이 흘러갈 길을 먼저 정해야 합니다. 배수구와 출입구 높이를 살핀 뒤 타일 분할과 줄눈을 맞추고, 마감 후 배수까지 확인하는 기준을 설명합니다. 인테리어 공정 가이드    ">
@@ -497,7 +510,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>욕실 타일 크기와 줄눈, 물매는 어떤 순서로 정해야 할까요?</b>
               <span class="ic-excerpt">욕실 바닥은 큰 타일을 고르는 것보다 물이 흘러갈 길을 먼저 정해야 합니다. 배수구와 출입구 높이를 살핀 뒤 타일 분할과 줄눈을 맞추고, 마감 후 배수까지 확인하는 기준을 설명합니다.</span>
-              <span class="ic-meta">2026-09-19 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-19 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/carpentry-storage-partition-molding.html" data-group="info" data-date="2026-09-19" data-search="붙박이장·중문·몰딩, 우리 집 목공은 언제 넣고 빼야 할까요? 수납장이나 중문을 더하면 생활이 편해질 수 있지만 통로와 점검 공간도 줄어듭니다. 필요한 기능을 먼저 고른 뒤 몰딩, 벽 보강, 마감 연결을 정하면 불필요한 목공을 줄일 수 있습니다. 인테리어 공정 가이드    ">
@@ -505,7 +518,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>붙박이장·중문·몰딩, 우리 집 목공은 언제 넣고 빼야 할까요?</b>
               <span class="ic-excerpt">수납장이나 중문을 더하면 생활이 편해질 수 있지만 통로와 점검 공간도 줄어듭니다. 필요한 기능을 먼저 고른 뒤 몰딩, 벽 보강, 마감 연결을 정하면 불필요한 목공을 줄일 수 있습니다.</span>
-              <span class="ic-meta">2026-09-19 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-19 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/electrical-before-wallpaper.html" data-group="info" data-date="2026-09-19" data-search="콘센트와 조명 위치는 왜 아파트 도배 전에 정해야 할까요? 도배를 마친 뒤 콘센트를 옮기면 새 벽과 천장을 다시 손댈 수 있습니다. 가구 배치와 가전 사용을 먼저 정하고 배선, 조명 제어, 점검 위치를 도면에 반영하는 과정을 설명합니다. 인테리어 공정 가이드    ">
@@ -513,7 +526,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>콘센트와 조명 위치는 왜 아파트 도배 전에 정해야 할까요?</b>
               <span class="ic-excerpt">도배를 마친 뒤 콘센트를 옮기면 새 벽과 천장을 다시 손댈 수 있습니다. 가구 배치와 가전 사용을 먼저 정하고 배선, 조명 제어, 점검 위치를 도면에 반영하는 과정을 설명합니다.</span>
-              <span class="ic-meta">2026-09-19 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-19 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/renovation-while-occupied.html" data-group="info" data-date="2026-09-19" data-search="짐을 두고 사는 아파트 공사, 어디까지 나눠 진행할 수 있을까요? 거주 중 공사는 방을 나누는 것만으로 결정할 수 없습니다. 물과 전기를 못 쓰는 구간, 분진 이동, 짐 보관과 피난 동선까지 살펴 생활을 유지할 범위와 집을 비울 작업을 구분해야 합니다. 인테리어 공정 가이드    ">
@@ -521,7 +534,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>짐을 두고 사는 아파트 공사, 어디까지 나눠 진행할 수 있을까요?</b>
               <span class="ic-excerpt">거주 중 공사는 방을 나누는 것만으로 결정할 수 없습니다. 물과 전기를 못 쓰는 구간, 분진 이동, 짐 보관과 피난 동선까지 살펴 생활을 유지할 범위와 집을 비울 작업을 구분해야 합니다.</span>
-              <span class="ic-meta">2026-09-19 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-19 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/renovation-process-sequence.html" data-group="info" data-date="2026-09-19" data-search="아파트 철거부터 준공까지, 어떤 공정이 먼저 끝나야 할까요? 공정표는 작업 이름을 날짜에 나열한 표만은 아닙니다. 가려지기 전 확인할 설비와 마감 전에 기다려야 할 건조 조건을 구분하면, 다음 작업을 시작해도 되는 이유를 이해할 수 있습니다. 인테리어 공정 가이드    ">
@@ -529,7 +542,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>아파트 철거부터 준공까지, 어떤 공정이 먼저 끝나야 할까요?</b>
               <span class="ic-excerpt">공정표는 작업 이름을 날짜에 나열한 표만은 아닙니다. 가려지기 전 확인할 설비와 마감 전에 기다려야 할 건조 조건을 구분하면, 다음 작업을 시작해도 되는 이유를 이해할 수 있습니다.</span>
-              <span class="ic-meta">2026-09-19 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-09-19 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/interior-quote-contract-comparison.html" data-group="info" data-date="2026-09-09" data-search="인테리어 계약서 비교 방법, 견적서 사진부터 살펴보세요 견적 합계보다 세부 내역을 먼저 비교해 보세요. 목공 자재, 도장 바탕 보수, 타일 부분 보수, 전기·소방 수량을 같은 기준에 놓는 방법을 정리했습니다. AI 편집 이미지에 세부 내역은 남기고 식별정보와 금액은 공개하지 않았습니다. 견적·계약 가이드    ">
@@ -537,7 +550,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>인테리어 계약서 비교 방법, 견적서 사진부터 살펴보세요</b>
               <span class="ic-excerpt">견적 합계보다 세부 내역을 먼저 비교해 보세요. 목공 자재, 도장 바탕 보수, 타일 부분 보수, 전기·소방 수량을 같은 기준에 놓는 방법을 정리했습니다. AI 편집 이미지에 세부 내역은 남기고 식별정보와 금액은 공개하지 않았습니다.</span>
-              <span class="ic-meta">2026-09-09 · 6분 읽기</span>
+              <span class="ic-meta"><span>2026-09-09 · 6분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/apt-office-repair-partner.html" data-group="info" data-date="2026-08-02" data-search="아파트 관리사무소가 세대 보수 업체를 고를 때 확인하는 5가지 세대 민원 보수를 맡길 업체, 무엇을 보고 골라야 할까요. 대전에서 관리사무소 오더를 받아 일하는 시공자가 접수·기록·월말 정산까지 일하는 방식을 그대로 공개합니다. 관리사무소    ">
@@ -545,7 +558,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>아파트 관리사무소가 세대 보수 업체를 고를 때 확인하는 5가지</b>
               <span class="ic-excerpt">세대 민원 보수를 맡길 업체, 무엇을 보고 골라야 할까요. 대전에서 관리사무소 오더를 받아 일하는 시공자가 접수·기록·월말 정산까지 일하는 방식을 그대로 공개합니다.</span>
-              <span class="ic-meta">2026-08-02 · 4분 읽기</span>
+              <span class="ic-meta"><span>2026-08-02 · 4분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/apt-office-construction-notice.html" data-group="info" data-date="2026-07-29" data-search="아파트 인테리어 공사, 관리사무소 신고는 이렇게 진행됩니다 공동주택 공사는 시작 전에 관리사무소 절차가 있습니다. 무엇을 언제 내는지, 보통 어떤 것을 요구받는지, 저희가 대신 처리하는 범위를 정리했습니다. 계약 가이드    ">
@@ -553,7 +566,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>아파트 인테리어 공사, 관리사무소 신고는 이렇게 진행됩니다</b>
               <span class="ic-excerpt">공동주택 공사는 시작 전에 관리사무소 절차가 있습니다. 무엇을 언제 내는지, 보통 어떤 것을 요구받는지, 저희가 대신 처리하는 범위를 정리했습니다.</span>
-              <span class="ic-meta">2026-07-29 · 4분 읽기</span>
+              <span class="ic-meta"><span>2026-07-29 · 4분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/warranty-periods-by-work.html" data-group="info" data-date="2026-07-19" data-search="인테리어 하자보증 기간, 공정별로 이렇게 다릅니다 방수는 3년, 도배·타일 같은 마감은 1년 — 만물인테리어가 계약서에 명시하는 공정별 하자보증 기간과, 하자가 생겼을 때 순서를 정리했습니다. 보증·A/S    ">
@@ -561,7 +574,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>인테리어 하자보증 기간, 공정별로 이렇게 다릅니다</b>
               <span class="ic-excerpt">방수는 3년, 도배·타일 같은 마감은 1년 — 만물인테리어가 계약서에 명시하는 공정별 하자보증 기간과, 하자가 생겼을 때 순서를 정리했습니다.</span>
-              <span class="ic-meta">2026-07-19 · 4분 읽기</span>
+              <span class="ic-meta"><span>2026-07-19 · 4분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/extra-work-dispute-prevention.html" data-group="info" data-date="2026-07-19" data-search="인테리어 추가공사 분쟁, 시공하는 사람이 알려드립니다 &#x27;견적엔 없던 돈&#x27;은 왜 생길까요. 추가공사비로 싸우지 않게 계약하는 5가지 방법을 시공자 입장에서 솔직하게 정리했습니다. 계약 가이드    ">
@@ -569,7 +582,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>인테리어 추가공사 분쟁, 시공하는 사람이 알려드립니다</b>
               <span class="ic-excerpt">&#x27;견적엔 없던 돈&#x27;은 왜 생길까요. 추가공사비로 싸우지 않게 계약하는 5가지 방법을 시공자 입장에서 솔직하게 정리했습니다.</span>
-              <span class="ic-meta">2026-07-19 · 5분 읽기</span>
+              <span class="ic-meta"><span>2026-07-19 · 5분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/partial-vs-full-remodel.html" data-group="info" data-date="2026-07-16" data-search="부분 리모델링 vs 전체 리모델링 — 우리 집엔 뭐가 유리할까? 욕실만? 주방만? 아니면 한 번에 전체? 같은 예산이라도 순서를 잘못 잡으면 두 번 공사하게 됩니다. 부분과 전체의 갈림길에서 확인할 기준을 정리했습니다. 견적 가이드    ">
@@ -577,7 +590,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>부분 리모델링 vs 전체 리모델링 — 우리 집엔 뭐가 유리할까?</b>
               <span class="ic-excerpt">욕실만? 주방만? 아니면 한 번에 전체? 같은 예산이라도 순서를 잘못 잡으면 두 번 공사하게 됩니다. 부분과 전체의 갈림길에서 확인할 기준을 정리했습니다.</span>
-              <span class="ic-meta">2026-07-16 · 5분 읽기</span>
+              <span class="ic-meta"><span>2026-07-16 · 5분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/budget-guide-34py.html" data-group="info" data-date="2026-07-10" data-search="34평 아파트 리모델링, 예산 6천만원으로 어디까지 될까? 전체공사 기준으로 6천만원 예산이 어느 범위까지 커버되는지, 어디서 비용이 크게 갈리는지 실제 항목별로 정리했습니다. 견적 가이드    ">
@@ -585,7 +598,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>34평 아파트 리모델링, 예산 6천만원으로 어디까지 될까?</b>
               <span class="ic-excerpt">전체공사 기준으로 6천만원 예산이 어느 범위까지 커버되는지, 어디서 비용이 크게 갈리는지 실제 항목별로 정리했습니다.</span>
-              <span class="ic-meta">2026-07-10 · 5분 읽기</span>
+              <span class="ic-meta"><span>2026-07-10 · 5분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/warranty-5-checks.html" data-group="info" data-date="2026-07-04" data-search="인테리어 하자보증, 국가 기준으로 꼭 확인할 5가지 방수 3년·설비 2년·마감 1년. 건설 기준 하자담보책임기간을 근거로, 계약 전 반드시 확인해야 할 보증 항목을 정리했습니다. 보증·A/S    ">
@@ -593,7 +606,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>인테리어 하자보증, 국가 기준으로 꼭 확인할 5가지</b>
               <span class="ic-excerpt">방수 3년·설비 2년·마감 1년. 건설 기준 하자담보책임기간을 근거로, 계약 전 반드시 확인해야 할 보증 항목을 정리했습니다.</span>
-              <span class="ic-meta">2026-07-04 · 4분 읽기</span>
+              <span class="ic-meta"><span>2026-07-04 · 4분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/contract-checklist.html" data-group="info" data-date="2026-06-27" data-search="계약 전 반드시 확인할 견적서 체크리스트 &#x27;추가 비용 없음&#x27;이라는 말보다 중요한 것은 명세입니다. 분쟁을 막는 견적서·계약서 확인 포인트. 계약    ">
@@ -601,7 +614,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>계약 전 반드시 확인할 견적서 체크리스트</b>
               <span class="ic-excerpt">&#x27;추가 비용 없음&#x27;이라는 말보다 중요한 것은 명세입니다. 분쟁을 막는 견적서·계약서 확인 포인트.</span>
-              <span class="ic-meta">2026-06-27 · 4분 읽기</span>
+              <span class="ic-meta"><span>2026-06-27 · 4분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           <a class="insight-card" href="posts/ai-operated-interior.html" data-group="info" data-date="2026-06-20" data-search="AI가 운영하는 인테리어, 무엇이 다른가 AI가 대신 결정한다는 뜻이 아닙니다. 빠른 응대는 AI가, 중요한 결정은 사람이 — 그 경계를 시스템으로 지킵니다. 브랜드    ">
@@ -609,7 +622,7 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
             <span class="ic-body">
               <b>AI가 운영하는 인테리어, 무엇이 다른가</b>
               <span class="ic-excerpt">AI가 대신 결정한다는 뜻이 아닙니다. 빠른 응대는 AI가, 중요한 결정은 사람이 — 그 경계를 시스템으로 지킵니다.</span>
-              <span class="ic-meta">2026-06-20 · 3분 읽기</span>
+              <span class="ic-meta"><span>2026-06-20 · 3분 읽기</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>
             </span>
           </a>
           </div>
@@ -631,6 +644,6 @@ PB 배관 교체·계량기 재설치·보온 교체 후 내시경 재확인
     <a class="dock-call" href="tel:01023978629">📞 전화</a>
   </nav>
 
-  <script src="js/blog.js?v=20261002-case-readers"></script>
+  <script src="js/blog.js?v=20261002-editorial"></script>
 </body>
 </html>

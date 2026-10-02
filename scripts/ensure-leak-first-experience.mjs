@@ -212,11 +212,12 @@ check(/"datePublished":\s*"2026-08-09"/.test(insurancePost)
 check(/styles\.css\?v=20260830-followup1/.test(index)
     && /brand-system\.css\?v=20260830-followup1/.test(index)
     && /main\.js\?v=20260830-followup1/.test(index)
-    && /styles\.css\?v=20261002-case-readers/.test(blog)
+    && /styles\.css\?v=20261002-editorial/.test(blog)
     && /brand-system\.css\?v=20260925-category-groups/.test(blog)
-    && /blog\.js\?v=20261002-case-readers/.test(blog)
-    && /styles\.css\?v=20261002-case-readers/.test(insurancePost)
-    && /brand-system\.css\?v=20261002-case-readers/.test(insurancePost),
+    && /blog\.js\?v=20261002-editorial/.test(blog)
+    && /styles\.css\?v=20261002-editorial/.test(insurancePost)
+    && /brand-system\.css\?v=20261002-editorial/.test(insurancePost)
+    && [index, blog, leak, insurancePost].every(source => /site-polish\.css\?v=20261002-editorial/.test(source)),
   '변경된 CSS/JS의 캐시 버전이 갱신되지 않아 기존 방문자에게 이전 화면이 남을 수 있다',
   '누수 우선 CSS/JS 캐시 버전 갱신');
 
