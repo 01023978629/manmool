@@ -77,6 +77,7 @@ class ListCardParser(HTMLParser):
     def __init__(self, markup):
         super().__init__()
         self.cards = []
+        self.images = []
         self.groups = []
         self.group_cards = {}
         self.current_group = None
@@ -84,6 +85,8 @@ class ListCardParser(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         attributes = dict(attrs)
+        if tag == 'img' and attributes.get('class') == 'ic-image':
+            self.images.append(attributes)
         if tag == 'section' and 'data-case-group' in attributes:
             self.current_group = attributes['data-case-group']
             self.groups.append((self.current_group, 'hidden' in attributes))
@@ -99,6 +102,40 @@ class ListCardParser(HTMLParser):
 
 
 class FeaturedCaseTests(unittest.TestCase):
+    def test_first_rendered_image_has_priority_not_newer_interior_featured(self):
+        items = [
+            {'slug': 'interior', 'category': '인테리어', 'image': 'interior.jpg',
+             'caseSummary': {'work': '새 실제 사례'}},
+            {'slug': 'leak', 'category': '방수·설비', 'image': 'leak.jpg'},
+            {'slug': 'guide', 'category': '계약', 'image': 'guide.jpg'},
+        ]
+        images = ListCardParser(PRERENDER.list_markup(items)).images
+        self.assertEqual([i['src'] for i in images], ['leak.jpg', 'interior.jpg', 'guide.jpg'])
+        self.assertEqual(images[0]['loading'], 'eager')
+        self.assertEqual(images[0]['fetchpriority'], 'high')
+        for image in images[1:]:
+            self.assertEqual(image['loading'], 'lazy')
+            self.assertNotIn('fetchpriority', image)
+
+    def test_first_photo_skips_imageless_cards_and_featured(self):
+        items = [
+            {'slug': 'featured', 'category': '방수·설비', 'caseSummary': {'work': '확인된 작업'}},
+            {'slug': 'plain', 'category': '방수·설비'},
+            {'slug': 'photo', 'category': '인테리어', 'image': 'first.jpg'},
+            {'slug': 'guide', 'category': '계약', 'image': 'second.jpg'},
+        ]
+        images = ListCardParser(PRERENDER.list_markup(items)).images
+        self.assertEqual(images[0]['src'], 'first.jpg')
+        self.assertEqual(images[0]['loading'], 'eager')
+        self.assertEqual(images[0]['fetchpriority'], 'high')
+        self.assertEqual(images[1]['loading'], 'lazy')
+        self.assertNotIn('fetchpriority', images[1])
+        featured_only = dict(items[0], image='featured.jpg')
+        images = ListCardParser(PRERENDER.list_markup([featured_only])).images
+        self.assertEqual(images[0]['loading'], 'eager')
+        self.assertEqual(images[0]['fetchpriority'], 'high')
+        self.assertEqual(ListCardParser(PRERENDER.list_markup(items[:2])).images, [])
+
     def test_newer_guide_stays_a_card_and_latest_actual_work_is_featured(self):
         guide = {'slug': 'guide', 'date': '2026-09-09', 'category': '견적·계약 가이드',
                  'caseSummary': {'work': '정보 글은 작업 요약이 있어도 대표 시공이 아님'}}

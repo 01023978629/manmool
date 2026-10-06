@@ -3,6 +3,8 @@ const {test,before,after}=require('node:test');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto');
 const {chromium}=require('playwright');
 const ROOT=path.resolve(__dirname,'..'), site=JSON.parse(fs.readFileSync(path.join(ROOT,'data/site.json'),'utf8'));
+// 2026-10-06: 신규 방충망 글은 전용 검사에서 검증. 기존 57건의 순서·사진 지문은 계속 같은 기준으로 보호한다.
+const legacyInsights=site.insights.filter(a=>a.slug!=='daejeon-aluminum-window-screen-replacement-20261006');
 const targets=["samho-apartment-rain-pipe-repair-202609","samho-apartment-rain-pipe-repair-second-home-202609","samsung-balcony-rain-pipe-repair-202609","pyeonghaneul-apartment-leak-repair-20260909","buyeo-buyeong-balcony-waterproofing","daejeon-geumho-hansarang-balcony-floor-screed","daejeon-jung-gu-heating-pipe-leak-repair","daejeon-jung-gu-yard-water-valve-leak","apartment-balcony-rain-pipe-replacement","apartment-upper-lower-rain-pipe-repair","apartment-basement-cast-iron-pipe-repair","eunhasu-bathroom-waterproof","mugunghwa-pipe-replacement","yeolmae-waterproof-screed","geumseong-basement-pipe-valve","seonbi-pipe-replacement","taesan-rain-pipe-replacement","beomjigi-bathroom-waterproof","gaon-bathroom-waterproof","doram-waterproof-heating","sejong-cafe-waterproof","mokdong-trench-drain","daejeon-church-canopy","taesan-lexan-frame","nonsan-fire-door","daejayeon-bathroom-fixtures","daejeon-cafe-restroom-remodel","dodam-floor-screed","samsung-apartment-drain-pipe-replacement","hanbat-drain-replacement"];
 const protectedSlugs=["chungmu-heating-rust-water-flushing-20260930","chungmu-heating-manifold-installation-20260930","seonbi-boiler-pipe-leak-repair-20260929","doan-central-bathroom-pipe-waterproof-20260923","jinjam-town-rain-pipe-repair-202609","interior-quote-contract-comparison","wallpaper-silk-paper","flooring-lifestyle","kitchen-countertop-under-sink","bathroom-tile-grout-slope","carpentry-storage-partition-molding","electrical-before-wallpaper","renovation-while-occupied","renovation-process-sequence","leak-insurance-guide","apt-office-repair-partner","rainy-season-waterproof-check","apt-office-construction-notice","budget-guide-34py","warranty-5-checks","contract-checklist","ai-operated-interior","bathroom-waterproof-signs","partial-vs-full-remodel","warranty-periods-by-work","extra-work-dispute-prevention"];
 const splitSlug='yeolmae-extension-floor-screed';
@@ -16,10 +18,10 @@ const facts=items=>targets.map(slug=>{
 });
 const cases=targets.concat(splitSlug).map(slug=>site.insights.find(a=>a.slug===slug));
 test('승인 범위: 기존 5개·안내 21개·카탈로그·기존 URL 순서·사진 설명·영상 보존',()=>{
-  assert.equal(site.insights.length,57);
+  assert.equal(legacyInsights.length,57);
   assert.equal(hash(site.insights.filter(a=>protectedSlugs.includes(a.slug))),'2e2921d0e082a724ff3ec8541215f045c49294cabe7650eca6c4050c5fc53b82');
   const {insights,...rest}=site;assert.equal(hash(rest),'5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487');
-  assert.equal(hash(site.insights.filter(a=>a.slug!==splitSlug).map(a=>a.slug)),'0366b289dad2cdc3a506f0e3c7c0c87a2e8c85921bdde330c8dfc8caf519dfdd');
+  assert.equal(hash(legacyInsights.filter(a=>a.slug!==splitSlug).map(a=>a.slug)),'0366b289dad2cdc3a506f0e3c7c0c87a2e8c85921bdde330c8dfc8caf519dfdd');
   assert.equal(hash(facts(site.insights)),'02ca1c566aecf64f288884dc7cc907d8224b3ad5787b374ab9b00c05972778e3');
   const mutated=structuredClone(site.insights);mutated.find(a=>a.slug===targets[0]).body.reverse();
   assert.notEqual(hash(facts(mutated)),'02ca1c566aecf64f288884dc7cc907d8224b3ad5787b374ab9b00c05972778e3');
@@ -27,7 +29,7 @@ test('승인 범위: 기존 5개·안내 21개·카탈로그·기존 URL 순서�
   assert.notEqual(hash(altered.filter(a=>protectedSlugs.includes(a.slug))),'2e2921d0e082a724ff3ec8541215f045c49294cabe7650eca6c4050c5fc53b82');
 });
 test('공개 원본 사진·동영상 186개 파일 내용 보존',()=>{
-  const files=[...new Set(site.insights.flatMap(a=>[a.image,...a.body.flatMap(b=>[b.img,b.video,b.videoPoster])]).filter(Boolean).map(p=>p.split('?')[0]))].sort();
+  const files=[...new Set(legacyInsights.flatMap(a=>[a.image,...a.body.flatMap(b=>[b.img,b.video,b.videoPoster])]).filter(Boolean).map(p=>p.split('?')[0]))].sort();
   assert.equal(files.length,186);
   const fingerprints=files.map(p=>[p,crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,p))).digest('hex')]);
   assert.equal(hash(fingerprints),'64d52f6d58ceabb9e4331651790b7e78f9bd0fee5b594d23c5b2edb737f8865e');
