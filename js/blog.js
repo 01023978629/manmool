@@ -28,7 +28,7 @@
     return ` srcset="${p}-480w.jpg 480w, ${p}-960w.jpg 960w" sizes="${sizes}"`;
   };
   const image = (a, className, priority) => a.image
-    ? `<img class="${className}" src="${esc(a.image)}"${caseExtra(a.image, priority)} alt="${esc(a.imageAlt || a.title)}"${priority ? ' loading="eager" fetchpriority="high"' : ' loading="lazy"'} decoding="async">`
+    ? `<img class="${className}" src="${esc(a.image)}"${caseExtra(a.image, className === 'post-cover-image')} alt="${esc(a.imageAlt || a.title)}"${priority ? ' loading="eager" fetchpriority="high"' : ' loading="lazy"'} decoding="async">`
     : '';
   // Keep paragraph breaks and inline photos in the legacy ?post= view as well.
   const paragraphMarkup = (value) => String(value == null ? '' : value)
@@ -123,6 +123,8 @@
   function renderList(list) {
     document.title = '누수·배관 사례와 인테리어 기록 · 만물인테리어';
     list = list.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))); // 최신순
+    // 첫 사진은 최신 글이 아니라 누수 → 인테리어 → 정보의 실제 표시 순서로 찾는다.
+    const priorityArticle = caseGroups.flatMap(([key]) => list.filter(a => caseGroup(a) === key)).find(a => a.image);
     root.innerHTML = `
       <div class="case-editorial-header">
       <div class="section-head">
@@ -143,7 +145,7 @@
         <div class="insights-grid">
         ${list.filter(a => caseGroup(a) === key).map((a) => `
           <a class="insight-card" href="posts/${encodeURIComponent(a.slug)}.html" data-group="${caseGroup(a)}" data-date="${esc(a.date)}" data-search="${esc(searchText(a))}">
-            <span class="ic-cover" style="background:${cover(a)}">${image(a, 'ic-image', a === list[0])}<span class="ic-cat">${esc(a.category)}</span></span>
+            <span class="ic-cover" style="background:${cover(a)}">${image(a, 'ic-image', a === priorityArticle)}<span class="ic-cat">${esc(a.category)}</span></span>
             <span class="ic-body">
               <b>${esc(a.title)}</b>
               <span class="ic-excerpt">${esc(a.excerpt)}</span>

@@ -111,6 +111,20 @@ async function reset(page) {
     .filter((link) => link.getClientRects().length > 0).length === count, published.length);
 }
 
+async function assertFirstImagePriority(page) {
+  const images = await page.locator('#blogRoot .ic-image').evaluateAll(items => items.map(image => ({
+    loading: image.getAttribute('loading'), priority: image.getAttribute('fetchpriority'), sizes: image.getAttribute('sizes'),
+    card: image.closest('a').className,
+  })));
+  assert.ok(images.length > 0);
+  assert.equal(images[0].loading, 'eager');
+  assert.equal(images[0].priority, 'high');
+  assert.ok(images.slice(1).every(image => image.loading === 'lazy' && image.priority !== 'high'));
+  for (const image of images.filter(image => image.card === 'insight-card')) {
+    if (image.sizes) assert.match(image.sizes, /356px$/);
+  }
+}
+
 test('JavaScript 없이 공개 목록과 모든 글 링크를 한 벌 유지한다', async (t) => {
   const { page } = await openBlog(t, { javaScriptEnabled: false });
   assert.deepEqual(await slugs(page, true), allSlugs);
@@ -119,6 +133,7 @@ test('JavaScript 없이 공개 목록과 모든 글 링크를 한 벌 유지한�
   assert.equal(await page.locator('#caseFinder').isVisible(), false, '동작하지 않는 검색 폼을 표시함');
   assert.equal(await page.locator('#caseEmpty').isVisible(), false);
   assert.equal(await page.locator('#blogRoot h1').count(), 1);
+  await assertFirstImagePriority(page);
 });
 
 test('기본 목록은 추가 데이터 요청 없이 접근 가능한 검색과 최신 대표 사례를 제공한다', async (t) => {
@@ -134,6 +149,7 @@ test('기본 목록은 추가 데이터 요청 없이 접근 가능한 검색과
   assert.equal(await page.locator('#caseFilterStatus').getAttribute('aria-live'), 'polite');
   assert.match(await page.locator('#caseFilterStatus').innerText(), new RegExp(`${published.length}건`));
   assert.equal(requests.some((request) => /\/data\/site\.json(?:\?|$)/.test(request.url)), false);
+  await assertFirstImagePriority(page);
 });
 
 test('단지명 띄어쓰기·여러 단어·전각 숫자를 찾고 작업 요약만 검색한다', async (t) => {
@@ -304,6 +320,7 @@ test('검색·필터 후 전체로 돌아가도 분야별 결과 건수와 빈 �
 
 test('정적 목록 복구 렌더도 동일한 세 분야와 가이드 분류를 사용한다', async (t) => {
   const { page } = await openBlog(t, { fallback: true });
+  await assertFirstImagePriority(page);
   assert.equal(await cardLinks(page, true).count(), published.length);
   for (const group of groupKeys) {
     const actual = await page.locator(`[data-case-group="${group}"] a[data-group]`).evaluateAll(links => links.map(link => link.getAttribute('href')));

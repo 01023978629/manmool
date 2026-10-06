@@ -306,7 +306,7 @@ def article_html(a, insights):
             f'<div class="pp-body"><span class="pp-label">현장 위치</span>'
             f'<b>{esc(place["name"])}</b>'
             + (f'<span class="pp-addr">{esc(place["address"])}</span>' if place.get('address') else '')
-            + '<span class="pp-note">단지 위치까지만 표기합니다. 동·호수와 고객 정보는 공개하지 않습니다.</span>'
+            + f'<span class="pp-note">{esc(place.get("note") or "단지 위치까지만 표기합니다. 동·호수와 고객 정보는 공개하지 않습니다.")}</span>'
             '</div>'
             f'<a class="pp-map" href="{esc(map_url)}" target="_blank" rel="noopener">네이버 지도에서 보기</a>'
             '</aside>')
@@ -508,15 +508,25 @@ def list_markup(insights):
     # 유지하고, 확인된 작업 요약이 있는 첫 실제 사례만 대표로 분리한다.
     featured = next((a for a in insights
                      if a.get('caseSummary') and case_group(a) != 'info'), None)
+    groups = [('leak', '누수·배관'), ('interior', '인테리어'), ('info', '정보')]
+    # 최신 대표 사례가 인테리어여도 화면은 누수 분야부터 나온다.
+    # 날짜나 대표 여부가 아니라 실제 렌더 순서의 첫 사진을 우선 로딩한다.
+    display_order = []
+    for key, _ in groups:
+        if featured and case_group(featured) == key:
+            display_order.append(featured)
+        display_order.extend(a for a in insights if a is not featured and case_group(a) == key)
+    priority_article = next((a for a in display_order if a.get('image')), None)
     featured_html = ''
     if featured:
         featured_image = ''
         if featured.get('image'):
-            featured_image = ('<img class="ic-image" src="%s"%s alt="%s" loading="eager" '
-                              'fetchpriority="high" decoding="async">'
+            priority = (' loading="eager" fetchpriority="high"'
+                        if featured is priority_article else ' loading="lazy"')
+            featured_image = ('<img class="ic-image" src="%s"%s alt="%s"%s decoding="async">'
                               % (esc(featured['image']),
                                  case_extra(featured.get('image'), '(max-width: 1160px) 94vw, 1112px'),
-                                 esc(featured.get('imageAlt') or featured.get('title'))))
+                                 esc(featured.get('imageAlt') or featured.get('title')), priority))
         featured_html = (
             '        <a class="insight-featured" href="posts/%s.html" data-group="%s" data-date="%s" data-search="%s">\n'
             '          <span class="ic-cover" style="background:%s">%s<span class="ic-cat">최신 현장 · %s</span></span>\n'
@@ -529,14 +539,14 @@ def list_markup(insights):
                 featured_image, esc(featured.get('category')), esc(featured.get('title')), esc(featured.get('excerpt')),
                 esc(featured.get('date')), esc(featured.get('readMin'))))
 
-    groups = [('leak', '누수·배관'), ('interior', '인테리어'), ('info', '정보')]
     cards = {key: [] for key, _ in groups}
     for a in insights:
         if a is featured:
             continue
         img = ''
         if a.get('image'):
-            priority = ' loading="lazy"'
+            priority = (' loading="eager" fetchpriority="high"'
+                        if a is priority_article else ' loading="lazy"')
             img = ('<img class="ic-image" src="%s"%s alt="%s"%s decoding="async">'
                    % (esc(a['image']), case_extra(a.get('image'), SIZES_CARD),
                       esc(a.get('imageAlt') or a.get('title')), priority))
