@@ -10,7 +10,8 @@ const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comp
 // 2026-10-02: 승인된 실제 사례 보완·공정 분리. 안내 21건과 기존 사실 보존은 remaining-cases 검사.
 // 2026-10-06: 실제 알루미늄 방충망 사례 1건 추가·최신 대표 카드 반영.
 // 기존 57개 원고 객체·순서 전체는 aluminum-screen-case 검사에서 별도 보존 대조.
-const OLD_COUNT = 57, OLD_HASH = 'c2c832f2913cf386d7b9c67a4804f80ba141dd353634fb82dc9d465990b89426';
+// 2026-10-06: 대표가 신규 방충망 현장을 한가람아파트로 확인해 해당 글의 장소·사진 설명만 정정.
+const OLD_COUNT = 57, OLD_HASH = '3b04e94d18210908de17d14a131e2e85fbf67aee09f56b48f7ae6a71759ab845';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');

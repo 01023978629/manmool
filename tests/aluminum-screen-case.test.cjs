@@ -35,8 +35,8 @@ test('실제 인테리어 사례 1건·6단계 사진·문단·상담·개인정
   assert.equal(a.category, '방충망·부분 인테리어');
   assert.equal(a.date, '2026-10-06');
   assert.equal(a.published, true);
-  assert.equal(a.place.name, '대전 서구 둔산남로 인근 아파트');
-  assert.match(a.place.note, /아파트명은 확인되지/);
+  assert.equal(a.place.name, '대전 탄방동 한가람아파트');
+  assert.match(a.place.note, /실제 작업 현장을 기준으로 확인/);
   assert.equal(a.body.length, 6);
   assert.equal(a.image, 'assets/cases/aluminum-screen-20261006-06.jpg');
   const photos = a.body.map(b => b.img);
@@ -52,9 +52,18 @@ test('실제 인테리어 사례 1건·6단계 사진·문단·상담·개인정
   assert.ok(a.consultation.photos.length > 20 && a.consultation.scope.length > 20);
   const serialized = JSON.stringify(a);
   assert.doesNotMatch(serialized, /sourcePath|driveId|GPS|36\.34|127\.39|\d+\s*동\s*\d+\s*호|010[- ]|[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}|최저가|100%|평생 보증|고객님께서.*만족/);
-  // 배경의 단지명을 촬영 장소로 단정하지 않는다.
-  assert.doesNotMatch(serialized, /목련아파트|한가람아파트|\d+\s*분\s*(?:완료|시공)/);
+  // 2026-10-06: 대표가 한가람아파트로 확인. 배경 단지명이나 촬영 구간으로 현장·총 작업 시간을 추정하지 않는다.
+  assert.doesNotMatch(serialized, /목련아파트|아파트명은 확인되지|둔산남로 인근 아파트|\d+\s*분\s*(?:완료|시공)/);
   assert.ok(a.relatedSlugs.every(s => site.insights.some(x => x.slug === s && x.published !== false && x.service !== 'leak')));
+});
+test('확인된 한가람아파트가 제목·소개·현장·대표 사진·전후 설명에 일치한다', () => {
+  const a = site.insights.find(a => a.slug === slug);
+  for (const value of [a.title, a.excerpt, a.place.name, a.caseSummary.site, a.body[0].p,
+      a.imageAlt, a.body[0].imgAlt, a.body[0].imgCaption, a.body.at(-1).imgAlt, a.body.at(-1).imgCaption]) {
+    assert.match(value, /한가람아파트/);
+  }
+  const post = read(`posts/${slug}.html`);
+  assert.ok(post.includes('href="https://map.naver.com/p/search/' + encodeURIComponent(a.place.name) + '"'));
 });
 test('사진 6장과 12개 축소본: JPEG 실재·EXIF 제거·망 교체 전후 캡션', () => {
   const a = site.insights.find(a => a.slug === slug);

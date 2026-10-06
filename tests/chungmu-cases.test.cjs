@@ -7,7 +7,8 @@ const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex'
 // 2026-10-01: 선비마을·도안센트럴·진잠타운의 승인된 원고 개선 반영. 나머지 51건과 전체 사진은 별도 보존 검사.
 // 2026-10-02: 나머지 실제 사례 보완·열매 분리 승인. 기존 사실 보존은 remaining-cases 검사.
 // 2026-10-06: 방충망 실제 사례 1건 추가. 기존 57건 전체 보존은 aluminum-screen-case 검사.
-const baseline='b6b9c13c97e598097c57fa649137e730802cc0d4a15eee93f9dea768ca760911';
+// 2026-10-06: 신규 방충망 사례의 한가람아파트명 확인 정정. 이전 57건 보존 기준은 변경하지 않음.
+const baseline='f115ece65b7c40f23ef05c50e1d67f7045217ff285d82f4cf6a9ea84489225df';
 function preserved(items){const old=items.filter(a=>!slugs.includes(a.slug));return old.length===56&&hash(old)===baseline;}
 test('기준 갱신한 56개 원고 객체와 순서 보존, 변이 검출',()=>{
   const items=JSON.parse(read('data/site.json')).insights;

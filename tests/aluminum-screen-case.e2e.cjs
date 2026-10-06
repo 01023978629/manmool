@@ -70,14 +70,14 @@ for (const width of [320, 390, 1280]) {
     assert.deepEqual(errors, []);
   });
 }
-test('목록의 인테리어 검색에서 새 사례를 찾아 정적 원고로 이동한다', async t => {
+test('목록의 인테리어 검색에서 확인된 아파트명으로 사례를 찾아 정적 원고로 이동한다', async t => {
   const context = await browser.newContext({ viewport: { width: 390, height: 850 } });
   t.after(() => context.close());
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.continue() : route.abort());
   const page = await context.newPage();
   await page.goto(`${origin}/blog.html`);
   await page.locator('[data-case-filter="interior"]').click();
-  await page.locator('#caseSearch').fill('방충망');
+  await page.locator('#caseSearch').fill('한가람아파트');
   const link = page.locator(`#blogRoot a[href="posts/${slug}.html"]:visible`);
   assert.equal(await link.count(), 1);
   await link.click();
