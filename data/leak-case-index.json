@@ -2,6 +2,12 @@
   "version": 1,
   "cases": [
     {
+      "slug": "water-outlet-wall-repair-20261006",
+      "title": "옥천 주택 수전 배관 작업｜연결부 정리와 벽체 몰탈 보수",
+      "service": "leak",
+      "published": true
+    },
+    {
       "slug": "chungmu-heating-manifold-installation-20260930",
       "title": "대전 난방 분배기 교체｜충무로 현장 설치 전후와 바닥 보수",
       "service": "leak",

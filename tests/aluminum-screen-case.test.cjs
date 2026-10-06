@@ -7,14 +7,15 @@ const slug = 'daejeon-aluminum-window-screen-replacement-20261006';
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const site = JSON.parse(read('data/site.json'));
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
-const oldHash = 'f4748a29bf35e615ab0a19fb81bf75e3b93671d2b76d7b1ab077b39c0a103294';
+// 2026-10-06: 옥천 주택 실제 사진 사례 1건 추가. 이전 58건 전체는 water-outlet-case 검사로 별도 보존 대조.
+const oldHash = '1fc07b5f771675b91a5d0166d168253ec9d32b0dc1f1d2e40de4a5758254e13d';
 const originalRestHash = '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487';
 const preserved = insights => {
   const old = insights.filter(a => a.slug !== slug);
-  return old.length === 57 && hash(old) === oldHash;
+  return old.length === 58 && hash(old) === oldHash;
 };
-test('추가 전 57개 원고 객체·순서와 회사·시안 데이터가 그대로다', () => {
-  assert.equal(site.insights.length, 58);
+test('방충망 외 58개 원고 객체·순서와 회사·시안 데이터가 그대로다', () => {
+  assert.equal(site.insights.length, 59);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), originalRestHash);
@@ -24,7 +25,8 @@ test('추가 전 57개 원고 객체·순서와 회사·시안 데이터가 그�
   const removed = insights.filter(a => a.slug !== insights.find(a => a.slug !== slug).slug);
   assert.equal(preserved(removed), false);
   const reversed = structuredClone(insights);
-  [reversed[1], reversed[2]] = [reversed[2], reversed[1]];
+  const oldIndices = reversed.flatMap((a, i) => a.slug !== slug ? [i] : []);
+  [reversed[oldIndices[0]], reversed[oldIndices[1]]] = [reversed[oldIndices[1]], reversed[oldIndices[0]]];
   assert.equal(preserved(reversed), false);
 });
 test('실제 인테리어 사례 1건·6단계 사진·문단·상담·개인정보 경계', () => {

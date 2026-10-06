@@ -118,6 +118,7 @@ jobs:
           node --test tests/quote-contract-guide.test.cjs
           node --test tests/chungmu-cases.test.cjs
           node --test tests/aluminum-screen-case.test.cjs tests/aluminum-screen-case.e2e.cjs
+          node --test tests/water-outlet-case.test.cjs tests/water-outlet-case.e2e.cjs
           node --test tests/case-reader.e2e.cjs
           node --test tests/remaining-cases.test.cjs
           node --test scripts/new-case-post.test.mjs
