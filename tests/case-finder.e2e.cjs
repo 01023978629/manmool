@@ -304,9 +304,10 @@ for (const javaScriptEnabled of [false, true]) {
 
 test('검색·필터 후 전체로 돌아가도 분야별 결과 건수와 빈 구역 숨김을 유지한다', async (t) => {
   const { page } = await openBlog(t);
-  await search(page, '삼호아파트', 2);
+  // 2026-10-11: 승인된 하부 연결부 교체 사례 추가로 삼호아파트 기록은 3건.
+  await search(page, '삼호아파트', 3);
   assert.equal(await page.locator('[data-case-group]:visible').count(), 1);
-  assert.equal(await page.locator('[data-case-group="leak"] [data-case-group-count]').innerText(), '2건');
+  assert.equal(await page.locator('[data-case-group="leak"] [data-case-group-count]').innerText(), '3건');
   await page.locator('[data-case-filter="info"]').click();
   assert.equal(await page.locator('[data-case-group]:visible').count(), 0);
   assert.equal(await page.locator('#caseEmpty').isVisible(), true);

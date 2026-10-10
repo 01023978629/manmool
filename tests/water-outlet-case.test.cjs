@@ -6,14 +6,14 @@ const root = path.resolve(__dirname, '..'), slug = 'water-outlet-wall-repair-202
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const site = JSON.parse(read('data/site.json'));
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
-// Baseline captured from origin/main 4ce033c before adding this single case.
-const baseline = 'c2d448b8c754606e3789242cadc7864296f632ae3b4ae1be788c737e12598419';
+// 2026-10-11: 승인 원고 그대로 삼호 하부 연결부 사례 1건 추가. origin/main의 기존 59건 전체 객체·순서 별도 대조 완료.
+const baseline = 'f3889484035bde00f50f3aaa0fb3727fb962e426c42de7fb6153ebf7a962c454';
 function preserved(items) {
   const old = items.filter(a => a.slug !== slug);
-  return old.length === 58 && hash(old) === baseline;
+  return old.length === 59 && hash(old) === baseline;
 }
-test('이전 58개 글 객체·사진 설명·순서와 회사 데이터 보존, 변이 검출', () => {
-  assert.equal(site.insights.length, 59);
+test('옥천 외 59개 글 객체·사진 설명·순서와 회사 데이터 보존, 변이 검출', () => {
+  assert.equal(site.insights.length, 60);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487');

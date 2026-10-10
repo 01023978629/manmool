@@ -13,14 +13,15 @@ const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).
 // 2026-10-06: 알루미늄 방충망 사례 1건 추가. 이전 57건 보존은 aluminum-screen-case 검사.
 // 2026-10-06: 신규 방충망 현장명만 대표 확인으로 정정. 기존 57개 글과 사진은 전용 검사로 계속 보호.
 // 2026-10-06: 옥천 주택 배관·벽체 사진 사례 1건 추가. 이전 58건 전체는 water-outlet-case 검사로 보존 대조.
-const othersHash = '246d0c0b331246bcc87d2c199115ac043f2a6d69ad8df9b90728c98cf8bfa09b';
+// 2026-10-11: 승인된 삼호 하부 연결부 사례 1건 추가. 기존 59건 객체·순서는 origin/main과 별도 대조 완료.
+const othersHash = '0f82c8c89322cba3ffc329274072ef23ff65eab2b0d44a276f7555fd4a39c78b';
 const factsHash = 'a0d49c6730aab650c175ec63a5f2b2a07aad7f4649b1d4de0059251e39e4b5e5';
 const others = items => items.filter(a => !slugs.includes(a.slug));
 const facts = items => items.filter(a => slugs.includes(a.slug)).map(({title, excerpt, updated, consultation, relatedSlugs, body, ...a}) =>
   ({...a, body: body.map(({h, p, ...b}) => b)}));
 
-test('기준 갱신한 54개 글·정렬·기존 5개 글의 날짜·분류·핵심 요약·사진 35장과 설명 보존', () => {
-  assert.equal(others(site.insights).length, 54);
+test('기준 갱신한 55개 글·정렬·기존 5개 글의 날짜·분류·핵심 요약·사진 35장과 설명 보존', () => {
+  assert.equal(others(site.insights).length, 55);
   assert.equal(hash(others(site.insights)), othersHash);
   assert.equal(hash(facts(site.insights)), factsHash);
   assert.equal(cases.flatMap(a => a.body.filter(b => b.img)).length, 35);
