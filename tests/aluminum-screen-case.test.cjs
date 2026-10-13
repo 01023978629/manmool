@@ -1,3 +1,4 @@
+// 2026-10-13: Owner-approved five photo cases added; recent-cases-20261013 independently pins all previous 60 entries.
 // Public case content only. No customer data, credentials, or external writes.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
@@ -9,14 +10,14 @@ const site = JSON.parse(read('data/site.json'));
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 // 2026-10-06: 옥천 주택 실제 사진 사례 1건 추가. 이전 58건 전체는 water-outlet-case 검사로 별도 보존 대조.
 // 2026-10-11: 승인된 삼호 하부 연결부 사례 1건 추가. 기존 59건 객체·순서는 origin/main과 별도 대조 완료.
-const oldHash = '5374c77120808ddbad4325266106c85a8b21c835de9593f4ec26a8cd26a6db1c';
+const oldHash = '5c556febf12e65ee28563cee0a538a0604308e90e652bde853d8e174d608ae4f';
 const originalRestHash = '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487';
 const preserved = insights => {
   const old = insights.filter(a => a.slug !== slug);
-  return old.length === 59 && hash(old) === oldHash;
+  return old.length === 64 && hash(old) === oldHash;
 };
-test('방충망 외 59개 원고 객체·순서와 회사·시안 데이터가 그대로다', () => {
-  assert.equal(site.insights.length, 60);
+test('방충망 외 64개 원고 객체·순서와 회사·시안 데이터가 그대로다', () => {
+  assert.equal(site.insights.length, 65);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), originalRestHash);

@@ -70,7 +70,13 @@ for(const mode of ['static','no-js','recovery'])test(`${mode}: 전체 편수·�
     await page.locator('[data-case-filter="interior"]').click();
     assert.deepEqual((await page.locator('.case-archive-summary dd').allInnerTexts()).map(compact),expected,'전체 공개 편수는 검색 결과 건수와 분리');
     await page.locator('#caseSearch').fill('열매');
-    assert.equal(await page.locator('#blogRoot a[data-group]:visible').count(),2);
+    // 2026-10-13: the approved coating record is distinct from waterproofing and extension screed.
+    const links=await page.locator('#blogRoot a[data-group]:visible').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')));
+    assert.deepEqual(links.sort(),[
+      'posts/yeolmae-bathroom-waterproof-coating-20260821.html',
+      'posts/yeolmae-extension-floor-screed.html',
+      'posts/yeolmae-waterproof-screed.html'
+    ].sort());
   }
 });
 test('참고 이미지 표시는 JS 없이도 보이고 새 링크는 키보드 포커스가 선명하다',async t=>{

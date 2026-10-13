@@ -264,7 +264,12 @@ test('검색어는 텍스트로 처리하며 URL·저장소·네트워크에 쓰
 for (const width of [320, 390]) {
   test(`${width}px 모바일에서 검색·빈 결과·초기화가 가로 넘침 없이 동작한다`, async (t) => {
     const { page } = await openBlog(t, { viewport: { width, height: 844 }, isMobile: true });
-    await search(page, '금호한사랑', 1);
+    // 2026-10-13: same complex now has separate coating and balcony-screed records.
+    await search(page, '금호한사랑', 2);
+    assert.deepEqual(await slugs(page, true), [
+      'geumho-hansarang-bathroom-coating-threshold-20260828',
+      'daejeon-geumho-hansarang-balcony-floor-screed'
+    ]);
     await search(page, '모바일에서찾을수없는현장'.repeat(6), 0);
     const metrics = await page.evaluate(() => ({
       width: document.documentElement.clientWidth,

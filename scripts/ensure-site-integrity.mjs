@@ -47,7 +47,10 @@ const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
   if (!rss) fail.push('rss.xml 이 없다 — scripts/prerender-posts.py 를 실행하세요');
   else {
     const items = rss.match(/<item>/g) || [];
-    if (items.length !== Math.min(published.length, 30)) fail.push(`rss.xml 글 수(${items.length})가 공개 인사이트(${published.length})와 다르다`);
+    if (items.length !== published.length) fail.push(`rss.xml 글 수(${items.length})가 공개 인사이트(${published.length})와 다르다`);
+    for (const item of published) {
+      if (!rss.includes(`<link>https://01023978629.github.io/manmool/posts/${item.slug}.html</link>`)) fail.push(`rss.xml에 공개 글 링크가 없다: ${item.slug}`);
+    }
     if (!/xmlns:atom="http:\/\/www\.w3\.org\/2005\/Atom"/.test(rss) || !/<atom:link[^>]+rel="self"/.test(rss)) fail.push('rss.xml self 링크가 없다');
     if (/<link>https:\/\/01023978629\.github\.io\/(?!manmool\/)/.test(rss)) fail.push('rss.xml에 manmool 밖의 글 링크가 있다');
   }
