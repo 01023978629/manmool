@@ -2,6 +2,12 @@
   "version": 1,
   "cases": [
     {
+      "slug": "munhwa-samsung-wall-pipe-partial-replacement-20260818",
+      "title": "삼성아파트 벽체 배관 부분 교체｜기존 관에서 새 이음부까지",
+      "service": "leak",
+      "published": true
+    },
+    {
       "slug": "water-outlet-wall-repair-20261006",
       "title": "옥천 주택 수전 배관 작업｜연결부 정리와 벽체 몰탈 보수",
       "service": "leak",

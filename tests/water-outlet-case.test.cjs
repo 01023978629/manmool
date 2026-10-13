@@ -1,3 +1,4 @@
+// 2026-10-13: Owner-approved five photo cases added; recent-cases-20261013 independently pins all previous 60 entries.
 // Public case only. No customer identifiers, original paths, or precise coordinates.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
@@ -7,13 +8,13 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const site = JSON.parse(read('data/site.json'));
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 // 2026-10-11: 승인 원고 그대로 삼호 하부 연결부 사례 1건 추가. origin/main의 기존 59건 전체 객체·순서 별도 대조 완료.
-const baseline = 'f3889484035bde00f50f3aaa0fb3727fb962e426c42de7fb6153ebf7a962c454';
+const baseline = 'd82faa45c029717d8ef9d70d3fb917c583db1663e2ec1d45a06f38f56d0c19c2';
 function preserved(items) {
   const old = items.filter(a => a.slug !== slug);
-  return old.length === 59 && hash(old) === baseline;
+  return old.length === 64 && hash(old) === baseline;
 }
-test('옥천 외 59개 글 객체·사진 설명·순서와 회사 데이터 보존, 변이 검출', () => {
-  assert.equal(site.insights.length, 60);
+test('옥천 외 64개 글 객체·사진 설명·순서와 회사 데이터 보존, 변이 검출', () => {
+  assert.equal(site.insights.length, 65);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487');

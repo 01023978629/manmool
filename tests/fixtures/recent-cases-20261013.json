@@ -1,0 +1,123 @@
+{
+  "previousCount": 60,
+  "previousHash": "51442fd0796dcbd1e77661cff5e5850687694bc4e69bba95ea0896396f45ac3e",
+  "otherDataHash": "5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487",
+  "cases": [
+    {
+      "slug": "hanbat-woosung-entrance-wall-mortar-repair-20260916",
+      "service": "interior",
+      "photoCount": 6,
+      "shootingDate": "2026-09-16"
+    },
+    {
+      "slug": "geumho-hansarang-bathroom-coating-threshold-20260828",
+      "service": "interior",
+      "photoCount": 3,
+      "shootingDate": "2026-08-28"
+    },
+    {
+      "slug": "hyosung-bathroom-heating-faucet-screed-20260821",
+      "service": "interior",
+      "photoCount": 5,
+      "shootingDate": "2026-08-21"
+    },
+    {
+      "slug": "yeolmae-bathroom-waterproof-coating-20260821",
+      "service": "interior",
+      "photoCount": 2,
+      "shootingDate": "2026-08-21"
+    },
+    {
+      "slug": "munhwa-samsung-wall-pipe-partial-replacement-20260818",
+      "service": "leak",
+      "photoCount": 5,
+      "shootingDate": "2026-08-18"
+    }
+  ],
+  "photos": [
+    {
+      "file": "assets/cases/hanbat-woosung-entrance-wall-mortar-repair-20260916-06.jpg",
+      "sha256": "ec6c64ca5e65a7f078c6899a404aecc3aa8ff52ea896a423d6b29a99811f4cbf"
+    },
+    {
+      "file": "assets/cases/hanbat-woosung-entrance-wall-mortar-repair-20260916-01.jpg",
+      "sha256": "41cd6d3afc784850d30a267077a5969d8761c09ad8cfbdc19c9a085b96b2eeaa"
+    },
+    {
+      "file": "assets/cases/hanbat-woosung-entrance-wall-mortar-repair-20260916-02.jpg",
+      "sha256": "16007bb143915d05b621177b664f1218a033e91719a5fcbf3b8947b402173941"
+    },
+    {
+      "file": "assets/cases/hanbat-woosung-entrance-wall-mortar-repair-20260916-03.jpg",
+      "sha256": "c03907aa283d1464c3ba8422187b74b2408654f27248ea195dcb7db60a5fe7ca"
+    },
+    {
+      "file": "assets/cases/hanbat-woosung-entrance-wall-mortar-repair-20260916-04.jpg",
+      "sha256": "7b7b8724c54731b9612e3d8299c197f97f026f3868df9d2832e9442f410f0f7b"
+    },
+    {
+      "file": "assets/cases/hanbat-woosung-entrance-wall-mortar-repair-20260916-05.jpg",
+      "sha256": "581720c4f1d4d10cf96fae39cf3ebb37b0aea46aecf25e99eba1616e9b6a4597"
+    },
+    {
+      "file": "assets/cases/geumho-hansarang-bathroom-coating-threshold-20260828-01.jpg",
+      "sha256": "c353f1654431eb539853d127e64f58f8b0177beec1c56b4c775b37e30a32db59"
+    },
+    {
+      "file": "assets/cases/geumho-hansarang-bathroom-coating-threshold-20260828-02.jpg",
+      "sha256": "d6c6dfd7253c1d5a08f680763fc3c3adb83eb26d4a2fe3a13fbba4dd4b7829ac"
+    },
+    {
+      "file": "assets/cases/geumho-hansarang-bathroom-coating-threshold-20260828-03.jpg",
+      "sha256": "a377fcb65f9d2e7222e494b0976ea05b5daf8b46b55fdf619cc80a2831385e68"
+    },
+    {
+      "file": "assets/cases/hyosung-bathroom-heating-faucet-screed-20260821-03.jpg",
+      "sha256": "7390439a49696b8e4ef71b86b5f4c3672123083e4a3823958392cd67603ef38f"
+    },
+    {
+      "file": "assets/cases/hyosung-bathroom-heating-faucet-screed-20260821-01.jpg",
+      "sha256": "19d94e4fc7956495ef07b8bb531ae70bc3de78b733bce463d69aedb0075feb98"
+    },
+    {
+      "file": "assets/cases/hyosung-bathroom-heating-faucet-screed-20260821-02.jpg",
+      "sha256": "0e1c3acb48b149fc1940a9af2a17b5047362172b2737d60184ec402cf5eb9b3f"
+    },
+    {
+      "file": "assets/cases/hyosung-bathroom-heating-faucet-screed-20260821-04.jpg",
+      "sha256": "6e497085b2097e4850ff0cddc9495da10092edfe9a18fd1b51088491c124c866"
+    },
+    {
+      "file": "assets/cases/hyosung-bathroom-heating-faucet-screed-20260821-05.jpg",
+      "sha256": "e4b2b2aa6d72bc9296785f7b18dc1b5adbe92cc33dccf96981745b78da3579ce"
+    },
+    {
+      "file": "assets/cases/yeolmae-bathroom-waterproof-coating-20260821-01.jpg",
+      "sha256": "d9274b1628d6aea8f0206514fa2c92ee3a63dce82a617ab5b74e3b9f0558256c"
+    },
+    {
+      "file": "assets/cases/yeolmae-bathroom-waterproof-coating-20260821-02.jpg",
+      "sha256": "b1ba0ba9bd7f69c51535ad06eb812862d0aa59573462ae1dd4f4354a59e27043"
+    },
+    {
+      "file": "assets/cases/munhwa-samsung-wall-pipe-partial-replacement-20260818-04.jpg",
+      "sha256": "de073cb16f2982247b2612ccad986029c422ae3dd474ec2088bb22a699962a28"
+    },
+    {
+      "file": "assets/cases/munhwa-samsung-wall-pipe-partial-replacement-20260818-01.jpg",
+      "sha256": "b107384e2a550c1e4904371b10c4e1540dc7011380c55eafaff6a8a145c2855c"
+    },
+    {
+      "file": "assets/cases/munhwa-samsung-wall-pipe-partial-replacement-20260818-02.jpg",
+      "sha256": "ec70852df9f99f33172e8850e7252e5ece4aac4c697819ad44b300d55102941e"
+    },
+    {
+      "file": "assets/cases/munhwa-samsung-wall-pipe-partial-replacement-20260818-03.jpg",
+      "sha256": "204405ebd6435ff16371e5e23c54c5deeffc01658d90fea18a9993edf1d7843a"
+    },
+    {
+      "file": "assets/cases/munhwa-samsung-wall-pipe-partial-replacement-20260818-05.jpg",
+      "sha256": "b91ea3ee73fb2fb172eec9caef77cbe2e0a99127bc1cc7c449943a3a42629b5b"
+    }
+  ]
+}

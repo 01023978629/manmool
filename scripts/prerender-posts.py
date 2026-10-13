@@ -201,7 +201,8 @@ def latest_article_date(insights):
 def write_rss(insights):
     """네이버가 새 인사이트 글을 발견할 수 있도록 RSS 2.0 피드를 만든다."""
     items = []
-    for a in insights[:30]:
+    # Keep the public archive discoverable as new cases arrive; callers pass only published entries.
+    for a in insights:
         url = f'{BASE}/posts/{a["slug"]}.html'
         items.append(
             '    <item>\n'
@@ -229,7 +230,7 @@ def write_rss(insights):
     path = os.path.join(ROOT, 'rss.xml')
     with open(path, 'w', encoding='utf-8') as f:
         f.write(feed)
-    print('생성: rss.xml(%d건)' % min(len(insights), 30))
+    print('생성: rss.xml(%d건)' % len(insights))
 
 
 def article_html(a, insights):
