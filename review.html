@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>후기 남기기 · 만물인테리어</title>
+  <meta name="robots" content="noindex" />
+  <meta name="description" content="만물인테리어 공사를 받으신 고객님의 후기를 남기는 페이지입니다. 별점·공사 종류·현장·후기 내용을 받고, 대표가 확인한 뒤 홈페이지 후기 란에 공개합니다." />
+  <meta name="theme-color" content="#b8895a" />
+  <link rel="icon" href="assets/site/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="assets/site/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="assets/site/apple-touch-icon.png" />
+  <link rel="stylesheet" href="css/styles.css?v=20260830-followup1" />
+  <link rel="stylesheet" href="css/app.css?v=20260812-done" />
+  <link rel="stylesheet" href="css/review.css?v=20261023-review1" />
+</head>
+<body class="app-body">
+  <header class="app-header">
+    <div class="app-header-inner">
+      <div class="app-brand">
+        <span class="logo-mark">萬</span>
+        <div><strong>만물인테리어</strong><em>후기 남기기</em></div>
+        <span class="app-role">고객</span>
+      </div>
+      <div class="app-header-actions">
+        <a href="index.html" class="btn btn-ghost btn-sm">사이트로</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <h1 class="sr-only">만물인테리어 후기 남기기</h1>
+    <div class="panel-grid">
+      <section class="panel span-2 rv-panel">
+        <h2>공사는 만족스러우셨나요?</h2>
+        <p class="rv-lead">남겨 주신 후기는 <b>대표가 확인한 뒤</b> 홈페이지 후기 란에 <b>표시 이름 · 현장(단지명까지) · 별점 · 후기 내용</b>만 올립니다.
+          확인 연락처와 동·호수는 공개하지 않습니다. 올라간 뒤에도 삭제를 원하시면 언제든 말씀해 주세요.</p>
+
+        <form class="app-form" id="reviewForm" novalidate>
+          <!-- 봇 방어 허니팟: 사람에게는 보이지 않고 탭 순서에도 없다. 값이 차 있으면 전송·보관하지 않는다. -->
+          <input type="text" id="rvCompanyUrl" name="company_url" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute!important;left:-9999px!important;top:auto;width:1px;height:1px;opacity:0;pointer-events:none" />
+
+          <fieldset class="rv-field">
+            <legend class="fl">별점 <em class="req" aria-hidden="true">필수</em></legend>
+            <div class="rv-stars" id="rvRating" role="radiogroup" aria-label="별점 (1점부터 5점까지)">
+              <label class="rv-star"><input type="radio" name="rating" value="1" aria-label="1점" required /><span aria-hidden="true">★</span></label>
+              <label class="rv-star"><input type="radio" name="rating" value="2" aria-label="2점" /><span aria-hidden="true">★</span></label>
+              <label class="rv-star"><input type="radio" name="rating" value="3" aria-label="3점" /><span aria-hidden="true">★</span></label>
+              <label class="rv-star"><input type="radio" name="rating" value="4" aria-label="4점" /><span aria-hidden="true">★</span></label>
+              <label class="rv-star"><input type="radio" name="rating" value="5" aria-label="5점" /><span aria-hidden="true">★</span></label>
+              <output class="rv-star-label" id="rvRatingLabel" for="rvRating" aria-live="polite"></output>
+            </div>
+          </fieldset>
+
+          <div class="rv-field">
+            <label class="fl" for="rvWorkType">공사 종류 <em class="req" aria-hidden="true">필수</em></label>
+            <select id="rvWorkType" name="workType" required>
+              <option value="">선택해 주세요</option>
+              <option value="누수탐지·배관 수리">누수탐지·배관 수리</option>
+              <option value="방수">방수</option>
+              <option value="욕실 리모델링">욕실 리모델링</option>
+              <option value="주방 리모델링">주방 리모델링</option>
+              <option value="도배·바닥·목공·전기">도배·바닥·목공·전기</option>
+              <option value="전체 리모델링">전체 리모델링</option>
+              <option value="상가·사무실 인테리어">상가·사무실 인테리어</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+
+          <div class="rv-field">
+            <label class="fl" for="rvSite">현장 <small>선택 · 단지명까지만</small></label>
+            <input type="text" id="rvSite" name="site" maxlength="40" placeholder="예: 유성구 ○○아파트 — 동·호수는 적지 마세요" autocomplete="off" />
+          </div>
+
+          <div class="rv-field">
+            <label class="fl" for="rvText">후기 내용 <em class="req" aria-hidden="true">필수</em></label>
+            <textarea id="rvText" name="reviewText" rows="5" maxlength="600" required placeholder="어떤 공사였고 무엇이 좋았는지, 아쉬운 점이 있었다면 그것도 적어 주세요. 전화번호·동·호수는 적지 말아 주세요."></textarea>
+            <p class="form-note">10자 이상 · 600자 이하</p>
+          </div>
+
+          <div class="field-row">
+            <div class="rv-field">
+              <label class="fl" for="rvName">표시 이름 <small>선택</small></label>
+              <input type="text" id="rvName" name="displayName" maxlength="20" placeholder="예: 김○○ 또는 닉네임 (비우면 '고객')" autocomplete="off" />
+            </div>
+            <div class="rv-field">
+              <label class="fl" for="rvPhone">확인 연락처 <small>선택 · 비공개</small></label>
+              <input type="tel" id="rvPhone" name="phone" inputmode="numeric" placeholder="010-0000-0000" autocomplete="tel" />
+              <p class="form-note">공개되지 않습니다. 실제 공사 고객인지 확인할 때만 씁니다.</p>
+            </div>
+          </div>
+
+          <label class="rv-consent">
+            <input type="checkbox" id="rvConsent" name="consent" required />
+            <span>개인정보 수집·이용에 동의합니다 <em class="req" aria-hidden="true">필수</em> — 받는 항목과 보관 기준은 <a href="privacy.html#privacy-review-items" target="_blank" rel="noopener">개인정보처리방침</a>에 있습니다.</span>
+          </label>
+          <label class="rv-consent">
+            <input type="checkbox" id="rvPublishConsent" name="publishConsent" required />
+            <span>표시 이름·현장·별점·후기 내용을 홈페이지 후기 란에 공개하는 데 동의합니다 <em class="req" aria-hidden="true">필수</em> — 공개 전 대표가 확인하며, 확인 연락처와 동·호수는 공개하지 않습니다. 삭제는 언제든 010-2397-8629로 요청하실 수 있습니다.</span>
+          </label>
+
+          <button type="submit" class="btn btn-primary btn-lg btn-block" id="rvSubmit">후기 보내기</button>
+          <p class="app-status" id="rvStatus" role="status" aria-live="polite"></p>
+        </form>
+
+        <div class="rv-done" id="rvDone" hidden></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/pii-rules.js?v=20261023-review1"></script>
+  <script src="js/lead-transport.js?v=20261023-review1"></script>
+  <script src="js/review.js?v=20261023-review1"></script>
+</body>
+</html>

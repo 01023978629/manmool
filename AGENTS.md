@@ -84,6 +84,8 @@ Pages 배포, 소유자 인증 후 계정 발급은 각각 별도로 확인한�
 
 ## ✅ 검증 절차
 
+> 2026-10-23 문서·CI 정리: ensure 개수(8→26)·전자계약 검사 수(파일 6·pure 130·wiring 158)·잠금 동작 7개(`payment.update` 제거)·README `admin.html` 설명(승인/보류/거절은 `lead-inbox.html`)·`deploy-pages.yml` 에 designs 드리프트 검사 단계 추가. 코드에서 센 값만 적었다.
+
 **홈페이지 변경:**
 ```bash
 for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; done
@@ -185,7 +187,7 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 | 고칠 곳 | 안 고치면 |
 |---|---|
 | `python3 scripts/prerender-posts.py` | `posts/*.html`·`blog.html`·`rss.xml`·`data/leak-case-index.json` 이 안 생긴다. CI 첫 단계가 `git diff --exit-code` 로 막는다 |
-| `python3 scripts/prerender-designs.py` | 시안의 `tip`·`trendLabel` 을 고쳤다면 `designs/*.html` 8장이 옛 글을 들고 남는다. CI 마지막 `git diff --exit-code` 가 잡는다 |
+| `python3 scripts/prerender-designs.py` | 시안의 `tip`·`trendLabel` 을 고쳤다면 `designs/*.html` 8장이 옛 글을 들고 남는다. CI `Verify generated designs are current` 단계(`git diff --exit-code -- designs`, 2026-10-23 추가 — 그 전에는 CI 가 이 생성기를 돌리지 않아 잡지 못했다)가 잡는다 |
 | `sitemap.xml` 에 `posts/<slug>.html` 줄 | `ensure-site-integrity` 가 "sitemap 에 없다" 로 막는다 — **생성기가 손대지 않는다** |
 | `sitemap.xml` 의 `blog.html` `<lastmod>` | `ensure-weekly-leak-cases` 가 "목록의 최신 공개 글 수정일과 다르다" 로 막는다 |
 
@@ -204,13 +206,46 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 
 **전자계약 서버 변경:**
 ```bash
-node --test apps-script-contract/test/*.mjs   # Node 13파일; pure 118 + wiring 117, 화면은 Playwright 환경에서 별도
+node --test apps-script-contract/test/*.mjs   # 파일 6개(node --test 는 13건으로 센다); pure 130 + wiring 158, 화면 screens.e2e 12건은 Playwright 가 있을 때만(없으면 건너뜀·CI 는 실패)
 ```
 - **`PROTOCOL.md` 가 규약이다. 코드보다 먼저 고쳐라.** 문서와 코드가 어긋나면
   코드가 틀린 것이다.
 - 테스트 하네스는 `.gs` 원본을 **복사하지 않고** `node:vm` 으로 그대로 읽는다.
   소스를 테스트용으로 복제하지 마라 — 언젠가 한쪽만 고쳐진다.
 - 새 검사는 변이 검증(보호 동작을 되돌려 실패 확인)까지.
+
+## 후기 수집과 누수 요금 범위 (2026-10-23)
+
+**후기는 `review.html` 로 받는다.** 대문 후기 섹션은 `data/site.json` 의 `reviews` 가 비면 숨겨진다(허위 후기
+미노출). 2026-10-23 전까지 고객 페이지(`js/mypage.js`)의 "후기 작성" 버튼은 `alert('데모')` 였다 — 후기를 받을
+통로 자체가 없었다. 지금 흐름:
+
+1. 손님이 `review.html` 에서 별점·공사 종류·현장(단지명까지)·후기·표시 이름·확인 연락처(선택)를 적고 동의 2종
+   (개인정보·공개)을 체크한다 → 상담 폼과 같은 `js/lead-transport.js` 로 `type:'후기'` 메일이 간다(제목
+   `[홈페이지 후기]`, 본문은 `buildReviewText`). 보내기 전에 `js/pii-rules.js` 로 동·호수·전화·이메일을 막는다
+   ('고객명' 규칙은 "김○○ 고객" 같은 표시 이름을 오탐하므로 제외 — 배포 검사와 같은 4종만 쓴다).
+2. 대표가 메일을 확인하고 `node scripts/new-review.mjs --rating 5 --name "김○○" --space "유성구 ○○아파트 · 욕실
+   리모델링" --text "…"` 로 `reviews` 맨 앞에 옮겨 적는다. 이 도구도 같은 규칙으로 거부한다. **넣는 순간 대문에
+   공개되므로** 브랜치 → PR → 병합(대표 승인). 확인 연락처는 게시용이 아니다 — 메일에 `(비공개)` 로 찍히고
+   `reviews` 에는 넣지 않는다. 받지 않은 후기를 지어내지 마라.
+3. `scripts/ensure-review-intake.mjs` 가 폼 요소·동의 2종 required·허니팟·규칙 정본 사용·영구 저장소 미사용·
+   처리방침 문단(`#privacy-review-items`)·푸터 링크·mypage 실연결·공개 허용목록·`reviews` 의 개인정보를 본다
+   (변이 8건 검증). 화면 동작은 `tests/review-intake.e2e.cjs`(정상 전송·PII 차단·동의 미체크·허니팟·실패 복구),
+   본문·제목은 `tests/lead-transport.test.cjs`, 옮겨 적기 도구는 `scripts/new-review.test.mjs`.
+
+- `review.html` 은 `noindex` 라 sitemap 에 넣지 않는다. 새 공개 페이지는 `scripts/pages-artifact-policy.mjs`
+  허용목록(`review.html`·`js/review.js`)에 있어야 배포된다 — 빠지면 조용히 404 다.
+- 현장 앱(`hyeonjang`) 문자 센터의 리뷰 요청 문자에 `https://01023978629.github.io/manmool/review.html` 주소를
+  넣는 일은 저쪽 저장소 작업이다(🅰, 아직 안 함). 네이버 플레이스가 생기면 그쪽 후기 링크도 같이 둔다.
+
+**누수 탐지비는 범위만 공개한다(대표 결정 2026-10-23).** 5단계 표(40·57·65·65·83만원)는 `site.json`
+`leakPricing` 에 `published:true` 로 확정돼 있지만, 대문은 인테리어 전용이라 `data-surface="leak-only"` 로 닫혀
+있고 `leak.html` 에는 표가 없어 공개 화면 어디에도 금액이 없었다(숨고는 '대전 누수탐지' 페이지에서 평균
+30만원·15~80만원을 공개해 손님이 그 앵커를 들고 온다). 이제 `leak.html` 첫 화면 `#leakFeeRange`·FAQ·구조화
+데이터 `AggregateOffer` 세 곳에 **최소~최대(40만~83만원, 부가세 별도)** 만 적는다. 숫자는 손으로 적혀 있어
+`ensure-leak-pricing.mjs` 가 `site.json` 단계 최소·최대와 대조하고, 중간 단계 금액(57·65만원)이나 단계별 표
+컴포넌트가 `leak.html` 에 나오면 막는다(변이 6건 검증, 화면은 `tests/leak-fee-range.e2e.cjs`). 요금을 바꾸면
+정본과 `leak.html` 두 곳을 같이 고쳐라. 단계별 표를 공개하려면 대표 결정부터 다시 받는다.
 
 ## 전자계약 서버 핵심 불변식
 
@@ -219,7 +254,7 @@ node --test apps-script-contract/test/*.mjs   # Node 13파일; pure 118 + wiring
 - 토큰: 32바이트+ 무작위, SHA-256 해시만 저장, sign 72h/view 15m 만료, 1회성.
 - 문서지문 `docHash = SHA-256(정렬JSON({amount, body}))` — 금액 바꿔치기 검출.
 - 대금 분할 50/40/10, 잔금은 나머지 전부. 계약번호 `MM-YYYY-NNNN`.
-- 잠금 동작(`create·lock·signlink.issue·quickSend·void·payment.update·settings.set·sign.submit`)은 LockService 안, 멱등키는
+- 잠금 동작(`create·lock·signlink.issue·quickSend·void·settings.set·sign.submit` 7개 — `payment.update` 는 2026-08-13 삭제, `PROTOCOL.md` 동시성 항목과 `wiring.test.mjs` 가 대조)은 LockService 안, 멱등키는
   인증 통과 후 조회, 고객 캐시는 토큰 해시별 분리.
 - AI 중계(`ai.ask`): 키는 헤더로만, 갈 수 있는 곳은 아는 두 곳뿐, 한도는
   횟수만 막는다(요금 아님), 유료(openai)는 `AI_ALLOW_PAID=1` 없이 거절.
@@ -272,8 +307,9 @@ node --test apps-script-contract/test/*.mjs   # Node 13파일; pure 118 + wiring
   현재 작업은 `codex/install-rehearsal-20260810` → `codex/site-defects-20260810` →
   `codex/case-post-pipeline-20260810` → `codex/leak-pricing-ready-20260810` 순으로 쌓여
   있으므로 아래쪽부터 병합해야 한다.
-- 홈페이지 회귀: `scripts/ensure-*.mjs` 8개 전부 통과. 누수 상담 유형은 접수→관리자→
+- 홈페이지 회귀: `scripts/ensure-*.mjs` 8개 전부 통과(2026-10-23 현재 26개). 누수 상담 유형은 접수→관리자→
   현장앱 인계까지 보존되며, 공개 블로그 본문에 숫자 동·호수가 있으면 실패한다.
+- (2026-10-23) 후기 수집 통로 `review.html` 과 옮겨 적기 도구 `scripts/new-review.mjs` 가 생겼다. **실제 후기는 아직 0건**이고 지어내지 않는다. 누수 탐지비는 `leak.html` 에 범위(40만~83만원, 부가세 별도)만 공개한다.
 - 실제 현장 사례 생성 도구는 준비됐지만 **실제 사례는 추가하지 않았다.** 대표가
   6항목을 줄 때만 `scripts/new-case-post.mjs` 로 `published:false` 초안을 만든다.
 - 누수탐지 5단계 금액(40/57/65/65/83만원)과 화면 컴포넌트는 준비됐으나
