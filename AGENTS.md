@@ -84,6 +84,8 @@ Pages 배포, 소유자 인증 후 계정 발급은 각각 별도로 확인한�
 
 ## ✅ 검증 절차
 
+> 2026-10-23 문서·CI 정리: ensure 개수(8→26)·전자계약 검사 수(파일 6·pure 130·wiring 158)·잠금 동작 7개(`payment.update` 제거)·README `admin.html` 설명(승인/보류/거절은 `lead-inbox.html`)·`deploy-pages.yml` 에 designs 드리프트 검사 단계 추가. 코드에서 센 값만 적었다.
+
 **홈페이지 변경:**
 ```bash
 for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; done
@@ -185,7 +187,7 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 | 고칠 곳 | 안 고치면 |
 |---|---|
 | `python3 scripts/prerender-posts.py` | `posts/*.html`·`blog.html`·`rss.xml`·`data/leak-case-index.json` 이 안 생긴다. CI 첫 단계가 `git diff --exit-code` 로 막는다 |
-| `python3 scripts/prerender-designs.py` | 시안의 `tip`·`trendLabel` 을 고쳤다면 `designs/*.html` 8장이 옛 글을 들고 남는다. CI 마지막 `git diff --exit-code` 가 잡는다 |
+| `python3 scripts/prerender-designs.py` | 시안의 `tip`·`trendLabel` 을 고쳤다면 `designs/*.html` 8장이 옛 글을 들고 남는다. CI `Verify generated designs are current` 단계(`git diff --exit-code -- designs`, 2026-10-23 추가 — 그 전에는 CI 가 이 생성기를 돌리지 않아 잡지 못했다)가 잡는다 |
 | `sitemap.xml` 에 `posts/<slug>.html` 줄 | `ensure-site-integrity` 가 "sitemap 에 없다" 로 막는다 — **생성기가 손대지 않는다** |
 | `sitemap.xml` 의 `blog.html` `<lastmod>` | `ensure-weekly-leak-cases` 가 "목록의 최신 공개 글 수정일과 다르다" 로 막는다 |
 
@@ -204,7 +206,7 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 
 **전자계약 서버 변경:**
 ```bash
-node --test apps-script-contract/test/*.mjs   # Node 13파일; pure 118 + wiring 117, 화면은 Playwright 환경에서 별도
+node --test apps-script-contract/test/*.mjs   # 파일 6개(node --test 는 13건으로 센다); pure 130 + wiring 158, 화면 screens.e2e 12건은 Playwright 가 있을 때만(없으면 건너뜀·CI 는 실패)
 ```
 - **`PROTOCOL.md` 가 규약이다. 코드보다 먼저 고쳐라.** 문서와 코드가 어긋나면
   코드가 틀린 것이다.
@@ -252,7 +254,7 @@ node --test apps-script-contract/test/*.mjs   # Node 13파일; pure 118 + wiring
 - 토큰: 32바이트+ 무작위, SHA-256 해시만 저장, sign 72h/view 15m 만료, 1회성.
 - 문서지문 `docHash = SHA-256(정렬JSON({amount, body}))` — 금액 바꿔치기 검출.
 - 대금 분할 50/40/10, 잔금은 나머지 전부. 계약번호 `MM-YYYY-NNNN`.
-- 잠금 동작(`create·lock·signlink.issue·quickSend·void·payment.update·settings.set·sign.submit`)은 LockService 안, 멱등키는
+- 잠금 동작(`create·lock·signlink.issue·quickSend·void·settings.set·sign.submit` 7개 — `payment.update` 는 2026-08-13 삭제, `PROTOCOL.md` 동시성 항목과 `wiring.test.mjs` 가 대조)은 LockService 안, 멱등키는
   인증 통과 후 조회, 고객 캐시는 토큰 해시별 분리.
 - AI 중계(`ai.ask`): 키는 헤더로만, 갈 수 있는 곳은 아는 두 곳뿐, 한도는
   횟수만 막는다(요금 아님), 유료(openai)는 `AI_ALLOW_PAID=1` 없이 거절.
@@ -305,7 +307,7 @@ node --test apps-script-contract/test/*.mjs   # Node 13파일; pure 118 + wiring
   현재 작업은 `codex/install-rehearsal-20260810` → `codex/site-defects-20260810` →
   `codex/case-post-pipeline-20260810` → `codex/leak-pricing-ready-20260810` 순으로 쌓여
   있으므로 아래쪽부터 병합해야 한다.
-- 홈페이지 회귀: `scripts/ensure-*.mjs` 8개 전부 통과. 누수 상담 유형은 접수→관리자→
+- 홈페이지 회귀: `scripts/ensure-*.mjs` 8개 전부 통과(2026-10-23 현재 26개). 누수 상담 유형은 접수→관리자→
   현장앱 인계까지 보존되며, 공개 블로그 본문에 숫자 동·호수가 있으면 실패한다.
 - (2026-10-23) 후기 수집 통로 `review.html` 과 옮겨 적기 도구 `scripts/new-review.mjs` 가 생겼다. **실제 후기는 아직 0건**이고 지어내지 않는다. 누수 탐지비는 `leak.html` 에 범위(40만~83만원, 부가세 별도)만 공개한다.
 - 실제 현장 사례 생성 도구는 준비됐지만 **실제 사례는 추가하지 않았다.** 대표가

@@ -43,6 +43,12 @@ jobs:
           python3 scripts/prerender-posts.py
           git diff --exit-code -- blog.html posts rss.xml data/leak-case-index.json
 
+      - name: Verify generated designs are current
+        shell: bash
+        run: |
+          python3 scripts/prerender-designs.py
+          git diff --exit-code -- designs
+
       # 브라우저 바이너리(약 150MB)를 매 배포마다 새로 받지 않도록 캐시한다 — 키는 고정한 playwright 버전
       - name: Cache Playwright browsers
         id: pw-cache
