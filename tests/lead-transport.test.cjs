@@ -845,3 +845,36 @@ test('클립보드가 막히면 대체 복사를 거쳐 false 를 돌려준다',
   assert.deepEqual(execCalls, ['copy'],
     '클립보드가 막혔는데 대체 복사(execCommand)를 시도하지 않았다');
 });
+
+test('후기(type 후기)는 별점·공사 종류·현장·후기·공개 동의를 사람용 본문으로 만들고 제목은 [홈페이지 후기] 다', async () => {
+  const payload = {
+    type: '후기', rating: 4, workType: '욕실 리모델링', site: '유성구 SAFE_SITE', displayName: 'SAFE_NAME',
+    phone: '01012345678', reviewText: 'SAFE_REVIEW_TEXT', publishConsent: true, privacyConsent: true, source: 'review-page'
+  };
+  const text = loadLead().lead.buildLeadText(payload);
+  assert.match(text, /^\[만물인테리어 고객 후기\]/);
+  assert.match(text, /별점: ★★★★☆ \(4\/5\)/);
+  assert.match(text, /공사 종류: 욕실 리모델링/);
+  assert.match(text, /현장: 유성구 SAFE_SITE/);
+  assert.match(text, /표시 이름: SAFE_NAME/);
+  assert.match(text, /확인 연락처\(비공개\): 01012345678/);
+  assert.match(text, /후기: SAFE_REVIEW_TEXT/);
+  assert.match(text, /홈페이지 공개 동의: 동의/);
+  assert.match(text, /개인정보 수집·이용 동의: 동의/);
+  assert.doesNotMatch(text, /공간:|메모:|상담 신청/);
+  assert.match(loadLead().lead.buildLeadText({ type: '후기', publishConsent: false }), /홈페이지 공개 동의: 미동의/);
+  assert.match(loadLead().lead.buildLeadText({ type: '후기' }), /표시 이름: 고객/);
+
+  const formRequests = [];
+  const fetchImpl = async (url, options) => {
+    formRequests.push(JSON.parse(options.body));
+    return response(200, '{"success":true}');
+  };
+  assert.equal(await loadLead({ fetch: fetchImpl }).lead.deliver(formsConfig('web3forms'), payload), true);
+  assert.match(formRequests[0].subject, /^\[홈페이지 후기\] SAFE_NAME · 후기$/);
+  assert.match(formRequests[0].message, /별점: ★★★★☆/);
+  assert.equal(formRequests[0].publishConsent, true);
+  // 상담 제목은 그대로다 — 후기 분기가 상담 메일 제목을 바꾸면 대표 메일함 필터가 깨진다
+  assert.equal(await loadLead({ fetch: fetchImpl }).lead.deliver(formsConfig('web3forms'), { type: '누수', name: 'SAFE_NAME', phone: '01012345678' }), true);
+  assert.match(formRequests[1].subject, /^\[홈페이지 상담\] SAFE_NAME · 누수$/);
+});

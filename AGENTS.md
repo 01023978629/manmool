@@ -212,6 +212,39 @@ node --test apps-script-contract/test/*.mjs   # Node 13파일; pure 118 + wiring
   소스를 테스트용으로 복제하지 마라 — 언젠가 한쪽만 고쳐진다.
 - 새 검사는 변이 검증(보호 동작을 되돌려 실패 확인)까지.
 
+## 후기 수집과 누수 요금 범위 (2026-10-23)
+
+**후기는 `review.html` 로 받는다.** 대문 후기 섹션은 `data/site.json` 의 `reviews` 가 비면 숨겨진다(허위 후기
+미노출). 2026-10-23 전까지 고객 페이지(`js/mypage.js`)의 "후기 작성" 버튼은 `alert('데모')` 였다 — 후기를 받을
+통로 자체가 없었다. 지금 흐름:
+
+1. 손님이 `review.html` 에서 별점·공사 종류·현장(단지명까지)·후기·표시 이름·확인 연락처(선택)를 적고 동의 2종
+   (개인정보·공개)을 체크한다 → 상담 폼과 같은 `js/lead-transport.js` 로 `type:'후기'` 메일이 간다(제목
+   `[홈페이지 후기]`, 본문은 `buildReviewText`). 보내기 전에 `js/pii-rules.js` 로 동·호수·전화·이메일을 막는다
+   ('고객명' 규칙은 "김○○ 고객" 같은 표시 이름을 오탐하므로 제외 — 배포 검사와 같은 4종만 쓴다).
+2. 대표가 메일을 확인하고 `node scripts/new-review.mjs --rating 5 --name "김○○" --space "유성구 ○○아파트 · 욕실
+   리모델링" --text "…"` 로 `reviews` 맨 앞에 옮겨 적는다. 이 도구도 같은 규칙으로 거부한다. **넣는 순간 대문에
+   공개되므로** 브랜치 → PR → 병합(대표 승인). 확인 연락처는 게시용이 아니다 — 메일에 `(비공개)` 로 찍히고
+   `reviews` 에는 넣지 않는다. 받지 않은 후기를 지어내지 마라.
+3. `scripts/ensure-review-intake.mjs` 가 폼 요소·동의 2종 required·허니팟·규칙 정본 사용·영구 저장소 미사용·
+   처리방침 문단(`#privacy-review-items`)·푸터 링크·mypage 실연결·공개 허용목록·`reviews` 의 개인정보를 본다
+   (변이 8건 검증). 화면 동작은 `tests/review-intake.e2e.cjs`(정상 전송·PII 차단·동의 미체크·허니팟·실패 복구),
+   본문·제목은 `tests/lead-transport.test.cjs`, 옮겨 적기 도구는 `scripts/new-review.test.mjs`.
+
+- `review.html` 은 `noindex` 라 sitemap 에 넣지 않는다. 새 공개 페이지는 `scripts/pages-artifact-policy.mjs`
+  허용목록(`review.html`·`js/review.js`)에 있어야 배포된다 — 빠지면 조용히 404 다.
+- 현장 앱(`hyeonjang`) 문자 센터의 리뷰 요청 문자에 `https://01023978629.github.io/manmool/review.html` 주소를
+  넣는 일은 저쪽 저장소 작업이다(🅰, 아직 안 함). 네이버 플레이스가 생기면 그쪽 후기 링크도 같이 둔다.
+
+**누수 탐지비는 범위만 공개한다(대표 결정 2026-10-23).** 5단계 표(40·57·65·65·83만원)는 `site.json`
+`leakPricing` 에 `published:true` 로 확정돼 있지만, 대문은 인테리어 전용이라 `data-surface="leak-only"` 로 닫혀
+있고 `leak.html` 에는 표가 없어 공개 화면 어디에도 금액이 없었다(숨고는 '대전 누수탐지' 페이지에서 평균
+30만원·15~80만원을 공개해 손님이 그 앵커를 들고 온다). 이제 `leak.html` 첫 화면 `#leakFeeRange`·FAQ·구조화
+데이터 `AggregateOffer` 세 곳에 **최소~최대(40만~83만원, 부가세 별도)** 만 적는다. 숫자는 손으로 적혀 있어
+`ensure-leak-pricing.mjs` 가 `site.json` 단계 최소·최대와 대조하고, 중간 단계 금액(57·65만원)이나 단계별 표
+컴포넌트가 `leak.html` 에 나오면 막는다(변이 6건 검증, 화면은 `tests/leak-fee-range.e2e.cjs`). 요금을 바꾸면
+정본과 `leak.html` 두 곳을 같이 고쳐라. 단계별 표를 공개하려면 대표 결정부터 다시 받는다.
+
 ## 전자계약 서버 핵심 불변식
 
 - 통신: 단일 `/exec` + `text/plain` POST(preflight 회피), 커스텀 헤더 금지,
@@ -274,6 +307,7 @@ node --test apps-script-contract/test/*.mjs   # Node 13파일; pure 118 + wiring
   있으므로 아래쪽부터 병합해야 한다.
 - 홈페이지 회귀: `scripts/ensure-*.mjs` 8개 전부 통과. 누수 상담 유형은 접수→관리자→
   현장앱 인계까지 보존되며, 공개 블로그 본문에 숫자 동·호수가 있으면 실패한다.
+- (2026-10-23) 후기 수집 통로 `review.html` 과 옮겨 적기 도구 `scripts/new-review.mjs` 가 생겼다. **실제 후기는 아직 0건**이고 지어내지 않는다. 누수 탐지비는 `leak.html` 에 범위(40만~83만원, 부가세 별도)만 공개한다.
 - 실제 현장 사례 생성 도구는 준비됐지만 **실제 사례는 추가하지 않았다.** 대표가
   6항목을 줄 때만 `scripts/new-case-post.mjs` 로 `published:false` 초안을 만든다.
 - 누수탐지 5단계 금액(40/57/65/65/83만원)과 화면 컴포넌트는 준비됐으나
