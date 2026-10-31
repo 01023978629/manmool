@@ -120,6 +120,7 @@ jobs:
           node --test tests/aluminum-screen-case.test.cjs tests/aluminum-screen-case.e2e.cjs
           node --test tests/water-outlet-case.test.cjs tests/water-outlet-case.e2e.cjs
           node --test tests/recent-cases-20261013.test.cjs tests/recent-cases-20261013.e2e.cjs
+          node --test tests/recent-cases-20261031.test.cjs tests/recent-cases-20261031.e2e.cjs
           node --test tests/case-reader.e2e.cjs
           node --test tests/remaining-cases.test.cjs
           node --test scripts/new-case-post.test.mjs

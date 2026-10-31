@@ -2,8 +2,62 @@
   "version": 1,
   "cases": [
     {
+      "slug": "sanho-balcony-drain-tile-replacement-20261029",
+      "title": "대전 산호아파트 베란다 배수구·타일 교체｜우수관 둘레 바닥을 다시 깔아 마감",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "sujeong-town-laundry-rain-pipe-drain-20261029",
+      "title": "대전 둔산동 수정타운아파트 세탁실 우수관·배수구 교체｜하부 연결부와 배수구 몸체를 새로",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "wolpyeong-town-laundry-rain-pipe-joint-20261029",
+      "title": "대전 월평동 월평타운 세탁실 우수관 보수｜바닥 연결부를 새 부속으로 교체",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "saeyeoul-laundry-rain-pipe-floor-drain-20261022",
+      "title": "대전 신탄진 새여울아파트 세탁실 우수관·배수구 교체｜하부 연결부와 바닥 배수구를 함께",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "yongjeon-apartment-water-pipe-replacement-20261019",
+      "title": "대전 용전동 아파트 수도배관 교체｜바닥·벽 배관 경로부터 욕실 기구 재설치까지",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "sujeong-town-balcony-rain-pipe-joint-20261014",
+      "title": "대전 둔산동 수정타운아파트 베란다 우수관 보수｜바닥 연결부를 정리하고 다시 연결",
+      "service": "leak",
+      "published": true
+    },
+    {
       "slug": "munhwa-samsung-wall-pipe-partial-replacement-20260818",
       "title": "삼성아파트 벽체 배관 부분 교체｜기존 관에서 새 이음부까지",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "gubong-balcony-rain-pipe-floor-drain-20261008",
+      "title": "대전 관저동 구봉마을 베란다 우수관 보수｜하부 배수 부속을 새로 놓고 재연결",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "jukdong-yemiji-bathroom-coating-vent-core-20261007",
+      "title": "대전 죽동 예미지아파트 욕실 도막 방수·드레스룸 환기구 코어｜한 세대의 두 공정",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "seonbi-1danji-boiler-pipe-valve-replacement-20261007",
+      "title": "대전 송촌동 선비마을 1단지 보일러 배관 교체｜밸브·연결관을 새로 잇고 보온 마감",
       "service": "leak",
       "published": true
     },
@@ -16,6 +70,12 @@
     {
       "slug": "samho-balcony-rain-pipe-joint-replacement-20261005",
       "title": "대전 법동 삼호아파트 베란다 우수관 보수｜삭은 바닥 연결부를 새 부속으로 교체",
+      "service": "leak",
+      "published": true
+    },
+    {
+      "slug": "beomjigi-bathroom-demolition-waterproof-faucet-20261002",
+      "title": "세종 범지기마을 욕실 철거·방수와 수전 위치 이전｜하루 동안의 기록",
       "service": "leak",
       "published": true
     },
