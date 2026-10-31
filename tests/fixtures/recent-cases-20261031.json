@@ -1,0 +1,414 @@
+{
+  "previousCount": 66,
+  "previousHash": "07ecbc6bd553dd25716b3fa5209a654843d0d300137dee1f0f7854ff2cf40889",
+  "otherDataHash": "5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487",
+  "cases": [
+    {
+      "slug": "sanho-balcony-drain-tile-replacement-20261029",
+      "service": "leak",
+      "date": "2026-10-29",
+      "photoCount": 8,
+      "shootingDates": [
+        "2026-10-29"
+      ]
+    },
+    {
+      "slug": "sujeong-town-laundry-rain-pipe-drain-20261029",
+      "service": "leak",
+      "date": "2026-10-29",
+      "photoCount": 8,
+      "shootingDates": [
+        "2026-10-29"
+      ]
+    },
+    {
+      "slug": "wolpyeong-town-laundry-rain-pipe-joint-20261029",
+      "service": "leak",
+      "date": "2026-10-29",
+      "photoCount": 8,
+      "shootingDates": [
+        "2026-10-29"
+      ]
+    },
+    {
+      "slug": "saeyeoul-laundry-rain-pipe-floor-drain-20261022",
+      "service": "leak",
+      "date": "2026-10-22",
+      "photoCount": 9,
+      "shootingDates": [
+        "2026-10-22"
+      ]
+    },
+    {
+      "slug": "yongjeon-apartment-water-pipe-replacement-20261019",
+      "service": "leak",
+      "date": "2026-10-19",
+      "photoCount": 10,
+      "shootingDates": [
+        "2026-10-13",
+        "2026-10-14",
+        "2026-10-19"
+      ]
+    },
+    {
+      "slug": "sujeong-town-balcony-rain-pipe-joint-20261014",
+      "service": "leak",
+      "date": "2026-10-14",
+      "photoCount": 7,
+      "shootingDates": [
+        "2026-10-14"
+      ]
+    },
+    {
+      "slug": "gubong-balcony-rain-pipe-floor-drain-20261008",
+      "service": "leak",
+      "date": "2026-10-08",
+      "photoCount": 9,
+      "shootingDates": [
+        "2026-10-08"
+      ]
+    },
+    {
+      "slug": "jukdong-yemiji-bathroom-coating-vent-core-20261007",
+      "service": "leak",
+      "date": "2026-10-07",
+      "photoCount": 6,
+      "shootingDates": [
+        "2026-10-06",
+        "2026-10-07"
+      ]
+    },
+    {
+      "slug": "seonbi-1danji-boiler-pipe-valve-replacement-20261007",
+      "service": "leak",
+      "date": "2026-10-07",
+      "photoCount": 6,
+      "shootingDates": [
+        "2026-10-07"
+      ]
+    },
+    {
+      "slug": "beomjigi-bathroom-demolition-waterproof-faucet-20261002",
+      "service": "leak",
+      "date": "2026-10-02",
+      "photoCount": 7,
+      "shootingDates": [
+        "2026-10-02"
+      ]
+    }
+  ],
+  "photos": [
+    {
+      "file": "assets/cases/sanho-drain-tile-20261029-08.jpg",
+      "sha256": "c796eca1975e4ccfcbb95a6ed4942a0f3a44baaa4bb971d0a2ba1e6e4e7269d7"
+    },
+    {
+      "file": "assets/cases/sanho-drain-tile-20261029-01.jpg",
+      "sha256": "c289ff901bf6de2c5da8f681cfa2fc4fcea90cf8ce760eea49308553584b6d3d"
+    },
+    {
+      "file": "assets/cases/sanho-drain-tile-20261029-02.jpg",
+      "sha256": "8daf88db0fa425e80f5ad4c892e531b1165c2793ec5aa839ab9412803b29795f"
+    },
+    {
+      "file": "assets/cases/sanho-drain-tile-20261029-03.jpg",
+      "sha256": "bd411b39b2cf00c76841f2744ce1491138129f46a3de43d785ac0730e3cf5f58"
+    },
+    {
+      "file": "assets/cases/sanho-drain-tile-20261029-04.jpg",
+      "sha256": "1e9a426e57ba16eeac98b589b0603fa5c0d7cb55962fed1c27d24059ce3f795a"
+    },
+    {
+      "file": "assets/cases/sanho-drain-tile-20261029-05.jpg",
+      "sha256": "0c1925098542fef434beccf3eb20edd5a63122a1c776dee95ec4c3814ea4c9f7"
+    },
+    {
+      "file": "assets/cases/sanho-drain-tile-20261029-06.jpg",
+      "sha256": "58714851447846bb8a101257583b779a930e3fcf0741f7ec7ce5272d8e42d623"
+    },
+    {
+      "file": "assets/cases/sanho-drain-tile-20261029-07.jpg",
+      "sha256": "27d96b870c11f27474ba801783b2dcd4ec2807322a45dec529bf52c0ebabec1c"
+    },
+    {
+      "file": "assets/cases/sujeong-laundry-drain-20261029-08.jpg",
+      "sha256": "cff7b68caa546d3aa8f329f9741c774743a8ffbb15c2a5786c4f770c9bef383c"
+    },
+    {
+      "file": "assets/cases/sujeong-laundry-drain-20261029-01.jpg",
+      "sha256": "4e4ce8a624518b2a9657599eb819dbe9945b463b72ebe06caa710a22c44ac2a4"
+    },
+    {
+      "file": "assets/cases/sujeong-laundry-drain-20261029-02.jpg",
+      "sha256": "b2aec997dcf34f4036f4be3d98a44de1daf6613473509c19823efe7637b6aef5"
+    },
+    {
+      "file": "assets/cases/sujeong-laundry-drain-20261029-03.jpg",
+      "sha256": "30b77b1967f845e1c772c6007453a6cfa7edb6e89df20e3c3223109b21a71418"
+    },
+    {
+      "file": "assets/cases/sujeong-laundry-drain-20261029-04.jpg",
+      "sha256": "03468fd8aab12cd153779e8775a92dfa83bfd6975162ed3ed4d3216ed7dc84e0"
+    },
+    {
+      "file": "assets/cases/sujeong-laundry-drain-20261029-05.jpg",
+      "sha256": "88caaf24a1c3c39d8607e40d0f78d121ca509b5b1aae01eb4c2f42147938c1b2"
+    },
+    {
+      "file": "assets/cases/sujeong-laundry-drain-20261029-06.jpg",
+      "sha256": "adc75b8f7da86a4b252bf1aefcc348e8ea559b32f5b79cf5e9d9ab2c645a648c"
+    },
+    {
+      "file": "assets/cases/sujeong-laundry-drain-20261029-07.jpg",
+      "sha256": "df3063a24606ee186b2e356932a44b1048da81fd0b694828fe4cc447d2fcb7ba"
+    },
+    {
+      "file": "assets/cases/wolpyeong-rain-pipe-20261029-07.jpg",
+      "sha256": "c0bacbb89812b9dba0bc11712089238bc1b25490a684e2461d02f58809178baf"
+    },
+    {
+      "file": "assets/cases/wolpyeong-rain-pipe-20261029-01.jpg",
+      "sha256": "647370e906b75ee014befcf646dbb1ff0e06411a9d76036d459713d633f154b6"
+    },
+    {
+      "file": "assets/cases/wolpyeong-rain-pipe-20261029-02.jpg",
+      "sha256": "097d3680e5cac669c88e3e5b8378bcfa671a1787c54526bc2b02caabdd5c6514"
+    },
+    {
+      "file": "assets/cases/wolpyeong-rain-pipe-20261029-03.jpg",
+      "sha256": "a16fd031cf6d21b37a85668bbf4760c250c503bcf4e7aaf03afb5b0c996c8977"
+    },
+    {
+      "file": "assets/cases/wolpyeong-rain-pipe-20261029-04.jpg",
+      "sha256": "b68f87bb48eb5ccdd3d8cb61d2eead1faef3e7c7fe6e57e7f043bd6225c4ab13"
+    },
+    {
+      "file": "assets/cases/wolpyeong-rain-pipe-20261029-05.jpg",
+      "sha256": "993a5fee28c21b68fa90d93e0981b9d8e4fa70e91e03a0fd6b96241e2a238456"
+    },
+    {
+      "file": "assets/cases/wolpyeong-rain-pipe-20261029-06.jpg",
+      "sha256": "e5562df5f9ffb9b2d392c5723b9a557f58a5b52d087613b256317d6b7102cab3"
+    },
+    {
+      "file": "assets/cases/wolpyeong-rain-pipe-20261029-08.jpg",
+      "sha256": "a11b426235223be2acbf4c5abe8dc0307163b0349f42fd3ca9c6487efe1aa64d"
+    },
+    {
+      "file": "assets/cases/saeyeoul-laundry-drain-20261022-09.jpg",
+      "sha256": "7b0a16299db7d0c5fe2d25c23ae1b6a51434407a99a73df7f55cd6f211f74716"
+    },
+    {
+      "file": "assets/cases/saeyeoul-laundry-drain-20261022-01.jpg",
+      "sha256": "4bf1fe4f3b2b943afcac9415f2f1926f6fc427d3fd11864f43f91ef4baefab55"
+    },
+    {
+      "file": "assets/cases/saeyeoul-laundry-drain-20261022-02.jpg",
+      "sha256": "9b48c33d8e6efe45c66614cd9b59d3584a525a097b24de8829025e7ddb377380"
+    },
+    {
+      "file": "assets/cases/saeyeoul-laundry-drain-20261022-03.jpg",
+      "sha256": "a73e0a0b363a60c8b495ff6e133c6c478a6b79725913e58d4f01dd9848ee30ec"
+    },
+    {
+      "file": "assets/cases/saeyeoul-laundry-drain-20261022-04.jpg",
+      "sha256": "47f22316413f521c518fc3ffc6aa730349bd19803bca88d0c16296d84d2d8f65"
+    },
+    {
+      "file": "assets/cases/saeyeoul-laundry-drain-20261022-05.jpg",
+      "sha256": "db7a68f14be8426ce2c84c07bb30069c896ebb7356ee74b8afd8809a76b3a584"
+    },
+    {
+      "file": "assets/cases/saeyeoul-laundry-drain-20261022-06.jpg",
+      "sha256": "7c445901869e5173f83e62dcda03831503ae9b00498f6314c5f22dfcdbca7619"
+    },
+    {
+      "file": "assets/cases/saeyeoul-laundry-drain-20261022-07.jpg",
+      "sha256": "ea771182863b6e364810c37fca5ff843a31b98dbb94b00ced337ae48c14510c7"
+    },
+    {
+      "file": "assets/cases/saeyeoul-laundry-drain-20261022-08.jpg",
+      "sha256": "431101f9f0b346377caefa7b10449b6d70ee25316e3c7165a3d2c340cb07c0e6"
+    },
+    {
+      "file": "assets/cases/yongjeon-water-pipe-20261019-09.jpg",
+      "sha256": "cfcf13690fedc875b95199828bc62e0cb7b8a05a6a767023d40ab3f6cfa9ea66"
+    },
+    {
+      "file": "assets/cases/yongjeon-water-pipe-20261019-01.jpg",
+      "sha256": "b39a95b77613bb6d7ccfed23285e6813b9c5d1aa452cb18df5d7b656d390b4c2"
+    },
+    {
+      "file": "assets/cases/yongjeon-water-pipe-20261019-02.jpg",
+      "sha256": "8e99a437313bd3e8c22a5685ace697a5f2513acdd44e289958299e23b555527f"
+    },
+    {
+      "file": "assets/cases/yongjeon-water-pipe-20261019-03.jpg",
+      "sha256": "6b68d9b2a9a104ffa9c302765bf76cc73cb725ff323652a0a28fc4a5f2e3015f"
+    },
+    {
+      "file": "assets/cases/yongjeon-water-pipe-20261019-04.jpg",
+      "sha256": "98cae772ce54b01afac2393bfcef2a349dc1228a9cac712465fe0545b93da9c5"
+    },
+    {
+      "file": "assets/cases/yongjeon-water-pipe-20261019-05.jpg",
+      "sha256": "9f18f38251e1f904cde9b6b2f27748bf63c12031da92fbc616417d94601ccaa7"
+    },
+    {
+      "file": "assets/cases/yongjeon-water-pipe-20261019-06.jpg",
+      "sha256": "8fabc5bab4bb7e7f16e04c0bb168b7b58f3b93971c9fb5727bbb874853a05b87"
+    },
+    {
+      "file": "assets/cases/yongjeon-water-pipe-20261019-07.jpg",
+      "sha256": "38e33413e0af401c9172dae3a6793a84d99be2c0b105f5e8c2e419bdac7a85ff"
+    },
+    {
+      "file": "assets/cases/yongjeon-water-pipe-20261019-08.jpg",
+      "sha256": "8c862449fb95ccf3b4567ebfd7a2a73a0c9fe9d5613932f1d0e7ad910abe353f"
+    },
+    {
+      "file": "assets/cases/yongjeon-water-pipe-20261019-10.jpg",
+      "sha256": "4537e92a3767109207bbf557cce735c3a708c15e53538b07fde988ae2d99a578"
+    },
+    {
+      "file": "assets/cases/sujeong-rain-pipe-20261014-06.jpg",
+      "sha256": "e438b068d9b4c28e9655d8279dec362a12fcdc6ee882c7f2a09f4fbc1a6f364b"
+    },
+    {
+      "file": "assets/cases/sujeong-rain-pipe-20261014-01.jpg",
+      "sha256": "773538c93056fd00162dd82c3277964a03b4fcc2136f05a70efe9bdb6674504f"
+    },
+    {
+      "file": "assets/cases/sujeong-rain-pipe-20261014-02.jpg",
+      "sha256": "37a386db926dd433fbf7bc7a9c9243c829ef4e3441e78b8a6213969cef916c83"
+    },
+    {
+      "file": "assets/cases/sujeong-rain-pipe-20261014-03.jpg",
+      "sha256": "d06e249fea96db51235af4eb9b0e3061e811db48c4e52b7bcfb01a25b62ac522"
+    },
+    {
+      "file": "assets/cases/sujeong-rain-pipe-20261014-04.jpg",
+      "sha256": "4be84976a1b45d2fb6aa5327dc0f6bdb314e3e1c6b553587cadb6af8c98cdd0b"
+    },
+    {
+      "file": "assets/cases/sujeong-rain-pipe-20261014-05.jpg",
+      "sha256": "fd58b72efa1ea25371fe63913add809e72a33939bab56077f678ff5ce16236e9"
+    },
+    {
+      "file": "assets/cases/sujeong-rain-pipe-20261014-07.jpg",
+      "sha256": "61836ad6ae175d6b68b80d3a679d120713eb14d43ed0396c48d30b3c298cd9ca"
+    },
+    {
+      "file": "assets/cases/gubong-rain-pipe-20261008-08.jpg",
+      "sha256": "5fe3c9921b9517acfc20808cc4c9ee1b9feaa8907caff5f6f024fdca69344006"
+    },
+    {
+      "file": "assets/cases/gubong-rain-pipe-20261008-01.jpg",
+      "sha256": "d025f6e2e79b7019e42d35421eb11db83d24c76d5f44190abb8e7448dc3f8a3a"
+    },
+    {
+      "file": "assets/cases/gubong-rain-pipe-20261008-02.jpg",
+      "sha256": "d06f83856e37cf6ddaa5b521e610e108af7fbf061c6ad01d94455b6a8589b36d"
+    },
+    {
+      "file": "assets/cases/gubong-rain-pipe-20261008-03.jpg",
+      "sha256": "40df4eff189e049e24afe6fcd44f8566883b6485041fe2901fb344680993e111"
+    },
+    {
+      "file": "assets/cases/gubong-rain-pipe-20261008-04.jpg",
+      "sha256": "870aa9da705b627fc5309b697d9f52242b5f39ec8509e6d4c5fbbd5805bb55ca"
+    },
+    {
+      "file": "assets/cases/gubong-rain-pipe-20261008-05.jpg",
+      "sha256": "f076f7ebedf81f37cfe872945e8db23a0d02885c75a014494d77ff8ead4dbaa3"
+    },
+    {
+      "file": "assets/cases/gubong-rain-pipe-20261008-06.jpg",
+      "sha256": "179d45596333e4a239d0fb103edd16a4429b4baf6c2d8cbc3e47e65995fa473e"
+    },
+    {
+      "file": "assets/cases/gubong-rain-pipe-20261008-07.jpg",
+      "sha256": "bb43e9e24065e3acdc0b0854dc117997f6088a89e22223094e3418d52e45778d"
+    },
+    {
+      "file": "assets/cases/gubong-rain-pipe-20261008-09.jpg",
+      "sha256": "9bac34e742931a8605884952d8b326de05326fb9973c012a366f8c3fdde97b54"
+    },
+    {
+      "file": "assets/cases/yemiji-bath-vent-20261007-02.jpg",
+      "sha256": "cbbb43c695ad6f46440237e46f781304777c86c374f13c64b040297d702d42f3"
+    },
+    {
+      "file": "assets/cases/yemiji-bath-vent-20261007-01.jpg",
+      "sha256": "9a8646ec8ac94c89f87b89b272a8092119da7e4ead67211778187b2e57a5e2d9"
+    },
+    {
+      "file": "assets/cases/yemiji-bath-vent-20261007-03.jpg",
+      "sha256": "9273ec64c5af2d278fe163cfc0f5fa6a60822808147da0dc0d492f580411d12f"
+    },
+    {
+      "file": "assets/cases/yemiji-bath-vent-20261007-04.jpg",
+      "sha256": "e243030783e97c787e9614c9e27a98f33639f86f7757c1a8b8891e8f1e4729c7"
+    },
+    {
+      "file": "assets/cases/yemiji-bath-vent-20261007-05.jpg",
+      "sha256": "50b516c04f80e7757ce308a834e38bd08da826c5660cc9a5e004fbbf8810cf22"
+    },
+    {
+      "file": "assets/cases/yemiji-bath-vent-20261007-06.jpg",
+      "sha256": "eff47fe873ff15a93e35e16f6e7e44664ea2cf97c69d2f14f0026850f8ab4796"
+    },
+    {
+      "file": "assets/cases/seonbi-boiler-20261007-06.jpg",
+      "sha256": "ee35297df43d81c2bd6d7a16ca225b6738e03ededf9350ffe8a6c2a5ee699dbd"
+    },
+    {
+      "file": "assets/cases/seonbi-boiler-20261007-01.jpg",
+      "sha256": "1d28c691df68e29df31d3e93946302f4ea15f8ec4da0bdd403e656bb788f6e3e"
+    },
+    {
+      "file": "assets/cases/seonbi-boiler-20261007-02.jpg",
+      "sha256": "a84536d33b1abe671b2ef5027fd3c46bfed20189bd8cb92723c8760e4efaed68"
+    },
+    {
+      "file": "assets/cases/seonbi-boiler-20261007-03.jpg",
+      "sha256": "13f8c50e5d8fd7abfb869adfe0acc4d7da5a0f504a75d6c0a17c7120fcf5df84"
+    },
+    {
+      "file": "assets/cases/seonbi-boiler-20261007-04.jpg",
+      "sha256": "dfddbe7667b3509d890a9856bbfed46f9fddd10df0ace74fdf363798161793e3"
+    },
+    {
+      "file": "assets/cases/seonbi-boiler-20261007-05.jpg",
+      "sha256": "7bdb706e5c059f103338d03b8ac402660fdfbff034d46fad8d8c6e91f837316c"
+    },
+    {
+      "file": "assets/cases/beomjigi-bath-20261002-03.jpg",
+      "sha256": "38cada40f2540288cdc9fd0d85112987f9d8cac5db25ffd54c2c58a8257e4ded"
+    },
+    {
+      "file": "assets/cases/beomjigi-bath-20261002-01.jpg",
+      "sha256": "7734aec6fa79da8a0e7f531f7888105610fbe07c8b80194266ef2f1413319ce8"
+    },
+    {
+      "file": "assets/cases/beomjigi-bath-20261002-02.jpg",
+      "sha256": "d37881ffffefb3cf8c5a7293339e9d78ebb49f0277868594cca8b19bdd7770f4"
+    },
+    {
+      "file": "assets/cases/beomjigi-bath-20261002-04.jpg",
+      "sha256": "6811a7aba4f56eae04fb87e4df69fecc8442cf746ac543bdd939898239107b8e"
+    },
+    {
+      "file": "assets/cases/beomjigi-bath-20261002-05.jpg",
+      "sha256": "1d53314c8a1c86c850c799665f7937d5fa212b681ec524ce70a6944e98e7a3af"
+    },
+    {
+      "file": "assets/cases/beomjigi-bath-20261002-06.jpg",
+      "sha256": "b0a64bbe388fa1256376e137b96e273a26ee12dc7fdf108c763ec0eec4672a1b"
+    },
+    {
+      "file": "assets/cases/beomjigi-bath-20261002-07.jpg",
+      "sha256": "8bba6c4703682bf171944461dd9fa199e3462aa4dae68eb8b17dc8f69553755a"
+    }
+  ]
+}

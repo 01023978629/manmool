@@ -9,9 +9,9 @@ const site = JSON.parse(read('data/site.json'));
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
 const SLUG = 'winter-pipe-freeze-prevention-november';
-// origin/main(53a6bef)의 insights 65건 전체 — 이 글을 빼면 바이트 단위로 같아야 한다.
-const PREVIOUS_COUNT = 65;
-const PREVIOUS_HASH = 'e0c2c9abf29f5df0050263b7189dca4518608c1a0b1f276b8d9a050b9c18323c';
+// origin/main(1f1dfe2, 10월 사례 10건 공개 후)의 insights 75건 전체 — 이 글을 빼면 바이트 단위로 같아야 한다.
+const PREVIOUS_COUNT = 75;
+const PREVIOUS_HASH = '1e18f7de6dc312925c40b6e048af2bec3d49d505f625bcba9ed6a51cce9fd11e';
 const REST_HASH = '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487';
 // 사례 작성/정보글 폴더의 정본(insights-entry.json)에서 published 만 true 로 바꾼 객체.
 const ENTRY_HASH = '32e78c0ee197e90914a1b0350629cd0acb28c7ac6eb94ed19c2b3f24f51481cc';
@@ -56,7 +56,9 @@ test('정본 그대로·공개·누수 분야·사진 4장 재사용·단정/수
   const matches = site.insights.filter(a => a.slug === SLUG);
   assert.equal(matches.length, 1);
   const a = matches[0];
-  assert.equal(site.insights.indexOf(a), 0, '날짜 내림차순 맨 앞');
+  // 10월 29일 사례 3건이 더 최근이라 날짜 순서 자리(앞 글 날짜 ≥ 이 글 ≥ 뒤 글)에 있는지 본다.
+  const k = site.insights.indexOf(a);
+  assert.ok(k > 0 && site.insights[k - 1].date >= a.date && site.insights[k + 1].date <= a.date, '날짜 내림차순 자리');
   assert.equal(hash(a), ENTRY_HASH);
   assert.equal(a.published, true);
   assert.equal(a.date, '2026-10-28');

@@ -1,3 +1,4 @@
+// 2026-10-31: Ten October photo cases added; recent-cases-20261031 independently pins the 65 entries before that batch.
 // Owner-approved publication of five existing private drafts. No field database or accounts are modified.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
@@ -11,20 +12,21 @@ const previous = items => items.filter(a => !slugs.includes(a.slug));
 const preserved = items => previous(items).length === fixture.previousCount && hash(previous(items)) === fixture.previousHash;
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-// 2026-10-31: 정보글 '11월 동파 예방' 1건이 맨 앞에 추가돼(기존 글 수정 없음) 고정값을 61건으로 다시 잡고,
-// 변이 위치를 5개 사례가 아닌 글(6·7번)로 옮겼다. 기존 65건 전체는 winter-freeze-guide-20261028 검사가 따로 고정.
-test('previous 61 complete entries and ordering, company/catalog preserved; mutation guards active', () => {
-  assert.equal(site.insights.length, 66);
+// 2026-10-31: Info post 'winter-pipe-freeze-prevention-november' added (no existing entry changed); re-pinned to 71.
+test('previous 71 complete entries and ordering, company/catalog preserved; mutation guards active', () => {
+  assert.equal(site.insights.length, 76);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), fixture.otherDataHash);
   const rss = read('rss.xml');
   assert.equal((rss.match(/<item>/g) || []).length, insights.filter(a => a.published !== false).length);
   for (const a of insights.filter(a => a.published !== false)) assert.ok(rss.includes('/posts/' + a.slug + '.html'), a.slug);
-  const changed = structuredClone(insights); changed[6].body[0].p += 'mutation';
+  // Mutate the first adjacent pair that both belong to the pinned set, so later inserts cannot hide a guard.
+  const i = insights.findIndex((a, k) => !slugs.includes(a.slug) && insights[k + 1] && !slugs.includes(insights[k + 1].slug));
+  const changed = structuredClone(insights); changed[i].body[0].p += 'mutation';
   assert.ok(!preserved(changed));
-  assert.ok(!preserved(insights.filter((_, i) => i !== 6)));
-  const reordered = structuredClone(insights); [reordered[6], reordered[7]] = [reordered[7], reordered[6]];
+  assert.ok(!preserved(insights.filter((_, k) => k !== i)));
+  const reordered = structuredClone(insights); [reordered[i], reordered[i + 1]] = [reordered[i + 1], reordered[i]];
   assert.ok(!preserved(reordered));
 });
 
