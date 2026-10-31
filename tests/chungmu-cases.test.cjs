@@ -11,9 +11,10 @@ const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex'
 // 2026-10-06: 신규 방충망 사례의 한가람아파트명 확인 정정. 이전 57건 보존 기준은 변경하지 않음.
 // 2026-10-06: 옥천 주택 사진 사례 1건 추가. 기존 58건 전체 보존은 water-outlet-case 검사.
 // 2026-10-11: 승인된 삼호 하부 연결부 사례 1건 추가. 기존 59건 객체·순서는 origin/main과 별도 대조 완료.
-const baseline='ab74515012b1355d5671277939476df78f629cd983644db168da70186a7bb8f8';
-function preserved(items){const old=items.filter(a=>!slugs.includes(a.slug));return old.length===63&&hash(old)===baseline;}
-test('기준 갱신한 63개 원고 객체와 순서 보존, 변이 검출',()=>{
+// 2026-10-31: 10월 사진 사례 10건 추가. 그 전 65건 객체·순서는 recent-cases-20261031 검사가 origin/main 기준으로 따로 고정한다.
+const baseline='3774a66df663dfa5684bee2227138ed24f9b09bf5f021bc5b2b456028b9bba12';
+function preserved(items){const old=items.filter(a=>!slugs.includes(a.slug));return old.length===73&&hash(old)===baseline;}
+test('기준 갱신한 73개 원고 객체와 순서 보존, 변이 검출',()=>{
   const items=JSON.parse(read('data/site.json')).insights;
   assert.ok(preserved(items));
   const changed=structuredClone(items); changed.find(a=>!slugs.includes(a.slug)).title+='변이'; assert.equal(preserved(changed),false);

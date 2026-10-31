@@ -3,7 +3,7 @@
 /* Local read-only checks. Image pixels/redaction and source-document accuracy need separate visual review. */
 const { test } = require('node:test');
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
-const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'hanbat-woosung-entrance-wall-mortar-repair-20260916', DAY = '2026-09-09', CHECKED = '2026-09-08';
+const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'sanho-balcony-drain-tile-replacement-20261029', DAY = '2026-09-09', CHECKED = '2026-09-08';
 // 2026-09-25: 대표 요청과 사진별 세대 배정에 따라 삼호 사례를 2건으로 분리. 다른 50개 글 객체·순서는 별도 대조로 보존 확인.
 // 2026-10-01: 같은 현장의 녹물 배출·분배기 설치 사례 2건 추가. 기존 54건은 전용 회귀 검사로 별도 보존.
 // 2026-10-01: 충무로 두 글만 블로그형 원고로 수정. 기존 54개 원고·사진 보존은 chungmu-cases 검사로 유지.
@@ -14,7 +14,8 @@ const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comp
 // 2026-10-06: 대표가 신규 방충망 현장을 한가람아파트로 확인해 해당 글의 장소·사진 설명만 정정.
 // 2026-10-06: 옥천 주택 사진 사례 1건을 최신 카드로 추가. 기존 58건 보존은 water-outlet-case 검사.
 // 2026-10-11: 승인된 삼호 하부 연결부 사례 1건 추가. 기존 59건 객체·순서는 origin/main과 별도 대조 완료.
-const OLD_COUNT = 64, OLD_HASH = '0411c368b3d0b9e440b99d0cee6c687492ceb3d9b71a0084b333f1fca5e120d0';
+// 2026-10-31: 10월 사진 사례 10건 추가. 그 전 65건 객체·순서는 recent-cases-20261031 검사가 origin/main 기준으로 따로 고정한다. 최신 대표 카드는 산호 사례.
+const OLD_COUNT = 74, OLD_HASH = 'c1587e43629ea3800b54f90324e262723d7eb753ea2a2eb109ceea7bc649c109';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');
@@ -90,7 +91,7 @@ function fixture() {
   const a = { slug: SLUG, date: DAY, category: '견적·계약 가이드', service: 'interior', title: '견적서 비교 안내', image, imageAlt: 'AI 편집본', body: [{ h: '안내', p: '실제 시공 후기가 아니며 만물이 작성한 계약서가 아닙니다.\n\nAI 편집 참고 자료입니다. 원본이나 제출용 문서가 아닙니다.' }], sourcesChecked: CHECKED, sources: [{ url: 'https://www.ftc.go.kr/example' }, { url: 'https://www.kca.go.kr/example' }] };
   return { insights: [old[0], a, ...old.slice(1)], images: { [image]: Buffer.from('synthetic-only') }, post: `<link rel="canonical" href="https://01023978629.github.io/manmool/posts/${SLUG}.html">${a.title} AI 편집 <img src="../${image}"><div class="post-cta"><a href="../index.html#inquiry"></a></div>${a.sources.map(x => `<a href="${x.url}"></a>`).join('')}`, blog: `<a class="insight-featured" href="posts/${FEATURED}.html"></a><a href="posts/${SLUG}.html" data-group="info"></a>`, index: { cases: [] }, rss: `/posts/${SLUG}.html`, sitemap: `/posts/${SLUG}.html`, oldHash: hash(old), expectedImages: [image] };
 }
-test('공개 안내 글·나머지 64건 보존·AI 고지·연계', () => assert.deepEqual(inspect(readActual()), []));
+test('공개 안내 글·나머지 74건 보존·AI 고지·연계', () => assert.deepEqual(inspect(readActual()), []));
 test('합성 fixture 정상 계약', () => { const s = fixture(); assert.deepEqual(inspect(s, s.oldHash, s.expectedImages), []); });
 test('합성 PNG: C2PA 보존, eXIf·GPS 차단', () => {
   const box = (type, b) => { const n = Buffer.alloc(4); n.writeUInt32BE(b.length + 8); return Buffer.concat([n, Buffer.from(type), b]); };

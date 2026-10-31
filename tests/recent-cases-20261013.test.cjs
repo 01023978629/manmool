@@ -1,3 +1,4 @@
+// 2026-10-31: Ten October photo cases added; recent-cases-20261031 independently pins the 65 entries before that batch.
 // Owner-approved publication of five existing private drafts. No field database or accounts are modified.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
@@ -11,18 +12,20 @@ const previous = items => items.filter(a => !slugs.includes(a.slug));
 const preserved = items => previous(items).length === fixture.previousCount && hash(previous(items)) === fixture.previousHash;
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('previous 60 complete entries and ordering, company/catalog preserved; mutation guards active', () => {
-  assert.equal(site.insights.length, 65);
+test('previous 70 complete entries and ordering, company/catalog preserved; mutation guards active', () => {
+  assert.equal(site.insights.length, 75);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), fixture.otherDataHash);
   const rss = read('rss.xml');
   assert.equal((rss.match(/<item>/g) || []).length, insights.filter(a => a.published !== false).length);
   for (const a of insights.filter(a => a.published !== false)) assert.ok(rss.includes('/posts/' + a.slug + '.html'), a.slug);
-  const changed = structuredClone(insights); changed[5].body[0].p += 'mutation';
+  // Mutate the first adjacent pair that both belong to the pinned set, so later inserts cannot hide a guard.
+  const i = insights.findIndex((a, k) => !slugs.includes(a.slug) && insights[k + 1] && !slugs.includes(insights[k + 1].slug));
+  const changed = structuredClone(insights); changed[i].body[0].p += 'mutation';
   assert.ok(!preserved(changed));
-  assert.ok(!preserved(insights.filter((_, i) => i !== 5)));
-  const reordered = structuredClone(insights); [reordered[5], reordered[6]] = [reordered[6], reordered[5]];
+  assert.ok(!preserved(insights.filter((_, k) => k !== i)));
+  const reordered = structuredClone(insights); [reordered[i], reordered[i + 1]] = [reordered[i + 1], reordered[i]];
   assert.ok(!preserved(reordered));
 });
 

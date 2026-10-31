@@ -10,14 +10,15 @@ const site = JSON.parse(read('data/site.json'));
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 // 2026-10-06: 옥천 주택 실제 사진 사례 1건 추가. 이전 58건 전체는 water-outlet-case 검사로 별도 보존 대조.
 // 2026-10-11: 승인된 삼호 하부 연결부 사례 1건 추가. 기존 59건 객체·순서는 origin/main과 별도 대조 완료.
-const oldHash = '5c556febf12e65ee28563cee0a538a0604308e90e652bde853d8e174d608ae4f';
+// 2026-10-31: 10월 사진 사례 10건 추가. 그 전 65건 객체·순서는 recent-cases-20261031 검사가 origin/main 기준으로 따로 고정한다.
+const oldHash = '03c17bcc3ffa9065f768500f12ae27fd122ab3ebd2f7bb157da6aea4eb6cdb5a';
 const originalRestHash = '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487';
 const preserved = insights => {
   const old = insights.filter(a => a.slug !== slug);
-  return old.length === 64 && hash(old) === oldHash;
+  return old.length === 74 && hash(old) === oldHash;
 };
-test('방충망 외 64개 원고 객체·순서와 회사·시안 데이터가 그대로다', () => {
-  assert.equal(site.insights.length, 65);
+test('방충망 외 74개 원고 객체·순서와 회사·시안 데이터가 그대로다', () => {
+  assert.equal(site.insights.length, 75);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), originalRestHash);
