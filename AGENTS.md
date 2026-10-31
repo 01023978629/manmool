@@ -6,6 +6,24 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-10-31 정보글 '11월 동파 예방' 공개 후보
+
+`claude/info-winter-freeze-20261028`은 화요일 홍보 원고 작업이 만든 정보글 1건
+(`winter-pipe-freeze-prevention-november`)을 `published:true`로 더한다. **병합하면 바로 공개된다** —
+대표 확인 4건은 PR 설명에 있다. 새 사진은 없고 이미 공개된 선비마을·평화로운아파트 사진 4장만 다시 참조한다.
+
+- 분류가 `방수·설비`라 누수 분야(목록 '누수·배관' 칸, 누수 상담 버튼, `leak-case-index`)로 간다.
+  기존 정보글 `rainy-season-waterproof-check`와 같은 형식이다.
+- 누수 분야의 가장 최근 글이 되면 `ensure-public-leak-case-parity`가 `leak.html` #cases 카드를 요구한다.
+  그 칸 제목은 '실제 현장 기록'이라, 카드 라벨을 "실제 보온 작업 사진 · 동파 예방 안내", 링크 문구를
+  "동파 점검 순서 보기"로 해 안내 글임을 밝혔다(`bathroom-waterproof-signs` 카드와 같은 방식). 카드 수 핀 23→24.
+- 기존 65건은 한 글자도 바꾸지 않았다(origin/main 해시 그대로). 그래도 '나머지 n건' 해시를 고정한 검사 6개는
+  개수·해시를 다시 고정해야 했다. 기존 65건 전체는 새 검사 `winter-freeze-guide-20261028`이 따로 고정한다.
+- `quote-contract-guide`의 'order' 규칙은 "site.json 맨 앞 글 = 대표 사례"였는데, 맨 앞이 사례 요약 없는
+  정보글이면 대표 사례 칸에 갈 수 없어 깨진다. "맨 앞 실제 사례(caseSummary 있음) = 대표 사례"로 바꿨다
+  (`prerender-posts.py`의 대표 사례 규칙과 같다). 변이 2종 추가.
+- 다음에 누수 분야 정보글을 더할 때도 랜딩 카드와 이 핀들을 같이 챙겨야 한다.
+
 ### 2026-09-09 방수 사례 현장명 정정
 
 대표가 `buyeo-buyeong-balcony-waterproofing` 사례의 실제 현장명을

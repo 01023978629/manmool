@@ -2,6 +2,12 @@
   "version": 1,
   "cases": [
     {
+      "slug": "winter-pipe-freeze-prevention-november",
+      "title": "11월 동파 예방｜대전 아파트에서 실제로 터지는 베란다 수도·보일러 배관 자리 4곳",
+      "service": "leak",
+      "published": true
+    },
+    {
       "slug": "munhwa-samsung-wall-pipe-partial-replacement-20260818",
       "title": "삼성아파트 벽체 배관 부분 교체｜기존 관에서 새 이음부까지",
       "service": "leak",
