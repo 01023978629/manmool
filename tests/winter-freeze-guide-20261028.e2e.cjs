@@ -46,13 +46,13 @@ for (const width of [320, 390, 1280]) {
       for (const [i, b] of figures.entries()) {
         const figure = page.locator('.post-body .post-figure').nth(i);
         await figure.scrollIntoViewIfNeeded();
-        await figure.locator('img').evaluate(img => img.decode());
+        await figure.locator('img').evaluate(img => { img.loading = 'eager'; return img.decode(); });
         assert.equal((await figure.locator('img').getAttribute('src')).replace(/^\.\.\//, ''), b.img);
         assert.equal(await figure.locator('figcaption').innerText(), b.imgCaption);
         assert.ok(await figure.locator('img').evaluate(img => img.complete && img.naturalWidth > 0));
       }
       const cover = page.locator(`img[src$="${article.image}"]`).first();
-      await cover.evaluate(img => img.decode());
+      await cover.evaluate(img => { img.loading = 'eager'; return img.decode(); });
       assert.equal(await cover.getAttribute('alt'), article.imageAlt);
       const href = (await page.locator('.post-cta .btn-primary').getAttribute('href')).replace(/^\.\.\//, '');
       assert.equal(href, 'leak.html?case=' + SLUG + '#leakInquiry');
@@ -69,7 +69,9 @@ test('390px 누수 랜딩 카드와 목록 검색에서 안내 글로 이어진�
   const card = page.locator(`#cases .case-card:has(a[href="posts/${SLUG}.html"])`);
   assert.equal(await card.count(), 1);
   await card.scrollIntoViewIfNeeded();
-  await card.locator('img').evaluate(img => img.decode());
+  // 2026-11-01: 카드 사진은 loading="lazy"라 화면에 든 직후 아직 요청 전이면 decode()가 EncodingError로 거절된다
+  // (CI 실행 41212346848에서 실제로 실패). 바로 불러오게 한 뒤 decode 한다 — recent-cases-20261031 검사와 같은 방식.
+  await card.locator('img').evaluate(img => { img.loading = 'eager'; return img.decode(); });
   assert.match(await card.locator('small').innerText(), /동파 예방 안내/);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await card.locator('a.text-button').click();
