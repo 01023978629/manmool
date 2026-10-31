@@ -12,8 +12,9 @@ const previous = items => items.filter(a => !slugs.includes(a.slug));
 const preserved = items => previous(items).length === fixture.previousCount && hash(previous(items)) === fixture.previousHash;
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('previous 70 complete entries and ordering, company/catalog preserved; mutation guards active', () => {
-  assert.equal(site.insights.length, 75);
+// 2026-10-31: Info post 'winter-pipe-freeze-prevention-november' added (no existing entry changed); re-pinned to 71.
+test('previous 71 complete entries and ordering, company/catalog preserved; mutation guards active', () => {
+  assert.equal(site.insights.length, 76);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), fixture.otherDataHash);

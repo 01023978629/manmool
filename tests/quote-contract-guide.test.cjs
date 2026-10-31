@@ -15,7 +15,8 @@ const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comp
 // 2026-10-06: 옥천 주택 사진 사례 1건을 최신 카드로 추가. 기존 58건 보존은 water-outlet-case 검사.
 // 2026-10-11: 승인된 삼호 하부 연결부 사례 1건 추가. 기존 59건 객체·순서는 origin/main과 별도 대조 완료.
 // 2026-10-31: 10월 사진 사례 10건 추가. 그 전 65건 객체·순서는 recent-cases-20261031 검사가 origin/main 기준으로 따로 고정한다. 최신 대표 카드는 산호 사례.
-const OLD_COUNT = 74, OLD_HASH = 'c1587e43629ea3800b54f90324e262723d7eb753ea2a2eb109ceea7bc649c109';
+// 2026-10-31: 정보글 '11월 동파 예방' 1건 추가(기존 글 수정 없음). 그 전 75건 전체 객체·순서는 winter-freeze-guide-20261028 검사가 따로 고정한다.
+const OLD_COUNT = 75, OLD_HASH = 'e374c4ad6b365412632cb28557dc742e3d99dc37aa082d67cb32d4fb5d77cef7';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');
@@ -52,7 +53,10 @@ function inspect(s, oldHash = OLD_HASH, expectedImages = IMAGE_PATHS, oldCount =
   const fail = [], check = (ok, code) => { if (!ok) fail.push(code); }, matches = s.insights.filter(a => a.slug === SLUG), a = matches[0];
   check(matches.length === 1, 'canonical'); if (matches.length !== 1) return fail;
   check(a.date === DAY && a.category === '견적·계약 가이드' && a.service === 'interior' && a.published !== false, 'classification');
-  check(s.insights[0]?.slug === FEATURED && s.insights.findIndex(x => x.slug === SLUG) > 0, 'order');
+  // 2026-10-31: 맨 앞이 사례 요약 없는 정보글일 수 있다(대표 사례 칸에 못 감). 그래서 '맨 앞 글'이 아니라
+  // '맨 앞 실제 사례(caseSummary 있음)'가 FEATURED 인지 본다 — prerender-posts.py 의 대표 사례 규칙과 같다.
+  const firstCase = s.insights.find(x => Object.keys(x.caseSummary || {}).length);
+  check(firstCase?.slug === FEATURED && s.insights.findIndex(x => x.slug === SLUG) > 0, 'order');
   const old = s.insights.filter(x => x.slug !== SLUG); check(old.length === oldCount && hash(old) === oldHash, 'preservation');
   const body = a.body || [], prose = [a.title, a.excerpt, a.imageAlt, ...body.flatMap(b => [b.h, b.p, b.imgAlt, b.imgCaption])].filter(Boolean).join('\n');
   check(/AI\s*편집/.test(prose), 'ai-disclosure');
@@ -87,11 +91,11 @@ function readActual() {
   return { insights, images: Object.fromEntries(photos.filter(f => fs.existsSync(path.join(ROOT, f))).map(f => [f, fs.readFileSync(path.join(ROOT, f))])), post: read(`posts/${SLUG}.html`), blog: read('blog.html'), rss: read('rss.xml'), sitemap: read('sitemap.xml'), index: JSON.parse(read('data/leak-case-index.json')) };
 }
 function fixture() {
-  const old = Array.from({ length: OLD_COUNT }, (_, i) => ({ slug: i ? `synthetic-${i}` : FEATURED })), image = 'assets/cases/synthetic-guide.jpg';
+  const old = Array.from({ length: OLD_COUNT }, (_, i) => (i ? { slug: `synthetic-${i}` } : { slug: FEATURED, caseSummary: { work: 'synthetic-only' } })), image = 'assets/cases/synthetic-guide.jpg';
   const a = { slug: SLUG, date: DAY, category: '견적·계약 가이드', service: 'interior', title: '견적서 비교 안내', image, imageAlt: 'AI 편집본', body: [{ h: '안내', p: '실제 시공 후기가 아니며 만물이 작성한 계약서가 아닙니다.\n\nAI 편집 참고 자료입니다. 원본이나 제출용 문서가 아닙니다.' }], sourcesChecked: CHECKED, sources: [{ url: 'https://www.ftc.go.kr/example' }, { url: 'https://www.kca.go.kr/example' }] };
   return { insights: [old[0], a, ...old.slice(1)], images: { [image]: Buffer.from('synthetic-only') }, post: `<link rel="canonical" href="https://01023978629.github.io/manmool/posts/${SLUG}.html">${a.title} AI 편집 <img src="../${image}"><div class="post-cta"><a href="../index.html#inquiry"></a></div>${a.sources.map(x => `<a href="${x.url}"></a>`).join('')}`, blog: `<a class="insight-featured" href="posts/${FEATURED}.html"></a><a href="posts/${SLUG}.html" data-group="info"></a>`, index: { cases: [] }, rss: `/posts/${SLUG}.html`, sitemap: `/posts/${SLUG}.html`, oldHash: hash(old), expectedImages: [image] };
 }
-test('공개 안내 글·나머지 74건 보존·AI 고지·연계', () => assert.deepEqual(inspect(readActual()), []));
+test('공개 안내 글·나머지 75건 보존·AI 고지·연계', () => assert.deepEqual(inspect(readActual()), []));
 test('합성 fixture 정상 계약', () => { const s = fixture(); assert.deepEqual(inspect(s, s.oldHash, s.expectedImages), []); });
 test('합성 PNG: C2PA 보존, eXIf·GPS 차단', () => {
   const box = (type, b) => { const n = Buffer.alloc(4); n.writeUInt32BE(b.length + 8); return Buffer.concat([n, Buffer.from(type), b]); };
@@ -111,6 +115,8 @@ test('합성 변이: 민감정보·AI고지·원문 보존·분류·이미지', 
     ['leak-index', s => s.index.cases.push({ slug: SLUG })],
     ['image-metadata', s => { s.images[s.expectedImages[0]] = Buffer.from('Exif\0\0'); }],
     ['unsupported-claim', s => { s.insights[1].body[0].p += '\n\n실제 시공 후기입니다.'; }],
+    ['order', s => { s.insights.unshift(s.insights.splice(1, 1)[0]); }],
+    ['order', s => { s.insights.unshift({ slug: 'synthetic-newer-case', caseSummary: { work: 'synthetic-only' } }); }],
   ];
   for (const [expected, change] of cases) { const s = fixture(); change(s); assert.ok(inspect(s, s.oldHash, s.expectedImages).includes(expected), expected); }
 });

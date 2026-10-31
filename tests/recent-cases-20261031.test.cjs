@@ -13,7 +13,9 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const sitemapLastmod = slug => (read('sitemap.xml').match(new RegExp(
   `<loc>https://01023978629\\.github\\.io/manmool/posts/${slug}\\.html</loc>\\s*<lastmod>([^<]+)</lastmod>`)) || [])[1];
 
-test('the 65 entries published before this batch keep their objects and order; mutation guards active', () => {
+// 2026-10-31: Info post 'winter-pipe-freeze-prevention-november' added after this batch; the pinned set is every
+// entry outside the ten October cases (66), so its count and hash were re-pinned. No October entry changed.
+test('every entry outside this batch keeps its object and order; mutation guards active', () => {
   assert.equal(site.insights.length, fixture.previousCount + slugs.length);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;

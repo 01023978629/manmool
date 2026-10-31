@@ -9,13 +9,14 @@ const site = JSON.parse(read('data/site.json'));
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 // 2026-10-11: 승인 원고 그대로 삼호 하부 연결부 사례 1건 추가. origin/main의 기존 59건 전체 객체·순서 별도 대조 완료.
 // 2026-10-31: 10월 사진 사례 10건 추가. 그 전 65건 객체·순서는 recent-cases-20261031 검사가 origin/main 기준으로 따로 고정한다.
-const baseline = '63cac5e1a3230b8d3834d026980810f0ec9d827229fc6c645c88a63078a73ee2';
+// 2026-10-31: 정보글 '11월 동파 예방' 1건 추가(기존 글 수정 없음). 그 전 75건 전체 객체·순서는 winter-freeze-guide-20261028 검사가 따로 고정한다.
+const baseline = '181eb1ca71c3cb5b41f0602a608bb77a0dd48ee359dd1f8b751373b304bf9445';
 function preserved(items) {
   const old = items.filter(a => a.slug !== slug);
-  return old.length === 74 && hash(old) === baseline;
+  return old.length === 75 && hash(old) === baseline;
 }
-test('옥천 외 74개 글 객체·사진 설명·순서와 회사 데이터 보존, 변이 검출', () => {
-  assert.equal(site.insights.length, 75);
+test('옥천 외 75개 글 객체·사진 설명·순서와 회사 데이터 보존, 변이 검출', () => {
+  assert.equal(site.insights.length, 76);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487');
