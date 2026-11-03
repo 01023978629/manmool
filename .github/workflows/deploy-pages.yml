@@ -122,6 +122,7 @@ jobs:
           node --test tests/recent-cases-20261013.test.cjs tests/recent-cases-20261013.e2e.cjs
           node --test tests/recent-cases-20261031.test.cjs tests/recent-cases-20261031.e2e.cjs
           node --test tests/winter-freeze-guide-20261028.test.cjs tests/winter-freeze-guide-20261028.e2e.cjs
+          node --test tests/recent-cases-20261103.test.cjs tests/recent-cases-20261103.e2e.cjs
           node --test tests/case-reader.e2e.cjs
           node --test tests/remaining-cases.test.cjs
           node --test scripts/new-case-post.test.mjs

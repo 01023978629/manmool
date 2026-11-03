@@ -2,6 +2,12 @@
   "version": 1,
   "cases": [
     {
+      "slug": "seonbi-1danji-retaining-wall-plaster-repair-20261103",
+      "title": "대전 송촌동 선비마을 1단지 외벽 미장 보수｜떨어져 나간 옹벽 면을 다듬고 몰탈로 메워 마감",
+      "service": "leak",
+      "published": true
+    },
+    {
       "slug": "sanho-balcony-drain-tile-replacement-20261029",
       "title": "대전 산호아파트 베란다 배수구·타일 교체｜우수관 둘레 바닥을 다시 깔아 마감",
       "service": "leak",

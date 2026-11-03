@@ -17,14 +17,15 @@ const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).
 // 2026-10-11: 승인된 삼호 하부 연결부 사례 1건 추가. 기존 59건 객체·순서는 origin/main과 별도 대조 완료.
 // 2026-10-31: 10월 사진 사례 10건 추가. 그 전 65건 객체·순서는 recent-cases-20261031 검사가 origin/main 기준으로 따로 고정한다.
 // 2026-10-31: 정보글 '11월 동파 예방' 1건 추가(기존 글 수정 없음). 그 전 75건 전체 객체·순서는 winter-freeze-guide-20261028 검사가 따로 고정한다.
-const othersHash = '3f60c97fb47eab294f2b8b0d30a0df05f12c4118880fd2757029d8a611d79982';
+// 2026-11-03: 선비마을 1단지 외벽(옹벽) 미장 보수 사례 1건 추가(기존 글 수정 없음). 그 전 76건 전체 객체·순서는 recent-cases-20261103 검사가 따로 고정한다.
+const othersHash = '850e0732bc08fc5e978710c7286baa91b6153caed25722b0c43046fe780e7dc1';
 const factsHash = 'a0d49c6730aab650c175ec63a5f2b2a07aad7f4649b1d4de0059251e39e4b5e5';
 const others = items => items.filter(a => !slugs.includes(a.slug));
 const facts = items => items.filter(a => slugs.includes(a.slug)).map(({title, excerpt, updated, consultation, relatedSlugs, body, ...a}) =>
   ({...a, body: body.map(({h, p, ...b}) => b)}));
 
-test('기준 갱신한 71개 글·정렬·기존 5개 글의 날짜·분류·핵심 요약·사진 35장과 설명 보존', () => {
-  assert.equal(others(site.insights).length, 71);
+test('기준 갱신한 72개 글·정렬·기존 5개 글의 날짜·분류·핵심 요약·사진 35장과 설명 보존', () => {
+  assert.equal(others(site.insights).length, 72);
   assert.equal(hash(others(site.insights)), othersHash);
   assert.equal(hash(facts(site.insights)), factsHash);
   assert.equal(cases.flatMap(a => a.body.filter(b => b.img)).length, 35);

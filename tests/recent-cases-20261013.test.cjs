@@ -13,8 +13,9 @@ const preserved = items => previous(items).length === fixture.previousCount && h
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 // 2026-10-31: Info post 'winter-pipe-freeze-prevention-november' added (no existing entry changed); re-pinned to 71.
+// 2026-11-03: Seonbi 1-danji retaining-wall plaster case added (no existing entry changed); re-pinned to 72.
 test('previous 71 complete entries and ordering, company/catalog preserved; mutation guards active', () => {
-  assert.equal(site.insights.length, 76);
+  assert.equal(site.insights.length, 77);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), fixture.otherDataHash);
