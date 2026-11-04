@@ -14,8 +14,10 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 // 2026-10-31: Info post 'winter-pipe-freeze-prevention-november' added (no existing entry changed); re-pinned to 71.
 // 2026-11-03: Seonbi 1-danji retaining-wall plaster case added (no existing entry changed); re-pinned to 72.
+// 2026-11-04: Mokhwa toilet/ceiling-pipe, Dunsan deck and IPark City bathroom cases added at their date positions
+// (no existing entry changed); re-pinned to 75 — recent-cases-20261104 pins the 77 entries before them.
 test('previous 71 complete entries and ordering, company/catalog preserved; mutation guards active', () => {
-  assert.equal(site.insights.length, 77);
+  assert.equal(site.insights.length, 80);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), fixture.otherDataHash);

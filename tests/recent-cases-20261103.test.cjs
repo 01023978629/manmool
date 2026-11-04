@@ -1,5 +1,8 @@
 // November 2026 photo case (1): Seonbi 1-danji retaining-wall plaster repair. Public case content only: no field
 // database, accounts or external writes. The 76 entries before it are pinned as one object (origin/main 2e0c484 order).
+// 2026-11-04: Mokhwa (10-26), Dunsan deck (10-21) and IPark City (08-30) cases were added at their date positions after
+// this one (no existing entry changed). The pinned set (every entry except this case) was re-pinned 76 -> 79 and the leak
+// card count 35 -> 37; recent-cases-20261104 pins the 77 entries before those three. This case stays first (newest).
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
@@ -14,7 +17,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const sitemapLastmod = slug => (read('sitemap.xml').match(new RegExp(
   `<loc>https://01023978629\\.github\\.io/manmool/posts/${slug}\\.html</loc>\\s*<lastmod>([^<]+)</lastmod>`)) || [])[1];
 
-test('the 76 entries before this case keep their object and order; mutation guards active', () => {
+test('every entry except this case keeps its object and order; mutation guards active', () => {
   assert.equal(site.insights.length, fixture.previousCount + slugs.length);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
@@ -76,8 +79,8 @@ test('Seonbi 1-danji retaining-wall plaster case: 9 photos, work date, conservat
     for (const b of figures) assert.ok(html.includes(b.img), b.img);
   }
   assert.match(read('blog.html'), new RegExp(`insight-featured[^>]*href="posts/${site.insights[0].slug}\\.html"`));
-  // The leak landing lists this case first and the card count pin follows it (34 -> 35).
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 35);
+  // The leak landing lists this case first and the card count pin follows it (34 -> 35; 2026-11-04 35 -> 37).
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 37);
   const first = leak.indexOf('class="case-card registered-case"');
   assert.ok(leak.indexOf(`href="posts/${slugs[0]}.html"`) > first && leak.indexOf(`href="posts/${slugs[0]}.html"`) < leak.indexOf('class="case-card registered-case"', first + 1));
   // blog.html and leak.html advertise the newest public post date.
