@@ -15,6 +15,8 @@ const sitemapLastmod = slug => (read('sitemap.xml').match(new RegExp(
 
 // 2026-10-31: Info post 'winter-pipe-freeze-prevention-november' added after this batch; the pinned set is every
 // entry outside the ten October cases (66), so its count and hash were re-pinned. No October entry changed.
+// 2026-11-03: Seonbi 1-danji retaining-wall plaster case added after this batch (no October entry changed); the pinned set
+// outside the ten October cases is now 67 — see recent-cases-20261103 for the full pin of the 76 entries before it.
 test('every entry outside this batch keeps its object and order; mutation guards active', () => {
   assert.equal(site.insights.length, fixture.previousCount + slugs.length);
   assert.ok(preserved(site.insights));
