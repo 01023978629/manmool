@@ -11,8 +11,9 @@ const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).
 const SLUG = 'winter-pipe-freeze-prevention-november';
 // origin/main(1f1dfe2, 10월 사례 10건 공개 후)의 insights 75건 전체 — 이 글을 빼면 바이트 단위로 같아야 한다.
 // 2026-11-03: 선비마을 1단지 외벽(옹벽) 미장 보수 사례 1건 추가(기존 글 수정 없음). 그 전 76건 전체 객체·순서는 recent-cases-20261103 검사가 따로 고정한다.
-const PREVIOUS_COUNT = 76;
-const PREVIOUS_HASH = 'f822defd5b301aaa543a9ecf11f71b7d7346abc61ac65a28e03d1da20d8a30e6';
+// 2026-11-04: 목화아파트·둔산동 데크·아이파크시티 사례 3건 추가(기존 글 수정 없음). 그 전 77건 전체 객체·순서는 recent-cases-20261104 검사가 따로 고정한다.
+const PREVIOUS_COUNT = 79;
+const PREVIOUS_HASH = '9a59afbb53f9b213d24be940a1a9fb32b70fd946509ef26c11be0ebe9ee9164a';
 const REST_HASH = '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487';
 // 사례 작성/정보글 폴더의 정본(insights-entry.json)에서 published 만 true 로 바꾼 객체.
 const ENTRY_HASH = '32e78c0ee197e90914a1b0350629cd0acb28c7ac6eb94ed19c2b3f24f51481cc';

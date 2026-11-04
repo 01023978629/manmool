@@ -17,6 +17,8 @@ const sitemapLastmod = slug => (read('sitemap.xml').match(new RegExp(
 // entry outside the ten October cases (66), so its count and hash were re-pinned. No October entry changed.
 // 2026-11-03: Seonbi 1-danji retaining-wall plaster case added after this batch (no October entry changed); the pinned set
 // outside the ten October cases is now 67 — see recent-cases-20261103 for the full pin of the 76 entries before it.
+// 2026-11-04: Mokhwa (10-26), Dunsan deck (10-21) and IPark City (08-30) cases added at their date positions (no October
+// entry changed); the pinned set outside the ten October cases is now 70 — recent-cases-20261104 pins the 77 before them.
 test('every entry outside this batch keeps its object and order; mutation guards active', () => {
   assert.equal(site.insights.length, fixture.previousCount + slugs.length);
   assert.ok(preserved(site.insights));

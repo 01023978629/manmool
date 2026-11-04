@@ -14,9 +14,10 @@ const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex'
 // 2026-10-31: 10월 사진 사례 10건 추가. 그 전 65건 객체·순서는 recent-cases-20261031 검사가 origin/main 기준으로 따로 고정한다.
 // 2026-10-31: 정보글 '11월 동파 예방' 1건 추가(기존 글 수정 없음). 그 전 75건 전체 객체·순서는 winter-freeze-guide-20261028 검사가 따로 고정한다.
 // 2026-11-03: 선비마을 1단지 외벽(옹벽) 미장 보수 사례 1건 추가(기존 글 수정 없음). 그 전 76건 전체 객체·순서는 recent-cases-20261103 검사가 따로 고정한다.
-const baseline='1e53925900c81d4249e4edf69ea33a5df6d047abe8006a9edd3a853828eb224c';
-function preserved(items){const old=items.filter(a=>!slugs.includes(a.slug));return old.length===75&&hash(old)===baseline;}
-test('기준 갱신한 75개 원고 객체와 순서 보존, 변이 검출',()=>{
+// 2026-11-04: 목화아파트·둔산동 데크·아이파크시티 사례 3건 추가(기존 글 수정 없음). 그 전 77건 전체 객체·순서는 recent-cases-20261104 검사가 따로 고정한다.
+const baseline='da8e5001fbb10c90c67aca2e1307e2de52890a4a332e8c6256a8b9f65437e854';
+function preserved(items){const old=items.filter(a=>!slugs.includes(a.slug));return old.length===78&&hash(old)===baseline;}
+test('기준 갱신한 78개 원고 객체와 순서 보존, 변이 검출',()=>{
   const items=JSON.parse(read('data/site.json')).insights;
   assert.ok(preserved(items));
   const changed=structuredClone(items); changed.find(a=>!slugs.includes(a.slug)).title+='변이'; assert.equal(preserved(changed),false);

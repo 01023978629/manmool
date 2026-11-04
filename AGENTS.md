@@ -6,6 +6,21 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-11-04 목화아파트·둔산동 데크·아이파크시티 사례 3건 공개 후보
+
+`claude/cases-ipark-mokhwa-deck-20261104`는 PR #227(11/3 선비마을) 위에 쌓은 브랜치로, 사례 3건을 `published:true`로 더한다 —
+`mokhwa-toilet-reset-ceiling-drain-pipe-20261026`(사진 12장), `dunsan-shop-front-deck-board-repair-20261021`(10장),
+`sangdae-ipark-bathroom-waterproof-coating-20260830`(8장). **병합하면 바로 공개된다** — 대표 확인 사항은 PR 설명과
+`docs/recent-cases-20261104.md`에 있다. #227을 먼저 병합해야 이 PR에 이 커밋만 남는다.
+
+- 세 글은 site.json의 날짜 자리에 넣었다(생성기는 날짜 내림차순·같은 날짜는 원래 순서). 모두 11/3보다 오래돼 FEATURED는 그대로다.
+- 데크 보수는 `데크·목공 보수`/`interior`다. `ensure-public-leak-case-parity`가 누수 분야 글만 `leak.html` 카드로 허용하므로
+  누수 랜딩 카드는 목화·아이파크 2장만 더했다(카드 수 핀 35→37). 인테리어 사례를 더할 때 누수 카드를 만들지 마라.
+- 기존 77건은 한 글자도 바꾸지 않았다(`b6a32c3` insights 해시 그대로). 개별 검사 9곳의 핀을 다시 고정했고(날짜 주석),
+  `recent-cases-20261103`의 고정 대상도 이제 '이 글 빼고 전부'(79건)다. 기존 77건 전체는 `recent-cases-20261104`가 고정한다.
+- 사진 폴더 이름(아이파크 '저수조')·폴더에 붙은 도로명·번지·상호·발주처는 공개 글에 넣지 않는다 — 검사가 금지 표현과
+  도로명 주소 패턴으로 막는다.
+
 ### 2026-11-03 선비마을 1단지 외벽(옹벽) 미장 보수 사례 1건 공개 후보
 
 `claude/seonbi-wall-plaster-20261103`은 11월 3일 작업 사례 1건(`seonbi-1danji-retaining-wall-plaster-repair-20261103`,

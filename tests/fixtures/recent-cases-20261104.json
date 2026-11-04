@@ -1,0 +1,167 @@
+{
+  "previousCount": 77,
+  "previousHash": "f8cc5ecb9dc2ae10856ab0a5ac84134ae098a717ee9520248549b62e89f7da22",
+  "otherDataHash": "5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487",
+  "cases": [
+    {
+      "slug": "mokhwa-toilet-reset-ceiling-drain-pipe-20261026",
+      "service": "leak",
+      "category": "방수·설비",
+      "date": "2026-10-26",
+      "photoCount": 12,
+      "shootingDates": [
+        "2026-10-23",
+        "2026-10-26"
+      ],
+      "placeName": "대전 서구 복수동 목화아파트",
+      "leakCard": true
+    },
+    {
+      "slug": "dunsan-shop-front-deck-board-repair-20261021",
+      "service": "interior",
+      "category": "데크·목공 보수",
+      "date": "2026-10-21",
+      "photoCount": 10,
+      "shootingDates": [
+        "2026-10-21"
+      ],
+      "placeName": "대전 서구 둔산동",
+      "leakCard": false
+    },
+    {
+      "slug": "sangdae-ipark-bathroom-waterproof-coating-20260830",
+      "service": "leak",
+      "category": "방수·설비",
+      "date": "2026-08-30",
+      "photoCount": 8,
+      "shootingDates": [
+        "2026-08-29",
+        "2026-08-30"
+      ],
+      "placeName": "대전 유성구 상대동 대전아이파크시티",
+      "leakCard": true
+    }
+  ],
+  "photos": [
+    {
+      "file": "assets/cases/mokhwa-toilet-ceiling-20261026-01.jpg",
+      "sha256": "34b94e092b384a49eea72ca95580576e88b890bd2e262a4a35c7dc00870c1f28"
+    },
+    {
+      "file": "assets/cases/mokhwa-toilet-ceiling-20261026-02.jpg",
+      "sha256": "05dffe40e34b825035085f127a5c368bc09c7791cf9a0c30dcc0de9ecb376b03"
+    },
+    {
+      "file": "assets/cases/mokhwa-toilet-ceiling-20261026-03.jpg",
+      "sha256": "4acceebb70bd7fd4a795fe94f3977f47cb493c8dd1d73effa54b1ee8acd1a498"
+    },
+    {
+      "file": "assets/cases/mokhwa-toilet-ceiling-20261026-04.jpg",
+      "sha256": "b11e3975e17e88cc69796e8e3e1b4302a1874c9641aa29de4af8e817dcd7497c"
+    },
+    {
+      "file": "assets/cases/mokhwa-toilet-ceiling-20261026-05.jpg",
+      "sha256": "9c9afbec2506da99fb294cdc306069e29d07cb0e35294a75d8712327d5760270"
+    },
+    {
+      "file": "assets/cases/mokhwa-toilet-ceiling-20261026-06.jpg",
+      "sha256": "3244060aa1b2de9d89a8500a883b47e9d7d3ef328b5313d679442bf6924e0d8f"
+    },
+    {
+      "file": "assets/cases/mokhwa-toilet-ceiling-20261026-07.jpg",
+      "sha256": "69572525062d50bf051d0027c89e88ba547f913e979021c174e593e4220d1a7e"
+    },
+    {
+      "file": "assets/cases/mokhwa-toilet-ceiling-20261026-08.jpg",
+      "sha256": "03d7afe7d92adb856afc463ec6ad98f915a12c614ccdb388fe72fbb3657f2ff9"
+    },
+    {
+      "file": "assets/cases/mokhwa-toilet-ceiling-20261026-09.jpg",
+      "sha256": "95c1903029a8a1f7bb8de95bfcc81dc7cb89289567f38be36e791012ea302e54"
+    },
+    {
+      "file": "assets/cases/mokhwa-toilet-ceiling-20261026-10.jpg",
+      "sha256": "fa19e9b192cd46ab22bd006130ccc5d76f95cce7809617cd4488951d8d602cb2"
+    },
+    {
+      "file": "assets/cases/mokhwa-toilet-ceiling-20261026-11.jpg",
+      "sha256": "b1050084318c90f1fd6e6069dcba3f373293fd402d3f57580113359198a60ef8"
+    },
+    {
+      "file": "assets/cases/mokhwa-toilet-ceiling-20261026-12.jpg",
+      "sha256": "22352dac54abe80f05b0620043e01eb700c11a299d443dba473b389c8c524516"
+    },
+    {
+      "file": "assets/cases/dunsan-deck-20261021-01.jpg",
+      "sha256": "6513f79ab11ae5a251aae48149bcb96845bda7fdb2c18b5a4a0bb6bbbf9cf031"
+    },
+    {
+      "file": "assets/cases/dunsan-deck-20261021-02.jpg",
+      "sha256": "0854af890d09170e07079917b5db12018f88a5196184b2db74f783552a0c386f"
+    },
+    {
+      "file": "assets/cases/dunsan-deck-20261021-03.jpg",
+      "sha256": "80b875190057dbf8068b6a920ed3c26ee9ac3c90ac24a0d91becb9926ce29715"
+    },
+    {
+      "file": "assets/cases/dunsan-deck-20261021-04.jpg",
+      "sha256": "04d4d5ba3d655f7d7d125feb9da69945a0bfbf07106bf5144f2809020114c4e5"
+    },
+    {
+      "file": "assets/cases/dunsan-deck-20261021-05.jpg",
+      "sha256": "ab4409225558ccb0ea2db5e96130b0e848264d841b4a9175ddb67dccf77ff88c"
+    },
+    {
+      "file": "assets/cases/dunsan-deck-20261021-06.jpg",
+      "sha256": "53b83d781a9f13c21015487094526f354e54fcafa616437686cbb8d06d431029"
+    },
+    {
+      "file": "assets/cases/dunsan-deck-20261021-07.jpg",
+      "sha256": "8a9eae85d936d7e421342515b0d4b54e9428a516b384575603d36b13f2b68458"
+    },
+    {
+      "file": "assets/cases/dunsan-deck-20261021-08.jpg",
+      "sha256": "26e54155b0ed29f9826426a33581852b5b2e6c13c5b01b48f283112772e8c461"
+    },
+    {
+      "file": "assets/cases/dunsan-deck-20261021-09.jpg",
+      "sha256": "a0361d1a3cb73e1f52f02ce346bd63acf8c2e5a49a79b725466d9b786073491f"
+    },
+    {
+      "file": "assets/cases/dunsan-deck-20261021-10.jpg",
+      "sha256": "526f35aaea4b848d1ad02888287489706f7770ed999b6f588ac2f66ddbdfb232"
+    },
+    {
+      "file": "assets/cases/ipark-bath-waterproof-20260830-01.jpg",
+      "sha256": "977b91323f1f69c983293c35af1be1d0960b3a7b9aa06a4a2970a7d5ab25be6f"
+    },
+    {
+      "file": "assets/cases/ipark-bath-waterproof-20260830-02.jpg",
+      "sha256": "71dc544342ab911f130b5c92f4355ca9034c9a7b28fa13dd289ec980d7bba069"
+    },
+    {
+      "file": "assets/cases/ipark-bath-waterproof-20260830-03.jpg",
+      "sha256": "671d32afbfa6ec43e97fe1c3cda05dabc84a4393fffe35df18c07e912a39e096"
+    },
+    {
+      "file": "assets/cases/ipark-bath-waterproof-20260830-04.jpg",
+      "sha256": "194ac21995a00512a1f9483ed176355594f9ed4683bc3d5958f432ca6ba5b1e0"
+    },
+    {
+      "file": "assets/cases/ipark-bath-waterproof-20260830-05.jpg",
+      "sha256": "3843ee9884db19fbcc1c07c51e653f74db7e13bb4c8d6557de221954b1b01518"
+    },
+    {
+      "file": "assets/cases/ipark-bath-waterproof-20260830-06.jpg",
+      "sha256": "9ece308b9c9726d8aff1b2ac99b2b10efd33fc5cddc826567eca2d3efb61b4ea"
+    },
+    {
+      "file": "assets/cases/ipark-bath-waterproof-20260830-07.jpg",
+      "sha256": "4770736298c7c51604f8c306a9078411dff074045aefeb9a3027c94ce60e362b"
+    },
+    {
+      "file": "assets/cases/ipark-bath-waterproof-20260830-08.jpg",
+      "sha256": "924981bfa0b0fd0e800bdc48b78464765333c2906a1b6cd0758513fbf8d06c50"
+    }
+  ]
+}

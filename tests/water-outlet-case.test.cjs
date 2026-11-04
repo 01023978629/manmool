@@ -11,13 +11,14 @@ const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).
 // 2026-10-31: 10월 사진 사례 10건 추가. 그 전 65건 객체·순서는 recent-cases-20261031 검사가 origin/main 기준으로 따로 고정한다.
 // 2026-10-31: 정보글 '11월 동파 예방' 1건 추가(기존 글 수정 없음). 그 전 75건 전체 객체·순서는 winter-freeze-guide-20261028 검사가 따로 고정한다.
 // 2026-11-03: 선비마을 1단지 외벽(옹벽) 미장 보수 사례 1건 추가(기존 글 수정 없음). 그 전 76건 전체 객체·순서는 recent-cases-20261103 검사가 따로 고정한다.
-const baseline = 'fa0362ced4974667d4aebae707ffd7f5bcc341a149f168de7a92280d0938bfd3';
+// 2026-11-04: 목화아파트·둔산동 데크·아이파크시티 사례 3건 추가(기존 글 수정 없음). 그 전 77건 전체 객체·순서는 recent-cases-20261104 검사가 따로 고정한다.
+const baseline = '723b89d2d1b45d3170c517a6881a0ef399e52c20e7dbaf56473bf7fa96b813a7';
 function preserved(items) {
   const old = items.filter(a => a.slug !== slug);
-  return old.length === 76 && hash(old) === baseline;
+  return old.length === 79 && hash(old) === baseline;
 }
-test('옥천 외 76개 글 객체·사진 설명·순서와 회사 데이터 보존, 변이 검출', () => {
-  assert.equal(site.insights.length, 77);
+test('옥천 외 79개 글 객체·사진 설명·순서와 회사 데이터 보존, 변이 검출', () => {
+  assert.equal(site.insights.length, 80);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487');
