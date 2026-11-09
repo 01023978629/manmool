@@ -14,7 +14,9 @@ const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).
 // 2026-10-31: 정보글 '11월 동파 예방' 1건 추가(기존 글 수정 없음). 그 전 75건 전체 객체·순서는 winter-freeze-guide-20261028 검사가 따로 고정한다.
 // 2026-11-03: 선비마을 1단지 외벽(옹벽) 미장 보수 사례 1건 추가(기존 글 수정 없음). 그 전 76건 전체 객체·순서는 recent-cases-20261103 검사가 따로 고정한다.
 // 2026-11-04: 목화아파트·둔산동 데크·아이파크시티 사례 3건 추가(기존 글 수정 없음). 그 전 77건 전체 객체·순서는 recent-cases-20261104 검사가 따로 고정한다.
-const oldHash = 'a27796f2a8d486e962c838975be4a8785064c2b502e8288cd631283555c8ec17';
+// 2026-11-09: 정보글 'rainy-season-waterproof-check'·'bathroom-waterproof-signs'의 '점검과 방문 실측은 무료이니' 한 문장을 FAQ 정본(1차 방문 실측 무료, 누수탐지는 장비 탐지 착수부터 유료)에 맞춰 조건형으로 고쳤다 — 이번에는 기존 글이 바뀐 것이라 개수는 그대로 두고 해시만 다시 고정.
+// 두 글의 그 문장 말고는 글·순서·사진 어느 것도 바뀌지 않았다(옛 site.json 으로 같은 선택식을 돌려 종전 핀과 일치 확인). 조건 없는 '무료'는 scripts/ensure-fee-honesty.mjs 가 막는다.
+const oldHash = '5b5dbd0ba4bea59b47ce4d37279777fed7db28c58c428d92f013847731355c65';
 const originalRestHash = '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487';
 const preserved = insights => {
   const old = insights.filter(a => a.slug !== slug);

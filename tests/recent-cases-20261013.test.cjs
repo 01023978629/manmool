@@ -16,6 +16,10 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 // 2026-11-03: Seonbi 1-danji retaining-wall plaster case added (no existing entry changed); re-pinned to 72.
 // 2026-11-04: Mokhwa toilet/ceiling-pipe, Dunsan deck and IPark City bathroom cases added at their date positions
 // (no existing entry changed); re-pinned to 75 — recent-cases-20261104 pins the 77 entries before them.
+// 2026-11-09: One sentence in two info posts (rainy-season-waterproof-check, bathroom-waterproof-signs) changed from the unconditional
+// "점검과 방문 실측은 무료이니" to the FAQ wording (first site visit free; leak detection paid from equipment start). This edits pinned
+// entries, so the count stays and only the hash was re-pinned (old selection verified against the previous site.json first).
+// Nothing else in any entry changed; scripts/ensure-fee-honesty.mjs now guards unconditional '무료' wording.
 test('previous 71 complete entries and ordering, company/catalog preserved; mutation guards active', () => {
   assert.equal(site.insights.length, 80);
   assert.ok(preserved(site.insights));

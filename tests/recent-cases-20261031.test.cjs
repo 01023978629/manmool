@@ -19,6 +19,10 @@ const sitemapLastmod = slug => (read('sitemap.xml').match(new RegExp(
 // outside the ten October cases is now 67 — see recent-cases-20261103 for the full pin of the 76 entries before it.
 // 2026-11-04: Mokhwa (10-26), Dunsan deck (10-21) and IPark City (08-30) cases added at their date positions (no October
 // entry changed); the pinned set outside the ten October cases is now 70 — recent-cases-20261104 pins the 77 before them.
+// 2026-11-09: One sentence in two info posts (rainy-season-waterproof-check, bathroom-waterproof-signs) changed from the unconditional
+// "점검과 방문 실측은 무료이니" to the FAQ wording (first site visit free; leak detection paid from equipment start). This edits pinned
+// entries, so the count stays and only the hash was re-pinned (old selection verified against the previous site.json first).
+// Nothing else in any entry changed; scripts/ensure-fee-honesty.mjs now guards unconditional '무료' wording.
 test('every entry outside this batch keeps its object and order; mutation guards active', () => {
   assert.equal(site.insights.length, fixture.previousCount + slugs.length);
   assert.ok(preserved(site.insights));

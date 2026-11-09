@@ -6,6 +6,25 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-11-09 누수 정보글 '무료' 문구를 FAQ 정본에 맞춤 (PR 후보, `mm/free-wording`)
+
+`rainy-season-waterproof-check`·`bathroom-waterproof-signs` 두 정보글에 조건 없는 '점검과 방문 실측은 무료이니 …' 가 남아 있었다.
+사이트 FAQ 정본(`data/site.json` faq — `index.html`·`leak.html` 에도 같은 글)은 "인테리어 상담과 1차 방문 실측은 무료입니다. 누수탐지는
+장비 탐지에 착수하는 시점부터 유료(기본 40만원, 부가세 별도)…" 라, 누수 글이 '점검 무료'라고 하면 현장에서 탐지비를 듣는 순간 홈페이지가
+거짓말한 것이 된다(🔴 6 조건형 규칙). 두 글의 그 문장만 "1차 방문 실측은 무료이니(누수탐지는 장비 탐지에 착수하는 시점부터 유료) …" 로
+고쳤다 — 금액·효과는 새로 적지 않았고 `updated` 도 달지 않았다(달면 blog/leak `lastmod` 핀·RSS lastBuildDate 가 같이 움직인다 — 대표가 원하면 그때).
+
+- **기존 글을 한 글자라도 고치면 '나머지 n건' 해시 핀이 전부 깨진다**(글을 더할 때는 개수+해시, 고칠 때는 해시만). 이번에 11곳:
+  `remaining-cases` protectedSlugs · `winter-freeze-guide-20261028` PREVIOUS_HASH · `fixtures/recent-cases-20261013/31/1103/1104.json`
+  previousHash · `quote-contract-guide` OLD_HASH · `case-reader` othersHash · `chungmu-cases` baseline · `aluminum-screen-case` oldHash ·
+  `water-outlet-case` baseline. 개수는 그대로, 해시만 다시 고정하고 줄마다 날짜·이유를 적었다. **다시 고정하기 전에 옛 site.json
+  (`git show HEAD:data/site.json`)으로 같은 선택식을 돌려 지금 핀과 같은지 확인하라** — 그래야 어느 집합을 고정하는지 맞게 읽은 것이다.
+- 새 검사 `scripts/ensure-fee-honesty.mjs`(CI 의 `ensure-*` 루프가 자동으로 돈다): 공개 글 어디에도 '점검(과|·)방문 실측 무료' 꼴 없음 ·
+  누수 분야 글 문단에 '무료' 가 있으면 같은 문단에 '유료' 경계 · FAQ 정본 문장 존재. 정본과 생성물 `posts/` 양쪽을 본다. 변이 3종 검출.
+- 범위 밖 남은 것(대표 확인): `bathroom-check.html`(설명·OG·본문 '점검·방문 실측 무료')·`js/bathroom-check.js`(결과 화면 '점검·방문
+  실측은 무료입니다'·'무료 방문 점검 신청')에 같은 문구가 있다. `leak.html` FAQ 는 '(부가세 별도)' 만 있고 `index.html`·site.json 은
+  '(기본 40만원, 부가세 별도)' 라 금액 표기가 갈린다. `partial-vs-full-remodel` 의 '무료 방문 실측' 은 인테리어 글이라 정본과 같은 말이다.
+
 ### 2026-11-04 목화아파트·둔산동 데크·아이파크시티 사례 3건 공개 후보
 
 `claude/cases-ipark-mokhwa-deck-20261104`는 PR #227(11/3 선비마을) 위에 쌓은 브랜치로, 사례 3건을 `published:true`로 더한다 —

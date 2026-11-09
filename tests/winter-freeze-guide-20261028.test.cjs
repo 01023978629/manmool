@@ -12,8 +12,10 @@ const SLUG = 'winter-pipe-freeze-prevention-november';
 // origin/main(1f1dfe2, 10월 사례 10건 공개 후)의 insights 75건 전체 — 이 글을 빼면 바이트 단위로 같아야 한다.
 // 2026-11-03: 선비마을 1단지 외벽(옹벽) 미장 보수 사례 1건 추가(기존 글 수정 없음). 그 전 76건 전체 객체·순서는 recent-cases-20261103 검사가 따로 고정한다.
 // 2026-11-04: 목화아파트·둔산동 데크·아이파크시티 사례 3건 추가(기존 글 수정 없음). 그 전 77건 전체 객체·순서는 recent-cases-20261104 검사가 따로 고정한다.
+// 2026-11-09: 정보글 'rainy-season-waterproof-check'·'bathroom-waterproof-signs'의 '점검과 방문 실측은 무료이니' 한 문장을 FAQ 정본(1차 방문 실측 무료, 누수탐지는 장비 탐지 착수부터 유료)에 맞춰 조건형으로 고쳤다 — 이번에는 기존 글이 바뀐 것이라 개수는 그대로 두고 해시만 다시 고정.
+// 두 글의 그 문장 말고는 글·순서·사진 어느 것도 바뀌지 않았다(옛 site.json 으로 같은 선택식을 돌려 종전 핀과 일치 확인). 조건 없는 '무료'는 scripts/ensure-fee-honesty.mjs 가 막는다.
 const PREVIOUS_COUNT = 79;
-const PREVIOUS_HASH = '9a59afbb53f9b213d24be940a1a9fb32b70fd946509ef26c11be0ebe9ee9164a';
+const PREVIOUS_HASH = 'fcc64de71fe78c5f47ba0f9abb3503833ff696bc336c9d9eb04fa5e97210146a';
 const REST_HASH = '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487';
 // 사례 작성/정보글 폴더의 정본(insights-entry.json)에서 published 만 true 로 바꾼 객체.
 const ENTRY_HASH = '32e78c0ee197e90914a1b0350629cd0acb28c7ac6eb94ed19c2b3f24f51481cc';
