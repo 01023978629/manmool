@@ -6,6 +6,13 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-11-10 현장 앱 사례 ZIP 초안 도구 `scripts/import-case-zip.mjs`
+
+`mm/case-zip-importer`: 현장 앱 「📰 사례 내보내기」 ZIP 을 검사(동의·개인정보·과장 표현·JPEG/EXIF)해 `.private/case-drafts/` 에
+비공개 초안과 사진을 만드는 도구와 그 검사. **게시(data/site.json·posts·assets/cases)는 하지 않는다** — 공개 글·사진·업체 정보는
+하나도 바꾸지 않았다. 절차·멈추는 조건은 아래 「글을 더할 때」의 「현장 앱 사례 ZIP → 비공개 초안」 절과
+`docs/import-case-zip-20261109.md`. `js/pii-rules.js` 에 '출입번호' 규칙이 늘었다(등록 화면 case-new.html 도 같이 막는다).
+
 ### 2026-11-04 목화아파트·둔산동 데크·아이파크시티 사례 3건 공개 후보
 
 `claude/cases-ipark-mokhwa-deck-20261104`는 PR #227(11/3 선비마을) 위에 쌓은 브랜치로, 사례 3건을 `published:true`로 더한다 —
@@ -236,6 +243,43 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 | `python3 scripts/prerender-designs.py` | 시안의 `tip`·`trendLabel` 을 고쳤다면 `designs/*.html` 8장이 옛 글을 들고 남는다. CI 마지막 `git diff --exit-code` 가 잡는다 |
 | `sitemap.xml` 에 `posts/<slug>.html` 줄 | `ensure-site-integrity` 가 "sitemap 에 없다" 로 막는다 — **생성기가 손대지 않는다** |
 | `sitemap.xml` 의 `blog.html` `<lastmod>` | `ensure-weekly-leak-cases` 가 "목록의 최신 공개 글 수정일과 다르다" 로 막는다 |
+
+### 현장 앱 사례 ZIP → 비공개 초안 (2026-11-10, `scripts/import-case-zip.mjs`)
+
+현장 앱(hyeonjang)의 「📰 사례 내보내기」가 만든 ZIP(사진 `NN-전|중|후.jpg` — EXIF 없음·긴 변 1800, `사례재료.txt`
+6항목, 앱 v446 부터 `case.json` format `manmool-case/1`)을 **검사하고 비공개 초안까지만** 만든다. `new-case-post.mjs` 와 같은 자리
+(`.private/case-drafts/`, .gitignore)에 쓰고 그 `makeDraft`·`parseMaterial`·`piiFindings` 를 그대로 쓴다. **게시는 하지 않는다** —
+`data/site.json`·`posts/`·`assets/cases/` 는 읽기만 한다(같은 slug 가 있는지).
+
+```
+앱 ZIP → node scripts/import-case-zip.mjs <zip> --slug <영문-slug> [--date YYYY-MM-DD] [--kind leak|interior] [--dry-run]
+      → .private/case-drafts/<slug>.json (published:false 초안) + .private/case-drafts/<slug>/<slug>-N.jpg (전→중→후)
+      → 사람이 읽고 고친다(비어 있는 칸·caseSummary.result·사진 설명·제목)
+      → 사진을 assets/cases/ 로 옮기고 python3 scripts/build-image-variants.py → 초안을 data/site.json insights 날짜 자리에 넣고 published:true
+      → python3 scripts/prerender-posts.py → sitemap.xml 줄·blog.html lastmod(위 표) → 핀 재고정(개별 검사들의 '나머지 n건'
+        해시·개수, leak.html 카드 수, FEATURED) → PR → 대표 확인 뒤 병합
+```
+
+- **멈추는 조건(아무것도 쓰지 않는다, 종료코드 1)**: ZIP 경로 탈출(`..`·절대 경로·역슬래시)·심볼릭 링크·암호·ZIP64·항목 수/크기 상한 /
+  case.json·사례재료.txt 둘 다 없음 / **개인정보 — `js/pii-rules.js` 규칙 전부(동·호수·전화·이메일·고객명·출입번호)가 글·case.json
+  의 어느 문자열·ZIP 항목 이름에든 있음**(걸린 칸 이름만 출력, 값은 되풀이하지 않는다) / 과장 표현(최저가·무조건·100%·평생 보증·
+  업계 1위·지어낸 만족 후기) / 고객 사진 공개 동의 기록 없음(`consent:true` 또는 재료 글 '동의: 받음') / 사진이 JPEG 가 아니거나
+  EXIF·XMP 가 남아 있음(앱이 구운 사진에는 없다 — 있으면 손으로 넣은 원본이다) / 같은 slug 의 초안·공개 글·`assets/cases/<slug>-*` 사진이 이미 있음.
+- 사진 이름은 **slug+번호만**(`<slug>-N.jpg`, 원본 이름·동호수 없음). 초안의 `image`·`body[].img` 는 게시할 때 놓일 자리
+  (`assets/cases/<slug>-N.jpg`)를 미리 가리키고, 지금 있는 곳은 `draftSource.photoDir` 에 적는다.
+- `--slug` 를 안 주면 `case-draft-YYYYMMDD-<지문>` 이 된다. slug 는 공개 URL·사진 이름이 되므로 **처음부터 영문 slug 를 주어라**.
+  날짜는 `--date` → `case.json date`(준공일) → 오늘.
+- 비어 있는 항목은 비워 둔다(`body[].p` 빈 문자열) — **사례를 지어내지 않는다.** `caseSummary.result` 는 사진·시간에서 확인되는 것만
+  ('완료 사진 N장 확인'·'소요시간 …'). 사람이 채운다. `draftSource`(format·app·zip·kind·area·tags·consent·photoDir) 는 검토용 메모 —
+  site.json 에 옮길 때 지운다.
+- `js/pii-rules.js` 에 **'출입번호' 규칙**(출입 낱말 뒤 4글자 안의 4~8자리, 단위가 붙은 수치 제외 — 현장 앱 `hjLooksLikeAccessCode` 와
+  같은 축)을 더했다. `case-new.html` 등록 화면도 같이 막는다. `ensure-site-integrity` 의 산문 검사는 여전히 4종(동·호수·전화·이메일)이다.
+  기존 공개 글·HTML 전체에 돌려 오탐 0 을 확인했다.
+- 검사 `scripts/import-case-zip.test.mjs`(CI 'Run source quality checks' 의 `new-case-post.test` 옆, 배포 단계는 그대로) — 합성 ZIP 을
+  검사 안에서 만들고, 임시 뿌리에서 `data/site.json` 바이트·`assets/`·`posts/` 가 그대로인지 본다. 변이 10종(개인정보·과장 표현·EXIF·
+  동의 검사 제거, published 기본 true, 경로 탈출 허용, 출입번호 규칙 제거, 초안/공개 글 중복 검사 제거, 초안 폴더를 assets 로) 전부 검출.
+  상세 `docs/import-case-zip-20261109.md`.
+- 아직 없는 것: 초안 → site.json·assets 로 옮겨 주는 게시 도구(지금은 사람이), PowerShell 감싸개(`Import-CaseZip.ps1` — 현장 앱 문서가 예고한 이름).
 
 **목록 분야 필터(`case_group`)의 규칙은 두 곳에 따로 적혀 있다** — `scripts/prerender-posts.py`
 의 `case_group()` 과 `tests/case-finder.e2e.cjs` 의 `caseGroup()`. 검사가 생성기를 독립적으로
