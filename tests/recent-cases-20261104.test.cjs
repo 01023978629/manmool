@@ -2,6 +2,10 @@
 // interior) and IPark City bathroom waterproofing (08-30). Public case content only: no field database, accounts or
 // external writes. The 77 entries before them are pinned as one object (origin/claude/seonbi-wall-plaster-20261103,
 // PR #227 head b6a32c3) and the new entries sit at their date positions, so the 11/3 Seonbi case stays newest/featured.
+// 2026-11-09: One sentence in two info posts (rainy-season-waterproof-check, bathroom-waterproof-signs) changed from the unconditional
+// "점검과 방문 실측은 무료이니" to the FAQ wording (first site visit free; leak detection paid from equipment start). This edits pinned
+// entries, so the count stays and only the hash was re-pinned (old selection verified against the previous site.json first).
+// Nothing else in any entry changed; scripts/ensure-fee-honesty.mjs now guards unconditional '무료' wording.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');

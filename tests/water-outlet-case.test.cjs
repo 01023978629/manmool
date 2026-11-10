@@ -12,7 +12,9 @@ const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).
 // 2026-10-31: 정보글 '11월 동파 예방' 1건 추가(기존 글 수정 없음). 그 전 75건 전체 객체·순서는 winter-freeze-guide-20261028 검사가 따로 고정한다.
 // 2026-11-03: 선비마을 1단지 외벽(옹벽) 미장 보수 사례 1건 추가(기존 글 수정 없음). 그 전 76건 전체 객체·순서는 recent-cases-20261103 검사가 따로 고정한다.
 // 2026-11-04: 목화아파트·둔산동 데크·아이파크시티 사례 3건 추가(기존 글 수정 없음). 그 전 77건 전체 객체·순서는 recent-cases-20261104 검사가 따로 고정한다.
-const baseline = '723b89d2d1b45d3170c517a6881a0ef399e52c20e7dbaf56473bf7fa96b813a7';
+// 2026-11-09: 정보글 'rainy-season-waterproof-check'·'bathroom-waterproof-signs'의 '점검과 방문 실측은 무료이니' 한 문장을 FAQ 정본(1차 방문 실측 무료, 누수탐지는 장비 탐지 착수부터 유료)에 맞춰 조건형으로 고쳤다 — 이번에는 기존 글이 바뀐 것이라 개수는 그대로 두고 해시만 다시 고정.
+// 두 글의 그 문장 말고는 글·순서·사진 어느 것도 바뀌지 않았다(옛 site.json 으로 같은 선택식을 돌려 종전 핀과 일치 확인). 조건 없는 '무료'는 scripts/ensure-fee-honesty.mjs 가 막는다.
+const baseline = '25630b6dfc31d26adec02c4ebaa9108f3bae58c5761bb4bcf4371640ac70f02d';
 function preserved(items) {
   const old = items.filter(a => a.slug !== slug);
   return old.length === 79 && hash(old) === baseline;

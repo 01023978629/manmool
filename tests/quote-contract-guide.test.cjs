@@ -19,7 +19,9 @@ const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comp
 // 2026-11-03: 선비마을 1단지 외벽(옹벽) 미장 보수 사례 1건 추가(기존 글 수정 없음). 그 전 76건 전체 객체·순서는 recent-cases-20261103 검사가 따로 고정한다.
 // 2026-11-04: 목화아파트(10/26)·둔산동 데크(10/21)·아이파크시티(8/30) 사례 3건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 77건 전체 객체·순서는
 // recent-cases-20261104 검사가 따로 고정한다. 세 글 모두 11/3 선비마을보다 오래돼 FEATURED 는 그대로다.
-const OLD_COUNT = 79, OLD_HASH = 'b8f27ee532709b0c219ba153b26a569b4521e100d19053a708059a829885e4a6';
+// 2026-11-09: 정보글 'rainy-season-waterproof-check'·'bathroom-waterproof-signs'의 '점검과 방문 실측은 무료이니' 한 문장을 FAQ 정본(1차 방문 실측 무료, 누수탐지는 장비 탐지 착수부터 유료)에 맞춰 조건형으로 고쳤다 — 이번에는 기존 글이 바뀐 것이라 개수는 그대로 두고 해시만 다시 고정.
+// 두 글의 그 문장 말고는 글·순서·사진 어느 것도 바뀌지 않았다(옛 site.json 으로 같은 선택식을 돌려 종전 핀과 일치 확인). 조건 없는 '무료'는 scripts/ensure-fee-honesty.mjs 가 막는다.
+const OLD_COUNT = 79, OLD_HASH = '63c37cab1c3c8901baf1f3eb671975ccf107bcaa6eae65218d7ff2759eb1974a';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');
