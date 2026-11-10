@@ -46,9 +46,9 @@
     if (urgent) lines.push('그중에는 글에서 <b>재시공 신호</b>로 설명하는 항목이 있습니다. 방치하면 교체 범위가 커집니다.');
     else lines.push('초기 단계일 수 있는 신호입니다 — <b>이때 점검을 받는 것이 비용이 가장 적게 듭니다.</b>');
     if (pipe) lines.push('계량기 항목은 방수가 아니라 <b>배관 누수</b> 가능성입니다. 점검 때 표면·배관을 구분해 확인해야 정확한 견적이 나옵니다.');
-    lines.push('<span class="of-small">정확한 상태와 비용은 현장 확인 후에만 알 수 있습니다. 점검·방문 실측은 무료입니다.</span>');
+    lines.push('<span class="of-small">정확한 상태와 비용은 현장 확인 후에만 알 수 있습니다. 1차 방문 실측은 무료(누수탐지는 장비 탐지 착수부터 유료)입니다.</span>');
     out.innerHTML = '<div class="bc-box' + (urgent ? ' bc-urgent' : '') + '">' + lines.join('<br>') +
-      '<div class="bc-cta"><a class="btn btn-primary" href="index.html#inquiry">무료 방문 점검 신청</a>' +
+      '<div class="bc-cta"><a class="btn btn-primary" href="index.html#inquiry">방문 점검 신청</a>' +
       '<a class="btn btn-ghost" href="tel:01023978629">📞 바로 통화</a></div></div>';
   }
 })();
