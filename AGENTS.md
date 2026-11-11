@@ -6,6 +6,19 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-11-12 삼호아파트·유원아파트 베란다 우수관 하부(11/10)·열매마을 우수관 박스(11/6) 사례 3건 공개
+
+`claude/cases-yeolmae-samho-yuwon-20261112`는 대표 요청("만물 웹에는 최신 사례 올려줘")으로 사례 3건을 `published:true`로 더한다 —
+`samho-balcony-rain-pipe-base-replacement-20261110`(사진 7장), `yuwon-balcony-rain-pipe-base-drain-20261110`(9장),
+`yeolmae-rain-pipe-box-replacement-20261106`(8장). 범위·제외 사진·확인 사항은 `docs/recent-cases-20261112.md`.
+
+- 세 글이 11/3 선비마을보다 새것이라 site.json 맨 앞(날짜 순)에 들어가고 **대표 사례(FEATURED)가 11/10 삼호로 바뀐다**.
+  `leak.html` #cases 맨 앞 카드 3장(카드 수 핀 37→40), blog/leak `lastmod` 2026-11-10. 기존 80건은 한 글자도 바꾸지 않았다(`4a50d2f` 해시 그대로).
+- 기존 검사 12곳의 핀을 다시 고정했다(날짜 주석) — 맨 앞 글·FEATURED·첫 누수 카드·`lastmod`·'삼호아파트' 검색 건수를 가정한 검사 포함.
+  다음에 실제 사례를 더할 때도 이 목록(`docs/recent-cases-20261112.md` 끝)을 같이 챙겨라.
+- `data/leak-case-index.json` 은 이제 한 줄 JSON 이다 — 들여쓰기본이 10KB 예산(`ensure-leak-case-index`)을 넘었다. 키·순서·내용은 그대로.
+- 같은 날 목양마을 '세면대 배관' 사진은 작업 전후가 분명하지 않아 넣지 않았다(대표 설명 대기).
+
 ### 2026-11-04 목화아파트·둔산동 데크·아이파크시티 사례 3건 공개 후보
 
 `claude/cases-ipark-mokhwa-deck-20261104`는 PR #227(11/3 선비마을) 위에 쌓은 브랜치로, 사례 3건을 `published:true`로 더한다 —

@@ -3,7 +3,7 @@
 /* Local read-only checks. Image pixels/redaction and source-document accuracy need separate visual review. */
 const { test } = require('node:test');
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
-const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'seonbi-1danji-retaining-wall-plaster-repair-20261103', DAY = '2026-09-09', CHECKED = '2026-09-08';
+const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'samho-balcony-rain-pipe-base-replacement-20261110', DAY = '2026-09-09', CHECKED = '2026-09-08';
 // 2026-09-25: 대표 요청과 사진별 세대 배정에 따라 삼호 사례를 2건으로 분리. 다른 50개 글 객체·순서는 별도 대조로 보존 확인.
 // 2026-10-01: 같은 현장의 녹물 배출·분배기 설치 사례 2건 추가. 기존 54건은 전용 회귀 검사로 별도 보존.
 // 2026-10-01: 충무로 두 글만 블로그형 원고로 수정. 기존 54개 원고·사진 보존은 chungmu-cases 검사로 유지.
@@ -19,7 +19,9 @@ const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comp
 // 2026-11-03: 선비마을 1단지 외벽(옹벽) 미장 보수 사례 1건 추가(기존 글 수정 없음). 그 전 76건 전체 객체·순서는 recent-cases-20261103 검사가 따로 고정한다.
 // 2026-11-04: 목화아파트(10/26)·둔산동 데크(10/21)·아이파크시티(8/30) 사례 3건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 77건 전체 객체·순서는
 // recent-cases-20261104 검사가 따로 고정한다. 세 글 모두 11/3 선비마을보다 오래돼 FEATURED 는 그대로다.
-const OLD_COUNT = 79, OLD_HASH = 'b8f27ee532709b0c219ba153b26a569b4521e100d19053a708059a829885e4a6';
+// 2026-11-12: 삼호아파트·유원아파트(11/10)·열매마을(11/6) 사례 3건을 맨 앞(날짜 순)에 추가(기존 글 수정 없음). 그 전 80건 전체 객체·순서는
+// recent-cases-20261112 검사가 따로 고정한다. 가장 최근 실제 사례가 11/10 삼호아파트라 FEATURED 를 그 글로 바꿨다.
+const OLD_COUNT = 82, OLD_HASH = 'f4d7f9db932691fea2af966efe44478c4ab6900ecbd801d9670b725b5ef1781b';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');
@@ -98,7 +100,7 @@ function fixture() {
   const a = { slug: SLUG, date: DAY, category: '견적·계약 가이드', service: 'interior', title: '견적서 비교 안내', image, imageAlt: 'AI 편집본', body: [{ h: '안내', p: '실제 시공 후기가 아니며 만물이 작성한 계약서가 아닙니다.\n\nAI 편집 참고 자료입니다. 원본이나 제출용 문서가 아닙니다.' }], sourcesChecked: CHECKED, sources: [{ url: 'https://www.ftc.go.kr/example' }, { url: 'https://www.kca.go.kr/example' }] };
   return { insights: [old[0], a, ...old.slice(1)], images: { [image]: Buffer.from('synthetic-only') }, post: `<link rel="canonical" href="https://01023978629.github.io/manmool/posts/${SLUG}.html">${a.title} AI 편집 <img src="../${image}"><div class="post-cta"><a href="../index.html#inquiry"></a></div>${a.sources.map(x => `<a href="${x.url}"></a>`).join('')}`, blog: `<a class="insight-featured" href="posts/${FEATURED}.html"></a><a href="posts/${SLUG}.html" data-group="info"></a>`, index: { cases: [] }, rss: `/posts/${SLUG}.html`, sitemap: `/posts/${SLUG}.html`, oldHash: hash(old), expectedImages: [image] };
 }
-test('공개 안내 글·나머지 79건 보존·AI 고지·연계', () => assert.deepEqual(inspect(readActual()), []));
+test('공개 안내 글·나머지 82건 보존·AI 고지·연계', () => assert.deepEqual(inspect(readActual()), []));
 test('합성 fixture 정상 계약', () => { const s = fixture(); assert.deepEqual(inspect(s, s.oldHash, s.expectedImages), []); });
 test('합성 PNG: C2PA 보존, eXIf·GPS 차단', () => {
   const box = (type, b) => { const n = Buffer.alloc(4); n.writeUInt32BE(b.length + 8); return Buffer.concat([n, Buffer.from(type), b]); };

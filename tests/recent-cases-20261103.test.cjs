@@ -3,6 +3,9 @@
 // 2026-11-04: Mokhwa (10-26), Dunsan deck (10-21) and IPark City (08-30) cases were added at their date positions after
 // this one (no existing entry changed). The pinned set (every entry except this case) was re-pinned 76 -> 79 and the leak
 // card count 35 -> 37; recent-cases-20261104 pins the 77 entries before those three. This case stays first (newest).
+// 2026-11-12: Samho/Yuwon (11-10) and Yeolmae (11-06) rain-pipe cases were added in front of it (no existing entry changed):
+// pinned set 79 -> 82, leak card count 37 -> 40. It now sits at its date position after them, and the blog/leak lastmod
+// follows the newest public post (2026-11-10). recent-cases-20261112 pins the 80 entries before the three new cases.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
@@ -31,10 +34,10 @@ test('every entry except this case keeps its object and order; mutation guards a
   assert.ok(!preserved(insights.filter((_, k) => k !== i)));
   const reordered = structuredClone(insights); [reordered[i], reordered[i + 1]] = [reordered[i + 1], reordered[i]];
   assert.ok(!preserved(reordered));
-  // The new entry is the newest real case, so it leads the list; everything after it keeps its historical order.
+  // It was the newest real case on 11/3; since 2026-11-12 the newer cases come first and it sits at its date position.
   for (const slug of slugs) {
     const k = insights.findIndex(a => a.slug === slug), day = insights[k].date;
-    assert.equal(k, 0, slug);
+    assert.ok(k > 0 && insights[k - 1].date >= day, slug);
     assert.ok(insights[k + 1].date <= day, slug);
   }
 });
@@ -79,14 +82,16 @@ test('Seonbi 1-danji retaining-wall plaster case: 9 photos, work date, conservat
     for (const b of figures) assert.ok(html.includes(b.img), b.img);
   }
   assert.match(read('blog.html'), new RegExp(`insight-featured[^>]*href="posts/${site.insights[0].slug}\\.html"`));
-  // The leak landing lists this case first and the card count pin follows it (34 -> 35; 2026-11-04 35 -> 37).
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 37);
-  const first = leak.indexOf('class="case-card registered-case"');
-  assert.ok(leak.indexOf(`href="posts/${slugs[0]}.html"`) > first && leak.indexOf(`href="posts/${slugs[0]}.html"`) < leak.indexOf('class="case-card registered-case"', first + 1));
+  // The leak landing lists cards newest first; the card count pin follows it (34 -> 35; 2026-11-04 35 -> 37; 2026-11-12 37 -> 40).
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 40);
+  const cardSlugs = [...leak.matchAll(/<article\b[^>]*class="case-card registered-case"[^>]*>[\s\S]*?<\/article>/g)]
+    .map(m => (m[0].match(/href="posts\/([^"]+)\.html"/) || [])[1]);
+  const dateOf = s => (site.insights.find(a => a.slug === s) || {}).date;
+  assert.equal(cardSlugs.indexOf(slugs[0]), cardSlugs.findIndex(s => dateOf(s) <= '2026-11-03'));
   // blog.html and leak.html advertise the newest public post date.
   for (const page of ['blog.html', 'leak.html']) {
     const lastmod = (read('sitemap.xml').match(new RegExp(`<loc>https://01023978629\\.github\\.io/manmool/${page}</loc>\\s*<lastmod>([^<]+)</lastmod>`)) || [])[1];
-    assert.equal(lastmod, '2026-11-03', page);
+    assert.equal(lastmod, '2026-11-10', page);
   }
 });
 
