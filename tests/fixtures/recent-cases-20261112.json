@@ -1,0 +1,141 @@
+{
+  "previousCount": 80,
+  "previousHash": "7d754221d76d37ec2701e7677759f4402fdb3b83841bfcf5461486c0356fd5e1",
+  "otherDataHash": "5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487",
+  "cases": [
+    {
+      "slug": "samho-balcony-rain-pipe-base-replacement-20261110",
+      "date": "2026-11-10",
+      "shootingDates": [
+        "2026-11-10"
+      ],
+      "service": "leak",
+      "category": "방수·설비",
+      "placeName": "대전 대덕구 법동 삼호아파트",
+      "photoCount": 7,
+      "leakCard": true
+    },
+    {
+      "slug": "yuwon-balcony-rain-pipe-base-drain-20261110",
+      "date": "2026-11-10",
+      "shootingDates": [
+        "2026-11-10"
+      ],
+      "service": "leak",
+      "category": "방수·설비",
+      "placeName": "대전 유원아파트",
+      "photoCount": 9,
+      "leakCard": true
+    },
+    {
+      "slug": "yeolmae-rain-pipe-box-replacement-20261106",
+      "date": "2026-11-06",
+      "shootingDates": [
+        "2026-11-06"
+      ],
+      "service": "leak",
+      "category": "방수·설비",
+      "placeName": "대전 열매마을",
+      "photoCount": 8,
+      "leakCard": true
+    }
+  ],
+  "photos": [
+    {
+      "file": "assets/cases/samho-rain-pipe-base-20261110-01.jpg",
+      "sha256": "379285ba5784056e6ade385cd45c82ebf7bce528ff8fa7bdfe165510844f66fc"
+    },
+    {
+      "file": "assets/cases/samho-rain-pipe-base-20261110-02.jpg",
+      "sha256": "ff1bd629ceaf1a825625da6315b6ab06896682d09db75395a554e1614b6aba5c"
+    },
+    {
+      "file": "assets/cases/samho-rain-pipe-base-20261110-03.jpg",
+      "sha256": "d7dff4906d7bb5f716a3a786e446e7b3405afd2fd9fc84c5834c1ffda34b58b3"
+    },
+    {
+      "file": "assets/cases/samho-rain-pipe-base-20261110-04.jpg",
+      "sha256": "50de17fa4202d5926bb853a78534cd4a6d3943af20ca53188ec1a983f01af0ce"
+    },
+    {
+      "file": "assets/cases/samho-rain-pipe-base-20261110-05.jpg",
+      "sha256": "28456e09e788e56085ab1f607f2edc1fc86fa9a0d2533a05a4ae1dfcbf574c5c"
+    },
+    {
+      "file": "assets/cases/samho-rain-pipe-base-20261110-06.jpg",
+      "sha256": "1eb6ec39b549bfdf08ae2039c4467930d4434bff9e74c313aa8776bc1ef6e025"
+    },
+    {
+      "file": "assets/cases/samho-rain-pipe-base-20261110-07.jpg",
+      "sha256": "560ef7377190385e0e892f33d299d0bed7f8e5e034980ac47784aa3bac091862"
+    },
+    {
+      "file": "assets/cases/yuwon-rain-pipe-drain-20261110-01.jpg",
+      "sha256": "c1e9227b894713eb1c21b56995eeb11e659bb2f2721a70e12bd8f3d57d9ff604"
+    },
+    {
+      "file": "assets/cases/yuwon-rain-pipe-drain-20261110-02.jpg",
+      "sha256": "c7aad08126aa8c54198033c6be998ddd2e9cfc0ffcd67a8e88fa22a8662fc583"
+    },
+    {
+      "file": "assets/cases/yuwon-rain-pipe-drain-20261110-03.jpg",
+      "sha256": "39de096e04415a7df9362e0b9a70357c5aaee222a4d3fb137d5fe675ca36a416"
+    },
+    {
+      "file": "assets/cases/yuwon-rain-pipe-drain-20261110-04.jpg",
+      "sha256": "625b25ec6889dd2f75f20a5d0750b3263654912164903efd895381b9b716241c"
+    },
+    {
+      "file": "assets/cases/yuwon-rain-pipe-drain-20261110-05.jpg",
+      "sha256": "579faa61bfbe9dc6dbef241f54d18544a3bdc58260fed1c1975ed0c9853d9a50"
+    },
+    {
+      "file": "assets/cases/yuwon-rain-pipe-drain-20261110-06.jpg",
+      "sha256": "cbc27641ef66d8634a177a4a3715ea5eb4a4f603aff089bae899d8a500429be2"
+    },
+    {
+      "file": "assets/cases/yuwon-rain-pipe-drain-20261110-07.jpg",
+      "sha256": "944a7877b259ae23c8e6e3585e7642a1ee55ef9fa82abbca2ef9e8fc9b2f270c"
+    },
+    {
+      "file": "assets/cases/yuwon-rain-pipe-drain-20261110-08.jpg",
+      "sha256": "0a141dd62e6ea8e2fed22f9b42f897398ba25afb05cc83d1a32eae0c9a0388b6"
+    },
+    {
+      "file": "assets/cases/yuwon-rain-pipe-drain-20261110-09.jpg",
+      "sha256": "6a6bcf935d8ac56c188e09770aaad749009bf10c74030504844af733cbeb4f4b"
+    },
+    {
+      "file": "assets/cases/yeolmae-rain-pipe-box-20261106-01.jpg",
+      "sha256": "7aaf00e360ef6dcae0cfe938f2627ab2c117af1eb537ab0f8319974b7a43a681"
+    },
+    {
+      "file": "assets/cases/yeolmae-rain-pipe-box-20261106-02.jpg",
+      "sha256": "ac02ce94dfadd215b50532d9ce08e0bd83aa8d04d57039216442a21945e08293"
+    },
+    {
+      "file": "assets/cases/yeolmae-rain-pipe-box-20261106-03.jpg",
+      "sha256": "5256de4c796336885d73567d1f715accd5cf42b3b2727bc4c6af3f39c857fcf9"
+    },
+    {
+      "file": "assets/cases/yeolmae-rain-pipe-box-20261106-04.jpg",
+      "sha256": "bda965f90cd1625b60a4dc20db964f062c077e65e4e66fb2cae36c24c9396767"
+    },
+    {
+      "file": "assets/cases/yeolmae-rain-pipe-box-20261106-05.jpg",
+      "sha256": "22ec0b37301f66b4721c3d08c2b5080af5b866ad7d939ee64abdd6901f9e24bc"
+    },
+    {
+      "file": "assets/cases/yeolmae-rain-pipe-box-20261106-06.jpg",
+      "sha256": "0db4a76d0399769c34e97617cefcd012fd86daa12d2f4c2a776c4b8df33584d8"
+    },
+    {
+      "file": "assets/cases/yeolmae-rain-pipe-box-20261106-07.jpg",
+      "sha256": "dabd0dfbd8696d80f605351af98fa7d4a955f4a6f302964be5e08915a0180a85"
+    },
+    {
+      "file": "assets/cases/yeolmae-rain-pipe-box-20261106-08.jpg",
+      "sha256": "b5104a3a6e17e167626d1726135d2f3416486b802b76eb5582fdceb45b327746"
+    }
+  ]
+}
