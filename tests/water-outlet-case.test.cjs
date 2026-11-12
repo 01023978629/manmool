@@ -13,13 +13,14 @@ const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).
 // 2026-11-03: 선비마을 1단지 외벽(옹벽) 미장 보수 사례 1건 추가(기존 글 수정 없음). 그 전 76건 전체 객체·순서는 recent-cases-20261103 검사가 따로 고정한다.
 // 2026-11-04: 목화아파트·둔산동 데크·아이파크시티 사례 3건 추가(기존 글 수정 없음). 그 전 77건 전체 객체·순서는 recent-cases-20261104 검사가 따로 고정한다.
 // 2026-11-12: 삼호아파트·유원아파트 베란다 우수관 하부(11/10)·열매마을 우수관 박스(11/6) 사례 3건 추가(기존 글 수정 없음). 그 전 80건 전체 객체·순서는 recent-cases-20261112 검사가 따로 고정한다.
-const baseline = 'aba9c620cc46a6d44278a228cb1d29616ca3734b4c92fd3565d6a233abe0916f';
+// 2026-11-13: 문창동 난방 분배기·밸브 교체·교촌동 미메이드아파트 온수 배관 보수·탄방동 바닥 미장(11/12) 사례 3건을 맨 앞에 추가(기존 글 수정 없음). 그 전 83건 전체 객체·순서는 recent-cases-20261113 검사가 따로 고정한다.
+const baseline = 'ae24dbb53e86ba9f485c80be8c46b6ad09a5c665b042041b2971661acbe425bf';
 function preserved(items) {
   const old = items.filter(a => a.slug !== slug);
-  return old.length === 82 && hash(old) === baseline;
+  return old.length === 85 && hash(old) === baseline;
 }
-test('옥천 외 82개 글 객체·사진 설명·순서와 회사 데이터 보존, 변이 검출', () => {
-  assert.equal(site.insights.length, 83);
+test('옥천 외 85개 글 객체·사진 설명·순서와 회사 데이터 보존, 변이 검출', () => {
+  assert.equal(site.insights.length, 86);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487');

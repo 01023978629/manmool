@@ -47,8 +47,10 @@ check(/og:image/.test(leakHead) && /case-hanbat-drain\.jpg/.test(leakHead), 'lea
 //   같이 공개한 둔산동 데크 보수(10/21)는 인테리어 분야라 누수 랜딩 카드가 없다(ensure-public-leak-case-parity).
 // 2026-11-12 37→40: 삼호아파트·유원아파트 베란다 우수관 하부(11/10)·열매마을 우수관 박스(11/6) 사례 카드 3장(맨 앞, 날짜 순).
 // 라벨·링크 문구로 안내 글임을 밝힌다(winter-freeze-guide-20261028 검사).
-check((leak.match(/class="case-card registered-case"/g) || []).length === 40,
-  'leak.html 실제 사례·공정 카드가 40개가 아니다');
+// 2026-11-13 40→42: 문창동 난방 분배기·밸브 교체·교촌동 미메이드아파트 온수 배관 보수(11/12) 사례 카드 2장(맨 앞, 날짜 순).
+//   같은 날 탄방동 바닥 미장은 인테리어 사례라 누수 랜딩 카드를 만들지 않는다.
+check((leak.match(/class="case-card registered-case"/g) || []).length === 42,
+  'leak.html 실제 사례·공정 카드가 42개가 아니다');
 check((leak.match(/assets\/cases\/(?:case-(?:hanbat-drain|blue-floor)|samsung-apartment-drain-(?:before|after-wide)|geumseong-basement-pipe-valve-cover)\.jpg/g) || []).length >= 5,
   'leak.html 사례 카드가 검증한 실제 공정 사진을 사용하지 않는다');
 // 금성백조 사례는 카드에서 글로 이어져야 한다. 사진만 있고 링크가 끊기면

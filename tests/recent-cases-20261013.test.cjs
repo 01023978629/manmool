@@ -18,8 +18,10 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 // (no existing entry changed); re-pinned to 75 — recent-cases-20261104 pins the 77 entries before them.
 // 2026-11-12: Samho/Yuwon balcony rain-pipe bases (11-10) and Yeolmae rain-pipe box (11-06) cases added first (no existing
 // entry changed); re-pinned to 78 — recent-cases-20261112 pins the 80 entries before them.
+// 2026-11-13: Munchang manifold/valve, Gyochon Mimade hot-water pipe and Tanbang floor screed cases (11-12) added first (no
+// existing entry changed); re-pinned to 81 — recent-cases-20261113 pins the 83 entries before them.
 test('previous 71 complete entries and ordering, company/catalog preserved; mutation guards active', () => {
-  assert.equal(site.insights.length, 83);
+  assert.equal(site.insights.length, 86);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), fixture.otherDataHash);

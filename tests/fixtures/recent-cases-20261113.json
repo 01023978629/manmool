@@ -1,0 +1,113 @@
+{
+  "previousCount": 83,
+  "previousHash": "f9fdfa52232f5639802c73579116f780b16c742c3244e15c908672e6542dcf23",
+  "otherDataHash": "5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487",
+  "cases": [
+    {
+      "slug": "munchang-heating-manifold-valve-replacement-20261112",
+      "service": "leak",
+      "category": "난방 분배기 교체",
+      "date": "2026-11-12",
+      "photoCount": 6,
+      "shootingDates": [
+        "2026-11-12"
+      ],
+      "placeName": "대전 중구 문창동",
+      "leakCard": true
+    },
+    {
+      "slug": "gyochon-mimade-boiler-hot-water-pipe-repair-20261112",
+      "service": "leak",
+      "category": "방수·설비",
+      "date": "2026-11-12",
+      "photoCount": 3,
+      "shootingDates": [
+        "2026-11-12"
+      ],
+      "placeName": "대전 유성구 교촌동 미메이드아파트",
+      "leakCard": true
+    },
+    {
+      "slug": "tanbang-house-floor-screed-20261112",
+      "service": "interior",
+      "category": "바닥·미장",
+      "date": "2026-11-12",
+      "photoCount": 8,
+      "shootingDates": [
+        "2026-11-12"
+      ],
+      "placeName": "대전 서구 탄방동",
+      "leakCard": false
+    }
+  ],
+  "photos": [
+    {
+      "file": "assets/cases/munchang-manifold-20261112-01.jpg",
+      "sha256": "5250e6b9fb1c6133ff288fd5dfeca1bda6c5170d291d27bbddba600df49c4d3b"
+    },
+    {
+      "file": "assets/cases/munchang-manifold-20261112-02.jpg",
+      "sha256": "ba7391d364b855bdffc0e485ab4238a513ef2eebc0789d45c3ac3de3fd0f4138"
+    },
+    {
+      "file": "assets/cases/munchang-manifold-20261112-03.jpg",
+      "sha256": "40b42c93184e1b491fc82c59e75ee7cbf753f272eea2248e9909686bbead3a30"
+    },
+    {
+      "file": "assets/cases/munchang-manifold-20261112-04.jpg",
+      "sha256": "64ad4262bf5c19b9bc96824b1baacd8106251a38656497ee01293c5beade8a46"
+    },
+    {
+      "file": "assets/cases/munchang-manifold-20261112-05.jpg",
+      "sha256": "0d65c2cbe056d6790504c125ca8480c10497d9dc6277c86f124a7fb93183e194"
+    },
+    {
+      "file": "assets/cases/munchang-manifold-20261112-06.jpg",
+      "sha256": "c069613911464c7ce7a81fbbca9fa58c01d5670c1735c2a7eabbb3974225607c"
+    },
+    {
+      "file": "assets/cases/mimade-hot-water-pipe-20261112-01.jpg",
+      "sha256": "a7147e418c1348588b2fcd10df4ee4e4baf738e695e3c36ab05eed19e131fa75"
+    },
+    {
+      "file": "assets/cases/mimade-hot-water-pipe-20261112-02.jpg",
+      "sha256": "85948208eaf089bf8e7e44099ae82dc35019e633be9ecf6591ac1b1dacecb287"
+    },
+    {
+      "file": "assets/cases/mimade-hot-water-pipe-20261112-03.jpg",
+      "sha256": "630c5a6190cf26773ac07d8122d161ca70c2c95a8c07ab821a7dea5154bd9ce7"
+    },
+    {
+      "file": "assets/cases/tanbang-floor-screed-20261112-01.jpg",
+      "sha256": "0d019f50dec0ace512c1b79cbd78024f9eaa723bf77be16006962636e62ec1f1"
+    },
+    {
+      "file": "assets/cases/tanbang-floor-screed-20261112-02.jpg",
+      "sha256": "0112645d9a281b5d27d0076b030b2b133a1d6c771312c0aa28e75199ac1867b3"
+    },
+    {
+      "file": "assets/cases/tanbang-floor-screed-20261112-03.jpg",
+      "sha256": "78681a17cfefa7837e804045e848f55162a176b10d7cbb69a3a29c7c358e3120"
+    },
+    {
+      "file": "assets/cases/tanbang-floor-screed-20261112-04.jpg",
+      "sha256": "fe126c84da0a5ea17a2f3c166ec44d629fdefdf01244d43fb4b8e587add3b1f0"
+    },
+    {
+      "file": "assets/cases/tanbang-floor-screed-20261112-05.jpg",
+      "sha256": "4aadb77b5c1a200550afa3f112a2da1b1fded01c483b01d888445a8edc44e5ea"
+    },
+    {
+      "file": "assets/cases/tanbang-floor-screed-20261112-06.jpg",
+      "sha256": "bbe7bf69a152d31afac561aec917d67189b8ac883aab9ebbdd2a491b5565fc62"
+    },
+    {
+      "file": "assets/cases/tanbang-floor-screed-20261112-07.jpg",
+      "sha256": "0e9da756f60ca4966d6901f6e3a62156464a5e84fd127f075309ac33b6b1ec47"
+    },
+    {
+      "file": "assets/cases/tanbang-floor-screed-20261112-08.jpg",
+      "sha256": "4084e2a114baab5fefc6b043207c4c02e22490e566b3f23405333015eac888f1"
+    }
+  ]
+}
