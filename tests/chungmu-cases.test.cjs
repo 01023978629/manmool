@@ -16,9 +16,10 @@ const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex'
 // 2026-11-03: 선비마을 1단지 외벽(옹벽) 미장 보수 사례 1건 추가(기존 글 수정 없음). 그 전 76건 전체 객체·순서는 recent-cases-20261103 검사가 따로 고정한다.
 // 2026-11-04: 목화아파트·둔산동 데크·아이파크시티 사례 3건 추가(기존 글 수정 없음). 그 전 77건 전체 객체·순서는 recent-cases-20261104 검사가 따로 고정한다.
 // 2026-11-12: 삼호아파트·유원아파트 베란다 우수관 하부(11/10)·열매마을 우수관 박스(11/6) 사례 3건 추가(기존 글 수정 없음). 그 전 80건 전체 객체·순서는 recent-cases-20261112 검사가 따로 고정한다.
-const baseline='4a095254522c33c8831e5d03036678961e07a74bdda296943d0402b7fac7bc77';
-function preserved(items){const old=items.filter(a=>!slugs.includes(a.slug));return old.length===81&&hash(old)===baseline;}
-test('기준 갱신한 81개 원고 객체와 순서 보존, 변이 검출',()=>{
+// 2026-11-13: 문창동 난방 분배기·밸브 교체·교촌동 미메이드아파트 온수 배관 보수·탄방동 바닥 미장(11/12) 사례 3건을 맨 앞에 추가(기존 글 수정 없음). 그 전 83건 전체 객체·순서는 recent-cases-20261113 검사가 따로 고정한다.
+const baseline='d65a7210f4bd7516625cfe478a499cb193cf52b15225f35aac5005001ccfd9e3';
+function preserved(items){const old=items.filter(a=>!slugs.includes(a.slug));return old.length===84&&hash(old)===baseline;}
+test('기준 갱신한 84개 원고 객체와 순서 보존, 변이 검출',()=>{
   const items=JSON.parse(read('data/site.json')).insights;
   assert.ok(preserved(items));
   const changed=structuredClone(items); changed.find(a=>!slugs.includes(a.slug)).title+='변이'; assert.equal(preserved(changed),false);
