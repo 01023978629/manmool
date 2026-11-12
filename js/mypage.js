@@ -332,7 +332,7 @@
           <b>후기 남기기</b>
           <p>공사는 만족스러우셨나요? 후기를 남겨주시면 다음 고객에게 큰 힘이 됩니다.</p>
           <p class="ac-reward">🎁 ${ref.reviewReward || '후기 작성 감사 혜택 제공'}</p>
-          <button class="mini ok" onclick="alert('후기 작성 화면으로 이동합니다 (데모)')">후기 작성</button>
+          <a class="mini ok" href="review.html" id="afterReviewLink">후기 작성</a>
         </div>
         <div class="after-card">
           <span class="ac-ico">🤝</span>

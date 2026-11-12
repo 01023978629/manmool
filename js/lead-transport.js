@@ -86,8 +86,31 @@
   // 문의 내용을 사람이 읽는 텍스트로(문자·카카오 전달용).
   // 없는 항목은 줄 자체를 넣지 않는다 — 누수 리드에 '평수: -' 같은 빈칸이 늘어서면
   // 사장님이 문자에서 필요한 정보를 찾기 어려워진다.
+  // 고객 후기(review.html)는 상담이 아니다 — '공간: 후기' 같은 상담용 줄 대신 후기 항목만 적는다.
+  // 확인 연락처는 게시용이 아니라 실제 공사 고객인지 볼 때만 쓰므로 '(비공개)' 를 붙여 대표가 헷갈리지 않게 한다.
+  function buildReviewText(d) {
+    const L = ['[만물인테리어 고객 후기]'];
+    const rating = Number(d.rating);
+    if (Number.isInteger(rating) && rating >= 1 && rating <= 5) {
+      L.push('별점: ' + '★'.repeat(rating) + '☆'.repeat(5 - rating) + ' (' + rating + '/5)');
+    }
+    if (d.workType) L.push('공사 종류: ' + d.workType);
+    if (d.site) L.push('현장: ' + d.site);
+    L.push('표시 이름: ' + (d.displayName || d.name || '고객'));
+    if (d.phone) L.push('확인 연락처(비공개): ' + d.phone);
+    if (d.reviewText) L.push('후기: ' + d.reviewText);
+    L.push('홈페이지 공개 동의: ' + (d.publishConsent === true ? '동의' : '미동의'));
+    if (typeof d.privacyConsent === 'boolean') {
+      L.push('개인정보 수집·이용 동의: ' + (d.privacyConsent ? '동의' : '미동의'));
+    }
+    if (d.source) L.push('접수 경로: ' + d.source);
+    if (d.sourcePage) L.push('유입 페이지: ' + d.sourcePage);
+    return L.join('\n');
+  }
+
   function buildLeadText(d) {
     d = d || {};
+    if (d.type === '후기') return buildReviewText(d);
     const L = ['[만물인테리어 상담 신청]'];
     const isOfficePilot = d.source === 'office-pilot' || !!d.complexName ||
       !!d.officeContactName || Array.isArray(d.pilotInterest);
@@ -238,7 +261,7 @@
       }
       // 무료 폼→이메일 서비스(Web3Forms/Formspree 등)로 대표에게 즉시 전달
       const body = Object.assign({}, payload, {
-        subject: '[홈페이지 상담] ' + (payload.name || '') + ' · ' + (payload.type || ''),
+        subject: (payload.type === '후기' ? '[홈페이지 후기] ' : '[홈페이지 상담] ') + (payload.name || payload.displayName || '') + ' · ' + (payload.type || ''),
         from_name: '만물인테리어 홈페이지',
         message: buildLeadText(payload)
       }, forms.accessKey ? { access_key: forms.accessKey } : {});
