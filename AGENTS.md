@@ -6,6 +6,67 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-11-12 삼호아파트·유원아파트 베란다 우수관 하부(11/10)·열매마을 우수관 박스(11/6) 사례 3건 공개
+
+`claude/cases-yeolmae-samho-yuwon-20261112`는 대표 요청("만물 웹에는 최신 사례 올려줘")으로 사례 3건을 `published:true`로 더한다 —
+`samho-balcony-rain-pipe-base-replacement-20261110`(사진 7장), `yuwon-balcony-rain-pipe-base-drain-20261110`(9장),
+`yeolmae-rain-pipe-box-replacement-20261106`(8장). 범위·제외 사진·확인 사항은 `docs/recent-cases-20261112.md`.
+
+- 세 글이 11/3 선비마을보다 새것이라 site.json 맨 앞(날짜 순)에 들어가고 **대표 사례(FEATURED)가 11/10 삼호로 바뀐다**.
+  `leak.html` #cases 맨 앞 카드 3장(카드 수 핀 37→40), blog/leak `lastmod` 2026-11-10. 기존 80건은 한 글자도 바꾸지 않았다(`4a50d2f` 해시 그대로).
+- 기존 검사 12곳의 핀을 다시 고정했다(날짜 주석) — 맨 앞 글·FEATURED·첫 누수 카드·`lastmod`·'삼호아파트' 검색 건수를 가정한 검사 포함.
+  다음에 실제 사례를 더할 때도 이 목록(`docs/recent-cases-20261112.md` 끝)을 같이 챙겨라.
+- `data/leak-case-index.json` 은 이제 한 줄 JSON 이다 — 들여쓰기본이 10KB 예산(`ensure-leak-case-index`)을 넘었다. 키·순서·내용은 그대로.
+- 같은 날 목양마을 '세면대 배관' 사진은 작업 전후가 분명하지 않아 넣지 않았다(대표 설명 대기).
+
+### 2026-11-04 목화아파트·둔산동 데크·아이파크시티 사례 3건 공개 후보
+
+`claude/cases-ipark-mokhwa-deck-20261104`는 PR #227(11/3 선비마을) 위에 쌓은 브랜치로, 사례 3건을 `published:true`로 더한다 —
+`mokhwa-toilet-reset-ceiling-drain-pipe-20261026`(사진 12장), `dunsan-shop-front-deck-board-repair-20261021`(10장),
+`sangdae-ipark-bathroom-waterproof-coating-20260830`(8장). **병합하면 바로 공개된다** — 대표 확인 사항은 PR 설명과
+`docs/recent-cases-20261104.md`에 있다. #227을 먼저 병합해야 이 PR에 이 커밋만 남는다.
+
+- 세 글은 site.json의 날짜 자리에 넣었다(생성기는 날짜 내림차순·같은 날짜는 원래 순서). 모두 11/3보다 오래돼 FEATURED는 그대로다.
+- 데크 보수는 `데크·목공 보수`/`interior`다. `ensure-public-leak-case-parity`가 누수 분야 글만 `leak.html` 카드로 허용하므로
+  누수 랜딩 카드는 목화·아이파크 2장만 더했다(카드 수 핀 35→37). 인테리어 사례를 더할 때 누수 카드를 만들지 마라.
+- 기존 77건은 한 글자도 바꾸지 않았다(`b6a32c3` insights 해시 그대로). 개별 검사 9곳의 핀을 다시 고정했고(날짜 주석),
+  `recent-cases-20261103`의 고정 대상도 이제 '이 글 빼고 전부'(79건)다. 기존 77건 전체는 `recent-cases-20261104`가 고정한다.
+- 사진 폴더 이름(아이파크 '저수조')·폴더에 붙은 도로명·번지·상호·발주처는 공개 글에 넣지 않는다 — 검사가 금지 표현과
+  도로명 주소 패턴으로 막는다.
+
+### 2026-11-03 선비마을 1단지 외벽(옹벽) 미장 보수 사례 1건 공개 후보
+
+`claude/seonbi-wall-plaster-20261103`은 11월 3일 작업 사례 1건(`seonbi-1danji-retaining-wall-plaster-repair-20261103`,
+사진 9장)을 `published:true`로 더한다. **병합하면 바로 공개된다** — 대표 확인 사항은 PR 설명과 `docs/recent-cases-20261103.md`에 있다.
+
+- 분류 `방수·설비`/`leak`. 가장 최근 실제 사례라 `blog.html` 대표 사례 칸과 `leak.html` #cases 첫 카드로 간다(카드 수 핀 34→35,
+  `quote-contract-guide` FEATURED 교체). 기존 76건은 한 글자도 바꾸지 않았고(origin/main `2e0c484` 해시 그대로) 생성기가
+  바꾼 것은 관련 글 카드뿐이다.
+- 기존 개별 검사 8개의 '나머지 n건' 핀을 다시 고정했다(날짜 주석). 기존 76건 전체는 새 검사 `recent-cases-20261103`이 따로 고정한다.
+- 금액·견적번호·발주처·작업자·원인·성능 주장은 공개 글에 넣지 않는다 — 검사가 금지 표현으로 막는다.
+- 다음에 실제 사례를 더할 때도 이 8개 핀·카드 수·FEATURED 를 같이 챙겨야 한다.
+
+### 2026-10-31 10월 사례 10건과 정보글 '11월 동파 예방' 공개
+
+PR #225(`claude/october-cases-20261031`)가 10월 현장 사진 사례 10건을 공개했다(`date` = 사진으로 확인한 작업일,
+범위·검증은 `docs/recent-cases-20261031.md`). 이어서 `claude/info-winter-freeze-20261028`(PR #224)을 그 main 위에
+다시 맞춰 정보글 1건(`winter-pipe-freeze-prevention-november`)을 `published:true`로 더했다 — 대표 공개 승인 2026-10-31.
+새 사진은 없고 이미 공개된 선비마을·평화로운아파트 사진 4장만 다시 참조한다.
+
+- 분류가 `방수·설비`라 누수 분야(목록 '누수·배관' 칸, 누수 상담 버튼, `leak-case-index`)로 간다.
+  기존 정보글 `rainy-season-waterproof-check`와 같은 형식이다.
+- 누수 분야의 최근 3건은 `ensure-public-leak-case-parity`가 `leak.html` #cases 카드를 요구한다. 이 글은 10/29 사례
+  3건 다음 자리라 요구 대상은 아니지만, 계절 안내로 찾을 수 있게 카드를 날짜 자리에 둔다. 그 칸 제목은 '실제 현장 기록'이라
+  카드 라벨을 "실제 보온 작업 사진 · 동파 예방 안내", 링크 문구를 "동파 점검 순서 보기"로 해 안내 글임을 밝혔다
+  (`bathroom-waterproof-signs` 카드와 같은 방식). 카드 수 핀 33→34.
+- 기존 75건은 한 글자도 바꾸지 않았다(origin/main 1f1dfe2 해시 그대로). '나머지 n건' 해시를 고정한 검사들은
+  개수·해시를 다시 고정했다. 기존 75건 전체는 `winter-freeze-guide-20261028`이, 10월 사례 밖 66건은
+  `recent-cases-20261031`이 따로 고정한다.
+- `quote-contract-guide`의 'order' 규칙은 "site.json 맨 앞 글 = 대표 사례"였는데, 맨 앞이 사례 요약 없는
+  정보글이면 대표 사례 칸에 갈 수 없어 깨진다. "맨 앞 실제 사례(caseSummary 있음) = 대표 사례"로 바꿨다
+  (`prerender-posts.py`의 대표 사례 규칙과 같다). 변이 2종 추가.
+- 다음에 누수 분야 정보글을 더할 때도 랜딩 카드와 이 핀들을 같이 챙겨야 한다.
+
 ### 2026-09-09 방수 사례 현장명 정정
 
 대표가 `buyeo-buyeong-balcony-waterproofing` 사례의 실제 현장명을

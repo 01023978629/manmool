@@ -667,8 +667,10 @@ def write_leak_case_index(insights):
         ],
     }
     path = os.path.join(ROOT, 'data', 'leak-case-index.json')
+    # 2026-11-12: 들여쓰기 없이 한 줄로 쓴다. 누수 사례 49건에서 들여쓰기본이 10,900바이트가 되어
+    # ensure-leak-case-index 의 10KB 예산(접수 폼이 받는 작은 색인)을 넘었다 — 키·순서·내용은 그대로.
     with open(path, 'w', encoding='utf-8') as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
+        json.dump(payload, f, ensure_ascii=False, separators=(',', ':'))
         f.write('\n')
     print('생성: data/leak-case-index.json(%d건)' % len(leak_cases))
 

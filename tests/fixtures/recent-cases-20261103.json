@@ -1,0 +1,54 @@
+{
+  "previousCount": 82,
+  "previousHash": "301dff4e0e4af2c2e4b201b0b0ecf1d1010922f20fc8c821cc4624c21333cfed",
+  "otherDataHash": "5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487",
+  "cases": [
+    {
+      "slug": "seonbi-1danji-retaining-wall-plaster-repair-20261103",
+      "service": "leak",
+      "date": "2026-11-03",
+      "photoCount": 9,
+      "shootingDates": [
+        "2026-11-03"
+      ]
+    }
+  ],
+  "photos": [
+    {
+      "file": "assets/cases/seonbi-wall-plaster-20261103-01.jpg",
+      "sha256": "7a7b779a3518c35519c2882647e8675fc47fd44e55b1148ebb1e3ecdb80abf73"
+    },
+    {
+      "file": "assets/cases/seonbi-wall-plaster-20261103-02.jpg",
+      "sha256": "b46c746542d25a3385b228bb8c91c7c1e319eae492eea4679431dc60e16c0869"
+    },
+    {
+      "file": "assets/cases/seonbi-wall-plaster-20261103-03.jpg",
+      "sha256": "83277fe93d0783c02d37f0a3c920e44eb9f522c91f0b4d9df5691a40c1e6e56c"
+    },
+    {
+      "file": "assets/cases/seonbi-wall-plaster-20261103-04.jpg",
+      "sha256": "867625e91d2824e8a685188f8c74507d3ff7d5e54c0120207cec91b614d6dfce"
+    },
+    {
+      "file": "assets/cases/seonbi-wall-plaster-20261103-05.jpg",
+      "sha256": "1184729432b6cb539daf71edc97e6ca45f2529b880ad88cb6a4c3573a65db126"
+    },
+    {
+      "file": "assets/cases/seonbi-wall-plaster-20261103-06.jpg",
+      "sha256": "684fa8c99d305c7c8337739db96699e9afc57f0e6d0dbd989fa57b0b4115293b"
+    },
+    {
+      "file": "assets/cases/seonbi-wall-plaster-20261103-07.jpg",
+      "sha256": "aeaf01797412668921f4e5a726a9e21ffeadfc26888f922489e0a48ce0819ce4"
+    },
+    {
+      "file": "assets/cases/seonbi-wall-plaster-20261103-08.jpg",
+      "sha256": "afb913dd62d1dcd8a03440211c1dc87a7574b1f1320d5f2bf31e875785c9c196"
+    },
+    {
+      "file": "assets/cases/seonbi-wall-plaster-20261103-09.jpg",
+      "sha256": "4b8154924e8e72edcc989a61552d3646a2e07224553e6a31e9a372575f0ca11a"
+    }
+  ]
+}
