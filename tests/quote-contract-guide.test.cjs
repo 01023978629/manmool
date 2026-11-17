@@ -28,7 +28,9 @@ const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comp
 // 11/17 새여울아파트라 FEATURED 를 그 글로 바꿨다.
 // 2026-11-18: 충남 공주 공장 컨테이너 옆 판넬 지붕·벽체(11/9, 인테리어) 사례 1건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 90건 전체
 // 객체·순서는 recent-cases-20261118 검사가 따로 고정한다. 11/9 는 11/17 새여울보다 오래돼 FEATURED 는 그대로다.
-const OLD_COUNT = 90, OLD_HASH = '17bdf9597583d3660f45aeb696f58788f03491ca114f7b3c83fafe7616d387ce';
+// 2026-11-18: 청주 용암동 태산그린아파트 옥상 배수구 2곳·앞베란다 우수관(11/13) 사례 1건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 91건
+// 전체 객체·순서는 recent-cases-20261118-taesan 검사가 따로 고정한다. 11/13 은 11/17 새여울보다 오래돼 FEATURED 는 그대로다.
+const OLD_COUNT = 91, OLD_HASH = 'baee6b7e3a2c89ba92c60d63ab0870e0586aff2d90a15fd6083241b52c7739d0';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');

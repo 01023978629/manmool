@@ -6,6 +6,18 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-11-18 청주 용암동 태산그린아파트 옥상 배수구 2곳·앞베란다 우수관 하부(11/13) 사례 1건 공개 후보
+
+`claude/case-taesan-roof-drain-balcony-20261113`는 대표 요청("현장 웹에 프로젝트 및 사진 정리하고 만물 웹에 사례도 추가해줘")으로 사례 1건을
+`published:true`로 더한다 — `taesan-roof-drain-balcony-rain-pipe-20261113`(사진 9장, 누수). **병합하면 바로 공개된다** — 대표 확인 대기 항목은
+PR 설명과 `docs/recent-cases-20261118-taesan.md`.
+
+- 날짜 자리(11/14 열매마을 뒤·11/12 문창동 앞)라 FEATURED·blog/leak `lastmod`(2026-11-17)는 그대로다. 누수 카드는 11/16 삼호 카드 뒤(카드 수 45→46).
+- **`data/leak-case-index.json` 예산을 10KB → 16KB 로 올렸다**(52건·10,261바이트). 키·형식은 그대로. 다음에 넘으면 그때 항목 축소를 정한다.
+- 대전 밖(충북 청주시) 아파트 사례다. 단지명까지만 쓰고 동 번호·라인·호수·관리사무소(발주처)·금액은 쓰지 않는다 — 새 검사 `recent-cases-20261118-taesan` 이 막는다.
+- 기존 `taesan-rain-pipe-replacement`·`taesan-lexan-frame` 은 '대전 태산그린아파트'로 적혀 있다(청주로 보임 — 대표 확인 대기, 이 PR 에서는 손대지 않음).
+- 기존 91건은 한 글자도 바꾸지 않았다(origin/main `e3e888f`). 다시 고정한 핀 목록은 `docs/recent-cases-20261118-taesan.md`.
+
 ### 2026-11-18 충남 공주 공장 컨테이너 옆 판넬 지붕·벽체(11/9) 사례 1건 공개 후보
 
 `claude/case-gongju-factory-container-panel-roof-wall-20261109`는 대표 요청("만물웹에 사례 작성해줘" → 비공개 초안 → "올려줘")으로 사례 1건을

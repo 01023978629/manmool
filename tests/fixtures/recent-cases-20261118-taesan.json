@@ -1,0 +1,66 @@
+{
+  "previousCount": 91,
+  "previousHash": "c25bc07f38d3d2f431e856c15fcffeca6eda962ab0fb5e973b9d48de7638e068",
+  "otherDataHash": "5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487",
+  "cases": [
+    {
+      "slug": "taesan-roof-drain-balcony-rain-pipe-20261113",
+      "service": "leak",
+      "category": "방수·설비",
+      "date": "2026-11-13",
+      "photoCount": 9,
+      "shootingDates": [
+        "2026-11-13"
+      ],
+      "placeName": "충북 청주시 상당구 용암동 태산그린아파트",
+      "leakCard": true
+    }
+  ],
+  "photos": [
+    {
+      "file": "assets/cases/taesan-roof-drain-20261113-01.jpg",
+      "sha256": "4a518ac6382b35ddcdc989721e9296500c4b7eca0edae3d5db397997bfaf7fb1",
+      "longSide": 1600
+    },
+    {
+      "file": "assets/cases/taesan-roof-drain-20261113-02.jpg",
+      "sha256": "36504e57dee4010aae982bf1664d7b071930969b0e2521163ac85ece39c89b3e",
+      "longSide": 1600
+    },
+    {
+      "file": "assets/cases/taesan-roof-drain-20261113-03.jpg",
+      "sha256": "013aa5ccda7f2e5c13425ce715347a2126dffeb8259cd0ab4ee029f6433448e3",
+      "longSide": 1600
+    },
+    {
+      "file": "assets/cases/taesan-roof-drain-20261113-04.jpg",
+      "sha256": "7618c6413e0cab475e52b56ce5b26028173a186530741180005b990068235b90",
+      "longSide": 1600
+    },
+    {
+      "file": "assets/cases/taesan-roof-drain-20261113-05.jpg",
+      "sha256": "39af75f7c1e40c93fa0a0e876972bbf944d9dd1a23083f54fe00e5904d8b2d3e",
+      "longSide": 1443
+    },
+    {
+      "file": "assets/cases/taesan-roof-drain-20261113-06.jpg",
+      "sha256": "66c63c51d90fc3710ca6c61ed70bf654ee870b69019fd1f22d0023f1130e9055",
+      "longSide": 1600
+    },
+    {
+      "file": "assets/cases/taesan-roof-drain-20261113-07.jpg",
+      "sha256": "9e8f2a93413dc421a59c8d9aee8537998551912ac80ddd4820d6412da3d7269f",
+      "longSide": 1600
+    },
+    {
+      "file": "assets/cases/taesan-roof-drain-20261113-08.jpg",
+      "sha256": "ef70553446d73dfcc52105f77392e9fb7006ec9eac992a00d39eec8fed23d26b",
+      "longSide": 1600
+    },
+    {
+      "file": "assets/cases/taesan-roof-drain-20261113-09.jpg",
+      "sha256": "f90550c43213104e020721b94fa89342436f46aaba68f308f268e0397140ce8c",
+      "longSide": 1600
+    }
+  ]
+}

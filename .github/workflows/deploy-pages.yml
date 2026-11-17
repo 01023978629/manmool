@@ -137,6 +137,7 @@ jobs:
           node --test tests/recent-cases-20261113.test.cjs
           node --test tests/recent-cases-20261117.test.cjs
           node --test tests/recent-cases-20261118.test.cjs
+          node --test tests/recent-cases-20261118-taesan.test.cjs
           node --test tests/case-reader.e2e.cjs
           node --test tests/remaining-cases.test.cjs
           node --test scripts/new-case-post.test.mjs

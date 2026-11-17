@@ -10,6 +10,9 @@
 // 2026-11-18: the Gongju factory panel roof/wall case next to a container (11-09, interior) was added at its date position
 // (no existing entry changed): pinned set +1; no leak card, leak index entry, featured or lastmod change.
 // recent-cases-20261118 pins the 90 entries before it.
+// 2026-11-18 (2): the Cheongju Yongam-dong Taesan Green roof-drain x2 + front-balcony rain-pipe case (11-13, leak) was added at
+// its date position (no existing entry changed): pinned set +1, leak cards 45 -> 46 (its card sits after the 11/16 Samho card);
+// no featured or lastmod change. recent-cases-20261118-taesan pins the 91 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
@@ -126,14 +129,15 @@ test('three cases: 17 photos, work date, service split, conservative public copy
   assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/saeyeoul-toilet-drain-pipe-insert-20261117\\.html"`));
   // Leak landing: card count pin 40 -> 42 (2026-11-17: 42 -> 45), the two leak cards in listed order right after the 11/17
   // Saeyeoul and 11/16 Samho cards; no card for the interior case.
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 45);
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 46);  // 2026-11-18: 45 -> 46 (11/13 Taesan card)
   const cards = leakCardSlugs(leak), leakSlugs = fixture.cases.filter(c => c.leakCard).map(c => c.slug);
-  assert.deepEqual(cards.slice(2, 4), leakSlugs);
+  // 2026-11-18: the 11/13 Taesan card sits between the 11/16 Samho card and these two, so they move one place down.
+  assert.deepEqual(cards.slice(3, 5), leakSlugs);
   for (const s of leakSlugs) assert.equal(cards.filter(x => x === s).length, 1, s);
   // blog.html and leak.html advertise the newest public post date.
   for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), '2026-11-17', page);  // 2026-11-17
   // The small leak index stays under the inquiry-form budget after these entries.
-  assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 10 * 1024);
+  assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);  // 2026-11-18: budget 10KB -> 16KB (ensure-leak-case-index)
 });
 
 test('public photo copies unchanged, long side 1600px, only a JFIF header (no EXIF/GPS/XMP), small-screen variants', () => {
