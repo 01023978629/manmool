@@ -1,0 +1,129 @@
+{
+  "previousCount": 86,
+  "previousHash": "0add406ae26ebde735971db6a29c8ee0aff450d477e7c23c452008f77ba114cf",
+  "otherDataHash": "5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487",
+  "cases": [
+    {
+      "slug": "saeyeoul-toilet-drain-pipe-insert-20261117",
+      "service": "leak",
+      "category": "방수·설비",
+      "date": "2026-11-17",
+      "photoCount": 4,
+      "shootingDates": [
+        "2026-11-17"
+      ],
+      "placeName": "대전 대덕구 신탄진 새여울아파트",
+      "leakCard": true
+    },
+    {
+      "slug": "samho-front-balcony-rain-pipe-waterproof-20261116",
+      "service": "leak",
+      "category": "방수·설비",
+      "date": "2026-11-16",
+      "photoCount": 5,
+      "shootingDates": [
+        "2026-11-16"
+      ],
+      "placeName": "대전 대덕구 법동 삼호아파트",
+      "leakCard": true
+    },
+    {
+      "slug": "yeolmae-bathtub-area-waterproof-floor-screed-20261114",
+      "service": "interior",
+      "category": "방수·설비",
+      "date": "2026-11-14",
+      "photoCount": 4,
+      "shootingDates": [
+        "2026-11-14"
+      ],
+      "placeName": "대전 유성구 노은동 열매마을",
+      "leakCard": false
+    },
+    {
+      "slug": "mokyang-washbasin-drain-pipe-20261110",
+      "service": "leak",
+      "category": "방수·설비",
+      "date": "2026-11-10",
+      "photoCount": 5,
+      "shootingDates": [
+        "2026-11-10"
+      ],
+      "placeName": "대전 중구 목동 목양마을아파트",
+      "leakCard": true
+    }
+  ],
+  "photos": [
+    {
+      "file": "assets/cases/saeyeoul-toilet-sleeve-20261117-01.jpg",
+      "sha256": "9b112993e1759086a633af1f0001a96c69530b6d706428bb50a08d5ed5216d8d"
+    },
+    {
+      "file": "assets/cases/saeyeoul-toilet-sleeve-20261117-02.jpg",
+      "sha256": "5057c99338dfed0da272270a01bb86bf71c92b7639e75aefee6111d0c04419af"
+    },
+    {
+      "file": "assets/cases/saeyeoul-toilet-sleeve-20261117-03.jpg",
+      "sha256": "b1920c9703a85df7d8fe4e7f82b4e3c469deabe7b89c112991ddd2f5d292763f"
+    },
+    {
+      "file": "assets/cases/saeyeoul-toilet-sleeve-20261117-04.jpg",
+      "sha256": "51bd840f7dc51997200c4155f166349a02ddd2af6fe24694451ca0767c541bf1"
+    },
+    {
+      "file": "assets/cases/samho-front-balcony-20261116-01.jpg",
+      "sha256": "d7ee5c5bd14508d4e7c9d40ee0ea6da3beed2513a299c21d1e41fed6d02684f7"
+    },
+    {
+      "file": "assets/cases/samho-front-balcony-20261116-02.jpg",
+      "sha256": "88de565c32a0b03c0fb7320ddd62ff4105aee2becc1872c6e7390b457348366c"
+    },
+    {
+      "file": "assets/cases/samho-front-balcony-20261116-03.jpg",
+      "sha256": "ce15bfbf9c3414cc541b273f3daa5834713f2a0644791624f401ff86f26a7e8f"
+    },
+    {
+      "file": "assets/cases/samho-front-balcony-20261116-04.jpg",
+      "sha256": "ad4f3763124aaf93e1163f240e7bb438ac6341042562517684a6e88949223545"
+    },
+    {
+      "file": "assets/cases/samho-front-balcony-20261116-05.jpg",
+      "sha256": "84ddeceb2a19ae781ea7bb7f629f90e9bd8a93e1231f4dbff2626f03774fab11"
+    },
+    {
+      "file": "assets/cases/yeolmae-bathtub-screed-20261114-01.jpg",
+      "sha256": "6068238eec2446260cbdcc827a4f588ab68ac8face3860aeb43b4b2949d5b4f1"
+    },
+    {
+      "file": "assets/cases/yeolmae-bathtub-screed-20261114-02.jpg",
+      "sha256": "ba17dbfd1ef6c7ca4148666e0c9b39c4b6878ba4ab3121bccec552195e01149a"
+    },
+    {
+      "file": "assets/cases/yeolmae-bathtub-screed-20261114-03.jpg",
+      "sha256": "71c4e290bc503c5e56c9083f060c6548a4c3e791ebb04e2ee896acf73a0fb6ac"
+    },
+    {
+      "file": "assets/cases/yeolmae-bathtub-screed-20261114-04.jpg",
+      "sha256": "a25f6915ea62263b3cd80265d3272cf88df26383559cdaeada628dba89213ca0"
+    },
+    {
+      "file": "assets/cases/mokyang-washbasin-pipe-20261110-01.jpg",
+      "sha256": "b94c8d3c2bfe90c0168cccf04ec7491c1f79957b17b898b8cd72d0380cd5ff85"
+    },
+    {
+      "file": "assets/cases/mokyang-washbasin-pipe-20261110-02.jpg",
+      "sha256": "2a72af9e70243cd2201e0ae3f9c449ba47cc6e1d647f3570b2fa78153b109250"
+    },
+    {
+      "file": "assets/cases/mokyang-washbasin-pipe-20261110-03.jpg",
+      "sha256": "0a8da59e0e48cba49f272bcb29435ef0c4e5c0622cef4baf947e51296e159b07"
+    },
+    {
+      "file": "assets/cases/mokyang-washbasin-pipe-20261110-04.jpg",
+      "sha256": "f847ac91745ac3c6a2a65c3c9ae99beed5b8ec1a57c4c2f64cf65ed2b2af794c"
+    },
+    {
+      "file": "assets/cases/mokyang-washbasin-pipe-20261110-05.jpg",
+      "sha256": "934fd5c73a2c376e18115bee6e3525a301b2bc82485a94d807127dcdf2fb92ba"
+    }
+  ]
+}

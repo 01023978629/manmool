@@ -49,8 +49,11 @@ check(/og:image/.test(leakHead) && /case-hanbat-drain\.jpg/.test(leakHead), 'lea
 // 라벨·링크 문구로 안내 글임을 밝힌다(winter-freeze-guide-20261028 검사).
 // 2026-11-13 40→42: 문창동 난방 분배기·밸브 교체·교촌동 미메이드아파트 온수 배관 보수(11/12) 사례 카드 2장(맨 앞, 날짜 순).
 //   같은 날 탄방동 바닥 미장은 인테리어 사례라 누수 랜딩 카드를 만들지 않는다.
-check((leak.match(/class="case-card registered-case"/g) || []).length === 42,
-  'leak.html 실제 사례·공정 카드가 42개가 아니다');
+// 2026-11-17 42→45: 새여울아파트 양변기 배관 삽입(11/17)·삼호아파트 앞베란다 우수관 방수(11/16)는 맨 앞에,
+//   목양마을아파트 세면대 배관(11/10)은 11/12 카드 뒤·같은 날 삼호·유원 카드 앞(날짜 순). 열매마을 욕조 자리 방수·부분 미장(11/14)은
+//   인테리어 사례라 누수 랜딩 카드를 만들지 않는다.
+check((leak.match(/class="case-card registered-case"/g) || []).length === 45,
+  'leak.html 실제 사례·공정 카드가 45개가 아니다');
 check((leak.match(/assets\/cases\/(?:case-(?:hanbat-drain|blue-floor)|samsung-apartment-drain-(?:before|after-wide)|geumseong-basement-pipe-valve-cover)\.jpg/g) || []).length >= 5,
   'leak.html 사례 카드가 검증한 실제 공정 사진을 사용하지 않는다');
 // 금성백조 사례는 카드에서 글로 이어져야 한다. 사진만 있고 링크가 끊기면

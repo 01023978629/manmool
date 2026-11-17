@@ -7,6 +7,8 @@
 // pinned set 79 -> 82, leak card count 37 -> 40. It now sits at its date position after them, and the blog/leak lastmod
 // follows the newest public post (2026-11-10). recent-cases-20261112 pins the 80 entries before the three new cases.
 // 2026-11-13: the 11/12 Munchang/Mimade/Tanbang cases were added first: pinned set +3, leak cards 40 -> 42, lastmod 2026-11-12.
+// 2026-11-17: the 11/17 Saeyeoul, 11/16 Samho, 11/14 Yeolmae (interior) and 11/10 Mokyang cases were added at their date
+// positions: pinned set +4, leak cards 42 -> 45, lastmod 2026-11-17. recent-cases-20261117 pins the 86 entries before them.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
@@ -84,8 +86,8 @@ test('Seonbi 1-danji retaining-wall plaster case: 9 photos, work date, conservat
   }
   assert.match(read('blog.html'), new RegExp(`insight-featured[^>]*href="posts/${site.insights[0].slug}\\.html"`));
   // The leak landing lists cards newest first; the card count pin follows it (34 -> 35; 2026-11-04 35 -> 37; 2026-11-12 37 -> 40;
-  // 2026-11-13 40 -> 42).
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 42);
+  // 2026-11-13 40 -> 42; 2026-11-17 42 -> 45).
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 45);
   const cardSlugs = [...leak.matchAll(/<article\b[^>]*class="case-card registered-case"[^>]*>[\s\S]*?<\/article>/g)]
     .map(m => (m[0].match(/href="posts\/([^"]+)\.html"/) || [])[1]);
   const dateOf = s => (site.insights.find(a => a.slug === s) || {}).date;
@@ -93,7 +95,7 @@ test('Seonbi 1-danji retaining-wall plaster case: 9 photos, work date, conservat
   // blog.html and leak.html advertise the newest public post date.
   for (const page of ['blog.html', 'leak.html']) {
     const lastmod = (read('sitemap.xml').match(new RegExp(`<loc>https://01023978629\\.github\\.io/manmool/${page}</loc>\\s*<lastmod>([^<]+)</lastmod>`)) || [])[1];
-    assert.equal(lastmod, '2026-11-12', page);  // 2026-11-13: newest public post is now 11/12
+    assert.equal(lastmod, '2026-11-17', page);  // 2026-11-17: newest public post is now 11/17
   }
 });
 

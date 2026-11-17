@@ -3,7 +3,7 @@
 /* Local read-only checks. Image pixels/redaction and source-document accuracy need separate visual review. */
 const { test } = require('node:test');
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
-const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'munchang-heating-manifold-valve-replacement-20261112', DAY = '2026-09-09', CHECKED = '2026-09-08';
+const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'saeyeoul-toilet-drain-pipe-insert-20261117', DAY = '2026-09-09', CHECKED = '2026-09-08';
 // 2026-09-25: 대표 요청과 사진별 세대 배정에 따라 삼호 사례를 2건으로 분리. 다른 50개 글 객체·순서는 별도 대조로 보존 확인.
 // 2026-10-01: 같은 현장의 녹물 배출·분배기 설치 사례 2건 추가. 기존 54건은 전용 회귀 검사로 별도 보존.
 // 2026-10-01: 충무로 두 글만 블로그형 원고로 수정. 기존 54개 원고·사진 보존은 chungmu-cases 검사로 유지.
@@ -23,7 +23,10 @@ const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comp
 // recent-cases-20261112 검사가 따로 고정한다. 가장 최근 실제 사례가 11/10 삼호아파트라 FEATURED 를 그 글로 바꿨다.
 // 2026-11-13: 문창동 분배기·교촌동 미메이드 온수 배관·탄방동 바닥 미장(11/12) 사례 3건을 맨 앞에 추가(기존 글 수정 없음). 그 전 83건
 // 전체 객체·순서는 recent-cases-20261113 검사가 따로 고정한다. 가장 최근 실제 사례가 11/12 문창동이라 FEATURED 를 그 글로 바꿨다.
-const OLD_COUNT = 85, OLD_HASH = '7b17c0fe0a74a11756f67c51d581babda2604e7ac53615e96f27d9ad42f1563c';
+// 2026-11-17: 새여울아파트 양변기 배관 삽입(11/17)·삼호아파트 앞베란다 우수관(11/16)·열매마을 욕조 자리 방수(11/14)·목양마을아파트 세면대 배관(11/10)
+// 사례 4건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 86건 전체 객체·순서는 recent-cases-20261117 검사가 따로 고정한다. 가장 최근 실제 사례가
+// 11/17 새여울아파트라 FEATURED 를 그 글로 바꿨다.
+const OLD_COUNT = 89, OLD_HASH = '48b7b7094167dfa17efa169bea22a409c813bf9c144ea20760b58f0c334b3fcf';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');

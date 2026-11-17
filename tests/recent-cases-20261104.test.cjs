@@ -8,6 +8,10 @@
 // 2026-11-13: Munchang manifold/valve (leak), Gyochon Mimade hot-water pipe (leak) and Tanbang floor screed (interior) cases
 // (11-12) were added first (no existing entry changed): pinned set +3, leak card count 40 -> 42, the 11/12 Munchang case is now
 // the newest/featured case and blog/leak lastmod is 2026-11-12. recent-cases-20261113 pins the 83 entries before them.
+// 2026-11-17: Saeyeoul toilet drain-pipe insert (11-17, leak), Samho front-balcony rain pipe (11-16, leak), Yeolmae bathtub-area
+// waterproofing + floor screed (11-14, interior) and Mokyang washbasin drain pipe (11-10, leak) were added at their date
+// positions (no existing entry changed): pinned set +4, leak card count 42 -> 45, the 11/17 Saeyeoul case is now the
+// newest/featured case and blog/leak lastmod is 2026-11-17. recent-cases-20261117 pins the 86 entries before them.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
@@ -52,7 +56,7 @@ test('the 77 entries before these cases keep their object and order; mutation gu
   }
   // None of them is newer than the 11/3 Seonbi case, so it stays the first real case (blog featured slot).
   const firstCase = insights.find(a => a.published !== false && Object.keys(a.caseSummary || {}).length);
-  assert.equal(firstCase.slug, 'munchang-heating-manifold-valve-replacement-20261112');
+  assert.equal(firstCase.slug, 'saeyeoul-toilet-drain-pipe-insert-20261117');
   for (const c of fixture.cases) assert.ok(firstCase.date > c.date, c.slug);
 });
 
@@ -112,18 +116,18 @@ test('three cases: 30 photos, work dates, service split, conservative public cop
     else assert.ok(cta.includes('href="../index.html#estimator"') && cta.includes('href="../index.html#inquiry"') && !cta.includes('leak.html'), c.slug);
   }
   assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/${site.insights[0].slug}\\.html"`));
-  assert.equal(site.insights[0].slug, 'munchang-heating-manifold-valve-replacement-20261112');
+  assert.equal(site.insights[0].slug, 'saeyeoul-toilet-drain-pipe-insert-20261117');
   // Leak landing: card count pin 35 -> 37 (the interior deck case has no leak card), cards at their date positions.
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 42);
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 45);  // 2026-11-17: 42 -> 45
   const cards = leakCardSlugs(leak), dateOf = slug => site.insights.find(a => a.slug === slug).date;
-  assert.equal(cards[0], 'munchang-heating-manifold-valve-replacement-20261112');
+  assert.equal(cards[0], 'saeyeoul-toilet-drain-pipe-insert-20261117');
   for (const c of fixture.cases.filter(c => c.leakCard)) {
     const k = cards.indexOf(c.slug);
     assert.equal(cards.filter(s => s === c.slug).length, 1, c.slug);
     assert.ok(k > 0 && dateOf(cards[k - 1]) >= c.date && dateOf(cards[k + 1]) <= c.date, c.slug);
   }
   // blog.html and leak.html keep advertising the newest public post date (still the 11/3 case).
-  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), '2026-11-12', page);
+  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), '2026-11-17', page);
 });
 
 test('public photo copies unchanged, long side 1600px, only a JFIF header (no EXIF/GPS/XMP), small-screen variants', () => {

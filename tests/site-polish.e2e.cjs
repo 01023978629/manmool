@@ -71,9 +71,11 @@ for(const mode of ['static','no-js','recovery'])test(`${mode}: 전체 편수·�
     assert.deepEqual((await page.locator('.case-archive-summary dd').allInnerTexts()).map(compact),expected,'전체 공개 편수는 검색 결과 건수와 분리');
     await page.locator('#caseSearch').fill('열매');
     // 2026-10-13: the approved coating record is distinct from waterproofing and extension screed.
+    // 2026-11-17: the 11/14 bathtub-area waterproofing + floor screed case (interior, recent-cases-20261117) adds a fourth match.
     const links=await page.locator('#blogRoot a[data-group]:visible').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')));
     assert.deepEqual(links.sort(),[
       'posts/yeolmae-bathroom-waterproof-coating-20260821.html',
+      'posts/yeolmae-bathtub-area-waterproof-floor-screed-20261114.html',
       'posts/yeolmae-extension-floor-screed.html',
       'posts/yeolmae-waterproof-screed.html'
     ].sort());

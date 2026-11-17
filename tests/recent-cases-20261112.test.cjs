@@ -5,6 +5,10 @@
 // 2026-11-13: Munchang manifold/valve (leak), Gyochon Mimade hot-water pipe (leak) and Tanbang floor screed (interior) cases
 // (11-12) were added first (no existing entry changed): pinned set +3, leak card count 40 -> 42, the 11/12 Munchang case is now
 // the newest/featured case and blog/leak lastmod is 2026-11-12. recent-cases-20261113 pins the 83 entries before them.
+// 2026-11-17: Saeyeoul (11-17), Samho front balcony (11-16), Yeolmae bathtub area (11-14, interior) and Mokyang washbasin
+// (11-10) cases were added at their date positions (no existing entry changed): pinned set +4, leak card count 42 -> 45, the
+// 11/17 Saeyeoul case is now the newest/featured case and blog/leak lastmod is 2026-11-17. The 11/10 Mokyang case sits right
+// before these three (same date) so they stay together. recent-cases-20261117 pins the 86 entries before the four new cases.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
@@ -46,10 +50,11 @@ test('the 80 entries before these cases keep their object and order; mutation gu
   // 2026-11-13: the 11/12 batch (recent-cases-20261113) now leads the list and holds the featured slot.
   const at = insights.findIndex(a => a.slug === slugs[0]);
   assert.deepEqual(insights.slice(at, at + 3).map(a => a.slug), slugs);
-  assert.ok(at > 0 && insights.slice(0, at).every(a => a.date > insights[at].date));
+  // 2026-11-17: the same-date 11/10 Mokyang case now sits right before them, so earlier entries are newer or the same date.
+  assert.ok(at > 0 && insights.slice(0, at).every(a => a.date >= insights[at].date));
   for (let k = at; k < at + 3; k++) assert.ok(insights[k].date >= insights[k + 1].date, insights[k].slug);
   const firstCase = insights.find(a => a.published !== false && Object.keys(a.caseSummary || {}).length);
-  assert.equal(firstCase.slug, 'munchang-heating-manifold-valve-replacement-20261112');
+  assert.equal(firstCase.slug, 'saeyeoul-toilet-drain-pipe-insert-20261117');
 });
 
 test('three cases: 24 photos, work dates, leak service, conservative public copy and discovery links', () => {
@@ -98,7 +103,7 @@ test('three cases: 24 photos, work dates, leak service, conservative public copy
     }
     // Discovery: list card in the leak group, RSS, sitemap (lastmod = work date), leak index and landing card.
     // The newest case is listed once, in the featured slot; the others as normal list cards.
-    const listClass = 'insight-card';  // 2026-11-13: the featured slot moved to the 11/12 Munchang case
+    const listClass = 'insight-card';  // 2026-11-13: the featured slot moved to the 11/12 Munchang case (2026-11-17: 11/17 Saeyeoul)
     assert.match(blog, new RegExp(`<a class="${listClass}" href="posts/${c.slug}\\.html" data-group="${c.service}" data-date="${c.date}"`));
     assert.ok(rss.includes(`/posts/${c.slug}.html`), 'rss ' + c.slug);
     assert.equal(sitemapLastmod(`posts/${c.slug}.html`), a.date);
@@ -111,14 +116,17 @@ test('three cases: 24 photos, work dates, leak service, conservative public copy
     assert.ok(cta.includes(`href="../leak.html?case=${c.slug}#leakInquiry"`), c.slug);
   }
   // The newest case takes the blog featured slot.
-  assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/munchang-heating-manifold-valve-replacement-20261112\\.html"`));
-  // Leak landing: card count pin 37 -> 40 (2026-11-13: 40 -> 42), the three cards in date order after the 11/12 cards.
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 42);
+  assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/saeyeoul-toilet-drain-pipe-insert-20261117\\.html"`));
+  // Leak landing: card count pin 37 -> 40 (2026-11-13: 40 -> 42; 2026-11-17: 42 -> 45), the three cards in date order after the
+  // newer cards.
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 45);
   const cards = leakCardSlugs(leak);
-  assert.deepEqual(cards.slice(2, 5), slugs);  // 2026-11-13: after the two 11/12 leak cards
+  // 2026-11-13: after the two 11/12 leak cards. 2026-11-17: also after the 11/17 Saeyeoul, 11/16 Samho and same-date 11/10
+  // Mokyang cards.
+  assert.deepEqual(cards.slice(5, 8), slugs);
   for (const c of fixture.cases) assert.equal(cards.filter(s => s === c.slug).length, 1, c.slug);
   // blog.html and leak.html advertise the newest public post date.
-  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), '2026-11-12', page);
+  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), '2026-11-17', page);  // 2026-11-17
   // The small leak index stays under the inquiry-form budget after these three entries.
   assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 10 * 1024);
 });
