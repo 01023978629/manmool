@@ -21,6 +21,9 @@ const sitemapLastmod = slug => (read('sitemap.xml').match(new RegExp(
 // entry changed); the pinned set outside the ten October cases is now 70 — recent-cases-20261104 pins the 77 before them.
 // 2026-11-12: Samho/Yuwon (11-10) and Yeolmae (11-06) rain-pipe cases added first (no October entry changed); the pinned set
 // outside the ten October cases is now 73 — recent-cases-20261112 pins the 80 entries before them.
+// 2026-11-17: Saeyeoul toilet drain-pipe insert (11-17), Samho front-balcony rain pipe (11-16), Yeolmae bathtub-area
+// waterproofing + floor screed (11-14, interior) and Mokyang washbasin drain pipe (11-10) cases added at their date positions
+// (no existing entry changed); re-pinned to 80 — recent-cases-20261117 pins the 86 entries before them.
 test('every entry outside this batch keeps its object and order; mutation guards active', () => {
   assert.equal(site.insights.length, fixture.previousCount + slugs.length);
   assert.ok(preserved(site.insights));
