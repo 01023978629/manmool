@@ -23,7 +23,10 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    # 2026-11-17: ubuntu-latest 가 ubuntu-26.04 로 바뀐 뒤 index.html 1280px 의 '상담' 버튼이 41px 로 그려져
+    # service-design 의 44px 검사에서 배포가 멈췄다(run 44069722749 — 사이트·검사 변경 없음, 글꼴 차이).
+    # 마지막 성공 배포(11/12)와 같은 24.04 로 고정한다. 26.04 로 올리려면 그 버튼 최소 너비부터 고친다.
+    runs-on: ubuntu-24.04
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
