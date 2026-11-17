@@ -1,0 +1,53 @@
+{
+  "previousCount": 90,
+  "previousHash": "069779203b4a2b32bc845f7aa94aab788c2150e617796a1875e37e8c693eefe3",
+  "otherDataHash": "5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487",
+  "cases": [
+    {
+      "slug": "gongju-factory-container-panel-roof-wall-20261109",
+      "service": "interior",
+      "category": "판넬·조립식",
+      "date": "2026-11-09",
+      "photoCount": 8,
+      "shootingDates": [
+        "2026-11-09"
+      ],
+      "placeName": "충남 공주시",
+      "leakCard": false
+    }
+  ],
+  "photos": [
+    {
+      "file": "assets/cases/gongju-panel-roof-wall-20261109-01.jpg",
+      "sha256": "c36eb09c1133d567b1a016ae72d576692ede35c6f7dd0f5ce3d9756418923c47"
+    },
+    {
+      "file": "assets/cases/gongju-panel-roof-wall-20261109-02.jpg",
+      "sha256": "5efb062a07b5d5906c19d9e18f84d83d95e87222bdcfc84e93a53806a7f618e6"
+    },
+    {
+      "file": "assets/cases/gongju-panel-roof-wall-20261109-03.jpg",
+      "sha256": "3e9693f6933cc241bb5b47915a8bb6b2b560aeebd81218542d112d0b7eab1dc6"
+    },
+    {
+      "file": "assets/cases/gongju-panel-roof-wall-20261109-04.jpg",
+      "sha256": "4102c973b9eb5d5c45dc782bc7d77c04334b91e4537eb29647ae5ffd050dc771"
+    },
+    {
+      "file": "assets/cases/gongju-panel-roof-wall-20261109-05.jpg",
+      "sha256": "57ee7ddcec33b021a79f3ef009e3878d3681428b8bcd7eda0bdcf3b010456d1f"
+    },
+    {
+      "file": "assets/cases/gongju-panel-roof-wall-20261109-06.jpg",
+      "sha256": "9ba263fa933180fe27826e00573bca870d42773017b43063fb52b5a68c6f6fdd"
+    },
+    {
+      "file": "assets/cases/gongju-panel-roof-wall-20261109-07.jpg",
+      "sha256": "c92c7826a9dc3395b4d64279ab5436cf15147d0ed82fb90195aa8f9430fcba46"
+    },
+    {
+      "file": "assets/cases/gongju-panel-roof-wall-20261109-08.jpg",
+      "sha256": "d26cad5f04b5a47554d72032d1f4ba28f1d5b6b17ad9e4cff84180dd63fe915a"
+    }
+  ]
+}

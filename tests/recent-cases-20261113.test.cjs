@@ -7,6 +7,9 @@
 // (11-10) cases were added at their date positions (no existing entry changed): pinned set +4, leak card count 42 -> 45, the
 // 11/17 Saeyeoul case is now the newest/featured case and blog/leak lastmod is 2026-11-17. The three 11/12 entries stay
 // together right after the newer cases. recent-cases-20261117 pins the 86 entries before the four new cases.
+// 2026-11-18: the Gongju factory panel roof/wall case next to a container (11-09, interior) was added at its date position
+// (no existing entry changed): pinned set +1; no leak card, leak index entry, featured or lastmod change.
+// recent-cases-20261118 pins the 90 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');

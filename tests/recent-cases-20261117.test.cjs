@@ -6,6 +6,9 @@
 // real case (blog featured slot, first leak landing card). The 11/10 Mokyang case sits at its date position after the 11/12
 // cases and right before the earlier 11/10 batch (recent-cases-20261112), which stays together. The interior case gets no
 // leak landing card and no leak index entry.
+// 2026-11-18: the Gongju factory panel roof/wall case next to a container (11-09, interior) was added at its date position
+// (no existing entry changed): pinned set +1; no leak card, leak index entry, featured or lastmod change.
+// recent-cases-20261118 pins the 90 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');

@@ -12,6 +12,9 @@
 // waterproofing + floor screed (11-14, interior) and Mokyang washbasin drain pipe (11-10, leak) were added at their date
 // positions (no existing entry changed): pinned set +4, leak card count 42 -> 45, the 11/17 Saeyeoul case is now the
 // newest/featured case and blog/leak lastmod is 2026-11-17. recent-cases-20261117 pins the 86 entries before them.
+// 2026-11-18: the Gongju factory panel roof/wall case next to a container (11-09, interior) was added at its date position
+// (no existing entry changed): pinned set +1; no leak card, leak index entry, featured or lastmod change.
+// recent-cases-20261118 pins the 90 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
