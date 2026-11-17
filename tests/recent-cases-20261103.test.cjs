@@ -9,6 +9,9 @@
 // 2026-11-13: the 11/12 Munchang/Mimade/Tanbang cases were added first: pinned set +3, leak cards 40 -> 42, lastmod 2026-11-12.
 // 2026-11-17: the 11/17 Saeyeoul, 11/16 Samho, 11/14 Yeolmae (interior) and 11/10 Mokyang cases were added at their date
 // positions: pinned set +4, leak cards 42 -> 45, lastmod 2026-11-17. recent-cases-20261117 pins the 86 entries before them.
+// 2026-11-18: the Gongju factory panel roof/wall case next to a container (11-09, interior) was added at its date position
+// (no existing entry changed): pinned set +1; no leak card, leak index entry, featured or lastmod change.
+// recent-cases-20261118 pins the 90 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');

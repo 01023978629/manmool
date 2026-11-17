@@ -9,6 +9,9 @@
 // (11-10) cases were added at their date positions (no existing entry changed): pinned set +4, leak card count 42 -> 45, the
 // 11/17 Saeyeoul case is now the newest/featured case and blog/leak lastmod is 2026-11-17. The 11/10 Mokyang case sits right
 // before these three (same date) so they stay together. recent-cases-20261117 pins the 86 entries before the four new cases.
+// 2026-11-18: the Gongju factory panel roof/wall case (11-09, interior) was added at its date position, between the 11/10
+// pair and the 11/06 Yeolmae case (no existing entry changed): pinned set +1. The three keep their order and only that
+// later-added, in-between-dated case may sit among them. recent-cases-20261118 pins the 90 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
@@ -48,11 +51,14 @@ test('the 80 entries before these cases keep their object and order; mutation gu
   assert.ok(!preserved(reordered));
   // The three entries stay together in date order right after the newer 11/12 cases (same date keeps the listed order).
   // 2026-11-13: the 11/12 batch (recent-cases-20261113) now leads the list and holds the featured slot.
+  // 2026-11-18: the later-added 11/9 case (recent-cases-20261118) sits at its date position inside this run.
+  const LATER = ['gongju-factory-container-panel-roof-wall-20261109'], span = 3 + LATER.length;
   const at = insights.findIndex(a => a.slug === slugs[0]);
-  assert.deepEqual(insights.slice(at, at + 3).map(a => a.slug), slugs);
+  assert.deepEqual(insights.slice(at, at + span).map(a => a.slug).filter(s => !LATER.includes(s)), slugs);
+  for (const s of LATER) { const d = insights.find(a => a.slug === s).date; assert.ok(d < fixture.cases[1].date && d > fixture.cases[2].date, s); }
   // 2026-11-17: the same-date 11/10 Mokyang case now sits right before them, so earlier entries are newer or the same date.
   assert.ok(at > 0 && insights.slice(0, at).every(a => a.date >= insights[at].date));
-  for (let k = at; k < at + 3; k++) assert.ok(insights[k].date >= insights[k + 1].date, insights[k].slug);
+  for (let k = at; k < at + span; k++) assert.ok(insights[k].date >= insights[k + 1].date, insights[k].slug);
   const firstCase = insights.find(a => a.published !== false && Object.keys(a.caseSummary || {}).length);
   assert.equal(firstCase.slug, 'saeyeoul-toilet-drain-pipe-insert-20261117');
 });

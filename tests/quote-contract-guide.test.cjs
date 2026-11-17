@@ -26,7 +26,9 @@ const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comp
 // 2026-11-17: 새여울아파트 양변기 배관 삽입(11/17)·삼호아파트 앞베란다 우수관(11/16)·열매마을 욕조 자리 방수(11/14)·목양마을아파트 세면대 배관(11/10)
 // 사례 4건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 86건 전체 객체·순서는 recent-cases-20261117 검사가 따로 고정한다. 가장 최근 실제 사례가
 // 11/17 새여울아파트라 FEATURED 를 그 글로 바꿨다.
-const OLD_COUNT = 89, OLD_HASH = '48b7b7094167dfa17efa169bea22a409c813bf9c144ea20760b58f0c334b3fcf';
+// 2026-11-18: 충남 공주 공장 컨테이너 옆 판넬 지붕·벽체(11/9, 인테리어) 사례 1건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 90건 전체
+// 객체·순서는 recent-cases-20261118 검사가 따로 고정한다. 11/9 는 11/17 새여울보다 오래돼 FEATURED 는 그대로다.
+const OLD_COUNT = 90, OLD_HASH = '17bdf9597583d3660f45aeb696f58788f03491ca114f7b3c83fafe7616d387ce';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');

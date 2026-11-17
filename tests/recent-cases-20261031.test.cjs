@@ -24,6 +24,8 @@ const sitemapLastmod = slug => (read('sitemap.xml').match(new RegExp(
 // 2026-11-17: Saeyeoul toilet drain-pipe insert (11-17), Samho front-balcony rain pipe (11-16), Yeolmae bathtub-area
 // waterproofing + floor screed (11-14, interior) and Mokyang washbasin drain pipe (11-10) cases added at their date positions
 // (no existing entry changed); re-pinned to 80 — recent-cases-20261117 pins the 86 entries before them.
+// 2026-11-18: Gongju factory panel roof/wall case (11-09, interior) added at its date position (no existing entry changed);
+// re-pinned to 81 — recent-cases-20261118 pins the 90 entries before it.
 test('every entry outside this batch keeps its object and order; mutation guards active', () => {
   assert.equal(site.insights.length, fixture.previousCount + slugs.length);
   assert.ok(preserved(site.insights));
