@@ -52,8 +52,9 @@ check(/og:image/.test(leakHead) && /case-hanbat-drain\.jpg/.test(leakHead), 'lea
 // 2026-11-17 42→45: 새여울아파트 양변기 배관 삽입(11/17)·삼호아파트 앞베란다 우수관 방수(11/16)는 맨 앞에,
 //   목양마을아파트 세면대 배관(11/10)은 11/12 카드 뒤·같은 날 삼호·유원 카드 앞(날짜 순). 열매마을 욕조 자리 방수·부분 미장(11/14)은
 //   인테리어 사례라 누수 랜딩 카드를 만들지 않는다.
-check((leak.match(/class="case-card registered-case"/g) || []).length === 45,
-  'leak.html 실제 사례·공정 카드가 45개가 아니다');
+// 2026-11-18 45→46: 청주 용암동 태산그린아파트 옥상 배수구 2곳·앞베란다 우수관(11/13) 사례 카드 1장 — 11/16 삼호 카드 뒤·11/12 문창동 앞(날짜 순).
+check((leak.match(/class="case-card registered-case"/g) || []).length === 46,
+  'leak.html 실제 사례·공정 카드가 46개가 아니다');
 check((leak.match(/assets\/cases\/(?:case-(?:hanbat-drain|blue-floor)|samsung-apartment-drain-(?:before|after-wide)|geumseong-basement-pipe-valve-cover)\.jpg/g) || []).length >= 5,
   'leak.html 사례 카드가 검증한 실제 공정 사진을 사용하지 않는다');
 // 금성백조 사례는 카드에서 글로 이어져야 한다. 사진만 있고 링크가 끊기면

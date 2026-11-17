@@ -16,8 +16,9 @@ const SLUG = 'winter-pipe-freeze-prevention-november';
 // 2026-11-13: 문창동 난방 분배기·밸브 교체·교촌동 미메이드아파트 온수 배관 보수·탄방동 바닥 미장(11/12) 사례 3건을 맨 앞에 추가(기존 글 수정 없음). 그 전 83건 전체 객체·순서는 recent-cases-20261113 검사가 따로 고정한다.
 // 2026-11-17: 새여울아파트 양변기 배관 삽입(11/17)·삼호아파트 앞베란다 우수관 방수(11/16)·열매마을 욕조 자리 방수·바닥 미장(11/14)·목양마을아파트 세면대 배관(11/10) 사례 4건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 86건 전체 객체·순서는 recent-cases-20261117 검사가 따로 고정한다.
 // 2026-11-18: 충남 공주 공장 컨테이너 옆 판넬 지붕·벽체(11/9, 인테리어) 사례 1건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 90건 전체 객체·순서는 recent-cases-20261118 검사가 따로 고정한다.
-const PREVIOUS_COUNT = 90;
-const PREVIOUS_HASH = '388ebea4a657a5a4d64b73047d7fa0ac0242be28d6af08478dbe9c1fed4c4fd0';
+// 2026-11-18: 청주 용암동 태산그린아파트 옥상 배수구 2곳·앞베란다 우수관(11/13) 사례 1건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 91건 전체 객체·순서는 recent-cases-20261118-taesan 검사가 따로 고정한다.
+const PREVIOUS_COUNT = 91;
+const PREVIOUS_HASH = '08e64de6822052a8d7099c149586ded7749da5e2ed6040bed454c237e6f20352';
 const REST_HASH = '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487';
 // 사례 작성/정보글 폴더의 정본(insights-entry.json)에서 published 만 true 로 바꾼 객체.
 const ENTRY_HASH = '32e78c0ee197e90914a1b0350629cd0acb28c7ac6eb94ed19c2b3f24f51481cc';

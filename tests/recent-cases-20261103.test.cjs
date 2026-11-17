@@ -12,6 +12,9 @@
 // 2026-11-18: the Gongju factory panel roof/wall case next to a container (11-09, interior) was added at its date position
 // (no existing entry changed): pinned set +1; no leak card, leak index entry, featured or lastmod change.
 // recent-cases-20261118 pins the 90 entries before it.
+// 2026-11-18 (2): the Cheongju Yongam-dong Taesan Green roof-drain x2 + front-balcony rain-pipe case (11-13, leak) was added at
+// its date position (no existing entry changed): pinned set +1, leak cards 45 -> 46 (its card sits after the 11/16 Samho card);
+// no featured or lastmod change. recent-cases-20261118-taesan pins the 91 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
@@ -90,7 +93,7 @@ test('Seonbi 1-danji retaining-wall plaster case: 9 photos, work date, conservat
   assert.match(read('blog.html'), new RegExp(`insight-featured[^>]*href="posts/${site.insights[0].slug}\\.html"`));
   // The leak landing lists cards newest first; the card count pin follows it (34 -> 35; 2026-11-04 35 -> 37; 2026-11-12 37 -> 40;
   // 2026-11-13 40 -> 42; 2026-11-17 42 -> 45).
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 45);
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 46);  // 2026-11-18: 45 -> 46 (11/13 Taesan card)
   const cardSlugs = [...leak.matchAll(/<article\b[^>]*class="case-card registered-case"[^>]*>[\s\S]*?<\/article>/g)]
     .map(m => (m[0].match(/href="posts\/([^"]+)\.html"/) || [])[1]);
   const dateOf = s => (site.insights.find(a => a.slug === s) || {}).date;

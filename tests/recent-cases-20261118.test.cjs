@@ -4,6 +4,9 @@
 // after the 11/10 entries and right before the 11/06 Yeolmae rain-pipe box case. It is older than the 11/17 Saeyeoul case,
 // so the featured slot and the blog/leak lastmod stay as they are, and as an interior case it gets no leak landing card and
 // no leak index entry. Only the city is public: no factory or client name, address, cost, workers or location metadata.
+// 2026-11-18 (2): the Cheongju Yongam-dong Taesan Green roof-drain x2 + front-balcony rain-pipe case (11-13, leak) was added at
+// its date position (no existing entry changed): pinned set +1, leak cards 45 -> 46 (its card sits after the 11/16 Samho card);
+// no featured or lastmod change. recent-cases-20261118-taesan pins the 91 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
@@ -112,11 +115,12 @@ test('one case: 8 photos, work date, interior service, conservative public copy 
     const cta = html.match(/<div class="post-cta">[\s\S]*?<\/div>/)[0];
     assert.ok(cta.includes('href="../index.html#estimator"') && cta.includes('href="../index.html#inquiry"') && !cta.includes('leak.html'), c.slug);
   }
-  // The featured slot stays with the 11/17 case; the leak landing card count (45) and the newest-post lastmod do not change.
+  // The featured slot stays with the 11/17 case; the newest-post lastmod does not change. The leak landing card count was 45 with
+  // this case and is 46 since the 11/13 Taesan case card was added (2026-11-18, recent-cases-20261118-taesan).
   assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/${FEATURED}\\.html"`));
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 45);
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 46);  // 2026-11-18: 45 -> 46 (11/13 Taesan card)
   for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), '2026-11-17', page);
-  assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 10 * 1024);
+  assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);  // 2026-11-18: budget 10KB -> 16KB (ensure-leak-case-index)
 });
 
 test('public photo copies unchanged, long side 1600px, only a JFIF header (no EXIF/GPS/XMP), small-screen variants', () => {
