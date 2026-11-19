@@ -57,6 +57,14 @@ async function visit(page, tail = 'posts/old/nested/missing.html?from=old-link#o
   assert.equal(response.status(), 404, 'missing pages must keep HTTP 404');
 }
 async function ready(page) { await page.locator('#recovery-search').waitFor({ state: 'visible' }); }
+// 링크가 살아 있는지는 브라우저 밖(Node)에서 이 검사의 로컬 서버에만 묻는다 — 브라우저 요청 기록(requests)을 늘리지 않으려는 것.
+// playwright 의 page.request 는 helper(e2e-offline) 라우트·이름풀이 차단을 거치지 않으므로 쓰지 않는다(scripts/ensure-e2e-offline.mjs).
+function localStatus(url) {
+  assert.ok(url.startsWith(`${origin}/`), `로컬 서버 주소만 확인한다: ${url}`);
+  return new Promise((resolve, reject) => {
+    http.get(url, (res) => { res.resume(); res.on('end', () => resolve(res.statusCode)); }).on('error', reject);
+  });
+}
 
 test('중첩 404에 공개 사례·서비스 이동을 표시하고 원래 주소를 자동 변경하지 않는다', async t => {
   const { page, requests } = await open(t);
@@ -69,7 +77,7 @@ test('중첩 404에 공개 사례·서비스 이동을 표시하고 원래 주�
   assert.ok(await page.locator('#recovery-more').isVisible());
   const staticLinks = await page.locator('.service-links a, .primary-link').evaluateAll(links => links.map(link => link.pathname));
   assert.deepEqual(staticLinks.sort(), ['/manmool/blog.html', '/manmool/index.html', '/manmool/leak.html', '/manmool/office.html']);
-  for (const url of staticLinks) assert.equal((await page.request.get(origin + url)).status(), 200, url);
+  for (const url of staticLinks) assert.equal(await localStatus(origin + url), 200, url);
   assert.equal(requests.filter(req => req.url === origin + '/manmool/blog.html').length, 1);
   assert.equal(requests.some(req => /\/data\//.test(req.url)), false, 'must use published HTML only');
   assert.equal(requests.some(req => req.referer), false, 'unknown URL leaked in referrer');
@@ -78,7 +86,7 @@ test('중첩 404에 공개 사례·서비스 이동을 표시하고 원래 주�
   assert.equal(await page.locator('#recovery-results li').nth(6).locator('a').evaluate(link => document.activeElement === link), true);
   await page.locator('#recovery-results a').first().click();
   assert.match(page.url(), /\/manmool\/posts\/[a-z0-9-]+\.html$/);
-  assert.equal((await page.request.get(page.url())).status(), 200);
+  assert.equal(await localStatus(page.url()), 200);
 });
 
 test('단지명·띄어쓰기·분야로 찾고 검색어를 URL·저장소·요청에 보내지 않는다', async t => {

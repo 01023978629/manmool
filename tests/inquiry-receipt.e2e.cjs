@@ -7,7 +7,7 @@
    - 재전송(메모리 재시도) 성공에도 번호가 붙어야 한다.
 
    실제 전송은 전부 가로챈다(Web3Forms·script.google.com). 대표 메일함에는 아무것도 가지 않는다. */
-require('./helpers/e2e-offline.cjs');
+const { siteConfigWithInboxOff } = require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
@@ -45,14 +45,15 @@ after(async () => {
   if (server) await new Promise((r) => server.close(r));
 });
 
-/* 설정: 저장소 config.json 그대로 두되 inbox 만 켜거나 끈다. 메일(Web3Forms)·접수함 응답은 옵션으로 조절. */
+/* 설정: 저장소 config.json 에서 접수 경로(inbox·n8n)를 끈 값(helper 와 같은 변환) 위에 inbox 만 가짜 주소로 켜거나 끈다.
+   저장소 원본을 펼치면 대표가 n8n 을 켠 날 시험 문의가 라이브 웹훅으로 간다(2026-11-19 리뷰). 메일(Web3Forms)·접수함 응답은 옵션으로 조절. */
 async function openPage(file, opts) {
   opts = opts || {};
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
   const calls = { mail: 0, inbox: 0 };
   const state = { mail: opts.mail || 'ok', inbox: opts.inbox || 'ok' };
-  const repoConfig = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'config.json'), 'utf8'));
+  const repoConfig = siteConfigWithInboxOff();
   await page.route('**/data/config.json*', (route) => route.fulfill({
     contentType: 'application/json',
     body: JSON.stringify({ ...repoConfig, inbox: opts.inboxOff ? { enabled: false, url: '' } : { enabled: true, url: INBOX_URL } }),
