@@ -39,6 +39,14 @@ jobs:
         with:
           node-version: 22
 
+      # 2026-11-19: e2e 가 저장소 config.json 의 라이브 접수함으로 시험 문의를 보냈다(대표 시트에 시험 행 16개).
+      # 이제 모든 브라우저 검사는 tests/helpers/e2e-offline.cjs 를 먼저 불러 접수함·메일 접수 서버와 끊긴다.
+      # 그 배선(helper 선로딩·route.continue 금지·두 보호)을 첫 e2e 보다 먼저 확인한다. 아래 ensure 반복에서도 한 번 더 돈다.
+      - name: Verify browser tests stay offline
+        run: |
+          node scripts/ensure-e2e-offline.mjs
+          node --test tests/e2e-offline.test.cjs
+
       - name: Verify generated blog is current
         shell: bash
         run: |

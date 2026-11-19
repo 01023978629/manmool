@@ -7,6 +7,7 @@
    - 재전송(메모리 재시도) 성공에도 번호가 붙어야 한다.
 
    실제 전송은 전부 가로챈다(Web3Forms·script.google.com). 대표 메일함에는 아무것도 가지 않는다. */
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');

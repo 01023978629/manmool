@@ -1,5 +1,6 @@
 // 2026-10-13: Owner-approved five photo cases added; recent-cases-20261013 independently pins all previous 60 entries.
 // Public-case reading paths only. No external requests or customer submissions.
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), http = require('node:http'), crypto = require('node:crypto');
@@ -89,7 +90,7 @@ after(async () => {
 async function contextFor(t, options = {}) {
   const context = await browser.newContext({viewport:{width:1280,height:850}, ...options});
   const errors = [];
-  await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.continue() : route.abort());
+  await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.fallback() : route.abort());
   context.on('page', page => page.on('pageerror', error => errors.push(error.message)));
   t.after(async () => { await context.close(); assert.deepEqual(errors, []); });
   return context;

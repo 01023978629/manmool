@@ -1,4 +1,5 @@
 /* Check the actual public allowlist, including JS-disabled and recovery markup. */
+require('./helpers/e2e-offline.cjs');
 const {test,before,after}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
@@ -31,7 +32,7 @@ async function open(t,file,options={}){
       const html=fs.readFileSync(path.join(ROOT,'blog.html'),'utf8');
       return r.fulfill({contentType:'text/html; charset=utf-8',body:html.replace(/(<div class="container" id="blogRoot">)[\s\S]*?\r?\n      <\/div>/,'$1</div>')});
     }
-    return r.continue();
+    return r.fallback();
   });
   const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
   page.on('response',r=>{if(r.url().startsWith(origin+'/')&&r.status()>=400)missing.push(new URL(r.url()).pathname);});

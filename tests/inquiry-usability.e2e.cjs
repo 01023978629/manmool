@@ -10,6 +10,7 @@
 
    ②는 화면이 아니라 **실제로 나가는 전송 본문**을 가로채서 본다.
    바깥으로 나가는 전송은 전부 가로채므로 대표 메일함에는 아무것도 가지 않는다. */
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');

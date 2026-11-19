@@ -1,4 +1,5 @@
 /* Real Pages 404 semantics: the document stays at the missing nested URL. */
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
@@ -38,7 +39,7 @@ async function open(t, options = {}) {
     const req = route.request();
     requests.push({ url: req.url(), method: req.method(), referer: req.headers().referer });
     if (!req.url().startsWith(origin + '/') || req.method() !== 'GET') return route.abort();
-    return route.continue();
+    return route.fallback();
   });
   const page = await context.newPage();
   page.setDefaultTimeout(5000);

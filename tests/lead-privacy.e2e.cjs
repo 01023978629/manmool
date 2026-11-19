@@ -1,3 +1,4 @@
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
@@ -1148,7 +1149,7 @@ async function openForm(kind, options = {}) {
       return;
     }
     if (url.origin === origin) {
-      await route.continue();
+      await route.fallback();
       return;
     }
     await route.abort('blockedbyclient');
@@ -1286,7 +1287,7 @@ async function openAdmin(options = {}) {
       return;
     }
     if (url.origin === origin) {
-      await route.continue();
+      await route.fallback();
       return;
     }
     await route.abort('blockedbyclient');

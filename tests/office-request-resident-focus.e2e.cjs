@@ -8,6 +8,7 @@
      고치라는지 못 찾는다.
 
    바깥으로 나가는 전송은 전부 가로챈다. */
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');

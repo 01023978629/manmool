@@ -8,6 +8,7 @@
    안에서 규칙이 갈려 있었다.
 
    여기서는 정규식을 읽지 않고 **실제 폼을 눌러서** 확인한다. */
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
