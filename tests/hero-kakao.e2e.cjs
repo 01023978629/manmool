@@ -3,6 +3,7 @@
    ① kakao.ready=true → 첫 화면 hero-actions 에 카톡 버튼이 보이고 채널 주소로 새 탭(noopener)
    ② kakao.ready=false → 숨김(hidden)
    ③ 주 버튼(.btn-primary)의 실제 배경/글자 대비 ≥ 4.5:1 (계산은 렌더된 색으로) */
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');

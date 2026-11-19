@@ -13,6 +13,7 @@
 
    정규식이 아니라 **실제 브라우저에서 폼을 눌러** 확인한다.
    바깥으로 나가는 전송은 전부 가로챈다 — 대표 메일함에 시험 접수가 가면 안 된다. */
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
@@ -67,7 +68,9 @@ async function submitInquiry(opts) {
     await page.route('**/data/config.json*', (route) => {
       page.__configHits += 1;
       if (opts.config === 'dead' || page.__configHits <= 2) return route.fulfill({ status: 503, body: 'nope' });
-      return route.continue();
+      // 세 번째부터는 helper(e2e-offline)에 넘긴다 — 저장소 설정에서 inbox 만 끈 값을 준다.
+      // continue 는 helper 를 건너뛰어 라이브 접수함이 켜진 원본을 읽었다(2026-11-19 배포 검사 실패·시험 행 유출).
+      return route.fallback();
     });
   }
   // 실제 전송은 절대 나가지 않는다(대표 메일함 보호)

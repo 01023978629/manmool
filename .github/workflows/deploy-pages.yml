@@ -8,7 +8,8 @@ name: Deploy to GitHub Pages
 #
 # 2026-11-19: main 으로 가는 PR 에서도 같은 검사(verify job)를 돈다. verify 는 github-pages 환경을 쓰지 않으므로
 # 위의 '환경이 작업 브랜치를 거부' 문제가 없다. 배포(deploy job)는 main 의 push·수동 실행에서만 한다.
-# 예전에는 e2e 가 병합한 뒤 main 에서 처음 돌아, 하나라도 깨지면 main 이 빨간불이 되고 뒤따르는 사례 PR 배포가 모두 막혔다.
+# 예전에는 e2e 가 병합한 뒤 main 에서 처음 돌아, 하나라도 깨지면 main 이 빨간불이 되고 뒤따르는 사례 PR 배포가 모두 막혔다
+# (PR #238 병합 뒤 e2e 9건이 main 에서 처음 깨졌다).
 on:
   push:
     branches:
@@ -22,11 +23,13 @@ on:
 permissions:
   contents: read
 
-# 배포는 동시에 하나만 진행한다(진행 중 배포는 취소하지 않음). PR 검사는 PR 마다 따로 묶고, 새 커밋이 오면 이전 검사를 취소한다.
-# PR 검사가 'pages' 묶음에 들어가면 대기 중인 main 배포를 밀어낼 수 있어서 묶음을 나눈다.
+# 'pages' 묶음은 배포하는 실행(main 의 push·수동 실행 — deploy job 과 같은 조건)만 쓴다. 동시에 하나만, 진행 중 배포는 취소하지 않는다.
+# 그 밖의 실행(PR 검사·작업 브랜치 수동 실행, 둘 다 verify 만 돈다)은 PR·브랜치마다 따로 묶고, 새 실행이 오면 이전 것을 취소한다.
+# GitHub 은 한 묶음에 대기 실행을 하나만 두고 새로 들어온 실행이 예전 대기 실행을 취소하므로, 검사 실행이 'pages' 에 들어가면
+# 대기 중인 main 배포를 밀어내 main 의 최신 커밋이 다음 push 까지 배포되지 않을 수 있다(2026-11-19 리뷰).
 concurrency:
-  group: ${{ github.event_name == 'pull_request' && format('pages-pr-{0}', github.event.pull_request.number) || 'pages' }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ (github.event_name != 'pull_request' && github.ref == 'refs/heads/main') && 'pages' || format('pages-check-{0}', github.event.pull_request.number || github.ref) }}
+  cancel-in-progress: ${{ !(github.event_name != 'pull_request' && github.ref == 'refs/heads/main') }}
 
 jobs:
   verify:
@@ -42,6 +45,14 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 22
+
+      # 2026-11-19: e2e 가 저장소 config.json 의 라이브 접수함으로 시험 문의를 보냈다(대표 시트에 시험 행 16개).
+      # 이제 모든 브라우저 검사는 tests/helpers/e2e-offline.cjs 를 먼저 불러 접수함·메일 접수 서버와 끊긴다.
+      # 그 배선(helper 선로딩·route.continue 금지·두 보호)을 첫 e2e 보다 먼저 확인한다. 아래 ensure 반복에서도 한 번 더 돈다.
+      - name: Verify browser tests stay offline
+        run: |
+          node scripts/ensure-e2e-offline.mjs
+          node --test tests/e2e-offline.test.cjs
 
       - name: Verify generated blog is current
         shell: bash

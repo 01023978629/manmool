@@ -1,4 +1,5 @@
 // Local public-case preview only: never log in, submit a form, or fetch external services.
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), http = require('node:http');
@@ -32,7 +33,7 @@ for (const width of [320, 390, 1280]) {
   test(`${width}px: 실제 공정 사진 6장·완료 표지·정확한 범위·상담 및 가로 넘침 검사`, { timeout: 60000 }, async t => {
     const context = await browser.newContext({ viewport: { width, height: 850 } });
     t.after(() => context.close());
-    await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.continue() : route.abort());
+    await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.fallback() : route.abort());
     const page = await context.newPage(), errors = [];
     page.on('pageerror', e => errors.push(e.message));
     await page.goto(`${origin}/posts/${slug}.html`);
@@ -73,7 +74,7 @@ for (const width of [320, 390, 1280]) {
 test('목록의 인테리어 검색에서 확인된 아파트명으로 사례를 찾아 정적 원고로 이동한다', async t => {
   const context = await browser.newContext({ viewport: { width: 390, height: 850 } });
   t.after(() => context.close());
-  await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.continue() : route.abort());
+  await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.fallback() : route.abort());
   const page = await context.newPage();
   await page.goto(`${origin}/blog.html`);
   await page.locator('[data-case-filter="interior"]').click();

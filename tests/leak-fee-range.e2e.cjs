@@ -3,6 +3,7 @@
    ② 중간 단계 금액은 화면 어디에도 없다 (범위만 공개)
    ③ 검색엔진용 구조화 데이터(AggregateOffer)가 화면과 같은 범위다
    숫자는 테스트에 박지 않고 data/site.json 에서 읽는다 — 요금이 바뀌면 정본만 고치면 된다. */
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');

@@ -1,4 +1,5 @@
 /* Public blog finder: real generated cards, no account access or submissions. */
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
@@ -71,7 +72,7 @@ async function openBlog(t, options = {}) {
         /(<div class="container" id="blogRoot">)[\s\S]*?\r?\n      <\/div>/,
         '$1</div>') });
     }
-    return route.continue();
+    return route.fallback();
   });
   const page = await context.newPage();
   page.setDefaultTimeout(6000);

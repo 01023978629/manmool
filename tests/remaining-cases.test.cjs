@@ -1,5 +1,6 @@
 // 2026-10-13: Owner-approved five photo cases added; recent-cases-20261013 independently pins all previous 60 entries.
 // Public content only. GET-only local preview; no customer submissions.
+require('./helpers/e2e-offline.cjs');
 const {test,before,after}=require('node:test');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto');
 const {chromium}=require('playwright');
@@ -80,7 +81,7 @@ before(async()=>{
 after(async()=>{if(browser)await browser.close();if(server)await new Promise(resolve=>server.close(resolve));});
 async function contextFor(t,options={}){
   const context=await browser.newContext({viewport:{width:1280,height:850},...options}),errors=[];
-  await context.route('**/*',r=>r.request().url().startsWith(origin+'/')&&r.request().method()==='GET'?r.continue():r.abort());
+  await context.route('**/*',r=>r.request().url().startsWith(origin+'/')&&r.request().method()==='GET'?r.fallback():r.abort());
   context.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));
   t.after(async()=>{await context.close();assert.deepEqual(errors,[]);});return context;
 }
