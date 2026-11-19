@@ -161,14 +161,10 @@ jobs:
           node --test apps-script-contract/test/*.mjs
           git diff --exit-code
 
-      # 배포할 산출물을 만드는 이 job 안에서, 빌드 전에 돈다. 하는 일은 러너 checkout 의 office-portal-api.json 한 파일을
-      # 아래 --url 값(이 공개 파일에 적힌 주소, 비밀값 아님)으로 고쳐 쓰는 것뿐이고 네트워크를 쓰지 않는다.
-      # PR 검사에서도 돌려 main 과 같은 산출물로 아래 화면 검사를 한다 — PR 에서는 산출물을 올리지도 배포하지도 않는다.
-      - name: Enable management office employee portal for production artifact
-        run: >-
-          node scripts/configure-office-portal-api.mjs
-          --url https://script.google.com/macros/s/AKfycbwnlDRquyFw2T6JS3D0thRpnFW_u7ZbL3Pn3twtidhkgkr-QWKqrI3gZH9VCgY0Z-sR/exec
-          --enable
+      # 2026-11-19: 예전에는 여기서 configure-office-portal-api.mjs --enable 로 포털 주소를 배포 때만 주입했다
+      # (저장소 office-portal-api.json 은 꺼짐, 라이브는 켜짐 — 두 값이 달라 헷갈렸다). 이제 저장소 파일이 라이브와 같은 값을
+      # 그대로 들고 있고 주입 단계는 없다. 주소를 바꾸려면 그 스크립트로 저장소 파일을 고쳐 PR 로 올린다.
+      # ensure-office-portal.mjs 가 이 단계가 다시 생기지 않게 지킨다.
 
       - name: Build public allowlist artifact
         run: node scripts/build-pages-artifact.mjs

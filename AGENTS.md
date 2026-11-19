@@ -6,6 +6,34 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-11-19 정리 — A/S 상담 유형·내부 화면 비공개·포털 설정 저장소 고정·문의 접수함 켜기
+
+`claude/tidy-20261119` (대표 정리 목록 12·17·28·32·33번 중 만물웹 몫).
+
+- **A/S·하자 상담 유형(현장웹과 공통 약속 — 바꾸지 말 것)**: `index.html` 상담 폼 '공간 유형'에 `<option value="A/S">A/S·하자 (시공했던 집)</option>`.
+  값에는 '·' 를 넣지 않는다 — 현장웹 `webWorkClassify` 가 메일 '공간' 줄을 '·' 로 나눠 첫 칸 `A/S`(별칭 AS·하자·하자보수)를 service `as`(표시 'A/S·하자')로 읽는다.
+  누수처럼 연락처 지름길(`#asShortcut`, '만물인테리어에서 시공한 집…평수·공사 범위를 건너뛰셔도 됩니다')과 요청 내용 안내('어느 아파트(단지)·동네인지,
+  언제 시공한 곳인지, 어떤 증상인지' — 지름길이 1단계 지역 칸을 건너뛰고, 현장웹 A/S 접수는 단지명으로 현장 짝을 찾는다)를 준다. 예상견적(`manmul:estimate`)이
+  유형을 바꿔도 안내가 따라 바뀐다(`prefillFromEstimate` → `syncTypeGuides`). 전송 코드는 그대로(제목에 유형이 이미 붙는다).
+  `ensure-lead-route-parity` ⑥이 폼 유형 값 = **로컬 약속 목록**·공간 줄 첫 칸을 지킨다 — 현장웹 코드는 읽지 않으므로 병합 순서는 못 잡는다.
+  **현장웹 v613(정리 묶음 — A/S 분류, 판 이름 hyeonjang-v613-tidy) 라이브 배포 뒤에 병합한다**(병합 전 https://01023978629.github.io/hyeonjang/ 에서 A/S 분류가 보이는지 PR 체크리스트에 남긴다) —
+  먼저 나가면 A/S 메일이 현장웹에서 '모르는 유형'으로 거부된다.
+- **admin.html·case-new.html 을 Pages 공개 산출물에서 뺐다**(로그인 없이 공개 주소에서 열리던 내부 화면). `scripts/pages-artifact-policy.mjs` 의 `LOCAL_ONLY_*`
+  (페이지 2·js 4·css 2). 파일은 저장소에 남고 로컬에서 연다(README '로컬 전용 화면'). robots 의 두 줄과 `js/main.js` 미리보기 배너의 admin 링크를 뗐다.
+  `ensure-admin-content-editor`·`ensure-case-new`·`ensure-pages-artifact` 가 '공개 허용목록·산출물에 없음'을 지킨다. `lead-inbox.html`·`office-*` 는 그대로 공개.
+- **포털 설정 저장소 고정**: `office-portal-api.json` 을 라이브 값 그대로 두고 배포 중 주입 단계를 뺐다(저장소 = 라이브).
+  `ensure-office-portal` 이 주입 재등장(주석 밖 워크플로에 설정 스크립트·파일 이름이 나오면 실패)을 막는다.
+  `tests/office-portal-rbac.e2e.cjs` 의 '꺼진 설정' 검사는 저장소 파일 대신 꺼짐 설정을 직접 route 한다.
+  포털 **서버 소스**는 보안 검토가 끝날 때까지 이 공개 저장소에 올리지 않는다(정본은 대표 PC 의 외부 작업본). 현장웹 `apps-script-office-portal/` 은 옛 판이다.
+- **PR 검사**: `deploy-pages.yml` 이 main 으로 가는 PR 에서도 `verify` job(전체 검사·산출물 빌드·화면 검사)을 돈다. `deploy` job(Pages 공개)은
+  main push·main 수동 실행에서만, `github-pages` 환경과 쓰기 권한도 그 job 에만 있다. 예전에는 e2e 가 병합 뒤 main 에서 처음 돌았다.
+- **문의 접수함 켬**(PR #238): `data/config.json` `inbox` 에 대표가 배포한 주소가 들어가 있다. 메일(Web3Forms)과 접수함은 둘 다 나간다(기존 `deliver`).
+  편집기 입구 `leadInboxSetup()`(웹 action 아님)과 접수함 service `A/S·하자` 를 더했다. 대표 안내 `docs/운영/문의접수함-켜기.md`,
+  현장웹이 부를 API 는 `apps-script-lead-inbox/README.md` '현장웹(hyeonjang)에서 부를 때'.
+  로그인 실패 잠금은 전역 키 하나(`lead-login:fail`)다 — 막혀도 손님 접수·메일은 무관하므로 우선 이대로 켰다(바꿀 때는 서버 코드부터).
+  서버가 스크립트 속성을 쓰지 않는 규칙(`ensure-lead-inbox`) 때문에 비밀값 자동 생성은 넣지 않았다. 관리 비밀번호는 8~64자.
+- 관리사무소 PIN 접수(`office-request.*`)는 주소를 `office-api.json` 하나에서만 읽는다(`js/office-request-api.js` `CONFIG_PATH`). 새 접수 서버 배포 뒤 메인 세션이 그 파일만 바꾼다.
+
 ### 2026-11-18 청주 용암동 태산그린아파트 옥상 배수구 2곳·앞베란다 우수관 하부(11/13) 사례 1건 공개 후보
 
 `claude/case-taesan-roof-drain-balcony-20261113`는 대표 요청("현장 웹에 프로젝트 및 사진 정리하고 만물 웹에 사례도 추가해줘")으로 사례 1건을

@@ -36,7 +36,7 @@ Web3Forms에 이메일만 넣고 `access_key`를 발급(회원가입 없음)받�
 n8n 무료 워크플로(규칙엔진 + Google Sheets)로 리드 저장·알림·대표 승인·카카오 챗봇까지.
 설치 [`integrations/SETUP-n8n-kakao.md`](integrations/SETUP-n8n-kakao.md) · 버전 선택 [`integrations/n8n/README.md`](integrations/n8n/README.md)
 
-> 진행 상태는 관리자 화면(`admin.html`)의 **연동 상태** 패널에서 언제든 확인·테스트할 수 있습니다.
+> 진행 상태는 관리자 화면(`admin.html`, 로컬에서 엽니다 — 아래 '내부 화면')의 **연동 상태** 패널에서 확인·테스트할 수 있습니다.
 
 ## 구조: 공개 사이트 ↔ 운영 앱 (역할 분리)
 
@@ -61,12 +61,15 @@ n8n 무료 워크플로(규칙엔진 + Google Sheets)로 리드 저장·알림·
 
 | 페이지 | 내용 |
 |--------|------|
-| `admin.html` 관리자 | 외부 접수 경로 **연동 상태** 확인·테스트 + 비개인 콘텐츠 편집기 (리드 **승인/보류/거절** 은 `lead-inbox.html` 접수함에서 — 사람 승인 장치) |
+| `admin.html` 관리자 | 외부 접수 경로 **연동 상태** 확인·테스트 + 비개인 콘텐츠 편집기 (리드 **승인/보류/거절** 은 `lead-inbox.html` 접수함에서 — 사람 승인 장치). **공개 주소에는 없음(로컬 전용)** |
+| `case-new.html` 사례 등록 | 사례 재료 정리(브라우저 IndexedDB, 전송 없음). **공개 주소에는 없음(로컬 전용)** — 실제 공개는 Claude PR(`scripts/new-case-post.mjs`)로 |
 | `mypage.html` 고객 전용 링크 페이지 | **본인확인(휴대폰 뒷4자리)·최초 동의** 후 입장 → 일정·오늘의 공정·**공개 현장사진**·**계약서 전자 서명**·자재선택·**변경/추가공사 승인·기록**·**대금 흐름(계좌 안내→입금 확인·기록)**·**국가기준 하자보증(방수 3년·설비 2년·마감 1년)**·문서·카카오톡 알림 이력·준공 체크리스트·**완공 후 후기/소개** |
 | `field.html` 현장관리 | 오늘 할 작업·작업 전후 사진·자재 입고·문제 보고(고위험은 사람 확인)·추가공사 요청·출입 기록·완료 체크 |
 | `as.html` A/S 센터 | 하자 위치·사진 접수 → **유형 자동분류·긴급도 판단·담당 배정·방문 일정**·고객 확인 |
 
 > 모든 화면은 **프로젝트 단위**로 데이터가 연결됩니다 (`data/project.json`). 금액·계약·발송은 대표/고객 승인 후에만 진행합니다.
+
+> **로컬 전용 화면(2026-11-19~):** `admin.html`·`case-new.html` 은 로그인 없이 공개 주소에서 열리던 곳이라 GitHub Pages 공개 산출물에서 뺐습니다(파일은 저장소에 그대로, `scripts/pages-artifact-policy.mjs` 의 `LOCAL_ONLY_*`). 쓰려면 Claude 에게 "관리자 화면 열어줘"라고 하시면 됩니다. 직접 열려면 저장소를 내려받은 폴더(`git clone https://github.com/01023978629/manmool`)에서 Windows 는 `py -m http.server 8000 --bind 127.0.0.1`(맥·리눅스는 `python3 -m http.server 8000 --bind 127.0.0.1`)을 실행하고 브라우저로 `http://127.0.0.1:8000/admin.html` 을 엽니다(파일을 더블클릭하면 `data/*.json` 을 못 읽습니다). **`--bind 127.0.0.1` 을 빼지 마세요** — 빼면 같은 와이파이의 다른 기기도 저장소 폴더 전체(.git·문서·서버 소스)를 받아 갈 수 있습니다. Windows 의 `python` 명령은 스토어 안내만 띄우는 경우가 많아 `py` 를 씁니다.
 
 ## 구조
 
@@ -110,7 +113,7 @@ integrations/n8n/*.workflow.json        n8n 워크플로(import용)
 3. 자세한 절차는 [`integrations/INTEGRATION.md`](integrations/INTEGRATION.md) 참고.
 4. **n8n을 아직 안 띄웠다면** — 무료 클라우드부터 처음부터 세우는
    [`integrations/SETUP-n8n-kakao.md`](integrations/SETUP-n8n-kakao.md)를 먼저 보세요.
-   전환 상태는 관리자 화면(`admin.html`)의 **연동 상태** 패널에서 확인·테스트할 수 있습니다.
+   전환 상태는 관리자 화면(`admin.html`, 로컬 전용)의 **연동 상태** 패널에서 확인·테스트할 수 있습니다.
 
 > **안전장치:** 금액·계약·고객 발송은 **대표 승인 후에만** 실행됩니다(초안·발송 분리).
 > AI는 요약·분류·초안까지만 담당합니다.

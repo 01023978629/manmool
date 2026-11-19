@@ -113,7 +113,11 @@
   function prefillFromEstimate(a) {
     if (!a) return;
     const setVal = (id, v) => { const el = $(id); if (el && v != null && v !== '') el.value = v; };
-    if (a.type) setVal('iType', a.type);
+    if (a.type) {
+      setVal('iType', a.type);
+      // 유형이 바뀌면 누수·A/S 안내(지름길·요청 칸 안내)도 따라 바꾼다 — 안 그러면 '주거'인데 A/S 안내가 남는다.
+      syncTypeGuides();
+    }
     if (a.area) setAreaValue(a.area);
     const scopeVal = a.scope === '부분공사' ? '부분' : (a.scope === '전체공사' ? '전체' : null);
     if (scopeVal) { const r = document.querySelector(`input[name="scope"][value="${scopeVal}"]`); if (r) r.checked = true; }
@@ -146,6 +150,34 @@
     const sel = $('iType');
     const box = $('leakShortcut');
     if (box) box.hidden = !sel || sel.value !== '누수';
+  }
+
+  // A/S·하자(시공했던 집)도 평수·범위·예산이 맞지 않는다 — 누수처럼 연락처 지름길을 열고,
+  // 요청 내용 칸에는 '어느 아파트(단지)·동네인지, 언제 시공한 곳인지, 어떤 증상인지'를 묻는다. 지름길은 1단계 지역 칸을
+  // 건너뛰고, 현장웹 A/S 접수는 현장을 골라야 하는데 현장 고객 칸이 비어 있는 곳이 많아 단지명이 짝을 찾는 열쇠다(동·호수는 묻지 않는다).
+  // 값은 'A/S' 그대로 보낸다(현장웹 웹 업무 연결이 메일 '공간' 줄 첫 칸 'A/S' 로 A/S 관리에 넣는다).
+  const AS_TYPE = 'A/S';
+  const AS_MEMO_PLACEHOLDER = '어느 아파트(단지)·동네인지, 언제 시공한 곳인지, 어떤 증상인지 적어 주세요. (예: ○○아파트 · 작년 봄 욕실 공사 · 타일 줄눈 갈라짐)';
+  let memoDefaultPlaceholder = null;
+  function syncAsGuide() {
+    const sel = $('iType');
+    const isAs = !!sel && sel.value === AS_TYPE;
+    const box = $('asShortcut');
+    if (box) box.hidden = !isAs;
+    const memo = $('iMemo');
+    const hint = $('iMemoAsHint');
+    if (memo) {
+      if (memoDefaultPlaceholder === null) memoDefaultPlaceholder = memo.getAttribute('placeholder') || '';
+      memo.setAttribute('placeholder', isAs ? AS_MEMO_PLACEHOLDER : memoDefaultPlaceholder);
+      if (isAs && hint) memo.setAttribute('aria-describedby', 'iMemoAsHint');
+      else memo.removeAttribute('aria-describedby');
+    }
+    if (hint) hint.hidden = !isAs;
+  }
+
+  function syncTypeGuides() {
+    syncLeakShortcut();
+    syncAsGuide();
   }
 
   function showStep(n) {
@@ -517,7 +549,7 @@
       const requestedType = params.get('type');
       const requestedScope = params.get('scope');
       const typeSel = $('iType');
-      if (typeSel && ['주거', '상업', '리모델링', '누수'].includes(requestedType)) {
+      if (typeSel && ['주거', '상업', '리모델링', '누수', AS_TYPE].includes(requestedType)) {
         typeSel.value = requestedType;
       }
       if (['전체', '부분'].includes(requestedScope)) {
@@ -525,7 +557,7 @@
         if (scopeInput) scopeInput.checked = true;
       }
     } catch (e) { /* 오래된 브라우저에서는 기본값을 유지 */ }
-    syncLeakShortcut();
+    syncTypeGuides();
 
     // 선택한 디자인 반영(초기값 + 이후 선택 이벤트)
     if (ctx && typeof ctx.getDesign === 'function') SELECTED_DESIGN = ctx.getDesign();
@@ -550,9 +582,9 @@
       SELECTED_DESIGN = e.detail || null;
       renderSelectedDesign();
       if (SELECTED_DESIGN) {
-        // 누수 전용 링크에서 들어온 뒤 디자인을 선택했다면 인테리어 상담으로 전환한다.
+        // 누수·A/S 링크에서 들어온 뒤 디자인을 선택했다면 인테리어 상담으로 전환한다.
         const typeSel = document.querySelector('#inquiry select[name="type"]');
-        if (typeSel && typeSel.value === '누수') { typeSel.value = '주거'; syncLeakShortcut(); }
+        if (typeSel && (typeSel.value === '누수' || typeSel.value === AS_TYPE)) { typeSel.value = '주거'; syncTypeGuides(); }
         if (SELECTED_DESIGN.area) setAreaValue(SELECTED_DESIGN.area);
         if (SELECTED_DESIGN.budget) setBudgetValue(SELECTED_DESIGN.budget);
         const sec = $('inquiry');
@@ -563,10 +595,13 @@
     // 누수는 급한 일이다. 평수·범위·항목·예산·시기를 다 지나야 연락처가 나오면
     // 그 전에 손님이 나간다 — 유형이 누수면 연락처 단계(3)로 바로 갈 길을 연다.
     const typeSel = $('iType');
-    if (typeSel) typeSel.addEventListener('change', syncLeakShortcut);
-    syncLeakShortcut();
+    if (typeSel) typeSel.addEventListener('change', syncTypeGuides);
+    syncTypeGuides();
     const shortcutGo = $('leakShortcutGo');
     if (shortcutGo) shortcutGo.addEventListener('click', () => { showStep(3); });
+    // A/S·하자도 같은 연락처 단계(3)로 바로 간다.
+    const asShortcutGo = $('asShortcutGo');
+    if (asShortcutGo) asShortcutGo.addEventListener('click', () => { showStep(3); });
 
     $('nextStep').addEventListener('click', advance);
     $('prevStep').addEventListener('click', () => showStep(step - 1));

@@ -239,7 +239,9 @@ function setupContentPreviewNotice() {
   const banner = document.createElement('div');
   banner.className = 'content-preview-banner';
   banner.setAttribute('role', 'status');
-  banner.innerHTML = '<span>관리자 초안 미리보기 · 아직 공개 사이트에는 반영되지 않았습니다.</span><a href="admin.html#contentEditor">관리자로 돌아가기</a>';
+  // 관리자 화면(admin.html)은 2026-11-19 부터 공개 산출물에 없다(로컬에서만 연다) — 공개 페이지에서 그쪽으로 링크하지 않는다.
+  // 편집기는 미리보기를 새 탭으로 열므로, 편집하던 탭으로 돌아가면 된다.
+  banner.innerHTML = '<span>관리자 초안 미리보기 · 아직 공개 사이트에는 반영되지 않았습니다.</span><span>편집하던 관리자 탭으로 돌아가 계속 고칠 수 있습니다.</span>';
   document.body.prepend(banner);
 }
 

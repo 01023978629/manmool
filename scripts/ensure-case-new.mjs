@@ -5,12 +5,13 @@
  *  1) 개인정보 규칙이 화면과 생성기에서 갈라진다 → 화면은 통과시켰는데 글에 동·호수가 남는다
  *  2) 화면이 만든 재료를 생성기가 못 읽는다 → 사장님이 정리한 게 헛일이 된다
  *  3) 미리보기 제목과 실제 글 제목이 달라진다 → 보고 승인한 것과 다른 게 올라간다
- *  4) 내부 업무 화면이 검색에 잡힌다
+ *  4) 내부 업무 화면이 검색에 잡히거나 공개 주소로 열린다(2026-11-19 부터 공개 산출물에서 뺐다 — 로컬에서만 연다)
  *  5) 이 화면이 어딘가로 내용을 전송한다 (사진·현장 정보가 밖으로 나간다)
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { LOCAL_ONLY_FILES, expectedPublicFiles } from './pages-artifact-policy.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
@@ -64,10 +65,20 @@ for (const [what, needle] of [['제목', '— 탐지부터 보수까지'], ['요
   }
 }
 
-/* ⑤ 내부 업무 화면이라 검색에서 빠져야 한다 */
-if (!/<meta name="robots" content="noindex,nofollow"/.test(html)) fail.push('case-new.html 에 noindex 가 없다.');
-if (!/^Disallow: \/case-new\.html$/m.test(robots)) fail.push('robots.txt 가 /case-new.html 을 막지 않는다.');
-if (!/href="case-new\.html"/.test(admin)) fail.push('admin.html 에서 사례 등록 화면으로 가는 길이 없다.');
+/* ⑤ 내부 업무 화면이라 공개 주소에 없어야 한다 (2026-11-19)
+ *   예전에는 robots.txt Disallow + noindex 로 '검색에서만' 뺐다. 공개 주소로는 로그인 없이 열렸다(내용은 비어 있음).
+ *   대표는 사례를 Claude PR 로만 올리므로 Pages 공개 산출물에서 뺐다 — 파일은 저장소에 남고 로컬에서 연다.
+ *   그래서 이제는 '공개 허용목록·산출물에 없음'을 지키고, robots.txt 가 이 화면 이름을 공개로 알리지 않는지 본다. */
+if (!/<meta name="robots" content="noindex,nofollow"/.test(html)) fail.push('case-new.html 에 noindex 가 없다(로컬로 열어도 혹시 공개되면 색인되지 않게 유지).');
+{
+  const publicFiles = new Set(expectedPublicFiles(ROOT).map(({ relative }) => relative));
+  for (const relative of ['case-new.html', 'js/case-new.js', 'js/case-store.js', 'css/case-new.css']) {
+    if (!LOCAL_ONLY_FILES.includes(relative)) fail.push(`${relative} 이 로컬 전용 목록(pages-artifact-policy LOCAL_ONLY_*)에 없다.`);
+    if (publicFiles.has(relative)) fail.push(`${relative} 이 Pages 공개 허용목록에 들어 있다 — 사례 등록 화면이 공개 주소로 다시 열린다.`);
+  }
+}
+if (/case-new\.html/.test(robots)) fail.push('robots.txt 가 공개하지 않는 사례 등록 화면 이름을 알린다.');
+if (!/href="case-new\.html"/.test(admin)) fail.push('admin.html 에서 사례 등록 화면으로 가는 길이 없다(로컬에서 둘을 함께 연다).');
 
 /* ⑥ 이 화면은 아무것도 전송하지 않는다 (보관소도 마찬가지) */
 for (const [file, src] of [['js/case-new.js', js], ['js/case-store.js', store]]) {

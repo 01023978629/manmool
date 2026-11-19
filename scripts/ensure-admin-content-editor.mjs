@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { LOCAL_ONLY_FILES, expectedPublicFiles } from './pages-artifact-policy.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -197,6 +198,22 @@ check(/id="actualWorkGrid"/.test(index) && /renderActualWork\(data\.actualWork\)
     `대문 정적 실제 현장 카드가 data/site.json 과 다릅니다.\n      대문: ${JSON.stringify(staticHrefs)}\n      정본: ${JSON.stringify(dataHrefs)}`);
 }
 check(!/href="admin\.html"/.test(index), '공개 대문에 관리자 링크가 다시 노출됐습니다.');
+
+/* 관리자 화면은 공개 주소에 없다 (2026-11-19) -------------------------------
+ * admin.html 은 로그인 없이 공개 주소에서 열려 연동 상태 패널과 콘텐츠 편집기를 그대로 보여 줬다(막는 장치는 noindex 뿐).
+ * 대표는 글·사례를 Claude PR 로만 올리므로 Pages 공개 산출물에서 뺐다. 파일은 저장소에 남고 로컬에서 연다(README).
+ * 공개 페이지(대문·미리보기 배너 포함)는 admin.html 로 링크하지 않는다 — 공개 주소에서는 404 가 된다. */
+{
+  const publicFiles = new Set(expectedPublicFiles(ROOT).map(({ relative }) => relative));
+  for (const relative of ['admin.html', 'js/admin.js', 'js/content-editor.js', 'css/admin.css']) {
+    check(LOCAL_ONLY_FILES.includes(relative), `${relative} 이 로컬 전용 목록(pages-artifact-policy LOCAL_ONLY_*)에 없습니다.`);
+    check(!publicFiles.has(relative), `${relative} 이 Pages 공개 허용목록에 들어 있습니다 — 관리자 화면이 공개 주소로 다시 열립니다.`);
+  }
+  check(!/["'`=]admin\.html/.test(main), '공개 스크립트 js/main.js 가 공개 주소에 없는 admin.html 로 링크합니다.');
+  // 경로 경계를 둔다 — 'office-admin.html' 같은 다른 내부 화면 줄(Disallow 추가 등)에는 걸리지 않게.
+  check(!/(?:^|[\s/])admin\.html/m.test(read('robots.txt')), 'robots.txt 가 공개하지 않는 관리자 화면 이름을 알립니다.');
+  check(/<meta name="robots" content="noindex,nofollow"/.test(admin), 'admin.html 에 noindex 가 없습니다(로컬 전용이어도 유지).');
+}
 
 check(/id="projectGuide"/.test(index), '공사 시작 가이드가 없습니다.');
 for (const key of ['full', 'partial', 'commercial', 'leak']) {

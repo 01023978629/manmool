@@ -34,15 +34,45 @@
    - `LEAD_INBOX_SHEET_ID` : 1단계 시트 ID
    - `LEAD_INBOX_SESSION_SECRET` : 32자 이상 무작위 문자열 (예: 비밀번호 생성기로 40자)
    - `LEAD_INBOX_LOGIN_PEPPER` : 위와 **다른** 32자 이상 무작위 문자열
-   - `LEAD_INBOX_ADMIN_CODE` : 관리 화면에 들어갈 **관리 비밀번호** (8자 이상, 공백 없음). 대표님만 아는 값. 앱·문서·카톡 어디에도 적지 마세요.
+   - `LEAD_INBOX_ADMIN_CODE` : 관리 화면에 들어갈 **관리 비밀번호** (**8~64자**, 공백 없음 — 서버·화면 모두 64자까지만 받으므로 더 길면 로그인이 계속 실패하고 전역 잠금까지 걸립니다). 대표님만 아는 값. 앱·문서·카톡 어디에도 적지 마세요.
    - (선택) `LEAD_INBOX_NOTIFY_TO` : 새 문의가 올 때 알림 메일을 받을 주소. 비워 두면 알림 없음. Web3Forms 메일이 실패한 문의도 이 메일은 옵니다(배포 계정의 Gmail 일일 발송 한도 안에서).
-4. 편집기에서 함수 `leadInboxSetupSheets_` 를 골라 **실행** 합니다. 권한 승인 창이 뜨면 허용합니다. 시트에 `문의`·`이력`·`세션` 탭과 고정 머리글이 생깁니다.
-   이어서 함수 `leadInboxInstallTrigger_` 도 한 번 **실행** 합니다 — 매일 새벽 4시에 보관 기한(거절 90일·승인 1년)이 지난 문의를 지우는 시간 트리거가 걸립니다. 안 걸어도 대표가 접수함에 로그인할 때마다 같은 정리가 돌지만, 로그인이 뜸하면 처리방침 기한을 넘길 수 있어 트리거를 권합니다.
+4. 왼쪽 파일 목록에서 `Code.gs` 를 눌러 연 뒤(함수 선택 칸에는 지금 열린 파일의 함수만 나옵니다) 편집기 위쪽 함수 선택 칸에서 **`leadInboxSetup`** 을 골라 **실행** 합니다. 권한 승인 창이 뜨면 허용합니다
+   (개인 Gmail 이면 'Google에서 확인하지 않은 앱' 화면이 나옵니다 — **고급** → **(프로젝트 이름)(으)로 이동** → **허용**). 시트에 `문의`·`이력`·`세션` 탭과 고정 머리글이 생기고,
+   매일 새벽 4시에 보관 기한(거절 90일·승인 1년)이 지난 문의를 지우는 시간 트리거도 함께 걸립니다. 두 번 실행해도 안전합니다.
+   (이름 끝에 `_` 가 붙은 `leadInboxSetupSheets_`·`leadInboxInstallTrigger_` 는 편집기 함수 목록에 나오지 않아서 2026-11-19 에 이 입구를 더했습니다.
+   트리거를 안 걸어도 대표가 접수함에 로그인할 때마다 같은 정리가 돌지만, 로그인이 뜸하면 처리방침 기한을 넘길 수 있어 트리거를 권합니다.)
 5. **배포 → 새 배포 → 유형: 웹 앱**, 실행 사용자 "나", 액세스 권한 "**모든 사용자**". 배포 후 나오는 `https://script.google.com/macros/s/…/exec` 주소를 복사합니다.
 6. 그 주소를 저에게 주시거나 `data/config.json` 의 `inbox.url` 에 넣고 `inbox.enabled` 를 `true` 로 바꿉니다. 배포검사가 주소 형식을 확인합니다.
 7. 사이트에서 시험 문의를 한 건 넣고 `lead-inbox.html` 에 관리 비밀번호로 들어가 보이는지 확인합니다. 시험 문의는 화면에서 **거절**(사유: 시험)로 정리하면 됩니다.
 
 코드를 고친 뒤에는 **배포 → 배포 관리 → 편집 → 새 버전**으로 다시 배포해야 반영됩니다. 스크립트 속성은 그대로 유지됩니다.
+
+> **알고 켠 점(2026-11-19 ① 이대로 켬) — 로그인 잠금이 접수함 전체에 걸린다(가용성 위험).** `leadLogin_` 의 실패 잠금은 사람마다가 아니라 키 하나(`lead-login:fail`)로 돈다.
+> 잠금 중에는 맞는 비밀번호도 거부된다. 접수함을 켜면 `/exec` 주소가 공개 `data/config.json` 에 실리므로(손님 폼이 써야 함), 누구든 15분마다 틀린 값 5번만
+> 보내면 대표·현장웹의 접수함 로그인을 계속 막아 둘 수 있다. 손님 접수(`leadCreate`)와 메일 접수는 영향이 없다. 고르는 길: ① 이대로 켠다(막히면 메일로 처리)
+> ② 손님 폼용 주소와 관리자 로그인용 주소를 나눈다(관리자 주소는 `config.json` 에 싣지 않음 — 한 프로젝트의 배포 두 개는 잠금 캐시를 같이 쓰므로
+>    공개 주소 쪽에서 `leadLogin` 을 막는 코드 변경이 함께 필요하다)
+> ③ 잠금 방식을 바꾼다. 이 저장소는 아직 ①의 동작 그대로다 — 대표 결정 뒤 서버를 고친다.
+
+## 현장웹(hyeonjang)에서 부를 때
+
+현장웹은 같은 출처(`https://01023978629.github.io`)의 다른 경로라, 접수함 화면(`lead-inbox.html`)과 똑같은 방식으로 부르면 됩니다.
+
+- 요청: `POST <exec 주소>`, 헤더 `Content-Type: text/plain;charset=utf-8` 하나만(프리플라이트 없는 단순 요청), `redirect: 'follow'`, `credentials: 'omit'`.
+  본문은 JSON 문자열 `{ action, ts, payload, sessionToken? }`. Apps Script 는 302 → `script.googleusercontent.com` 으로 넘기고 두 응답 모두
+  `Access-Control-Allow-Origin: *` 를 붙인다(2026-11-19 포털 서버 `portalHealth` 로 확인). 쿠키를 쓰지 않으므로 출처·쿠키 문제는 없다.
+- 응답은 HTTP 200 + `{ ok: true, ... }` 또는 `{ ok: false, error: '<코드>' }` — HTTP 상태가 아니라 `ok` 로 판정한다.
+- `leadLogin` `{ payload: { adminCode } }` → `{ sessionToken, expiresAt(ms) }`. 실패 5번이면 **전역으로** 15분 잠긴다(사람 한 명 기준이 아니다) —
+  자동 재시도·저장된 값 반복 시도를 하지 말 것. 토큰은 메모리·sessionStorage 에만, 8시간 유효.
+- 이후 호출은 최상위에 `sessionToken` 을 넣는다. `leadMe` → `{ expiresAt }`, `leadLogout` → `{ loggedOut: true }`.
+- `leadList` `{ payload: { status: '전체'|'신규'|'승인'|'보류'|'거절' } }` → `{ leads: [...최근 200건], total, counts }`.
+  각 lead 는 시트 `문의` 열 이름 그대로의 문자열: `leadId, receiptNo, receivedAt, status, decidedAt, name, phone, type, service, region, area, scope,
+  works, budget, movein, live, symptoms, purpose, visit, memo, source, sourcePage, ctaId, utm, emailDelivered, message, extra, updatedAt`.
+  `message` 는 메일 본문과 같은 `[만물인테리어 상담 신청]` 형식이라 웹 업무 연결 파서를 그대로 쓸 수 있다. `service` 는 `인테리어`·`누수`·`관리사무소`·`A/S·하자`.
+- `leadGet` `{ payload: { leadId } }` → `{ lead, history: [{ at, action, from, to, memo, actor }] }`.
+- `leadDecide` `{ payload: { leadId, decision: '승인'|'보류'|'거절', memo, requestId: <UUID v4> } }` → `{ lead }`. 같은 `requestId` 재전송은
+  `{ lead, duplicate: true }`. 전이: 신규→승인/보류/거절, 보류→승인/거절, 거절→보류. 승인은 되돌리지 않는다. 거절은 `memo` 필수.
+- 오류 코드: `not-configured`, `invalid-credentials`, `rate-limited`, `session-expired`, `invalid-input`, `invalid-transition`, `not-found`, `bad-request`, `server-error`.
 
 ## 새 문의 알림 메일 (선택)
 

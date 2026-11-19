@@ -137,6 +137,23 @@ const manifest = JSON.parse(files.manifest);
 check(manifest.timeZone === 'Asia/Seoul' && manifest.webapp && manifest.webapp.access === 'ANYONE_ANONYMOUS' && manifest.webapp.executeAs === 'USER_DEPLOYING', 'appsscript.json 이 서울 시간대·익명 접근·배포자 실행이 아닙니다.');
 check(!/DriveApp|APP_TOKEN|OFFICE_SESSION_SECRET|PHOTO_/.test(files.server + files.pure), '접수함 서버가 기존 사진 중계·직원 포털 Apps Script 의 속성이나 Drive 를 건드립니다(별개 프로젝트여야 함).');
 
+// 대표 설치 입구(2026-11-19): 끝에 '_' 가 붙은 함수는 편집기 함수 목록에 안 보인다 — 공개 함수 leadInboxSetup() 하나로
+// 시트 머리글과 매일 정리 트리거를 함께 만든다. 웹 action 이 아니어야 하고, README·대표 안내가 이 이름을 써야 한다.
+{
+  const setupBody = (/function leadInboxSetup\(\) \{([\s\S]*?)\n\}/.exec(files.server.replace(/\r\n/g, '\n')) || [])[1] || '';
+  check(/leadInboxSetupSheets_\(\)/.test(setupBody) && /leadInboxInstallTrigger_\(\)/.test(setupBody), '편집기 입구 leadInboxSetup() 이 시트 준비와 트리거 설치를 함께 하지 않습니다.');
+  check(!serverActionList.includes('leadInboxSetup'), '설치 입구가 웹 action 으로 열려 있습니다.');
+  check(/`leadInboxSetup`/.test(files.readme), '접수함 README 설치 순서가 편집기에서 고를 수 있는 leadInboxSetup 을 안내하지 않습니다.');
+  const guidePath = 'docs/운영/문의접수함-켜기.md';
+  const guide = fs.existsSync(path.join(ROOT, guidePath)) ? read(guidePath) : '';
+  check(guide, `대표용 접수함 켜기 안내(${guidePath})가 없습니다.`);
+  if (guide) {
+    for (const name of PROPERTY_NAMES) check(guide.includes(name), `대표 안내에 스크립트 속성 ${name} 이름이 없습니다.`);
+    check(/`leadInboxSetup`/.test(guide) && /모든 사용자/.test(guide) && /되돌리는 법/.test(guide) && /LEAD_INBOX_ENABLED` 를 `0`/.test(guide), '대표 안내에 설치 입구·배포 권한·되돌리는 법이 빠졌습니다.');
+    check(!/AKfycb|\/macros\/s\/[A-Za-z0-9_-]{10,}/.test(guide), '대표 안내에 실제 배포 주소가 적혀 있습니다(값 없이 써야 합니다).');
+  }
+}
+
 /* ⑤ Pages 경계·처리방침·배포 게이트 */
 const publicFiles = new Set(expectedPublicFiles(ROOT).map(({ relative }) => relative));
 for (const relative of ['lead-inbox.html', 'css/lead-inbox.css', 'js/lead-inbox-api.js', 'js/lead-inbox.js']) check(publicFiles.has(relative), `Pages 공개 허용목록에 ${relative} 가 없습니다.`);

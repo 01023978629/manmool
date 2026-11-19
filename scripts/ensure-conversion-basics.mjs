@@ -305,6 +305,28 @@ check(/function syncLeakShortcut/.test(inquiry)
   && /shortcutGo\.addEventListener\('click', \(\) => \{ showStep\(3\); \}\)/.test(inquiry),
   '누수 지름길이 연락처 단계로 이어지지 않는다', '누수 지름길이 연락처 단계로 연결');
 
+/* ⑧-6 시공했던 집의 A/S·하자 손님도 연락처까지 바로 가는가 ------------- */
+// A/S 는 예전에 시공한 집의 사후 점검이라 평수·범위·예산 단계가 맞지 않는다.
+// 값은 'A/S' 그대로('·' 없이) — 현장웹이 메일 '공간' 줄 첫 칸으로 A/S 관리에 넣는다(ensure-lead-route-parity ⑥).
+check(/<option value="A\/S">A\/S·하자 \(시공했던 집\)<\/option>/.test(inquiryFormHtml),
+  '상담 폼 공간 유형에 A/S·하자(값 A/S) 선택지가 없다', '상담 폼 A/S·하자 선택지');
+check(/id="asShortcut"[^>]*hidden/.test(inquiryFormHtml) && /id="asShortcutGo"/.test(inquiryFormHtml)
+  && /function syncAsGuide/.test(inquiry)
+  && /asShortcutGo\.addEventListener\('click', \(\) => \{ showStep\(3\); \}\)/.test(inquiry)
+  && /typeSel\.addEventListener\('change', syncTypeGuides\)/.test(inquiry),
+  'A/S·하자 손님용 연락처 지름길이 없거나 연락처 단계로 이어지지 않는다', 'A/S 지름길이 연락처 단계로 연결');
+// 지름길은 1단계 지역 칸을 건너뛴다 — 현장웹 A/S 접수에서 현장 짝을 찾는 열쇠인 단지·동네도 요청 칸에서 묻는다(동·호수는 묻지 않음).
+check(/id="iMemoAsHint"[^>]*hidden[^>]*>[^<]*<b>어느 아파트\(단지\)·동네인지, 언제 시공한 곳인지, 어떤 증상인지<\/b>/.test(inquiryFormHtml)
+  && /어느 아파트\(단지\)·동네인지, 언제 시공한 곳인지, 어떤 증상인지/.test(inquiry),
+  'A/S 문의의 요청 내용 칸이 단지·동네, 시공 시기, 증상을 묻지 않는다', 'A/S 요청 내용 안내(단지·동네·시공 시기·증상)');
+// 지름길 문구가 실제 흐름과 맞는가 — 건너뛰는 것은 평수·공사 범위(1·2단계)다. 3단계 첫 칸이 예산이라 '예산이 필요 없다'고 쓰지 않는다.
+check(/id="asShortcut"[^>]*>\s*만물인테리어에서 시공한 집의 A\/S·하자는 평수·공사 범위를 건너뛰셔도 됩니다/.test(inquiryFormHtml)
+  && !/id="asShortcut"[^>]*>[^<]*예산/.test(inquiryFormHtml),
+  'A/S 지름길 문구가 실제 흐름(평수·범위만 건너뜀, 다음 칸은 예산)과 다르거나 누가 시공한 집인지 밝히지 않는다', 'A/S 지름길 문구 = 실제 흐름');
+// 예상견적 챗봇이 유형을 바꿔도(manmul:estimate) 누수·A/S 안내가 따라 바뀐다.
+check(/syncTypeGuides\(\)/.test((/function prefillFromEstimate\(a\) \{([\s\S]*?)\r?\n  \}/.exec(inquiry) || [])[1] || ''),
+  '예상견적이 유형을 바꿔도 누수·A/S 안내가 그대로 남는다', '예상견적 유형 변경 → 안내 동기화');
+
 /* ⑨ 블로그 목록이 JS 없이도 보인다 ------------------------------------ */
 // blog.html 은 sitemap 에 홈 다음 순위로 올라 있는데, 정적 HTML 에 h1 도 글 링크도 없으면
 // 크롤러에겐 빈 페이지고 8편으로 넘어갈 경로 자체가 없다.

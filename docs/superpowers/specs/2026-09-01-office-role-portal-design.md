@@ -131,6 +131,8 @@ node scripts/configure-office-portal-api.mjs --url "https://script.google.com/ma
 
 연결을 중단할 때는 `node scripts/configure-office-portal-api.mjs --disable`을 사용한다. 기존 `office-api.json`은 공유 PIN 접수 포털용이므로 덮어쓰지 않는다.
 
+> 2026-11-19: 이 명령으로 바뀐 `office-portal-api.json` 을 그대로 커밋해 PR 로 올린다. 예전처럼 배포 워크플로가 주소를 주입하지 않는다 — 저장소 값이 곧 라이브 값이다(`scripts/ensure-office-portal.mjs` 가 주입 단계 재등장을 막는다).
+
 ## GitHub Pages 프레임 방어 한계
 
 GitHub Pages 정적 호스팅에서는 이 저장소가 포털 경로별 `X-Frame-Options` 또는 응답 헤더의 `Content-Security-Policy: frame-ancestors 'none'`를 직접 설정할 수 없다. HTML의 CSP `<meta>`에 `frame-ancestors`를 적는 방식도 응답 헤더와 동일한 보안 보장을 제공하지 않는다.
