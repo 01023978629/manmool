@@ -13,9 +13,13 @@
  *
  * 검사 방법: 소스에서 각 파일이 판정에 쓰는 설정 키를 뽑아 집합이 같은지 본다.
  *   새 전송 경로를 deliver() 에 추가하면서 admin 을 안 고치면 여기서 걸린다.
+ *
+ * 2026-11-19 추가(⑥): 상담 폼 '공간 유형' 값이 메일 '공간' 줄 첫 칸으로 그대로 가서 현장웹 웹 업무 연결이
+ *   분류할 수 있는가(A/S·하자 연동 약속 — 값 'A/S', '·' 금지). 폼과 현장웹 분류가 어긋나면 메일이 등록되지 않는다.
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -226,6 +230,44 @@ try {
   }
 }
 
+// ⑥ 현장웹 분류 약속(로컬 약속 목록) — 상담 폼 '공간 유형' 값이 메일 '공간' 줄 첫 칸으로 그대로 가는가 -------
+// 현장웹(hyeonjang) 웹 업무 연결의 webWorkClassify 는 메일 본문 '공간' 줄을 '·' 로 나눠 첫 칸으로
+// 서비스를 정한다: 주거·상업·리모델링 → 인테리어, 누수 → 누수·배관, A/S(별칭 AS·하자·하자보수) → A/S·하자.
+// 값 안에 '·' 가 있으면 첫 칸이 잘려 현장웹이 '모르는 유형'으로 붙여넣기를 거부한다(2026-11 A/S 연동 약속).
+// 주의: 아래 HYEONJANG_SPACE_TYPES 는 이 저장소에 적어 둔 **로컬 약속 목록**이다. 이 검사는 현장웹 코드나 라이브 현장웹을
+// 읽지 않으므로, 현장웹이 아직 그 유형을 모르는 상태에서 먼저 병합되는 것은 잡지 못한다(배포 순서는 사람이 확인한다).
+// 새 유형은 현장웹 분류를 먼저 **라이브에 배포**한 뒤(예: A/S 는 현장웹 v612) 아래 목록과 폼에 함께 더한다 —
+// 순서가 바뀌면 그 사이 메일이 현장웹에 등록되지 않는다. 병합 전에 라이브 현장웹에서 그 분류가 보이는지 PR 체크리스트에 남긴다.
+{
+  const HYEONJANG_SPACE_TYPES = ['주거', '상업', '리모델링', '누수', 'A/S'];
+  const indexSrc = read(path.join(ROOT, 'index.html'));
+  const select = (/<select id="iType" name="type">([\s\S]*?)<\/select>/.exec(indexSrc) || [])[1] || '';
+  const values = [...select.matchAll(/<option value="([^"]*)"/g)].map((m) => m[1]);
+  if (!values.length) fail.push('index.html 상담 폼에서 공간 유형(#iType) 선택지를 찾지 못했습니다');
+  for (const value of values) {
+    if (/·/.test(value)) fail.push(`상담 폼 공간 유형 값 '${value}' 에 '·' 가 있습니다 — 현장웹이 메일 '공간' 줄 첫 칸을 잘못 읽습니다(표시 글자에만 쓰세요)`);
+    if (!HYEONJANG_SPACE_TYPES.includes(value)) fail.push(`상담 폼 공간 유형 값 '${value}' 는 로컬 현장웹 분류 약속 목록(${HYEONJANG_SPACE_TYPES.join('·')}) 밖입니다 — 현장웹 webWorkClassify 를 먼저 라이브에 배포한 뒤 목록에 더하세요`);
+  }
+  if (!values.includes('A/S')) fail.push("상담 폼 공간 유형에 'A/S'(A/S·하자, 시공했던 집) 값이 없습니다 — 현장웹 A/S 관리 연동 약속");
+  // 실제 본문으로 확인한다: 공용 전송 모듈의 buildLeadText 를 돌려 '공간' 줄 첫 칸이 값 그대로인지 본다.
+  try {
+    const sandbox = { window: {} };
+    vm.runInNewContext(inquirySrc, sandbox, { filename: 'js/lead-transport.js' });
+    const buildLeadText = sandbox.window.ManmulLead && sandbox.window.ManmulLead.buildLeadText;
+    if (typeof buildLeadText !== 'function') throw new Error('window.ManmulLead.buildLeadText 가 없습니다');
+    for (const value of values) {
+      for (const sample of [{ area: 24, region: '대전 서구' }, { region: '대전 중구' }, {}]) {
+        const text = buildLeadText({ type: value, name: '검사', phone: '010-0000-0000', source: 'website', ...sample });
+        const spaceLine = text.split('\n').find((line) => line.startsWith('공간: ')) || '';
+        const first = spaceLine.slice('공간: '.length).split(/\s*·\s*/)[0].trim();
+        if (first !== value) fail.push(`유형 '${value}' 의 메일 '공간' 줄 첫 칸이 '${first}' 입니다 — 현장웹이 '${value}' 로 분류하지 못합니다`);
+      }
+    }
+  } catch (e) {
+    fail.push('js/lead-transport.js 의 buildLeadText 로 공간 줄을 확인하지 못했습니다: ' + e.message);
+  }
+}
+
 if (fail.length) {
   console.error('✗ 상담 접수 경로 판정 불일치 ' + fail.length + '건\n');
   fail.forEach((f) => console.error('  - ' + f));
@@ -233,4 +275,4 @@ if (fail.length) {
   process.exit(1);
 }
 
-console.log('✓ 상담 접수 경로 판정 일치 — deliver / backendConfigured / admin leadRoute 기준 동일');
+console.log('✓ 상담 접수 경로 판정 일치 — deliver / backendConfigured / admin leadRoute 기준 동일 · 공간 유형 첫 칸 = 로컬 현장웹 분류 약속 목록(라이브 현장웹은 사람이 확인)');

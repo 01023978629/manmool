@@ -119,6 +119,17 @@ test('설치 함수는 세 시트와 고정 머리글을 만들고 두 번 실�
   assert.throws(() => server.context.leadInboxSetupSheets_(), /different headers/);
 });
 
+// 2026-11-19: 끝에 '_' 가 붙은 함수는 편집기 함수 목록에 안 보인다 — 대표가 고를 공개 입구 leadInboxSetup() 하나로 설치를 끝낸다.
+test('편집기 입구 leadInboxSetup 은 시트와 매일 정리 트리거를 함께 만들고 웹 action 이 아니다', () => {
+  const server = makeServer();
+  assert.equal(server.context.leadInboxSetup(), 'ok');
+  assert.equal(server.context.leadInboxSetup(), 'ok');
+  assert.deepEqual([...server.sheets.keys()], ['문의', '이력', '세션']);
+  assert.equal(server.triggers.length, 1);
+  assert.equal(server.triggers[0].fn, 'leadInboxDailyPrune');
+  assert.deepEqual(server.call({ action: 'leadInboxSetup' }), { ok: false, error: 'bad-request' });
+});
+
 test('꺼져 있으면 health 만 답하고 접수·로그인은 not-configured 다', () => {
   const server = setup({ props: { LEAD_INBOX_ENABLED: '0' } });
   assert.deepEqual(server.call({ action: 'leadHealth' }), { ok: true, service: 'lead-inbox-v1', enabled: false });

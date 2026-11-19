@@ -219,3 +219,37 @@ test('poster가 소스와 산출물 양쪽에서 빠져도 남은 공개 사례 
     fs.writeFileSync(output, bytes);
   }
 });
+
+// 2026-11-19: admin.html·case-new.html 은 로그인 없이 공개 주소에서 열리던 내부 화면이라 공개 산출물에서 뺐다.
+// 파일은 저장소에 남고(로컬에서 연다), 산출물·허용목록에는 다시 들어갈 수 없다.
+test('로컬 전용 내부 화면(admin·case-new)은 저장소에 있어도 허용목록·산출물에 없다', () => {
+  const localOnly = ['admin.html', 'case-new.html', 'js/admin.js', 'js/case-new.js', 'js/case-store.js', 'js/content-editor.js', 'css/admin.css', 'css/case-new.css'];
+  assert.deepEqual([...policy.LOCAL_ONLY_FILES].sort(), [...localOnly].sort());
+  for (const relative of localOnly) assert.equal(fs.existsSync(path.join(ROOT, ...relative.split('/'))), true, `저장소에서 지워졌다: ${relative}`);
+  const expected = new Set(policy.expectedPublicFiles(ROOT).map(({ relative }) => relative));
+  for (const relative of localOnly) assert.equal(expected.has(relative), false, `공개 허용목록에 들어 있다: ${relative}`);
+
+  // 허용목록만 복사한 사본에 로컬 전용 파일을 넣어도 산출물로 가지 않는다.
+  for (const relative of localOnly) write(relative, '<!-- local only -->');
+  try {
+    buildPagesArtifact(tempRoot, artifactRoot);
+    for (const relative of localOnly) assert.equal(fs.existsSync(path.join(artifactRoot, ...relative.split('/'))), false, `산출물에 들어갔다: ${relative}`);
+    assert.deepEqual(verifyPagesArtifact(tempRoot, artifactRoot), []);
+    // 누가 산출물에 직접 넣으면 검증이 막는다.
+    write('_site/admin.html', '<!-- leaked -->');
+    const failures = verifyPagesArtifact(tempRoot, artifactRoot);
+    assert.ok(failures.some((item) => /로컬 전용 내부 화면이 공개 산출물에 포함됨: admin\.html/.test(item)), failures.join('\n'));
+  } finally {
+    for (const relative of localOnly) fs.rmSync(path.join(tempRoot, ...relative.split('/')), { force: true });
+    fs.rmSync(path.join(artifactRoot, 'admin.html'), { force: true });
+  }
+});
+
+test('js/ 에 공개·로컬 전용 어느 목록에도 없는 파일이 생기면 빌드가 멈춘다', () => {
+  write('js/unlisted-extra.js', '// unlisted');
+  try {
+    assert.throws(() => policy.expectedPublicFiles(tempRoot), /명시적 허용목록/);
+  } finally {
+    fs.rmSync(path.join(tempRoot, 'js', 'unlisted-extra.js'), { force: true });
+  }
+});

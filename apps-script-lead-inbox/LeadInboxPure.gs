@@ -64,7 +64,9 @@ function leadPureNormalizeCreate_(payload) {
   if (payload.privacyConsent !== true && payload.consent !== true) return { ok: false, error: 'consent_required', field: 'privacyConsent' };
   var name = leadPureText_(payload.name, LEAD_TEXT_LIMITS.name);
   var type = leadPureText_(payload.type, LEAD_TEXT_LIMITS.type);
-  var service = (type === '누수' || payload.source === 'leak-page') ? '누수'
+  // A/S·하자(상담 폼 유형 값 'A/S', 2026-11-19 현장웹·만물웹 공통 약속)는 인테리어로 묶지 않고 따로 표시한다.
+  var service = type === 'A/S' ? 'A/S·하자'
+    : (type === '누수' || payload.source === 'leak-page') ? '누수'
     : (payload.source === 'office-pilot' ? '관리사무소' : '인테리어');
   var row = {
     leadId: leadId.toLowerCase(),

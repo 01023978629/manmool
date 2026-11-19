@@ -90,6 +90,57 @@ test('①-2 지름길을 누르면 평수·범위·항목을 건너뛰고 연락
   await page.context().close();
 });
 
+// A/S 연동 약속(2026-11-19): 시공했던 집의 A/S·하자도 평수·예산이 맞지 않는다 — 누수처럼 연락처로 바로 가고,
+// 요청 내용 칸은 '언제 시공한 곳인지, 어떤 증상인지'를 묻고, 메일 '공간' 줄 첫 칸은 정확히 'A/S' 다.
+test('①-3 A/S·하자를 고르면 연락처 지름길이 나오고 공간 첫 칸 A/S 로 접수된다', async () => {
+  const page = await openForm();
+  assert.equal(await visible(page, '#asShortcut'), false, 'A/S 가 아닌데 A/S 지름길이 보인다');
+  const defaultPlaceholder = await page.getAttribute('#iMemo', 'placeholder');
+  await page.selectOption('#iType', 'A/S');
+  await page.waitForTimeout(200);
+  assert.equal(await visible(page, '#asShortcut'), true, 'A/S 를 골랐는데 지름길이 안 보인다');
+  assert.equal(await visible(page, '#leakShortcut'), false, 'A/S 인데 누수 지름길이 보인다');
+  assert.match(await page.getAttribute('#iMemo', 'placeholder'), /언제 시공한 곳인지, 어떤 증상인지/);
+  // 유형을 되돌리면 안내도 원래대로 돌아간다
+  await page.selectOption('#iType', '주거');
+  await page.waitForTimeout(200);
+  assert.equal(await visible(page, '#asShortcut'), false, '유형을 되돌렸는데 A/S 지름길이 남아 있다');
+  assert.equal(await page.getAttribute('#iMemo', 'placeholder'), defaultPlaceholder, '유형을 되돌렸는데 요청 내용 안내가 A/S 그대로다');
+  // 예상견적 챗봇이 유형을 주거로 바꿔도(manmul:estimate) A/S 안내가 따라 사라진다
+  await page.selectOption('#iType', 'A/S');
+  await page.waitForTimeout(200);
+  assert.equal(await visible(page, '#asShortcut'), true, '다시 A/S 를 골랐는데 지름길이 안 보인다');
+  await page.evaluate(() => document.dispatchEvent(new CustomEvent('manmul:estimate', { detail: { type: '주거' } })));
+  await page.waitForTimeout(200);
+  assert.equal(await page.evaluate(() => document.getElementById('iType').value), '주거', '예상견적 유형이 폼에 반영되지 않았다(전제 확인)');
+  assert.equal(await visible(page, '#asShortcut'), false, '예상견적이 유형을 주거로 바꿨는데 A/S 지름길이 남아 있다');
+  assert.equal(await page.getAttribute('#iMemo', 'placeholder'), defaultPlaceholder, '예상견적이 유형을 바꿨는데 요청 내용 안내가 A/S 그대로다');
+  assert.equal(await page.getAttribute('#iMemo', 'aria-describedby'), null, '예상견적이 유형을 바꿨는데 요청 칸이 A/S 안내를 계속 가리킨다');
+  await page.selectOption('#iType', 'A/S');
+  await page.waitForTimeout(200);
+
+  await page.click('#asShortcutGo');
+  await page.waitForTimeout(300);
+  assert.equal(await visible(page, '#iPhone'), true, 'A/S 지름길을 눌러도 연락처 칸이 안 나온다');
+  await page.fill('#iName', '테스트고객');
+  await page.fill('#iPhone', '010-1234-5678');
+  await page.locator('#nextStep').click();
+  await page.waitForTimeout(300);
+  assert.equal(await visible(page, '#iMemoAsHint'), true, 'A/S 요청 내용 안내(시공 시기·증상)가 안 보인다');
+  await page.fill('#iMemo', '작년 욕실 공사 · 줄눈 갈라짐');
+  await page.check('#iConsent');
+  await page.click('#submitInquiry');
+  await page.waitForSelector('.inquiry-done', { timeout: 9000 });
+
+  assert.equal(page.__sent.length, 1, '전송이 한 번 나가지 않았다: ' + JSON.stringify(page.__sent));
+  const p = page.__sent[0];
+  assert.equal(p.type, 'A/S');
+  assert.match(p.subject || '', /^\[홈페이지 상담\] 테스트고객 · A\/S$/);
+  const spaceLine = String(p.message || '').split(/\r?\n/).find((line) => line.startsWith('공간: ')) || '';
+  assert.equal(spaceLine.slice('공간: '.length).split(/\s*·\s*/)[0], 'A/S', '메일 공간 줄 첫 칸이 A/S 가 아니다: ' + spaceLine);
+  await page.context().close();
+});
+
 test('② 손님이 안 고른 항목은 사실처럼 전달되지 않는다', async () => {
   const page = await openForm();
   // 이름·연락처·동의만 채우고, 범위·항목·거주여부·시기는 손도 대지 않는다

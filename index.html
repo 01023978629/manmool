@@ -559,12 +559,20 @@
                 <option value="상업">상업 공간</option>
                 <option value="리모델링">리모델링</option>
                 <option value="누수">누수탐지·누수수리</option>
+                <option value="A/S">A/S·하자 (시공했던 집)</option>
               </select>
               <!-- 누수는 급한 일이다. 평수·범위·항목·예산·시기를 다 지나야 연락처가 나오면
                    그 전에 손님이 나간다. 유형을 누수로 고르면 연락처 단계로 바로 보낸다. -->
               <p class="type-shortcut" id="leakShortcut" hidden>
                 누수는 급하실 겁니다 —
                 <button type="button" class="btn btn-ghost btn-sm" id="leakShortcutGo">연락처만 남기고 바로 접수</button>
+              </p>
+              <!-- A/S·하자는 예전에 시공한 집의 사후 점검이라 평수·범위·예산 단계가 맞지 않는다 — 누수처럼 연락처로 바로 보낸다.
+                   값 'A/S' 에는 '·' 를 넣지 않는다. 현장웹 웹 업무 연결이 메일 '공간' 줄을 '·' 로 나눠 첫 칸('A/S')으로
+                   A/S 관리에 넣는다(현장웹·만물웹 공통 약속 — scripts/ensure-lead-route-parity.mjs 가 지킨다). -->
+              <p class="type-shortcut" id="asShortcut" hidden>
+                만물인테리어에서 시공한 집의 A/S·하자는 평수·공사 범위를 건너뛰셔도 됩니다 —
+                <button type="button" class="btn btn-ghost btn-sm" id="asShortcutGo">연락처만 남기고 바로 접수</button>
               </p>
             </div>
             <div class="field">
@@ -667,6 +675,7 @@
             <div class="field">
               <label for="iMemo">추가 요청 (선택)</label>
               <textarea id="iMemo" name="memo" rows="3" placeholder="원하시는 스타일, 특이사항 등을 알려주세요."></textarea>
+              <small class="field-hint" id="iMemoAsHint" hidden>A/S·하자 문의는 <b>어느 아파트(단지)·동네인지, 언제 시공한 곳인지, 어떤 증상인지</b> 적어 주시면 방문 준비가 빨라집니다(동·호수는 적지 않으셔도 됩니다).</small>
             </div>
             <label class="consent">
               <input type="checkbox" id="iConsent" name="consent" required />
@@ -743,7 +752,7 @@
   <script src="js/simulator.js?v=20260727-sim4"></script>
   <script src="js/lookbook.js?v=20260728-lookbook1"></script>
   <script src="js/lead-transport.js?v=20260830-followup1"></script>
-  <script src="js/inquiry.js?v=20260901-webbridge1"></script>
+  <script src="js/inquiry.js?v=20261119-as1"></script>
   <script src="js/hj-link.js?v=20260719-fixes"></script>
   <script src="js/service-nav.js?v=20260906-services" defer></script>
 </body>

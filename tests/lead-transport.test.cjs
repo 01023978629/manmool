@@ -878,3 +878,31 @@ test('후기(type 후기)는 별점·공사 종류·현장·후기·공개 동�
   assert.equal(await loadLead({ fetch: fetchImpl }).lead.deliver(formsConfig('web3forms'), { type: '누수', name: 'SAFE_NAME', phone: '01012345678' }), true);
   assert.match(formRequests[1].subject, /^\[홈페이지 상담\] SAFE_NAME · 누수$/);
 });
+
+// A/S 연동 약속(현장웹·만물웹 공통, 2026-11-19): 상담 폼 '공간 유형' 값 'A/S' 는 메일 '공간' 줄의 첫 칸이 정확히
+// 'A/S' 여야 한다. 현장웹 webWorkClassify 는 그 줄을 '·' 로 나눠 첫 칸으로 서비스(as, 표시 'A/S·하자')를 정한다.
+test('A/S·하자 문의는 공간 줄 첫 칸이 정확히 A/S 이고 Web3Forms 제목·본문에 그대로 실린다', async () => {
+  const { lead } = loadLead();
+  for (const [sample, expected] of [
+    [{ region: 'SAFE_REGION' }, '공간: A/S · SAFE_REGION'],
+    [{ area: 24, region: 'SAFE_REGION' }, '공간: A/S · 24평 · SAFE_REGION'],
+    [{}, '공간: A/S'],
+  ]) {
+    const text = lead.buildLeadText({ type: 'A/S', name: 'SAFE_NAME', phone: '01012345678', ...sample });
+    const spaceLine = text.split('\n').find((line) => line.startsWith('공간: '));
+    assert.equal(spaceLine, expected);
+    assert.equal(spaceLine.slice('공간: '.length).split(/\s*·\s*/)[0], 'A/S');
+  }
+
+  const formRequests = [];
+  const fetchImpl = async (url, options) => {
+    formRequests.push(JSON.parse(options.body));
+    return response(200, '{"success":true}');
+  };
+  const payload = { type: 'A/S', name: 'SAFE_NAME', phone: '01012345678', region: 'SAFE_REGION', memo: 'SAFE_MEMO', source: 'website', privacyConsent: true };
+  assert.equal(await loadLead({ fetch: fetchImpl }).lead.deliver(formsConfig('web3forms'), payload), true);
+  assert.match(formRequests[0].subject, /^\[홈페이지 상담\] SAFE_NAME · A\/S$/);
+  assert.match(formRequests[0].message, /^공간: A\/S · SAFE_REGION$/m);
+  assert.match(formRequests[0].message, /^메모: SAFE_MEMO$/m);
+  assert.equal(formRequests[0].type, 'A/S');
+});

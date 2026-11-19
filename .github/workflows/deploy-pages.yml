@@ -5,31 +5,35 @@ name: Deploy to GitHub Pages
 # 러너가 배정되기도 전에 2초 만에 거부됐다 — 2026-07-26~27 에 12번 연속 빨간불(main 은 같은 워크플로로 매번 성공).
 # 성공할 수 없는 트리거를 두면 빨간불이 일상이 되고, 진짜 고장을 놓치게 된다.
 # 작업 브랜치 내용을 실제로 보려면 main 에 병합해야 한다.
+#
+# 2026-11-19: main 으로 가는 PR 에서도 같은 검사(verify job)를 돈다. verify 는 github-pages 환경을 쓰지 않으므로
+# 위의 '환경이 작업 브랜치를 거부' 문제가 없다. 배포(deploy job)는 main 의 push·수동 실행에서만 한다.
+# 예전에는 e2e 가 병합한 뒤 main 에서 처음 돌아, 하나라도 깨지면 main 이 빨간불이 되고 뒤따르는 사례 PR 배포가 모두 막혔다.
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
+# 기본은 읽기만. Pages 쓰기·OIDC 토큰은 deploy job 에만 준다(PR 검사에는 쓰기 권한이 없다).
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# 동시에 하나의 배포만 진행 (진행 중 배포는 취소하지 않음)
+# 배포는 동시에 하나만 진행한다(진행 중 배포는 취소하지 않음). PR 검사는 PR 마다 따로 묶고, 새 커밋이 오면 이전 검사를 취소한다.
+# PR 검사가 'pages' 묶음에 들어가면 대기 중인 main 배포를 밀어낼 수 있어서 묶음을 나눈다.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('pages-pr-{0}', github.event.pull_request.number) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  deploy:
+  verify:
     # 2026-11-17: ubuntu-latest 가 ubuntu-26.04 로 바뀐 뒤 index.html 1280px 의 '상담' 버튼이 41px 로 그려져
     # service-design 의 44px 검사에서 배포가 멈췄다(run 44069722749 — 사이트·검사 변경 없음, 글꼴 차이).
     # 마지막 성공 배포(11/12)와 같은 24.04 로 고정한다. 26.04 로 올리려면 그 버튼 최소 너비부터 고친다.
     runs-on: ubuntu-24.04
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -146,11 +150,10 @@ jobs:
           node --test apps-script-contract/test/*.mjs
           git diff --exit-code
 
-      - name: Enable management office employee portal for production artifact
-        run: >-
-          node scripts/configure-office-portal-api.mjs
-          --url https://script.google.com/macros/s/AKfycbwnlDRquyFw2T6JS3D0thRpnFW_u7ZbL3Pn3twtidhkgkr-QWKqrI3gZH9VCgY0Z-sR/exec
-          --enable
+      # 2026-11-19: 예전에는 여기서 configure-office-portal-api.mjs --enable 로 포털 주소를 배포 때만 주입했다
+      # (저장소 office-portal-api.json 은 꺼짐, 라이브는 켜짐 — 두 값이 달라 헷갈렸다). 이제 저장소 파일이 라이브와 같은 값을
+      # 그대로 들고 있고 주입 단계는 없다. 주소를 바꾸려면 그 스크립트로 저장소 파일을 고쳐 PR 로 올린다.
+      # ensure-office-portal.mjs 가 이 단계가 다시 생기지 않게 지킨다.
 
       - name: Build public allowlist artifact
         run: node scripts/build-pages-artifact.mjs
@@ -164,14 +167,29 @@ jobs:
           NODE_PATH: ${{ runner.temp }}/manmool-e2e/node_modules
         run: node --test tests/service-design.e2e.cjs tests/page-recovery.e2e.cjs tests/site-polish.e2e.cjs
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v6
-
       - name: Upload site artifact
+        # PR 검사·작업 브랜치 수동 실행은 여기까지 — 산출물은 main 을 배포할 때만 올린다(deploy job 과 같은 조건).
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v5
         with:
           # 고객 화면에 필요한 허용목록만 공개한다. 서버 소스·테스트·문서는 제외.
           path: "_site"
+
+  deploy:
+    # verify 가 모두 통과한 main 산출물만 공개한다. PR·작업 브랜치 수동 실행은 verify 만 돈다.
+    needs: verify
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
 
       - name: Deploy to GitHub Pages
         id: deployment

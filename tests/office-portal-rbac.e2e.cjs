@@ -79,6 +79,12 @@ async function openPortal(respond, { enabled = true } = {}) {
       if (response === NETWORK_ABORT) { await route.abort('failed'); return; }
       await route.fulfill({ contentType: 'application/json', body: JSON.stringify(response) });
     });
+  } else {
+    // 2026-11-19: 저장소 office-portal-api.json 은 이제 라이브 값(켜짐·실제 /exec 주소)이다. '꺼진 설정' 검사가 저장소 파일 값에
+    // 기대지 않도록 꺼짐 설정을 명시해서 주고, 혹시 Apps Script 쪽으로 나가는 요청이 있으면 실제 서버에 닿기 전에 막고 기록한다.
+    // (저장소 기본값이 '켜짐 + 정확한 /exec 형식'인지는 scripts/ensure-office-portal.mjs 가 지킨다.)
+    await page.route('**/office-portal-api.json', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ enabled: false, apiUrl: '' }) }));
+    await page.route('https://script.google.com/**', async (route) => { calls.push({ blockedUrl: route.request().url() }); await route.abort('failed'); });
   }
   return { page, calls, errors };
 }
@@ -97,13 +103,14 @@ before(async () => {
 after(async () => { if (browser) await browser.close(); if (server) await new Promise((resolve) => server.close(resolve)); });
 
 test('기본 설정은 관리자 발급 인증번호 로그인을 비활성화하고 mock/demo 로그인을 제공하지 않는다', async () => {
-  const { page, errors } = await openPortal(async () => { throw new Error('endpoint must not be called'); }, { enabled: false });
+  const { page, calls, errors } = await openPortal(async () => { throw new Error('endpoint must not be called'); }, { enabled: false });
   await page.goto(`${origin}/office-login.html`);
   await page.waitForFunction(() => document.getElementById('portalConfigNotice').textContent.includes('준비'));
   assert.equal(await page.locator('#portalLoginButton').isDisabled(), true);
   assert.match(await page.locator('#portalConfigNotice').innerText(), /준비/);
   assert.equal(await page.getByRole('link', { name: '기존 접수 포털 열기' }).getAttribute('href'), 'office-request.html');
   assert.equal(await page.locator('html').getAttribute('data-office-frame-pending'), null);
+  assert.deepEqual(calls, [], '꺼진 설정인데 Apps Script 주소로 요청이 나갔다');
   assert.deepEqual(errors, []); await page.close();
 });
 
