@@ -1,4 +1,5 @@
 // Read-only localhost verification; external services and submissions are blocked.
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), http = require('node:http');
@@ -30,7 +31,7 @@ after(async () => {
 async function openContext(t, width) {
   const context = await browser.newContext({ viewport: { width, height: 850 } });
   t.after(() => context.close());
-  await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.continue() : route.abort());
+  await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.fallback() : route.abort());
   return context;
 }
 for (const width of [320, 390, 1280]) {

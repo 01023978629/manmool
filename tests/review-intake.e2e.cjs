@@ -5,6 +5,7 @@
    ④ 허니팟이 차 있으면 보내지도 기억하지도 않는다
    ⑤ 전송 실패 → 다시 시도·문자·복사가 보이고 영구 저장소에는 아무것도 없다, 다시 시도 성공 → 성공 화면
    입력은 실제 키보드처럼 키 단위로도 넣는다(page.fill 은 input 이벤트를 한 번만 내서 결함을 숨긴 적이 있다). */
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');

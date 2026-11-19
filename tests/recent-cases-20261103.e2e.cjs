@@ -1,4 +1,5 @@
 // Read-only localhost verification of the November 2026 photo case (Seonbi 1-danji retaining-wall plaster repair); external requests and submissions are blocked.
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), http = require('node:http');
@@ -26,7 +27,7 @@ after(async () => {
   if (browser) await browser.close();
   if (server) await new Promise(resolve => server.close(resolve));
 });
-const localOnly = context => context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.continue() : route.abort());
+const localOnly = context => context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.fallback() : route.abort());
 
 for (const width of [320, 390, 1280]) {
   test(width + 'px Seonbi wall case: photos, captions, legacy route, consultation, related links and no overflow', { timeout: 240000 }, async t => {

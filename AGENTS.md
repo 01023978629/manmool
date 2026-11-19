@@ -207,6 +207,16 @@ Pages 배포, 소유자 인증 후 계정 발급은 각각 별도로 확인한�
 for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; done
 # 종료코드로 판정하라 — 일부 스크립트는 통과해도 표를 길게 출력한다
 ```
+**브라우저 e2e 는 실서버와 끊고 쓴다(2026-11-19).** playwright 를 쓰는 `tests/*.cjs` 의 첫 require 는
+`require('./helpers/e2e-offline.cjs');` 다. 이 helper 가 모든 브라우저 context 에서 `data/config.json` 의 `inbox`·`n8n`
+접수 경로만 끄고(저장소 값은 라이브 접수함이 켜진 운영 값이다) Apps Script·Web3Forms 로 가는 요청과, 시험이 받지 않은
+로컬 밖 쓰기 요청(POST 등)을 막는다. 막은 요청이 하나라도 있으면 그 시험 파일은 실패한다. 시험 라우트가 직접
+처리하지 않는 요청은 `route.continue()` 가 아니라 `route.fallback()` 으로 넘긴다 — continue 는 helper 를 건너뛴다.
+`page.request`·`route.fetch()` 같은 브라우저 밖 요청도 helper 를 거치지 않으므로 쓰지 않는다(로컬 서버 확인은 `node:http`).
+접수함을 시험하려면 page 라우트로 가짜 주소(`https://script.google.com/macros/s/fixture-…/exec`)를 켜고 그 주소를 직접 받는다.
+`scripts/ensure-e2e-offline.mjs` 가 지키고, 배포 워크플로가 첫 e2e 전에 돌린다. 계기: PR #238 병합 뒤 배포 검사의 e2e 가
+라이브 접수함에 시험 행 16개를 남기고 9건이 깨졌다.
+
 **블로그 글은 `posts/*.html` 을 손으로 만들지 마라.** 그건 생성물이다.
 정본은 `data/site.json` 의 `insights` 하나뿐이고, 거기에 항목을 넣은 뒤
 `python3 scripts/prerender-posts.py` 를 돌리면 `posts/<slug>.html` 과

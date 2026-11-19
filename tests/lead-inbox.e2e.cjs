@@ -1,5 +1,6 @@
 /* 문의 접수함(lead-inbox.html) 브라우저 회귀 — 서버(Apps Script)는 page.route 로 대신한다.
    실제 script.google.com 이나 Web3Forms 로는 아무것도 나가지 않는다. */
+const { siteConfigWithInboxOff } = require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
@@ -150,9 +151,10 @@ after(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
 });
 
-test('접수함이 설정되지 않았으면(기본값) 로그인 버튼이 잠기고 서버를 부르지 않는다', async () => {
-  const repoConfig = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'config.json'), 'utf8'));
-  const { page, context, calls, pageErrors } = await openInbox({ config: repoConfig });
+// 2026-11-19: 저장소 config.json 은 이제 라이브 접수함이 켜진 운영 값이다(PR #238). '꺼짐' 화면은 저장소 값에 기대지 않고
+// 저장소 설정에서 inbox 만 끈 값(helper 와 같은 변환)으로 본다 — 예전처럼 원본을 넣으면 라이브 주소로 로그인 화면이 열린다.
+test('접수함이 꺼져 있으면(inbox.enabled=false) 로그인 버튼이 잠기고 서버를 부르지 않는다', async () => {
+  const { page, context, calls, pageErrors } = await openInbox({ config: siteConfigWithInboxOff() });
   await page.goto(`${origin}/lead-inbox.html`);
   await page.locator('#inboxConfigNotice.is-off').waitFor();
   assert.match(await page.locator('#inboxConfigNotice').innerText(), /아직 연결되지 않았습니다/);

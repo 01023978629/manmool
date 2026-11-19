@@ -5,31 +5,38 @@ name: Deploy to GitHub Pages
 # 러너가 배정되기도 전에 2초 만에 거부됐다 — 2026-07-26~27 에 12번 연속 빨간불(main 은 같은 워크플로로 매번 성공).
 # 성공할 수 없는 트리거를 두면 빨간불이 일상이 되고, 진짜 고장을 놓치게 된다.
 # 작업 브랜치 내용을 실제로 보려면 main 에 병합해야 한다.
+#
+# 2026-11-19: main 으로 가는 PR 에서도 같은 검사(verify job)를 돈다. verify 는 github-pages 환경을 쓰지 않으므로
+# 위의 '환경이 작업 브랜치를 거부' 문제가 없다. 배포(deploy job)는 main 의 push·수동 실행에서만 한다.
+# 예전에는 e2e 가 병합한 뒤 main 에서 처음 돌아, 하나라도 깨지면 main 이 빨간불이 되고 뒤따르는 사례 PR 배포가 모두 막혔다
+# (PR #238 병합 뒤 e2e 9건이 main 에서 처음 깨졌다).
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
+# 기본은 읽기만. Pages 쓰기·OIDC 토큰은 deploy job 에만 준다(PR 검사에는 쓰기 권한이 없다).
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# 동시에 하나의 배포만 진행 (진행 중 배포는 취소하지 않음)
+# 'pages' 묶음은 배포하는 실행(main 의 push·수동 실행 — deploy job 과 같은 조건)만 쓴다. 동시에 하나만, 진행 중 배포는 취소하지 않는다.
+# 그 밖의 실행(PR 검사·작업 브랜치 수동 실행, 둘 다 verify 만 돈다)은 PR·브랜치마다 따로 묶고, 새 실행이 오면 이전 것을 취소한다.
+# GitHub 은 한 묶음에 대기 실행을 하나만 두고 새로 들어온 실행이 예전 대기 실행을 취소하므로, 검사 실행이 'pages' 에 들어가면
+# 대기 중인 main 배포를 밀어내 main 의 최신 커밋이 다음 push 까지 배포되지 않을 수 있다(2026-11-19 리뷰).
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ (github.event_name != 'pull_request' && github.ref == 'refs/heads/main') && 'pages' || format('pages-check-{0}', github.event.pull_request.number || github.ref) }}
+  cancel-in-progress: ${{ !(github.event_name != 'pull_request' && github.ref == 'refs/heads/main') }}
 
 jobs:
-  deploy:
+  verify:
     # 2026-11-17: ubuntu-latest 가 ubuntu-26.04 로 바뀐 뒤 index.html 1280px 의 '상담' 버튼이 41px 로 그려져
     # service-design 의 44px 검사에서 배포가 멈췄다(run 44069722749 — 사이트·검사 변경 없음, 글꼴 차이).
     # 마지막 성공 배포(11/12)와 같은 24.04 로 고정한다. 26.04 로 올리려면 그 버튼 최소 너비부터 고친다.
     runs-on: ubuntu-24.04
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -38,6 +45,14 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 22
+
+      # 2026-11-19: e2e 가 저장소 config.json 의 라이브 접수함으로 시험 문의를 보냈다(대표 시트에 시험 행 16개).
+      # 이제 모든 브라우저 검사는 tests/helpers/e2e-offline.cjs 를 먼저 불러 접수함·메일 접수 서버와 끊긴다.
+      # 그 배선(helper 선로딩·route.continue 금지·두 보호)을 첫 e2e 보다 먼저 확인한다. 아래 ensure 반복에서도 한 번 더 돈다.
+      - name: Verify browser tests stay offline
+        run: |
+          node scripts/ensure-e2e-offline.mjs
+          node --test tests/e2e-offline.test.cjs
 
       - name: Verify generated blog is current
         shell: bash
@@ -146,6 +161,9 @@ jobs:
           node --test apps-script-contract/test/*.mjs
           git diff --exit-code
 
+      # 배포할 산출물을 만드는 이 job 안에서, 빌드 전에 돈다. 하는 일은 러너 checkout 의 office-portal-api.json 한 파일을
+      # 아래 --url 값(이 공개 파일에 적힌 주소, 비밀값 아님)으로 고쳐 쓰는 것뿐이고 네트워크를 쓰지 않는다.
+      # PR 검사에서도 돌려 main 과 같은 산출물로 아래 화면 검사를 한다 — PR 에서는 산출물을 올리지도 배포하지도 않는다.
       - name: Enable management office employee portal for production artifact
         run: >-
           node scripts/configure-office-portal-api.mjs
@@ -164,14 +182,29 @@ jobs:
           NODE_PATH: ${{ runner.temp }}/manmool-e2e/node_modules
         run: node --test tests/service-design.e2e.cjs tests/page-recovery.e2e.cjs tests/site-polish.e2e.cjs
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v6
-
       - name: Upload site artifact
+        # PR 검사·작업 브랜치 수동 실행은 여기까지 — 산출물은 main 을 배포할 때만 올린다(deploy job 과 같은 조건).
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v5
         with:
           # 고객 화면에 필요한 허용목록만 공개한다. 서버 소스·테스트·문서는 제외.
           path: "_site"
+
+  deploy:
+    # verify 가 모두 통과한 main 산출물만 공개한다. PR·작업 브랜치 수동 실행은 verify 만 돈다.
+    needs: verify
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
 
       - name: Deploy to GitHub Pages
         id: deployment

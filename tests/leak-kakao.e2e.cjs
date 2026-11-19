@@ -5,6 +5,7 @@
       세 자리 모두 보이고 href 가 pf.kakao.com, 새 탭(noopener)
    ② kakao.ready=false → 세 자리 모두 hidden 이고 높이 0 (설정 적용 뒤에 본다)
    ③ 390px 에서 탭 크기 44px 이상, 하단 고정 .mobile-call-bar 에 가려지지 않는다 */
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
