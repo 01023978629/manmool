@@ -19,14 +19,15 @@ const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).
 // 2026-11-17: 새여울아파트 양변기 배관 삽입(11/17)·삼호아파트 앞베란다 우수관 방수(11/16)·열매마을 욕조 자리 방수·바닥 미장(11/14)·목양마을아파트 세면대 배관(11/10) 사례 4건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 86건 전체 객체·순서는 recent-cases-20261117 검사가 따로 고정한다.
 // 2026-11-18: 충남 공주 공장 컨테이너 옆 판넬 지붕·벽체(11/9, 인테리어) 사례 1건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 90건 전체 객체·순서는 recent-cases-20261118 검사가 따로 고정한다.
 // 2026-11-18: 청주 용암동 태산그린아파트 옥상 배수구 2곳·앞베란다 우수관(11/13) 사례 1건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 91건 전체 객체·순서는 recent-cases-20261118-taesan 검사가 따로 고정한다.
-const oldHash = 'a876c41beb54dc3afce821a24afe2a184fee62dc4b67747133e3536d9c8945ea';
+// 2026-11-21: 대전 유성구 관평동 하이츠빌아파트 확장부 난방 배관·미장(11/18, 인테리어) 사례 1건을 맨 앞에 추가(기존 글 수정 없음). 그 전 92건 전체 객체·순서는 recent-cases-20261121 검사가 따로 고정한다.
+const oldHash = 'badde01b9eb8ef8e9025f8e91818cd7b6c80e5008d19e4d4b277af78e2ac252e';
 const originalRestHash = '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487';
 const preserved = insights => {
   const old = insights.filter(a => a.slug !== slug);
-  return old.length === 91 && hash(old) === oldHash;
+  return old.length === 92 && hash(old) === oldHash;
 };
-test('방충망 외 91개 원고 객체·순서와 회사·시안 데이터가 그대로다', () => {
-  assert.equal(site.insights.length, 92);
+test('방충망 외 92개 원고 객체·순서와 회사·시안 데이터가 그대로다', () => {
+  assert.equal(site.insights.length, 93);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), originalRestHash);

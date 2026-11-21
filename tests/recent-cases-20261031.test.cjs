@@ -28,6 +28,8 @@ const sitemapLastmod = slug => (read('sitemap.xml').match(new RegExp(
 // re-pinned to 81 — recent-cases-20261118 pins the 90 entries before it.
 // 2026-11-18 (2): Cheongju Taesan Green roof drains + front-balcony rain pipe (11-13, leak) added at its date position (no
 // existing entry changed); re-pinned to 82 — recent-cases-20261118-taesan pins the 91 entries before it.
+// 2026-11-21: Gwanpyeong-dong Heightsville extension floor heating pipe + screed (11-18, interior) added first (no existing
+// entry changed); re-pinned to 83 — recent-cases-20261121 pins the 92 entries before it.
 test('every entry outside this batch keeps its object and order; mutation guards active', () => {
   assert.equal(site.insights.length, fixture.previousCount + slugs.length);
   assert.ok(preserved(site.insights));

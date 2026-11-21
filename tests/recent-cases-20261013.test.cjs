@@ -27,8 +27,10 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 // re-pinned to 86 — recent-cases-20261118 pins the 90 entries before it.
 // 2026-11-18 (2): Cheongju Taesan Green roof drains + front-balcony rain pipe (11-13, leak) added at its date position (no
 // existing entry changed); re-pinned to 87 — recent-cases-20261118-taesan pins the 91 entries before it.
+// 2026-11-21: Gwanpyeong-dong Heightsville extension floor heating pipe + screed (11-18, interior) added first (no existing
+// entry changed); re-pinned to 88 — recent-cases-20261121 pins the 92 entries before it.
 test('previous 71 complete entries and ordering, company/catalog preserved; mutation guards active', () => {
-  assert.equal(site.insights.length, 92);
+  assert.equal(site.insights.length, 93);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), fixture.otherDataHash);

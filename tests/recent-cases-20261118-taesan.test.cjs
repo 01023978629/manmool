@@ -7,6 +7,10 @@
 // slot and the blog/leak lastmod stay as they are. As a leak case it gets a leak landing card (after the 11/16 Samho card,
 // count 45 -> 46) and a leak index entry; the index budget went from 10KB to 16KB with this entry (ensure-leak-case-index).
 // Only the complex is public: no building/unit numbers, line, client (management office), cost, workers or location metadata.
+// 2026-11-21: the Gwanpyeong-dong Heightsville window-side extension floor case (11-18, interior: insulation, heating pipe and
+// screed; remaining work on a later visit) was added first (no existing entry changed): pinned set +1. It is the newest real
+// case, so it takes the blog featured slot and the blog.html lastmod is 2026-11-18; as an interior case it gets no leak card or
+// leak index entry, so leak.html keeps 2026-11-17 (the newest leak case). recent-cases-20261121 pins the 92 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
@@ -32,7 +36,7 @@ const leakCardSlugs = leak => {
 // Neighbours at the date position (list and leak landing cards) and the featured case that does not change.
 const BEFORE = 'yeolmae-bathtub-area-waterproof-floor-screed-20261114', AFTER = 'munchang-heating-manifold-valve-replacement-20261112';
 const CARD_BEFORE = 'samho-front-balcony-rain-pipe-waterproof-20261116';
-const FEATURED = 'saeyeoul-toilet-drain-pipe-insert-20261117';
+const FEATURED = 'heightsville-extension-floor-heating-screed-20261118';  // 2026-11-21: was the 11/17 Saeyeoul case (recent-cases-20261121)
 
 test('the 91 entries before this case keep their object and order; date position; mutation guards active', () => {
   assert.equal(site.insights.length, fixture.previousCount + slugs.length);
@@ -137,7 +141,8 @@ test('one case: 9 photos, work date, leak service, conservative public copy and 
   assert.ok(card.includes(`${a.place.name} · ${a.date} 촬영`));
   // The featured slot stays with the 11/17 case; blog/leak lastmod stays at the newest public post date.
   assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/${FEATURED}\\.html"`));
-  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), '2026-11-17', page);
+  // 2026-11-21: blog.html follows the newest post (11/18 Heightsville, interior); leak.html keeps the newest leak case (11/17).
+  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), page === 'blog.html' ? '2026-11-18' : '2026-11-17', page);
   // The leak index stays under the inquiry-form budget (10KB -> 16KB with this entry).
   assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);
 });
