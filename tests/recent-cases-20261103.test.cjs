@@ -15,6 +15,10 @@
 // 2026-11-18 (2): the Cheongju Yongam-dong Taesan Green roof-drain x2 + front-balcony rain-pipe case (11-13, leak) was added at
 // its date position (no existing entry changed): pinned set +1, leak cards 45 -> 46 (its card sits after the 11/16 Samho card);
 // no featured or lastmod change. recent-cases-20261118-taesan pins the 91 entries before it.
+// 2026-11-21: the Gwanpyeong-dong Heightsville window-side extension floor case (11-18, interior: insulation, heating pipe and
+// screed; remaining work on a later visit) was added first (no existing entry changed): pinned set +1. It is the newest real
+// case, so it takes the blog featured slot and the blog.html lastmod is 2026-11-18; as an interior case it gets no leak card or
+// leak index entry, so leak.html keeps 2026-11-17 (the newest leak case). recent-cases-20261121 pins the 92 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
@@ -101,7 +105,8 @@ test('Seonbi 1-danji retaining-wall plaster case: 9 photos, work date, conservat
   // blog.html and leak.html advertise the newest public post date.
   for (const page of ['blog.html', 'leak.html']) {
     const lastmod = (read('sitemap.xml').match(new RegExp(`<loc>https://01023978629\\.github\\.io/manmool/${page}</loc>\\s*<lastmod>([^<]+)</lastmod>`)) || [])[1];
-    assert.equal(lastmod, '2026-11-17', page);  // 2026-11-17: newest public post is now 11/17
+    // 2026-11-21: blog.html follows the newest post (11/18 Heightsville, interior); leak.html keeps the newest leak case (11/17).
+    assert.equal(lastmod, page === 'blog.html' ? '2026-11-18' : '2026-11-17', page);  // 2026-11-17: newest public post was 11/17
   }
 });
 

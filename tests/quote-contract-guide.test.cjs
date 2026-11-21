@@ -3,7 +3,7 @@
 /* Local read-only checks. Image pixels/redaction and source-document accuracy need separate visual review. */
 const { test } = require('node:test');
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
-const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'saeyeoul-toilet-drain-pipe-insert-20261117', DAY = '2026-09-09', CHECKED = '2026-09-08';
+const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comparison', FEATURED = 'heightsville-extension-floor-heating-screed-20261118', DAY = '2026-09-09', CHECKED = '2026-09-08';
 // 2026-09-25: 대표 요청과 사진별 세대 배정에 따라 삼호 사례를 2건으로 분리. 다른 50개 글 객체·순서는 별도 대조로 보존 확인.
 // 2026-10-01: 같은 현장의 녹물 배출·분배기 설치 사례 2건 추가. 기존 54건은 전용 회귀 검사로 별도 보존.
 // 2026-10-01: 충무로 두 글만 블로그형 원고로 수정. 기존 54개 원고·사진 보존은 chungmu-cases 검사로 유지.
@@ -30,7 +30,9 @@ const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comp
 // 객체·순서는 recent-cases-20261118 검사가 따로 고정한다. 11/9 는 11/17 새여울보다 오래돼 FEATURED 는 그대로다.
 // 2026-11-18: 청주 용암동 태산그린아파트 옥상 배수구 2곳·앞베란다 우수관(11/13) 사례 1건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 91건
 // 전체 객체·순서는 recent-cases-20261118-taesan 검사가 따로 고정한다. 11/13 은 11/17 새여울보다 오래돼 FEATURED 는 그대로다.
-const OLD_COUNT = 91, OLD_HASH = 'baee6b7e3a2c89ba92c60d63ab0870e0586aff2d90a15fd6083241b52c7739d0';
+// 2026-11-21: 대전 유성구 관평동 하이츠빌아파트 확장부 난방 배관·미장(11/18, 인테리어) 사례 1건을 맨 앞에 추가(기존 글 수정 없음). 그 전 92건
+// 전체 객체·순서는 recent-cases-20261121 검사가 따로 고정한다. 가장 최근 실제 사례가 11/18 하이츠빌아파트라 FEATURED 를 그 글로 바꿨다.
+const OLD_COUNT = 92, OLD_HASH = 'af08af487539c43a312e647c1a0bd458f65986b9d0acafe3df33cf402c4f5a1b';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');
