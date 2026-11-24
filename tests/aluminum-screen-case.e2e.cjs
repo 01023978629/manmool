@@ -2,6 +2,7 @@
 require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
+const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
 const fs = require('node:fs'), path = require('node:path'), http = require('node:http');
 const { chromium } = require('playwright');
 const ROOT = path.resolve(__dirname, '..');
@@ -61,7 +62,10 @@ for (const width of [320, 390, 1280]) {
     assert.equal(await page.locator('.post-cta .btn-ghost').getAttribute('href'), '../index.html#inquiry');
     const mapHref = await page.locator('.pp-map').getAttribute('href');
     assert.equal(mapHref, 'https://map.naver.com/p/search/' + encodeURIComponent(article.place.name));
-    assert.doesNotMatch(await page.locator('.post-body').innerText(), /36\.34|127\.39|목련아파트|\d+동\s*\d+호/);
+    const bodyText = await page.locator('.post-body').innerText();
+    assert.doesNotMatch(bodyText, /\d+동\s*\d+호/);
+    // 사진 위치 정보의 대략 좌표는 글자로 두지 않고 sha256 으로 대조한다(scripts/lib/hidden-terms.cjs).
+    { const hidden = findHidden(bodyText, 'screenSiteCoords', 'screenNeighbor'); assert.equal(hidden, null, describeHidden(hidden)); }
     await page.evaluate(() => scrollTo(0, 0));
     if (process.env.MANMOOL_SCREENSHOT_DIR) {
       fs.mkdirSync(process.env.MANMOOL_SCREENSHOT_DIR, { recursive: true });

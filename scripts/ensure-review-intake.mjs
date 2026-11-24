@@ -7,11 +7,17 @@
  *  2) 처리방침이 후기 항목을 밝히지 않는다.
  *  3) 대표가 data/site.json reviews 에 옮겨 적은 후기에 동·호수·전화가 남아 공개 페이지로 나간다.
  *  4) 고객 페이지 버튼이 다시 데모로 돌아가거나 푸터 링크·허용목록이 빠져 통로가 끊긴다.
+ * 2026-11-25 더함:
+ *  5) 표시 이름이 실명 그대로 공개된다 — reviews 의 name 은 성+○○ 꼴(또는 '고객')만(규칙은 scripts/new-review.mjs 한 곳).
+ *  6) 후기 글·이름·현장이 대문(js/main.js renderReviews)에서 escape 없이 innerHTML 로 들어간다.
+ *  7) 후기가 문의 접수함(Apps Script)으로 들어가 '인테리어' 상담 줄로 섞인다 — 후기는 메일로만(js/lead-transport.js).
+ *  8) 누수 페이지 후기 칸(leak.html, prerender-posts.py 생성)이 site.json 의 누수 후기 수와 다르거나 0건인데 열려 있다.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
+import { isMaskedDisplayName, REVIEW_SERVICES } from './new-review.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -28,6 +34,9 @@ const mypageJs = read('js/mypage.js');
 const policy = read('scripts/pages-artifact-policy.mjs');
 const css = read('css/review.css');
 const site = JSON.parse(read('data/site.json'));
+const mainJs = read('js/main.js');
+const leakHtml = read('leak.html');
+const prerender = read('scripts/prerender-posts.py');
 
 /* ① 페이지와 폼 요소 — 하나라도 빠지면 폼이 조용히 죽거나 동의 없이 나간다 */
 check(/<meta name="robots" content="noindex"/.test(html), 'review.html 에 noindex 가 없다 — 고객용 후기 폼이 검색에 나간다', 'noindex');
@@ -111,7 +120,45 @@ reviews.forEach((r, i) => {
   check(typeof r?.name === 'string' && r.name.trim() && typeof r?.space === 'string' && r.space.trim(), `${where} 에 표시 이름·현장이 없다`, `${where} 이름·현장`);
   const hit = PII_RULES.find(([, re]) => re.test([r?.name, r?.space, r?.text].join('\n')));
   check(!hit, `${where} 에 ${hit && hit[0]}로 보이는 값이 있다 — 공개 페이지에 그대로 나간다`, `${where} 개인정보 없음`);
+  check(isMaskedDisplayName(r?.name),
+    `${where} 표시 이름 "${r?.name}" 이 가려지지 않았다 — 성+○○(예: 홍○○) 또는 "고객" 만 공개한다(node scripts/new-review.mjs 가 가린다)`,
+    `${where} 이름 가림`);
+  check(REVIEW_SERVICES.includes(r?.service), `${where} service 가 leak/interior 가 아니다 — 누수 페이지 후기 칸이 고를 수 없다`, `${where} 분야`);
 });
+
+/* ⑧ 대문 후기 칸 — 손님 글은 escape 해서만 넣는다(태그·속성으로 새지 않게). 화면 동작은 tests/review-render.test.cjs. */
+const renderBody = (mainJs.match(/function renderReviews\(reviews\) \{([\s\S]*?)\n\}/) || [])[1] || '';
+check(/escapeContent\(r && r\.text\)/.test(renderBody) && /escapeContent\(r && r\.name\)/.test(renderBody) && /escapeContent\(r && r\.space\)/.test(renderBody)
+  && !/\$\{r\.(?:text|name|space)\}/.test(renderBody),
+  'js/main.js renderReviews 가 후기 글·이름·현장을 escape 없이 innerHTML 에 넣는다', '대문 후기 escape');
+check(/Number\.isInteger\(rating\) && rating >= 1 && rating <= 5/.test(renderBody), 'renderReviews 가 별점을 1~5 정수로 거르지 않는다', '대문 별점 거름');
+
+/* ⑨ 후기는 메일로만 — 접수함(LeadInboxPure.gs)에 후기 종류가 없어 '인테리어' 상담으로 섞인다(서버 수정·재배포 전까지). */
+check(/function inboxAccepts\(payload\) \{\s*return !\(payload && payload\.type === '후기'\);\s*\}/.test(transport)
+  && /const inboxOn = inboxAccepts\(payload\) && inboxConfigured\(config\);/.test(transport)
+  && /\(inboxAccepts\(payload\) && inboxConfigured\(config\)\)/.test(transport)
+  && /backendConfigured\(config, captured\.payload\)/.test(transport),
+  'js/lead-transport.js 가 후기(type 후기)를 문의 접수함으로도 보낸다 — 후기는 메일 경로로만', '후기 메일 전용');
+check(/LEAD\.backendConfigured\(CONFIG, payload\)/.test(js) && /LEAD\.backendConfigured\(CONFIG, REVIEW_KIND\)/.test(js) && /REVIEW_KIND = \{ type: '후기' \}/.test(js)
+  && !/LEAD\.backendConfigured\(CONFIG\)/.test(js),
+  'review.js 가 경로 판정에 후기 종류를 넘기지 않는다 — 접수함만 켜진 설정에서 "전달됨"으로 잘못 안내한다', '후기 경로 판정');
+check(/문의 접수함[^<]*기록하지 않고[^<]*이메일[^<]*로만 전달/.test(notice) && /성만 보이게 가려서/.test(notice),
+  '처리방침 후기 문단이 "접수함에 기록하지 않고 메일로만"·"이름은 성만" 을 밝히지 않는다', '방침: 메일 전용·이름 가림');
+check(/성만 보이게 가려서/.test(html), 'review.html 이 표시 이름을 성만 보이게 가린다고 알리지 않는다', '폼 이름 가림 안내');
+
+/* ⑩ 누수 페이지 후기 칸 — scripts/prerender-posts.py 가 site.json reviews 중 service leak 만 그린다. 0건이면 hidden. */
+const leakReviews = reviews.filter((r) => r && r.service === 'leak' && String(r.text || '').trim() && String(r.name || '').trim());
+const leakBlocks = leakHtml.split('<!-- leak-reviews:start').length - 1;
+const leakBlock = (leakHtml.match(/<!-- leak-reviews:start[\s\S]*?<!-- leak-reviews:end -->/) || [''])[0];
+check(leakBlocks === 1 && /<!-- leak-reviews:end -->/.test(leakBlock), 'leak.html 에 누수 후기 칸 표시(leak-reviews:start/end)가 정확히 한 벌이 아니다', '누수 후기 칸 한 벌');
+check(/id="leakReviews"/.test(leakBlock) && /href="review\.html"/.test(leakBlock), 'leak.html 누수 후기 칸(#leakReviews)·후기 남기기 링크가 없다', '누수 후기 칸 요소');
+const leakSectionTag = (leakBlock.match(/<section[^>]*id="leakReviews"[^>]*>/) || [''])[0];
+check(leakReviews.length ? !/\shidden(?=[\s>])/.test(leakSectionTag) : /\shidden(?=[\s>])/.test(leakSectionTag),
+  `leak.html 누수 후기 칸의 숨김 상태가 누수 후기 ${leakReviews.length}건과 맞지 않다 — python3 scripts/prerender-posts.py 를 돌려라`, '누수 후기 칸 숨김 상태');
+check((leakBlock.match(/<article class="leak-review">/g) || []).length === leakReviews.length,
+  `leak.html 누수 후기 카드 수가 site.json 누수 후기 ${leakReviews.length}건과 다르다 — python3 scripts/prerender-posts.py 를 돌려라`, '누수 후기 카드 수');
+check(/def write_leak_reviews\(reviews\)/.test(prerender) && /write_leak_reviews\(reviews\)\n/.test(prerender.replace(/\r\n/g, '\n')) && /esc\(text\)/.test(prerender) && /esc\(name\)/.test(prerender),
+  'scripts/prerender-posts.py 가 누수 후기 칸을 그리지 않거나 escape 하지 않는다', '누수 후기 생성기');
 
 if (fail.length) {
   console.error(`✗ 후기 수집 경로 ${fail.length}건 문제`);

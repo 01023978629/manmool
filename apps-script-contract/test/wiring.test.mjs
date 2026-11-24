@@ -538,7 +538,7 @@ section('5-1) 하자보증서도 같은 길로 끝까지 간다');
    고객은 자기가 무엇에 서명했는지 모른 채 서명하게 된다. */
 let wflow = null, wflowErr = null;
 const WR_BODY = {
-  site: '한밭우성아파트 107동 1302호',
+  site: '가상아파트 101동 1203호',
   scope: '욕실 방수·타일',
   doneAt: '2026-09-16',
   warranty: '방수 3년 · 급배수 등 설비 2년 · 그 밖의 마감 1년',
@@ -551,7 +551,7 @@ try {
   const c = { at: new Date().toISOString(), uaHash: 'ua', requestHash: 'rqw', actor: 'admin' };
   const made = ctx.createContract_({
     docKind: 'warranty',
-    title: '한밭우성아파트 107동 1302호 하자보증서',
+    title: '가상아파트 101동 1203호 하자보증서',
     customer: { name: '김확인', phone: '010-2222-3333' },
     body: WR_BODY
   }, c);

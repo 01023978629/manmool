@@ -59,7 +59,10 @@ jobs:
         run: |
           git ls-files --error-unmatch data/leak-case-index.json
           python3 scripts/prerender-posts.py
-          git diff --exit-code -- blog.html posts rss.xml data/leak-case-index.json
+          # 2026-11-25: leak.html 의 누수 후기 칸(leak-reviews 표시 사이)과 area/(대전 구별 현장 기록 쪽)도 생성물이다.
+          # area/ 는 새 쪽이 생기면 추적되지 않은 파일로 남으므로 git status 로도 본다.
+          git diff --exit-code -- blog.html posts rss.xml data/leak-case-index.json leak.html area
+          test -z "$(git status --porcelain -- area posts)"
 
       - name: Verify generated designs are current
         shell: bash
@@ -101,6 +104,7 @@ jobs:
           tests/inquiry-usability.e2e.cjs
           tests/inquiry-receipt.e2e.cjs
           tests/revenue-metadata.test.cjs
+          tests/lead-source-persist.test.cjs
           tests/revenue-conversion.e2e.cjs
           tests/hero-kakao.e2e.cjs
           tests/leak-kakao.e2e.cjs
@@ -158,6 +162,7 @@ jobs:
           node --test tests/remaining-cases.test.cjs
           node --test scripts/new-case-post.test.mjs
           node --test scripts/new-review.test.mjs
+          node --test tests/review-render.test.cjs
           node --test tests/leak-fee-range.e2e.cjs tests/review-intake.e2e.cjs
           node --test apps-script-contract/test/*.mjs
           git diff --exit-code

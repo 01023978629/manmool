@@ -27,6 +27,8 @@ export const LOCAL_ONLY_FILES = Object.freeze([
 ]);
 
 export const PUBLIC_TREE_RULES = new Map([
+  // 2026-11-25: area/ = 대전 구별 현장 기록 쪽(scripts/prerender-posts.py 생성, scripts/ensure-area-pages.mjs 검사).
+  ['area', /\.html$/i],
   ['assets', /\.(?:avif|gif|jpe?g|png|svg|webp|mp4|webm)$/i],
   ['css', /\.css$/i],
   ['designs', /\.html$/i],

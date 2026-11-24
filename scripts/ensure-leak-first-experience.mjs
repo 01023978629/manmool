@@ -210,15 +210,16 @@ check(/"datePublished":\s*"2026-08-09"/.test(insurancePost)
     && /<loc>https:\/\/01023978629\.github\.io\/manmool\/posts\/leak-insurance-guide\.html<\/loc>\s*<lastmod>2026-08-23<\/lastmod>/.test(sitemap),
   '누수 보험 글의 구조화 수정일 또는 sitemap lastmod가 2026-08-23으로 갱신되지 않았다',
   '누수 보험 글의 구조화 수정일·sitemap 갱신일 일치');
+// 2026-11-25: main.js·site-polish.css 를 고쳐(후기 escape·utm 유지·구별 기록 링크) 캐시 표시를 20261125-reviews1 로 올렸다.
 check(/styles\.css\?v=20260830-followup1/.test(index)
     && /brand-system\.css\?v=20260830-followup1/.test(index)
-    && /main\.js\?v=20260830-followup1/.test(index)
+    && /main\.js\?v=20261125-reviews1/.test(index)
     && /styles\.css\?v=20261002-editorial/.test(blog)
     && /brand-system\.css\?v=20260925-category-groups/.test(blog)
     && /blog\.js\?v=20261006-screen/.test(blog)
     && /styles\.css\?v=20261002-editorial/.test(insurancePost)
     && /brand-system\.css\?v=20261002-editorial/.test(insurancePost)
-    && [index, blog, leak, insurancePost].every(source => /site-polish\.css\?v=20261002-editorial/.test(source)),
+    && [index, blog, leak, insurancePost].every(source => /site-polish\.css\?v=20261125-reviews1/.test(source)),
   '변경된 CSS/JS의 캐시 버전이 갱신되지 않아 기존 방문자에게 이전 화면이 남을 수 있다',
   '누수 우선 CSS/JS 캐시 버전 갱신');
 

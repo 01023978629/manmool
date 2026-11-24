@@ -6,6 +6,27 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-11-25 후기 정리·문의 출처·대전 구별 현장 기록 (`claude/reviews-stats-area-20261125`, 로컬 후보)
+
+- **M1 후기**(`docs/reviews-20261125.md`): `new-review.mjs` 가 표시 이름을 성+○○ 로 가리고(`--service leak|interior` 필수), `ensure-review-intake` 가
+  가리지 않은 이름·escape 없는 `renderReviews`·접수함으로 새는 후기를 막는다. 후기(`type:'후기'`)는 **메일로만** 간다 — `js/lead-transport.js`
+  `inboxAccepts`(접수함 서버는 그대로, 재배포 없음). `leak.html` 에 누수 후기 칸(`#leakReviews`, `<!-- leak-reviews:start/end -->` 사이는
+  `prerender-posts.py` 생성물, 0건이면 hidden) — CI 생성물 비교에 `leak.html` 을 더했다. 실제 후기는 여전히 0건이다.
+- **M2 문의 출처(계정 없이)**: 인테리어 폼(`js/inquiry.js`)도 누수·파일럿 폼처럼 `captureLeadMetadata(location, 'index-inquiry-submit')` 로
+  유입 페이지·신청 단추·`utm_source/medium/campaign` 을 싣는다(`index.html` 이 `js/revenue-conversion.js` 를 먼저 읽는다). 메일 본문·접수함 `utm` 열로
+  채널별 문의 수를 센다. 대표용 링크 안내 `docs/운영/문의-출처-링크.md`(당근·네이버 블로그·카카오 채널 × 인테리어·누수), 처리방침
+  `#privacy-lead-source`. **GA4 등 계정형 도구는 넣지 않았다** — 새 검사 `ensure-lead-attribution` 이 배선·안내 링크(정본 코드로 실제 기록되는지)·
+  추적 도구 유입을 본다. 화면 확인은 `tests/inquiry-receipt.e2e.cjs` 새 시험(이 PC 에는 playwright 가 없어 CI 에서만 돈다).
+- **M3 대전 구별 현장 기록**(`docs/area-pages-20261125.md`): `area/daejeon-{jung,seo,yuseong,daedeok}-gu.html`(사례 5·9·5·8건) — `prerender-posts.py`
+  생성물, 정본은 옆 파일 `scripts/post-areas.json`(28건, 글에 '○구' 또는 그 구의 동이 글자로 있는 사례만 — 짐작 금지, insights 는 그대로라 해시 고정 변화 없음).
+  사례 3건 이상인 구만 쪽을 만든다(동구 1건은 쪽 없음). 블로그 목록·글 27편('모아 보기')·`index.html`/`leak.html` 지역 문구에서 링크, sitemap(lastmod = 그 구 사례 최신일, 손으로),
+  `PUBLIC_TREE_RULES` `area`, 사이트 무결성·아이콘·업체 신원 검사가 `area/` 도 본다. 새 검사 `ensure-area-pages`. **구가 글에 없는 대전 사례 32건은 대표 확인 목록**(그 문서).
+  새 사례 글에 '대전 ○구' 를 적으면 `post-areas.json` 에도 넣어야 검사가 통과한다.
+- **검토 반영(같은 날)**: 인테리어 폼은 처음 들어온 주소의 출처를 스크립트가 읽히는 순간 잡아 둔 사본으로 보내고, `main.js` 는 주소를 다시 쓸 때
+  (`currentPageUrl` — 시안 창 닫기·`MANMUL_HASH.build`) `?검색어` 를 지키며 가이드 상담 링크에 utm_* 를 잇는다(`tests/lead-source-persist.test.cjs`).
+  후기 기본 날짜는 한국 시각, 처리방침 시행일 2026-11-25, 구별 쪽 동 줄은 '글에 동 이름이 적힌 기록' 만 센다.
+  고친 js/css 의 캐시 표시는 `20261125-reviews1`(글·구별 쪽의 site-polish 는 생성기 `V_POLISH`) — 고정값 옮긴 곳은 `docs/reviews-20261125.md` '검토 반영'.
+
 ### 2026-11-21 대전 유성구 관평동 하이츠빌아파트 확장부 난방 배관·미장(11/18, 진행 중) 사례 1건 공개 후보
 
 `claude/case-heightsville-extension-floor-heating-screed-20261118`는 대표가 검토한 비공개 초안을 `published:true`로 더한다 —
@@ -218,6 +239,10 @@ Pages 배포, 소유자 인증 후 계정 발급은 각각 별도로 확인한�
 현장 앱은 자매 저장소 `01023978629/hyeonjang`. **사진 중계 서버 소스도
 저쪽(`hyeonjang/apps-script/`)이다 — 여기 것과 혼동 금지.**
 
+> **인수인계서는 저장소 밖(2026-11-25)**: 예전 `integrations/인수인계서.md`(협력사 이름·사업자번호·업체별 금액 포함)는 공개 저장소에서 빼고 대표 PC 에만 비공개로 둔다 — 다시 넣지 마라(`ensure-conversion-basics` 가 막는다).
+> 같은 이유로 `integrations/사장님-인계서.md`·`docs/운영/대표님-5분-답변지.md`(거래처 이름·거래 금액)도 뺐다. 공개 저장소에는 협력사·거래처 이름, 거래별 금액, 동·호수, 고객 정보를 두지 않는다 —
+> 검사가 그런 낱말을 알아야 하면 글자 대신 sha256 으로 대조한다(`scripts/lib/hidden-terms.cjs`, 낱말 목록은 대표 PC 비공개 인수인계서).
+
 ## 🔴 절대 금지
 
 1. **비밀값을 어디에도 넣지 마라.** `ADMIN_TOKEN`·`PEPPER`·API 키·고객 전화번호
@@ -356,6 +381,7 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 | `python3 scripts/prerender-designs.py` | 시안의 `tip`·`trendLabel` 을 고쳤다면 `designs/*.html` 8장이 옛 글을 들고 남는다. CI `Verify generated designs are current` 단계(`git diff --exit-code -- designs`, 2026-10-23 추가 — 그 전에는 CI 가 이 생성기를 돌리지 않아 잡지 못했다)가 잡는다 |
 | `sitemap.xml` 에 `posts/<slug>.html` 줄 | `ensure-site-integrity` 가 "sitemap 에 없다" 로 막는다 — **생성기가 손대지 않는다** |
 | `sitemap.xml` 의 `blog.html` `<lastmod>` | `ensure-weekly-leak-cases` 가 "목록의 최신 공개 글 수정일과 다르다" 로 막는다 |
+| (2026-11-25) 글에 '대전 ○구' 를 적었으면 `scripts/post-areas.json` 과 `sitemap.xml` 의 `area/daejeon-<구>.html` `<lastmod>` | `ensure-area-pages` 가 "post-areas.json 에 없다"·"lastmod 가 그 구 사례 최신일과 다르다" 로 막는다 |
 
 **목록 분야 필터(`case_group`)의 규칙은 두 곳에 따로 적혀 있다** — `scripts/prerender-posts.py`
 의 `case_group()` 과 `tests/case-finder.e2e.cjs` 의 `caseGroup()`. 검사가 생성기를 독립적으로
@@ -390,8 +416,9 @@ node --test apps-script-contract/test/*.mjs   # 파일 6개(node --test 는 13�
    (개인정보·공개)을 체크한다 → 상담 폼과 같은 `js/lead-transport.js` 로 `type:'후기'` 메일이 간다(제목
    `[홈페이지 후기]`, 본문은 `buildReviewText`). 보내기 전에 `js/pii-rules.js` 로 동·호수·전화·이메일을 막는다
    ('고객명' 규칙은 "김○○ 고객" 같은 표시 이름을 오탐하므로 제외 — 배포 검사와 같은 4종만 쓴다).
-2. 대표가 메일을 확인하고 `node scripts/new-review.mjs --rating 5 --name "김○○" --space "유성구 ○○아파트 · 욕실
-   리모델링" --text "…"` 로 `reviews` 맨 앞에 옮겨 적는다. 이 도구도 같은 규칙으로 거부한다. **넣는 순간 대문에
+2. 대표가 메일을 확인하고 `node scripts/new-review.mjs --rating 5 --name "홍길동" --service interior --space "유성구 ○○아파트 · 욕실
+   리모델링" --text "…"` 로 `reviews` 맨 앞에 옮겨 적는다(2026-11-25부터 이름은 성+○○ 로 가려 넣고, `--service leak|interior` 필수 —
+   누수 후기는 `python3 scripts/prerender-posts.py` 로 `leak.html` 후기 칸도 다시 그린다). 이 도구도 같은 규칙으로 거부한다. **넣는 순간 대문에
    공개되므로** 브랜치 → PR → 병합(대표 승인). 확인 연락처는 게시용이 아니다 — 메일에 `(비공개)` 로 찍히고
    `reviews` 에는 넣지 않는다. 받지 않은 후기를 지어내지 마라.
 3. `scripts/ensure-review-intake.mjs` 가 폼 요소·동의 2종 required·허니팟·규칙 정본 사용·영구 저장소 미사용·
@@ -401,8 +428,8 @@ node --test apps-script-contract/test/*.mjs   # 파일 6개(node --test 는 13�
 
 - `review.html` 은 `noindex` 라 sitemap 에 넣지 않는다. 새 공개 페이지는 `scripts/pages-artifact-policy.mjs`
   허용목록(`review.html`·`js/review.js`)에 있어야 배포된다 — 빠지면 조용히 404 다.
-- 현장 앱(`hyeonjang`) 문자 센터의 리뷰 요청 문자에 `https://01023978629.github.io/manmool/review.html` 주소를
-  넣는 일은 저쪽 저장소 작업이다(🅰, 아직 안 함). 네이버 플레이스가 생기면 그쪽 후기 링크도 같이 둔다.
+- 현장 앱(`hyeonjang`) 문자 센터의 리뷰 요청 문자는 `https://01023978629.github.io/manmool/review.html` 주소를 쓴다
+  (저쪽 `REVIEW_FALLBACK_URL`·`hjReviewLink()`, 2026-11-25 조사 때 확인). 네이버 플레이스가 생기면 그쪽 후기 링크도 같이 둔다.
 
 **누수 탐지비는 범위만 공개한다(대표 결정 2026-10-23).** 5단계 표(40·57·65·65·83만원)는 `site.json`
 `leakPricing` 에 `published:true` 로 확정돼 있지만, 대문은 인테리어 전용이라 `data-surface="leak-only"` 로 닫혀

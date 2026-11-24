@@ -52,6 +52,7 @@ async function openPage(file, opts) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
   const calls = { mail: 0, inbox: 0 };
+  const bodies = { mail: [], inbox: [] };
   const state = { mail: opts.mail || 'ok', inbox: opts.inbox || 'ok' };
   const repoConfig = siteConfigWithInboxOff();
   await page.route('**/data/config.json*', (route) => route.fulfill({
@@ -60,11 +61,13 @@ async function openPage(file, opts) {
   }));
   await page.route('https://api.web3forms.com/**', (route) => {
     calls.mail += 1;
+    try { bodies.mail.push(JSON.parse(route.request().postData() || 'null')); } catch (_) { bodies.mail.push(null); }
     if (state.mail === 'fail') return route.fulfill({ status: 500, contentType: 'application/json', body: '{"success":false}' });
     return route.fulfill({ status: 200, contentType: 'application/json', body: '{"success":true}' });
   });
   await page.route(INBOX_URL, (route) => {
     calls.inbox += 1;
+    try { bodies.inbox.push(JSON.parse(route.request().postData() || 'null')); } catch (_) { bodies.inbox.push(null); }
     if (state.inbox === 'fail') return route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":false,"error":"server-error"}' });
     if (state.inbox === 'no-receipt') return route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
     if (state.inbox === 'bad-receipt') return route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true,"receiptNo":"<b>7</b>"}' });
@@ -73,7 +76,7 @@ async function openPage(file, opts) {
   const pageErrors = [];
   page.on('pageerror', (error) => pageErrors.push(error));
   await page.goto(`${origin}/${file}`, { waitUntil: 'networkidle' });
-  return { page, ctx, calls, state, pageErrors };
+  return { page, ctx, calls, bodies, state, pageErrors };
 }
 
 async function fillInterior(page) {
@@ -135,6 +138,74 @@ test('인테리어 폼: 처음 실패한 뒤 다시 시도로 성공하면 그�
   await page.waitForTimeout(200);
   assert.match(await interiorDone(page), new RegExp(`접수번호 ${RECEIPT}`));
   assert.equal(calls.inbox, 2);
+  assert.deepEqual(pageErrors, []);
+  await ctx.close();
+});
+
+/* 2026-11-25 — 인테리어 폼도 누수 폼처럼 유입 페이지·신청 단추·UTM 을 싣는다(계정 없이 채널별 문의 수 세기).
+   전화번호 모양 utm 값은 버린다(js/revenue-conversion.js sanitizeUtmValue). */
+test('인테리어 폼: 유입 페이지·신청 단추·UTM 이 메일과 접수함에 같이 실리고 전화 모양 utm 은 버린다', async () => {
+  const tagged = await openPage('index.html?utm_source=daangn&utm_medium=profile&utm_campaign=interior-1125');
+  await fillInterior(tagged.page);
+  await tagged.page.click('#submitInquiry');
+  await tagged.page.waitForSelector('.inquiry-done', { timeout: 9000 });
+  await tagged.page.waitForTimeout(200);
+  assert.deepEqual(tagged.calls, { mail: 1, inbox: 1 });
+  const mail = tagged.bodies.mail[0];
+  const inbox = tagged.bodies.inbox[0] && tagged.bodies.inbox[0].payload;
+  for (const body of [mail, inbox]) {
+    assert.equal(body.source, 'website');
+    assert.equal(body.sourcePage, '/index.html');
+    assert.equal(body.ctaId, 'index-inquiry-submit');
+    assert.equal(body.utmSource, 'daangn');
+    assert.equal(body.utmMedium, 'profile');
+    assert.equal(body.utmCampaign, 'interior-1125');
+  }
+  assert.match(mail.message, /유입 페이지: \/index\.html/);
+  assert.match(mail.message, /신청 진입점: index-inquiry-submit/);
+  assert.match(mail.message, /UTM Source: daangn/);
+  assert.deepEqual(tagged.pageErrors, []);
+  await tagged.ctx.close();
+
+  const phoneLike = await openPage('index.html?utm_source=01000000000&utm_medium=010-0000-0000', { inboxOff: true });
+  await fillInterior(phoneLike.page);
+  await phoneLike.page.click('#submitInquiry');
+  await phoneLike.page.waitForSelector('.inquiry-done', { timeout: 9000 });
+  await phoneLike.page.waitForTimeout(200);
+  const plain = phoneLike.bodies.mail[0];
+  assert.equal(plain.ctaId, 'index-inquiry-submit');
+  assert.equal('utmSource' in plain, false, '전화번호 모양 utm_source 가 실렸다');
+  assert.equal('utmMedium' in plain, false, '전화번호 모양 utm_medium 이 실렸다');
+  assert.doesNotMatch(plain.message, /UTM /);
+  assert.deepEqual(phoneLike.pageErrors, []);
+  await phoneLike.ctx.close();
+});
+
+/* 2026-11-25 — 꼬리표를 달고 들어와 시안 창을 열고 닫은 뒤(주소가 #design= 으로 바뀌었다 돌아옴) 신청해도 UTM 이 실린다.
+   예전에는 창을 닫을 때 ?검색어를 버려 꼬리표가 사라졌고, 폼은 보낼 때의 주소를 읽었다. 가이드 상담 링크도 꼬리표를 잇는다. */
+test('인테리어 폼: utm 으로 들어와 시안 창을 열고 닫은 뒤 신청해도 UTM 이 실리고, 가이드 상담 링크도 꼬리표를 잇는다', async () => {
+  const { page, ctx, bodies, pageErrors } = await openPage('index.html?utm_source=naver_blog&utm_medium=blog');
+  const guideHref = await page.locator('#projectGuideResult .project-guide-actions .btn-ghost').getAttribute('href');
+  const guideUrl = new URL(guideHref, origin + '/');
+  assert.equal(guideUrl.searchParams.get('utm_source'), 'naver_blog', '가이드 상담 링크가 꼬리표를 잃었다: ' + guideHref);
+  assert.equal(guideUrl.searchParams.get('type'), '주거');
+  await page.locator('#portfolioGrid .folio').first().waitFor({ timeout: 9000 });
+  await page.locator('#portfolioGrid .folio').first().click();
+  await page.waitForFunction(() => !document.getElementById('folioModal').hidden);
+  assert.match(await page.evaluate(() => location.hash), /design=/);
+  assert.match(await page.evaluate(() => location.search), /utm_source=naver_blog/, '시안 창을 열 때 주소에서 꼬리표가 빠졌다');
+  await page.locator('#folioModal .folio-modal-close').click();
+  await page.waitForFunction(() => document.getElementById('folioModal').hidden);
+  assert.match(await page.evaluate(() => location.search), /utm_source=naver_blog&utm_medium=blog/, '시안 창을 닫을 때 주소에서 꼬리표가 빠졌다');
+  await fillInterior(page);
+  await page.click('#submitInquiry');
+  await page.waitForSelector('.inquiry-done', { timeout: 9000 });
+  await page.waitForTimeout(200);
+  const mail = bodies.mail[0];
+  assert.equal(mail.utmSource, 'naver_blog');
+  assert.equal(mail.utmMedium, 'blog');
+  assert.equal(mail.ctaId, 'index-inquiry-submit');
+  assert.equal(bodies.inbox[0].payload.utmSource, 'naver_blog');
   assert.deepEqual(pageErrors, []);
   await ctx.close();
 });

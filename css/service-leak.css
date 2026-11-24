@@ -240,6 +240,10 @@ body.leak-page.service-page {
 .leak-page.service-page .case-copy p { color: #667368; font-size: 13px; }
 .leak-page.service-page .case-copy .text-button { margin-top: 14px; color: var(--leak-teal); font-size: 13px; }
 .leak-page.service-page .case-actions { margin-top: 38px; }
+.leak-page.service-page .leak-reviews-section { padding-block: 70px 20px; border-top: 1px solid var(--leak-line); }
+.leak-page.service-page .leak-review { border-color: var(--leak-line); border-radius: 4px; background: #fffdf8; }
+.leak-page.service-page .leak-review p { color: var(--leak-navy); }
+.leak-page.service-page .leak-review-note { color: #5a6b60; }
 .leak-page.service-page .faq-section { padding-block: 65px 90px; }
 .leak-page.service-page .faq-list { border-color: var(--leak-navy); }
 .leak-page.service-page .faq-list details { border-bottom-color: var(--leak-line); }

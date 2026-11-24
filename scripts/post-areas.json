@@ -1,0 +1,34 @@
+{
+  "heightsville-extension-floor-heating-screed-20261118": { "gu": "유성구", "dong": "관평동" },
+  "yeolmae-bathtub-area-waterproof-floor-screed-20261114": { "gu": "유성구", "dong": "노은동" },
+  "gyochon-mimade-boiler-hot-water-pipe-repair-20261112": { "gu": "유성구", "dong": "교촌동" },
+  "jukdong-yemiji-bathroom-coating-vent-core-20261007": { "gu": "유성구", "dong": "죽동" },
+  "sangdae-ipark-bathroom-waterproof-coating-20260830": { "gu": "유성구", "dong": "상대동" },
+
+  "saeyeoul-toilet-drain-pipe-insert-20261117": { "gu": "대덕구" },
+  "samho-front-balcony-rain-pipe-waterproof-20261116": { "gu": "대덕구", "dong": "법동" },
+  "samho-balcony-rain-pipe-base-replacement-20261110": { "gu": "대덕구", "dong": "법동" },
+  "seonbi-1danji-retaining-wall-plaster-repair-20261103": { "gu": "대덕구", "dong": "송촌동" },
+  "saeyeoul-laundry-rain-pipe-floor-drain-20261022": { "gu": "대덕구" },
+  "seonbi-1danji-boiler-pipe-valve-replacement-20261007": { "gu": "대덕구", "dong": "송촌동" },
+  "samho-balcony-rain-pipe-joint-replacement-20261005": { "gu": "대덕구", "dong": "법동" },
+  "pyeonghaneul-apartment-leak-repair-20260909": { "gu": "대덕구", "dong": "목상동" },
+
+  "munchang-heating-manifold-valve-replacement-20261112": { "gu": "중구", "dong": "문창동" },
+  "mokyang-washbasin-drain-pipe-20261110": { "gu": "중구", "dong": "목동" },
+  "daejeon-jung-gu-heating-pipe-leak-repair": { "gu": "중구", "dong": "문화동" },
+  "daejeon-jung-gu-yard-water-valve-leak": { "gu": "중구", "dong": "문화동" },
+  "mokdong-trench-drain": { "gu": "중구", "dong": "목동" },
+
+  "tanbang-house-floor-screed-20261112": { "gu": "서구", "dong": "탄방동" },
+  "sanho-balcony-drain-tile-replacement-20261029": { "gu": "서구" },
+  "sujeong-town-laundry-rain-pipe-drain-20261029": { "gu": "서구", "dong": "둔산동" },
+  "wolpyeong-town-laundry-rain-pipe-joint-20261029": { "gu": "서구", "dong": "월평동" },
+  "mokhwa-toilet-reset-ceiling-drain-pipe-20261026": { "gu": "서구", "dong": "복수동" },
+  "dunsan-shop-front-deck-board-repair-20261021": { "gu": "서구", "dong": "둔산동" },
+  "sujeong-town-balcony-rain-pipe-joint-20261014": { "gu": "서구", "dong": "둔산동" },
+  "gubong-balcony-rain-pipe-floor-drain-20261008": { "gu": "서구", "dong": "관저동" },
+  "daejeon-aluminum-window-screen-replacement-20261006": { "gu": "서구", "dong": "탄방동" },
+
+  "yongjeon-apartment-water-pipe-replacement-20261019": { "gu": "동구", "dong": "용전동" }
+}

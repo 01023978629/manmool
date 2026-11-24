@@ -29,6 +29,9 @@ const EXEMPT = new Set(['office-request.html', 'google11dc37fbc3ab6e98.html']);
 const pages = [
   ...fs.readdirSync(ROOT).filter((f) => f.endsWith('.html') && !EXEMPT.has(f)),
   ...fs.readdirSync(path.join(ROOT, 'posts')).filter((f) => f.endsWith('.html')).map((f) => 'posts/' + f),
+  // 2026-11-25: 대전 구별 현장 기록 쪽(area/)의 tel: 링크·구조화 데이터도 같은 정본을 따른다.
+  ...(fs.existsSync(path.join(ROOT, 'area'))
+    ? fs.readdirSync(path.join(ROOT, 'area')).filter((f) => f.endsWith('.html')).map((f) => 'area/' + f) : []),
 ];
 
 const BUSINESS_TYPES = new Set(['LocalBusiness', 'HomeAndConstructionBusiness', 'Organization']);

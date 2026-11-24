@@ -8,7 +8,7 @@
   </url>
   <url>
     <loc>https://01023978629.github.io/manmool/privacy.html</loc>
-    <lastmod>2026-08-30</lastmod>
+    <lastmod>2026-11-25</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -35,6 +35,30 @@
     <lastmod>2026-11-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://01023978629.github.io/manmool/area/daejeon-jung-gu.html</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://01023978629.github.io/manmool/area/daejeon-seo-gu.html</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://01023978629.github.io/manmool/area/daejeon-yuseong-gu.html</loc>
+    <lastmod>2026-11-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://01023978629.github.io/manmool/area/daejeon-daedeok-gu.html</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://01023978629.github.io/manmool/posts/heightsville-extension-floor-heating-screed-20261118.html</loc>

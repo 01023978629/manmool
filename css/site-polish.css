@@ -83,6 +83,27 @@ body:is(.interior-page, .stories-page, .story-page, .leak-page) .site-header .na
 .ic-readmore { color: #586149; font-size: 12px; font-weight: 700; }
 .stories-page .insight-featured .ic-readmore { display: block; margin-top: 14px; padding-top: 14px; border-top: 1px solid #d2d2c3; font-size: 13px; }
 
+/* Daejeon area records (2026-11-25): blog list links, area/daejeon-*.html pages, post back-links.
+   scripts/prerender-posts.py generates the markup; links keep a 44px touch height on phones. */
+.case-area-links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0 0 18px; }
+.case-area-links > span { margin-right: 4px; color: #656b64; font-size: 13px; font-weight: 700; }
+.case-area-links a, .area-others a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; border: 1px solid var(--editorial-line, #ded7cb); border-radius: 999px; background: #fffdf9; color: #2f3d36; font-size: 14px; font-weight: 700; }
+.case-area-links a small, .area-others a small { color: #656b64; font-size: 12px; font-weight: 600; }
+.case-area-links a:hover, .area-others a:hover { border-color: #abae9e; }
+.area-head { max-width: 760px; margin: 6px 0 22px; }
+.area-head h1 { margin: 10px 0 14px; font-size: clamp(30px, 3.5vw, 44px); line-height: 1.35; letter-spacing: -.045em; }
+.area-lead { color: #565c55; font-size: 15px; line-height: 1.8; word-break: keep-all; overflow-wrap: break-word; }
+.area-facts { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 14px; }
+.area-facts > div { padding: 10px 16px; border: 1px solid var(--editorial-line, #ded7cb); border-radius: 12px; background: #fffdf9; }
+.area-facts dt { color: #656b64; font-size: 12px; }
+.area-facts dd { margin: 2px 0 0; font-size: 17px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.area-dongs { margin: 0 0 28px; color: #565c55; font-size: 14px; line-height: 1.8; word-break: keep-all; overflow-wrap: break-word; }
+.area-others { margin-top: 44px; padding-top: 24px; border-top: 1px solid var(--editorial-line, #ded7cb); }
+.area-others h2 { margin: 0 0 12px; font-size: 20px; }
+.area-others ul { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.post-area-link { margin: 18px 0 0; text-align: center; }
+.post-area-link a { display: inline-flex; align-items: center; min-height: 44px; color: #79542f; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
 /* Actual leak photos keep their original pixels; only their frame changes. */
 .leak-page.service-page .hero { background: radial-gradient(ellipse at 100% 0%, #315149 0, transparent 65%), #132f3a; }
 .leak-page.service-page .leak-actual-card { border: 1px solid #658077; border-radius: 18px; box-shadow: 12px 12px 0 rgba(113, 145, 121, .14); }

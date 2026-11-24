@@ -98,6 +98,7 @@ assets/site/favicon.svg                 탭 아이콘(글꼴에 안 기대게 pa
 assets/site/favicon-32/16.png           탭 아이콘 래스터 폴백
 assets/site/apple-touch-icon.png        아이폰 홈 화면 아이콘(180). 없으면 스크린샷이 박힌다
 sitemap.xml / robots.txt                검색 노출
+area/daejeon-<구>.html                  대전 구별 현장 기록(생성물 — scripts/prerender-posts.py, 정본 scripts/post-areas.json)
 integrations/INTEGRATION.md             n8n·카카오 연동 가이드
 integrations/n8n/*.workflow.json        n8n 워크플로(import용)
 .github/workflows/deploy-pages.yml      GitHub Pages 자동 배포

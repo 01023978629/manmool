@@ -100,6 +100,8 @@ html:has(body.service-page) { scroll-padding-top: 0; }
   .service-page .footer-info a,
   .service-page .contact-list a,
   .service-page .service-area a,
+  .service-page .leak-review-note a,
+  .service-page .area-case-links a,
   .service-page .site-footer a { display: inline-block; min-height: 44px; line-height: 44px; padding: 0 4px; margin: -2px 0; vertical-align: middle; }
 }
 @media (max-width: 720px) {

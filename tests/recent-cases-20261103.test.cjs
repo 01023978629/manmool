@@ -21,6 +21,7 @@
 // leak index entry, so leak.html keeps 2026-11-17 (the newest leak case). recent-cases-20261121 pins the 92 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 const fixture = require('./fixtures/recent-cases-20261103.json');
@@ -76,10 +77,12 @@ test('Seonbi 1-danji retaining-wall plaster case: 9 photos, work date, conservat
       assert.ok(fixture.photos.some(p => p.file === b.img), b.img);
     }
     const text = JSON.stringify(a);
+    // 협력사·작업자 이름 등은 글자로 두지 않고 sha256 으로 대조한다(scripts/lib/hidden-terms.cjs, 2026-11-25).
+    { const hidden = findHidden(text, 'partners', 'people'); assert.equal(hidden, null, `${a.slug} ${describeHidden(hidden)}`); }
     // No unit numbers, customer data, local paths, drive ids, location metadata or phone/e-mail patterns.
     assert.doesNotMatch(text, /\d+\s*동\s*\d+\s*호|\d{3,4}\s*호|sourcePath|driveId|GPS|좌표|[A-Za-z]:[\\/]|file:\/\/|010[- ]?\d|@[\w.-]+\.[A-Za-z]{2,}/);
     // No cost, estimate number, client company, worker name or unverified claims.
-    assert.doesNotMatch(text, /\d{1,3}(,\d{3})+\s*원|만\s*원|견적번호|누수나라|우철|100%|평생 보증|최저가|무조건|업계 1위|완벽|방수 효과|원인은/);
+    assert.doesNotMatch(text, /\d{1,3}(,\d{3})+\s*원|만\s*원|견적번호|100%|평생 보증|최저가|무조건|업계 1위|완벽|방수 효과|원인은/);
     assert.ok(a.consultation && a.consultation.photos && a.consultation.scope && a.caseSummary, c.slug);
     assert.ok(a.relatedSlugs.length >= 2, c.slug);
     for (const r of a.relatedSlugs) {

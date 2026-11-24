@@ -30,13 +30,21 @@
     return !!(inbox.enabled && typeof inbox.url === 'string' && INBOX_URL.test(inbox.url));
   }
 
-  function backendConfigured(config) {
+  // 고객 후기(type 후기)는 상담이 아니다 — 메일(Web3Forms·n8n)로만 보낸다(2026-11-25).
+  // 접수함(Apps Script, LeadInboxPure.gs)에는 후기 종류가 없어 전화가 든 후기는 '인테리어' 상담 줄로 들어가 대표 승인 대기에
+  // 섞였고, 전화가 없으면 거절됐다. 접수함 쪽에 후기 종류를 더하려면 서버 수정·재배포(대표 몫)가 먼저다 — 그 전까지는 여기서 뺀다.
+  function inboxAccepts(payload) {
+    return !(payload && payload.type === '후기');
+  }
+
+  // payload 를 주면 그 문의가 실제로 갈 수 있는 길만 센다(후기는 접수함 제외). 주지 않으면 예전처럼 상담 기준.
+  function backendConfigured(config, payload) {
     const n8n = (config && config.n8n) || {};
     const forms = (config && config.forms) || {};
     return !!(
       (n8n.enabled && n8n.inquiryWebhookUrl) ||
       (forms.enabled && forms.endpoint && SUPPORTED_FORM_PROVIDERS.includes(formProvider(forms))) ||
-      inboxConfigured(config)
+      (inboxAccepts(payload) && inboxConfigured(config))
     );
   }
 
@@ -220,7 +228,7 @@
   // 남아 대표가 어느 길로 왔는지 안다. 둘 다 실패하면 마지막 오류를 던진다.
   async function deliver(config, payload) {
     ensureLeadId(payload);
-    const inboxOn = inboxConfigured(config);
+    const inboxOn = inboxAccepts(payload) && inboxConfigured(config);
     let emailDelivered = false;
     let emailError = null;
     try {
@@ -306,7 +314,7 @@
     let promise;
     promise = Promise.resolve()
       .then(() => {
-        if (!backendConfigured(config)) {
+        if (!backendConfigured(config, captured.payload)) {
           return { status: 'unavailable', generation: captured.generation };
         }
         return deliver(config, captured.payload).then(delivered => {

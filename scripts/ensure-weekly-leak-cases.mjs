@@ -526,7 +526,8 @@ if (!/<meta property="og:image:width" content="1400" \/>/.test(leak)
   failures.push('누수 대표 사진 OG 치수가 실측 1400x1050과 다르다');
 }
 
-if (!/시행일 2026-08-30/.test(privacy)) failures.push('개인정보처리방침 시행일이 2026-08-30이 아니다');
+// 2026-11-25: 시행일 2026-08-30 → 2026-11-25(후기 메일 전용·표시 이름 가림·문의 출처 기록 문단을 더함). sitemap lastmod 도 같이.
+if (!/시행일 2026-11-25/.test(privacy)) failures.push('개인정보처리방침 시행일이 2026-11-25가 아니다');
 const latestDay = latestPublicDay(site.insights);
 if (!latestDay) failures.push('공개 글의 유효한 최신 날짜가 없다');
 const latestLeakDay = latestLinkedCaseDay(site.insights, leak);
@@ -536,7 +537,7 @@ for (const [page, expectedDay] of [['leak', latestLeakDay], ['blog', latestDay]]
   if (entry?.[1] !== expectedDay) failures.push(`${page}.html sitemap lastmod가 해당 목록의 최신 공개 글 수정일 ${expectedDay}와 다르다`);
 }
 const privacyEntry = sitemap.match(/<url>\s*<loc>https:\/\/01023978629\.github\.io\/manmool\/privacy\.html<\/loc>\s*<lastmod>([^<]+)<\/lastmod>/);
-if (privacyEntry?.[1] !== '2026-08-30') failures.push('privacy.html sitemap lastmod가 2026-08-30이 아니다');
+if (privacyEntry?.[1] !== '2026-11-25') failures.push('privacy.html sitemap lastmod가 2026-11-25가 아니다');
 const expectedBuildDate = latestDay ? new Date(`${latestDay}T00:00:00.000Z`).toUTCString().replace('GMT', '+0900') : '';
 if (!expectedBuildDate || !rss.includes(`<lastBuildDate>${expectedBuildDate}</lastBuildDate>`)) {
   failures.push(`RSS lastBuildDate가 가장 최근 공개 글 수정일 ${latestDay}와 다르다`);
