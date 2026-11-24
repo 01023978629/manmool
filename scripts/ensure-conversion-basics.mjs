@@ -52,6 +52,8 @@ const privacy = read('privacy.html');
 // 2026-11-25: integrations/인수인계서.md 는 협력사 이름·사업자번호·업체별 금액이 들어 있어 공개 저장소에서 뺐다(대표 PC 비공개 보관).
 // 예전에 그 문서의 개인정보 요약 줄을 보던 검사는 '다시 들어오지 않았는가' 검사로 바꿨다(아래 ⑩).
 const HANDOFF_PATH = 'integrations/인수인계서.md';
+// 같은 날 거래처 이름·거래 금액이 든 문서 두 개도 뺐다 — 다시 들어오면 막는다.
+const PRIVATE_DOC_PATHS = [HANDOFF_PATH, 'integrations/사장님-인계서.md', 'docs/운영/대표님-5분-답변지.md'];
 const main = read('js/main.js');
 const blogJs = read('js/blog.js');
 const office = read('office.html');
@@ -457,9 +459,10 @@ check(/const WORKS = \[[^\]]*'누수탐지·누수수리'/.test(inquiry) && /fd\
     '처리방침이 연락처를 휴대폰 번호로만 적고 있다 — 유선(042·02·070)도 받는다',
     '처리방침 연락처 표기가 유선까지 포함');
 
-  check(!fs.existsSync(path.join(ROOT, HANDOFF_PATH)),
-    `${HANDOFF_PATH} 가 공개 저장소에 다시 들어왔다 — 협력사 이름·사업자번호·업체별 금액이 든 인수인계서는 대표 PC 비공개 보관본만 둔다`,
-    '인수인계서(협력사·금액)는 공개 저장소 밖');
+  const returnedPrivateDocs = PRIVATE_DOC_PATHS.filter((rel) => fs.existsSync(path.join(ROOT, rel)));
+  check(!returnedPrivateDocs.length,
+    `${returnedPrivateDocs.join(', ')} 가 공개 저장소에 다시 들어왔다 — 협력사·거래처 이름·사업자번호·거래 금액이 든 문서는 대표 PC 비공개 보관본만 둔다`,
+    '인수인계서·거래처 문서(협력사·금액)는 공개 저장소 밖');
 }
 
 /* ⑩-1 문의 개인정보를 브라우저 영구 큐/공개 관리자 보드에 두지 않는다 */

@@ -13,6 +13,7 @@
 // leak index entry, so leak.html keeps 2026-11-17 (the newest leak case). recent-cases-20261121 pins the 92 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 const fixture = require('./fixtures/recent-cases-20261118-taesan.json');
@@ -95,12 +96,14 @@ test('one case: 9 photos, work date, leak service, conservative public copy and 
     // Photos appear in the fixture order: roof drain 1 (before, during, after), roof drain 2, front-balcony rain pipe.
     assert.deepEqual(figures.map(b => b.img), fixture.photos.map(p => p.file), c.slug);
     const text = JSON.stringify(a);
+    // 협력사·작업자 이름 등은 글자로 두지 않고 sha256 으로 대조한다(scripts/lib/hidden-terms.cjs, 2026-11-25).
+    { const hidden = findHidden(text, 'partners', 'people', 'taesanUnit'); assert.equal(hidden, null, `${a.slug} ${describeHidden(hidden)}`); }
     // No unit numbers, customer data, road addresses, local paths, drive ids, location metadata or phone/e-mail patterns.
     assert.doesNotMatch(text, /\d+\s*동\s*\d+\s*호|\d{3,4}\s*호|(?:로|길)\s*\d+|번길|sourcePath|driveId|GPS|좌표|\d{1,3}\.\d{4,}|[A-Za-z]:[\\/]|file:\/\/|010[- ]?\d|@[\w.-]+\.[A-Za-z]{2,}/);
-    // No building number, line or unit from the work notes (104동 3라인 옥상, 1503호 앞베란다), and no client (management office).
-    assert.doesNotMatch(text, /104|1503|\d\s*라인|라인|관리사무소|관리소|입주자/);
+    // No building number, line or unit from the work notes (the numbers are matched by hash above), and no client (management office).
+    assert.doesNotMatch(text, /\d\s*라인|라인|관리사무소|관리소|입주자/);
     // No cost, estimate, client or partner company, worker, product brand or unverified cause/performance claims.
-    assert.doesNotMatch(text, /\d{1,3}(,\d{3})+\s*원|만\s*원|견적번호|견적서|발주|누수나라|더케이|집담|우철|작업자|100%|평생 보증|최저가|무조건|업계 1위|완벽|방수 효과|원인은|누수 원인|해결|하자/i);
+    assert.doesNotMatch(text, /\d{1,3}(,\d{3})+\s*원|만\s*원|견적번호|견적서|발주|작업자|100%|평생 보증|최저가|무조건|업계 1위|완벽|방수 효과|원인은|누수 원인|해결|하자/i);
     // The complex is in Cheongju; no other city name.
     assert.doesNotMatch(text, /대전|세종|공주|천안|논산/);
     // Not written as a finished building project, and what the photos do not show is said plainly instead of guessed.

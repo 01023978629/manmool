@@ -9,6 +9,7 @@
 // road address, customer, cost, partner company, workers or location metadata.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 const fixture = require('./fixtures/recent-cases-20261121.json');
@@ -74,6 +75,8 @@ test('one case: 9 photos, work date, interior service, owner-confirmed place, co
     assert.ok(a.caseSummary.site.startsWith('유성구 관평동 하이츠빌아파트 · '), c.slug);
     assert.ok(a.body[0].p.startsWith(PLACE + ' '), c.slug);
     const text = JSON.stringify(a);
+    // 협력사·작업자 이름 등은 글자로 두지 않고 sha256 으로 대조한다(scripts/lib/hidden-terms.cjs, 2026-11-25).
+    { const hidden = findHidden(text, 'partners', 'people'); assert.equal(hidden, null, `${a.slug} ${describeHidden(hidden)}`); }
     assert.equal((text.match(/하이츠빌/g) || []).length, (text.match(/유성구 관평동 하이츠빌아파트/g) || []).length);
     assert.match(a.place.note, /공개하지 않습니다/);
     const figures = a.body.filter(b => b.img);
@@ -91,7 +94,7 @@ test('one case: 9 photos, work date, interior service, owner-confirmed place, co
     // No building/unit numbers, customer data, road addresses, local paths, drive ids, location metadata or phone/e-mail patterns.
     assert.doesNotMatch(text, /\d+\s*동(?![가-힣])|\d+\s*호(?![가-힣])|\d+\s*동\s*\d+\s*호|[가-힣]\d{1,3}(?:로|길)(?![가-힣])|(?:로|길)\s*\d+|번길|sourcePath|driveId|GPS|좌표|\d{1,3}\.\d{4,}|[A-Za-z]:[\\/]|file:\/\/|010[- ]?\d|@[\w.-]+\.[A-Za-z]{2,}/);
     // No cost, estimate number, client or partner company, worker name, product brand or unverified cause/performance claims.
-    assert.doesNotMatch(text, /\d{1,3}(,\d{3})+\s*원|만\s*원|견적번호|견적서|발주|누수나라|더케이|집담|우철|작업자|100%|평생 보증|최저가|무조건|업계 1위|완벽|방수 효과|원인은|누수 원인|해결/);
+    assert.doesNotMatch(text, /\d{1,3}(,\d{3})+\s*원|만\s*원|견적번호|견적서|발주|작업자|100%|평생 보증|최저가|무조건|업계 1위|완벽|방수 효과|원인은|누수 원인|해결/);
     // Work in progress: not written as finished, the remaining work is said plainly, and what is missing is not guessed.
     assert.doesNotMatch(text, /완공|공사 완료|마감 완료|시공 완료/);
     assert.match(a.body.at(-1).p, /남은 작업은 다음 방문 때 이어서 진행할 예정입니다/);
