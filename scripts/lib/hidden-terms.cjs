@@ -24,6 +24,8 @@ const GROUPS = Object.freeze({
   people: [[2, 'caeed60d7bd372f2a5fdb1b52f0e06c6b7be57cfca1988e207830c0b66d7bb6d']],
   // 청주 태산그린 사례(11/13) 작업 메모의 동·호수 번호
   taesanUnit: [[3, '5ef6fdf32513aa7cd11f72beccf132b9224d33f271471fff402742887a171edf'], [4, 'a3513549948fbfecfa1ff0300bf3339f9b1ebff77c9fc831b3c83236a4814d61']],
+  // 방충망 사례(10/6) 사진에 보인 이웃 단지 이름과 예전 초안의 길 이름 문구(촬영 현장으로 단정하지 않는다)
+  screenNeighbor: [[5, '2d412ebfcadea0b1e2b4064f5176414a932dd354c401b74ca4fef1341b86aea1'], [11, '5c6a72df7e4a34511e31216e5a18a30ab39514875a05bc38776fdc61f0446f3e']],
   // 방충망 사례(10/6) 사진 위치 정보의 대략 좌표
   screenSiteCoords: [[5, '10e9064c7966f722f50a50e131ad9cf6f3ae2665a5e6d63f06f17f623ff159bb'], [6, '9b65ec58457502e05ac1d0a4f12a2548c8f045400d4a9f59c34f602852f78ada']],
 });

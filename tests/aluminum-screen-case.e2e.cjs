@@ -63,9 +63,9 @@ for (const width of [320, 390, 1280]) {
     const mapHref = await page.locator('.pp-map').getAttribute('href');
     assert.equal(mapHref, 'https://map.naver.com/p/search/' + encodeURIComponent(article.place.name));
     const bodyText = await page.locator('.post-body').innerText();
-    assert.doesNotMatch(bodyText, /목련아파트|\d+동\s*\d+호/);
+    assert.doesNotMatch(bodyText, /\d+동\s*\d+호/);
     // 사진 위치 정보의 대략 좌표는 글자로 두지 않고 sha256 으로 대조한다(scripts/lib/hidden-terms.cjs).
-    { const hidden = findHidden(bodyText, 'screenSiteCoords'); assert.equal(hidden, null, describeHidden(hidden)); }
+    { const hidden = findHidden(bodyText, 'screenSiteCoords', 'screenNeighbor'); assert.equal(hidden, null, describeHidden(hidden)); }
     await page.evaluate(() => scrollTo(0, 0));
     if (process.env.MANMOOL_SCREENSHOT_DIR) {
       fs.mkdirSync(process.env.MANMOOL_SCREENSHOT_DIR, { recursive: true });

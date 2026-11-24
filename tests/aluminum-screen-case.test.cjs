@@ -2,6 +2,7 @@
 // Public case content only. No customer data, credentials, or external writes.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 const slug = 'daejeon-aluminum-window-screen-replacement-20261006';
@@ -65,9 +66,11 @@ test('실제 인테리어 사례 1건·6단계 사진·문단·상담·개인정
   for (const key of ['site', 'issue', 'work', 'result']) assert.ok(a.caseSummary[key]);
   assert.ok(a.consultation.photos.length > 20 && a.consultation.scope.length > 20);
   const serialized = JSON.stringify(a);
-  assert.doesNotMatch(serialized, /sourcePath|driveId|GPS|36\.34|127\.39|\d+\s*동\s*\d+\s*호|010[- ]|[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}|최저가|100%|평생 보증|고객님께서.*만족/);
+  // 사진 위치의 대략 좌표·이웃 단지 이름은 글자로 두지 않고 sha256 으로 대조한다(scripts/lib/hidden-terms.cjs, 2026-11-25).
+  { const hidden = findHidden(serialized, 'screenSiteCoords', 'screenNeighbor'); assert.equal(hidden, null, describeHidden(hidden)); }
+  assert.doesNotMatch(serialized, /sourcePath|driveId|GPS|\d+\s*동\s*\d+\s*호|010[- ]|[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}|최저가|100%|평생 보증|고객님께서.*만족/);
   // 2026-10-06: 대표가 한가람아파트로 확인. 배경 단지명이나 촬영 구간으로 현장·총 작업 시간을 추정하지 않는다.
-  assert.doesNotMatch(serialized, /목련아파트|아파트명은 확인되지|둔산남로 인근 아파트|\d+\s*분\s*(?:완료|시공)/);
+  assert.doesNotMatch(serialized, /아파트명은 확인되지|\d+\s*분\s*(?:완료|시공)/);
   assert.ok(a.relatedSlugs.every(s => site.insights.some(x => x.slug === s && x.published !== false && x.service !== 'leak')));
 });
 test('확인된 한가람아파트가 제목·소개·현장·대표 사진·전후 설명에 일치한다', () => {
