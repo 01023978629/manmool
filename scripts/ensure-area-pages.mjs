@@ -10,6 +10,7 @@
  *  ⑤ 끊긴 길 — sitemap(lastmod = 그 구 사례 최신 수정일)·블로그 목록·누수/인테리어 지역 문구·글의 '모아 보기' 링크·
  *     공개 허용목록(PUBLIC_TREE_RULES)·CI 생성물 비교가 쪽 목록과 어긋난다.
  */
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -104,7 +105,31 @@ check(JSON.stringify(actualFiles) === JSON.stringify(expected.map((p) => p.file)
 
 /* ④ 쪽 내용 — 그 구 사례만, 사실만 */
 const MONEY = /\d[\d,.]*\s*(?:천|만|억)\s*원|\d{1,3}(?:,\d{3})+\s*원|₩/;
-const PARTNERS = /누수나라|더케이|집담/;
+/* 협력사·거래처 이름은 공개 저장소에 글자로 적지 않는다(2026-11-25) — 이름의 sha256 과 글자 수만 두고,
+   쪽 글을 같은 길이로 잘라 해시해 대조한다. 이름 목록은 대표 PC 비공개 인수인계서에 있다. */
+const PARTNER_HASHES = [
+  [4, '8779a5ea507da809f7399b7dae8c1d91d07ac683eb0a47b4ce6b66e3b955fa09'], [3, '5c4ea8d8da2d059febed95c62d64d6534ebaf2ccc5a8acc6623761eb3efb6535'],
+  [2, 'c49aaa4d80a72ab00716d28d7f0bc58742ae81024ad0fe39496a333f76863ffd'], [5, '42a10059aa578ce3e7533ce5b9b6f303dc3775bafee1c1958898a5e8c94854c5'],
+  [3, '22e5d72e037172f22a7e7246531e4f4245a9524c121787dded8844036977de28'], [5, '594be4f0082acea43419e2608c69ba93db24033686b3aaf91661015e1cbd83e4'],
+  [3, '037f3c10e93d3b7ac3c953d18c5ed2a38028a1181b66847872c0dda03ca5b59f'], [4, '64ff14333dc6c37adcf93e68b59368abc2082786ba7bd64a9ae615dc8a26080f'],
+  [6, 'c40d80f320bb2bb413fe6e59211ef8752587e0063cf84263dd56e54aa76a1fa4'], [3, 'c319d8bc37c36aa18be1aeb096b63e3c4fa3acef0dfa08c3c5328017100c1109'],
+  [4, '0eb283ec500e73259edcf44765ae43eaf893ca4857d6da93a7b64a98b88ed102'],
+];
+// String.prototype.match 가 부르는 [Symbol.match] 로 정규식처럼 쓴다. 한글 낱자 기준으로 자른다.
+const PARTNERS = {
+  [Symbol.match](text) {
+    const chars = Array.from(String(text));
+    const lengths = new Set(PARTNER_HASHES.map(([len]) => len));
+    const wanted = new Set(PARTNER_HASHES.map(([, hash]) => hash));
+    for (const len of lengths) {
+      for (let i = 0; i + len <= chars.length; i++) {
+        if (!/^[가-힣]+$/.test(chars.slice(i, i + len).join(''))) continue;
+        if (wanted.has(crypto.createHash('sha256').update(chars.slice(i, i + len).join(''), 'utf8').digest('hex'))) return [`협력사 이름(${len}글자, ${i}번째 글자부터)`];
+      }
+    }
+    return null;
+  },
+};
 const COORD = /\b\d{2,3}\.\d{5,}\b|위도|경도/;
 const visibleText = (html) => html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ');
 for (const page of expected) {

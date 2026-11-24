@@ -95,7 +95,8 @@ test('정적 전환 게이트는 공개 수익 경계 변이를 각각 좁은 �
     // 2026-11-25: js/lead-transport.js 를 고쳐(후기는 메일로만) office.html 의 캐시 표시를 20261125-reviews1 로 올렸다.
     mutate('office.html', '<script src="js/lead-transport.js?v=20261125-reviews1"></script>', '', /script 순서/);
     mutate('posts/apartment-basement-cast-iron-pipe-repair.html', '</body>', '<p>500만원 이하 표준 패키지</p></body>', /공개 artifact 판매 문구/);
-    mutate('integrations/인수인계서.md', '# ', '# 500만원 이하 맞춤 표준 패키지\n\n# ', /운영 문서 판매 문구/);
+    // 2026-11-25: integrations/인수인계서.md 를 공개 저장소에서 뺐다(협력사·금액) — 같은 integrations/ 검사를 INTEGRATION.md 로 본다.
+    mutate('integrations/INTEGRATION.md', '# ', '# 500만원 이하 맞춤 표준 패키지\n\n# ', /운영 문서 판매 문구/);
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }

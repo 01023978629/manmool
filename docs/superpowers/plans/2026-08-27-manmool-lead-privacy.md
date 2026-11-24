@@ -1,5 +1,7 @@
 # Manmool Failed Lead Privacy Implementation Plan
 
+> 2026-11-25 메모: 이 계획이 가리키는 `integrations/인수인계서.md` 는 협력사 이름·사업자번호·업체별 금액이 들어 있어 공개 저장소에서 뺐다(대표 PC 비공개 보관). 아래 언급은 당시 기록이다.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 일반 상담과 누수 상담의 전송 실패 개인정보를 영구 브라우저 저장소에 남기지 않고 현재 탭 메모리에서만 한 건 재시도하며, 기존 legacy 문의 자료를 읽지 않고 제거하고 관리자·개인정보 안내를 실제 동작과 일치시킨다.
