@@ -17,6 +17,11 @@
   채널별 문의 수를 센다. 대표용 링크 안내 `docs/운영/문의-출처-링크.md`(당근·네이버 블로그·카카오 채널 × 인테리어·누수), 처리방침
   `#privacy-lead-source`. **GA4 등 계정형 도구는 넣지 않았다** — 새 검사 `ensure-lead-attribution` 이 배선·안내 링크(정본 코드로 실제 기록되는지)·
   추적 도구 유입을 본다. 화면 확인은 `tests/inquiry-receipt.e2e.cjs` 새 시험(이 PC 에는 playwright 가 없어 CI 에서만 돈다).
+- **M3 대전 구별 현장 기록**(`docs/area-pages-20261125.md`): `area/daejeon-{jung,seo,yuseong,daedeok}-gu.html`(사례 5·9·5·8건) — `prerender-posts.py`
+  생성물, 정본은 옆 파일 `scripts/post-areas.json`(28건, 글에 '○구' 또는 그 구의 동이 글자로 있는 사례만 — 짐작 금지, insights 는 그대로라 해시 고정 변화 없음).
+  사례 3건 이상인 구만 쪽을 만든다(동구 1건은 쪽 없음). 블로그 목록·글 27편('모아 보기')·`index.html`/`leak.html` 지역 문구에서 링크, sitemap(lastmod = 그 구 사례 최신일, 손으로),
+  `PUBLIC_TREE_RULES` `area`, 사이트 무결성·아이콘·업체 신원 검사가 `area/` 도 본다. 새 검사 `ensure-area-pages`. **구가 글에 없는 대전 사례 32건은 대표 확인 목록**(그 문서).
+  새 사례 글에 '대전 ○구' 를 적으면 `post-areas.json` 에도 넣어야 검사가 통과한다.
 
 ### 2026-11-21 대전 유성구 관평동 하이츠빌아파트 확장부 난방 배관·미장(11/18, 진행 중) 사례 1건 공개 후보
 
@@ -368,6 +373,7 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 | `python3 scripts/prerender-designs.py` | 시안의 `tip`·`trendLabel` 을 고쳤다면 `designs/*.html` 8장이 옛 글을 들고 남는다. CI `Verify generated designs are current` 단계(`git diff --exit-code -- designs`, 2026-10-23 추가 — 그 전에는 CI 가 이 생성기를 돌리지 않아 잡지 못했다)가 잡는다 |
 | `sitemap.xml` 에 `posts/<slug>.html` 줄 | `ensure-site-integrity` 가 "sitemap 에 없다" 로 막는다 — **생성기가 손대지 않는다** |
 | `sitemap.xml` 의 `blog.html` `<lastmod>` | `ensure-weekly-leak-cases` 가 "목록의 최신 공개 글 수정일과 다르다" 로 막는다 |
+| (2026-11-25) 글에 '대전 ○구' 를 적었으면 `scripts/post-areas.json` 과 `sitemap.xml` 의 `area/daejeon-<구>.html` `<lastmod>` | `ensure-area-pages` 가 "post-areas.json 에 없다"·"lastmod 가 그 구 사례 최신일과 다르다" 로 막는다 |
 
 **목록 분야 필터(`case_group`)의 규칙은 두 곳에 따로 적혀 있다** — `scripts/prerender-posts.py`
 의 `case_group()` 과 `tests/case-finder.e2e.cjs` 의 `caseGroup()`. 검사가 생성기를 독립적으로

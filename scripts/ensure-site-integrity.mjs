@@ -34,6 +34,10 @@ const htmlFiles = [
   ...(fs.existsSync(path.join(ROOT, 'designs'))
     ? fs.readdirSync(path.join(ROOT, 'designs')).filter((f) => f.endsWith('.html')).map((f) => 'designs/' + f)
     : []),
+  // 2026-11-25: 대전 구별 현장 기록 쪽(area/) — 링크·메타·사이트맵·개인정보 검사를 똑같이 받는다.
+  ...(fs.existsSync(path.join(ROOT, 'area'))
+    ? fs.readdirSync(path.join(ROOT, 'area')).filter((f) => f.endsWith('.html')).map((f) => 'area/' + f)
+    : []),
 ];
 
 const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);

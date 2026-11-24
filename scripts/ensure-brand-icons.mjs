@@ -66,6 +66,9 @@ const pages = [
   ...fs.readdirSync(ROOT).filter((f) => f.endsWith('.html')),
   ...fs.readdirSync(path.join(ROOT, 'posts')).filter((f) => f.endsWith('.html')).map((f) => `posts/${f}`),
   ...fs.readdirSync(path.join(ROOT, 'designs')).filter((f) => f.endsWith('.html')).map((f) => `designs/${f}`),
+  // 2026-11-25: 대전 구별 현장 기록 쪽(area/)도 공개 페이지다.
+  ...(fs.existsSync(path.join(ROOT, 'area'))
+    ? fs.readdirSync(path.join(ROOT, 'area')).filter((f) => f.endsWith('.html')).map((f) => `area/${f}`) : []),
 ].filter((f) => !EXEMPT.has(f));
 
 let withApple = 0;

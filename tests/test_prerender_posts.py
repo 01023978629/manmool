@@ -220,5 +220,65 @@ class LeakReviewTests(unittest.TestCase):
         self.assertNotIn('이름이 비면', markup)
 
 
+class AreaPageTests(unittest.TestCase):
+    """2026-11-25 — 대전 구별 현장 기록 쪽. 사례 3건 이상인 구만, 그 구 사례만, 손님 글은 escape."""
+
+    @staticmethod
+    def case(slug, date, category='방수·설비', title=None):
+        return {'slug': slug, 'date': date, 'category': category, 'title': title or f'가상 사례 {slug}',
+                'excerpt': '가상 소개', 'readMin': 2, 'caseSummary': {'site': '가상', 'issue': '가상', 'work': '가상', 'result': '가상'}}
+
+    def setUp(self):
+        self.insights = [
+            self.case('seo-a', '2026-11-03'), self.case('seo-b', '2026-11-02', '바닥·미장'), self.case('seo-c', '2026-11-01'),
+            self.case('jung-a', '2026-10-30'), self.case('jung-b', '2026-10-29'),
+            {'slug': 'guide', 'date': '2026-11-04', 'category': '계약 가이드', 'title': '가이드', 'readMin': 1},
+        ]
+        self.areas = {'seo-a': {'gu': '서구', 'dong': '가상동'}, 'seo-b': {'gu': '서구'}, 'seo-c': {'gu': '서구', 'dong': '가상동'},
+                      'jung-a': {'gu': '중구'}, 'jung-b': {'gu': '중구'}, 'guide': {'gu': '서구'}}
+
+    def test_only_gu_with_three_real_cases_gets_a_page(self):
+        pages = PRERENDER.area_pages_for(self.insights, self.areas)
+        self.assertEqual([(gu, slug, [a['slug'] for a in items]) for gu, slug, items in pages],
+                         [('서구', 'daejeon-seo-gu', ['seo-a', 'seo-b', 'seo-c'])])
+        hidden = [dict(a, published=False) if a['slug'] == 'seo-c' else a for a in self.insights]
+        self.assertEqual(PRERENDER.area_pages_for(hidden, self.areas), [])
+        self.assertEqual(PRERENDER.area_lastmod(pages[0][2]), '2026-11-03')
+
+    def test_area_page_lists_only_its_cases_with_facts_and_escapes_text(self):
+        insights = [dict(self.insights[0], title='<b>가상</b> 제목')] + self.insights[1:]
+        pages = PRERENDER.area_pages_for(insights, self.areas)
+        gu, slug, items = pages[0]
+        markup = PRERENDER.area_html(gu, slug, items, pages, self.areas)
+        self.assertEqual([c[1] for c in ListCardParser(markup).cards],
+                         ['../posts/seo-a.html', '../posts/seo-b.html', '../posts/seo-c.html'])
+        self.assertNotIn('jung-a', markup)
+        self.assertNotIn('<b>가상</b>', markup)
+        self.assertIn('&lt;b&gt;가상&lt;/b&gt; 제목', markup)
+        self.assertIn('"name": "\\u003cb\\u003e가상\\u003c/b\\u003e 제목"', markup, 'JSON-LD 안의 제목도 script 를 닫지 못하게')
+        self.assertIn('<h1>대전 서구 현장 기록</h1>', markup)
+        self.assertIn('<title>대전 서구 현장 기록 3건 · 만물인테리어</title>', markup)
+        self.assertIn('<link rel="canonical" href="https://01023978629.github.io/manmool/area/daejeon-seo-gu.html" />', markup)
+        self.assertIn('href="tel:01023978629"', markup)
+        self.assertIn('기록에 적힌 동네: 가상동 2건 · 동 이름 없이 구만 적힌 기록 1건', markup)
+        self.assertIn('<div><dt>누수·배관</dt><dd>2건</dd></div><div><dt>인테리어</dt><dd>1건</dd></div>', markup)
+        self.assertNotIn('area-others', markup, '다른 구 쪽이 없으면 다른 구 목록도 없다')
+
+    def test_blog_list_links_area_pages_only_when_there_are_some(self):
+        pages = PRERENDER.area_pages_for(self.insights, self.areas)
+        with_nav = PRERENDER.list_markup(self.insights, pages)
+        self.assertIn('<a href="area/daejeon-seo-gu.html">대전 서구 <small>3건</small></a>', with_nav)
+        self.assertNotIn('case-area-links', PRERENDER.list_markup(self.insights))
+        self.assertEqual(ListCardParser(with_nav).cards, ListCardParser(PRERENDER.list_markup(self.insights)).cards)
+        self.assertNotIn('\n      </div>', with_nav.split('case-area-links')[1].split('</nav>')[0],
+                         'blog.html 목록 끝 표시(6칸 </div>)가 구별 링크 안에 생기면 생성기가 목록을 잘못 자른다')
+
+    def test_post_links_back_to_its_area_page_only_when_given(self):
+        a = self.insights[0]
+        self.assertIn('href="../area/daejeon-seo-gu.html">대전 서구 현장 기록 모아 보기',
+                      PRERENDER.article_html(a, self.insights, ('서구', 'daejeon-seo-gu')))
+        self.assertNotIn('../area/', PRERENDER.article_html(a, self.insights))
+
+
 if __name__ == '__main__':
     unittest.main()

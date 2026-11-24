@@ -59,8 +59,10 @@ jobs:
         run: |
           git ls-files --error-unmatch data/leak-case-index.json
           python3 scripts/prerender-posts.py
-          # 2026-11-25: leak.html 의 누수 후기 칸(leak-reviews 표시 사이)도 생성물이다.
-          git diff --exit-code -- blog.html posts rss.xml data/leak-case-index.json leak.html
+          # 2026-11-25: leak.html 의 누수 후기 칸(leak-reviews 표시 사이)과 area/(대전 구별 현장 기록 쪽)도 생성물이다.
+          # area/ 는 새 쪽이 생기면 추적되지 않은 파일로 남으므로 git status 로도 본다.
+          git diff --exit-code -- blog.html posts rss.xml data/leak-case-index.json leak.html area
+          test -z "$(git status --porcelain -- area posts)"
 
       - name: Verify generated designs are current
         shell: bash

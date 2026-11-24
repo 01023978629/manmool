@@ -234,7 +234,7 @@ def write_rss(insights):
     print('생성: rss.xml(%d건)' % len(insights))
 
 
-def article_html(a, insights):
+def article_html(a, insights, area_link=None):
     url = f'{BASE}/posts/{a["slug"]}.html'
     img_abs = f'{BASE}/{a["image"]}' if a.get('image') else f'{BASE}/og-image.png'
     img_alt = a.get('imageAlt') or a['title']
@@ -378,6 +378,10 @@ def article_html(a, insights):
             <a href="../index.html#estimator" class="btn btn-primary">예상 범위 확인</a>
             <a href="../index.html#inquiry" class="btn btn-ghost">인테리어 상담</a>
           </div>'''
+    # 이 글이 대전 구별 현장 기록 쪽(area/)에 들어 있으면 그 쪽으로 가는 길을 둔다(2026-11-25).
+    if area_link:
+        cta_html += (f'\n          <p class="post-area-link"><a href="../area/{esc(area_link[1])}.html">'
+                     f'대전 {esc(area_link[0])} 현장 기록 모아 보기 →</a></p>')
 
     return f'''<!DOCTYPE html>
 <html lang="ko">
@@ -495,8 +499,10 @@ def case_search_text(a):
     ])
 
 
-def list_markup(insights):
+def list_markup(insights, area_pages=None):
     """js/blog.js 의 renderList 와 **같은 구조**의 목록 마크업.
+
+    area_pages(선택, 2026-11-25): [(구, 쪽 slug, 사례 글 목록)] — 머리 아래에 대전 구별 현장 기록 링크를 둔다.
 
     왜 정적으로 만드나: blog.html 은 서버 HTML 에 <h1>도 글 링크도 없고
     '불러오는 중…' 한 줄뿐이라, JS 를 안 돌리는 크롤러에게는 빈 페이지다.
@@ -597,6 +603,7 @@ def list_markup(insights):
         '          </dl>\n'
         '        </aside>\n'
         '        </div>\n'
+        + area_nav_markup(area_pages) +
         '        <form class="case-finder" id="caseFinder" role="search" aria-label="시공 사례 검색" hidden>\n'
         '          <div class="case-finder-fields">\n'
         '            <div class="case-search-field"><label for="caseSearch">어떤 현장을 찾으세요?</label>\n'
@@ -618,7 +625,7 @@ def list_markup(insights):
         '      </div>')
 
 
-def write_blog_list(insights):
+def write_blog_list(insights, area_pages=None):
     """blog.html 의 #blogRoot 블록을 정적 목록으로 교체한다."""
     path = os.path.join(ROOT, 'blog.html')
     with open(path, encoding='utf-8') as f:
@@ -636,7 +643,7 @@ def write_blog_list(insights):
         print('건너뜀: #blogRoot 닫는 태그를 찾지 못했습니다')
         return False
     end += len('\n      </div>')
-    new = html_src[:start] + list_markup(insights) + html_src[end:]
+    new = html_src[:start] + list_markup(insights, area_pages) + html_src[end:]
     if new == html_src:
         print('blog.html 변경 없음')
         return False
@@ -644,6 +651,270 @@ def write_blog_list(insights):
         f.write(new)
     print('생성: blog.html 목록(%d건 정적)' % len(insights))
     return True
+
+
+# ---------------------------------------------------------------------------
+# 대전 구별 현장 기록 쪽(area/daejeon-<구>.html) — 2026-11-25
+#
+# 정본은 scripts/post-areas.json {slug: {gu, dong?}} 이다(insights 를 고치면 기존 글 고정 검사가 줄줄이 깨지므로
+# 옆 파일로 둔다). 구는 글의 제목·소개·장소·요약·본문에 '○구' 또는 그 구의 동이 분명히 적힌 사례만 넣는다 —
+# 짐작 금지, 대전 밖·불확실은 넣지 않는다(scripts/ensure-area-pages.mjs 가 글자로 다시 확인).
+# 쪽은 실제 사례(caseSummary 있는 공개 글)가 AREA_MIN_CASES 건 이상인 구만 만든다(얇은 지역 쪽 방지).
+# 쪽 내용은 사실만: 그 구의 사례 목록(제목·소개·날짜·공정)·기록에 적힌 동네·서비스 링크·연락처. 지어낸 문장 금지.
+# sitemap.xml 은 손으로(각 쪽 lastmod = 그 구 사례의 최신 수정일), ensure-area-pages 가 맞는지 본다.
+# ---------------------------------------------------------------------------
+AREA_GU = (('중구', 'jung-gu'), ('서구', 'seo-gu'), ('유성구', 'yuseong-gu'), ('대덕구', 'daedeok-gu'), ('동구', 'dong-gu'))
+AREA_MIN_CASES = 3
+
+
+def load_post_areas():
+    path = os.path.join(ROOT, 'scripts', 'post-areas.json')
+    if not os.path.exists(path):
+        return {}
+    with open(path, encoding='utf-8') as f:
+        data = json.load(f)
+    return data if isinstance(data, dict) else {}
+
+
+def area_pages_for(insights, areas):
+    """[(구, 쪽 slug, [글])] — 사례 AREA_MIN_CASES 건 이상인 구만, 구 순서 고정, 글은 insights 순서(최신순)."""
+    pages = []
+    for gu, key in AREA_GU:
+        items = [a for a in insights
+                 if isinstance(areas.get(a.get('slug')), dict) and areas[a['slug']].get('gu') == gu
+                 and a.get('caseSummary') and a.get('published', True) is not False]
+        if len(items) >= AREA_MIN_CASES:
+            pages.append((gu, 'daejeon-' + key, items))
+    return pages
+
+
+def area_lastmod(items):
+    """그 구 사례 글의 최신 수정일(없으면 작업일) — sitemap lastmod 와 같은 값."""
+    return latest_article_date(items)
+
+
+def area_nav_markup(area_pages):
+    if not area_pages:
+        return ''
+    links = ''.join(
+        f'          <a href="area/{esc(slug)}.html">대전 {esc(gu)} <small>{len(items)}건</small></a>\n'
+        for gu, slug, items in area_pages)
+    return ('        <nav class="case-area-links" aria-label="대전 구별 현장 기록">\n'
+            '          <span>대전 구별 기록</span>\n' + links +
+            '        </nav>\n')
+
+
+def area_dong_summary(items, areas):
+    counts = {}
+    for a in items:
+        dong = str((areas.get(a['slug']) or {}).get('dong') or '').strip()
+        if dong:
+            counts[dong] = counts.get(dong, 0) + 1
+    parts = [f'{dong} {n}건' for dong, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))]
+    unnamed = len(items) - sum(counts.values())
+    if unnamed:
+        parts.append(f'동 이름 없이 구만 적힌 기록 {unnamed}건')
+    return ' · '.join(parts)
+
+
+def area_html(gu, page_slug, items, area_pages, areas):
+    url = f'{BASE}/area/{page_slug}.html'
+    n = len(items)
+    groups = [(key, label, sum(1 for a in items if case_group(a) == key))
+              for key, label in (('leak', '누수·배관'), ('interior', '인테리어'), ('info', '정보'))]
+    groups = [g for g in groups if g[2]]
+    days = sorted(str(a.get('date') or '') for a in items)
+    first_day, last_day = days[0], days[-1]
+    title = f'대전 {gu} 현장 기록 {n}건'
+    desc = (f'만물인테리어가 대전 {gu}에서 작업한 현장 기록 {n}건({first_day}~{last_day})을 모았습니다. '
+            + ', '.join(f'{label} {count}건' for _, label, count in groups) + '.')
+    lead_image = next((a for a in items if a.get('image')), None)
+    img_abs = f'{BASE}/{lead_image["image"]}' if lead_image else f'{BASE}/og-image.png'
+    img_alt = (lead_image.get('imageAlt') or lead_image.get('title')) if lead_image else '만물인테리어'
+    img_size = image_dimensions(lead_image.get('image')) if lead_image else (1200, 630)
+    image_dimension_meta = (
+        f'\n  <meta property="og:image:width" content="{img_size[0]}" />'
+        f'\n  <meta property="og:image:height" content="{img_size[1]}" />'
+        if img_size else '')
+    cards = []
+    for i, a in enumerate(items):
+        img = ''
+        if a.get('image'):
+            loading = ' loading="eager"' if i == 0 else ' loading="lazy"'
+            img = (f'<img class="ic-image" src="../{esc(a["image"])}"{case_extra(a.get("image"), SIZES_CARD, "../")} '
+                   f'alt="{esc(a.get("imageAlt") or a.get("title"))}"{loading} decoding="async">')
+        dong = str((areas.get(a['slug']) or {}).get('dong') or '').strip()
+        meta = esc(a.get('date')) + (f' · {esc(dong)}' if dong else '')
+        cards.append(
+            f'          <a class="insight-card" href="../posts/{esc(a["slug"])}.html" data-group="{case_group(a)}">\n'
+            f'            <span class="ic-cover" style="background:{shade_cover(a.get("cover") or "#d8c3a5")}">{img}<span class="ic-cat">{esc(a.get("category"))}</span></span>\n'
+            '            <span class="ic-body">\n'
+            f'              <b>{esc(a.get("title"))}</b>\n'
+            f'              <span class="ic-excerpt">{esc(a.get("excerpt"))}</span>\n'
+            f'              <span class="ic-meta"><span>{meta}</span><span class="ic-readmore" aria-hidden="true">기록 읽기 ↗</span></span>\n'
+            '            </span>\n'
+            '          </a>')
+    facts = ''.join(f'<div><dt>{label}</dt><dd>{count}건</dd></div>' for _, label, count in groups)
+    others = ''.join(
+        f'<li><a href="{esc(slug)}.html">대전 {esc(other_gu)} <small>{len(other_items)}건</small></a></li>'
+        for other_gu, slug, other_items in area_pages if slug != page_slug)
+    others_html = (f'\n        <nav class="area-others" aria-label="대전 다른 구 현장 기록"><h2>대전 다른 구 현장 기록</h2><ul>{others}</ul></nav>'
+                   if others else '')
+    has_leak = any(case_group(a) == 'leak' for a in items)
+    has_interior = any(case_group(a) != 'leak' for a in items)
+    cta_lines = ''
+    if has_leak:
+        cta_lines += '\n            <p data-service="leak">누수 원인과 필요한 공사 범위는 현장 확인 후 안내합니다.</p>'
+    if has_interior:
+        cta_lines += '\n            <p data-service="interior">예상 범위는 참고용이며, 최종 범위·금액은 실측 후 확정됩니다.</p>'
+    collection = json.dumps({
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        'name': f'대전 {gu} 현장 기록',
+        'url': url,
+        'description': desc,
+        'about': {'@type': 'Place', 'name': f'대전광역시 {gu}'},
+        'mainEntity': {
+            '@type': 'ItemList',
+            'numberOfItems': n,
+            'itemListElement': [
+                {'@type': 'ListItem', 'position': i + 1, 'url': f'{BASE}/posts/{a["slug"]}.html', 'name': a.get('title')}
+                for i, a in enumerate(items)],
+        },
+    }, ensure_ascii=False)
+    crumbs = json.dumps({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+            {'@type': 'ListItem', 'position': 1, 'name': '만물인테리어', 'item': BASE + '/'},
+            {'@type': 'ListItem', 'position': 2, 'name': '현장 기록', 'item': BASE + '/blog.html'},
+            {'@type': 'ListItem', 'position': 3, 'name': f'대전 {gu} 현장 기록', 'item': url},
+        ],
+    }, ensure_ascii=False)
+    # 글 제목이 <script> 안의 JSON-LD 로 들어간다 — '<'·'>'·'&' 를 \\u 꼴로 바꿔 script 를 닫지 못하게 한다(JSON 값은 같다).
+    collection = collection.replace('&', '\\u0026').replace('<', '\\u003c').replace('>', '\\u003e')
+    crumbs = crumbs.replace('&', '\\u0026').replace('<', '\\u003c').replace('>', '\\u003e')
+    card_html = '\n'.join(cards)
+    return f'''<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{esc(title)} · 만물인테리어</title>
+  <meta name="description" content="{esc(desc)}" />
+  <meta name="theme-color" content="#b8895a" />
+  <link rel="canonical" href="{url}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:site_name" content="만물인테리어" />
+  <meta property="og:url" content="{url}" />
+  <meta property="og:title" content="{esc(title)} · 만물인테리어" />
+  <meta property="og:description" content="{esc(desc)}" />
+  <meta property="og:image" content="{img_abs}" />{image_dimension_meta}
+  <meta property="og:image:alt" content="{esc(img_alt)}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{esc(title)} · 만물인테리어" />
+  <meta name="twitter:description" content="{esc(desc)}" />
+  <meta name="twitter:image" content="{img_abs}" />
+  <meta name="twitter:image:alt" content="{esc(img_alt)}" />
+  <link rel="icon" href="../assets/site/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="../assets/site/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="../assets/site/apple-touch-icon.png" />
+  <link rel="stylesheet" href="../css/styles.css?v={V}" />
+  <link rel="stylesheet" href="../css/brand-system.css?v={V}" />
+  <link rel="stylesheet" href="../css/site-polish.css?v={V}" />
+  <link rel="alternate" type="application/rss+xml" title="만물인테리어 현장 기록" href="../rss.xml" />
+  <script type="application/ld+json">{collection}</script>
+  <script type="application/ld+json">{crumbs}</script>
+</head>
+<body class="stories-page area-page">
+  <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+  <header class="site-header" id="siteHeader">
+    <div class="container header-inner">
+      <a href="../index.html#top" class="logo" aria-label="만물인테리어 홈">
+        <span class="logo-mark">萬</span>
+        <span class="logo-text"><strong>만물인테리어</strong><em>인테리어·누수 전문</em></span>
+      </a>
+      <nav class="main-nav" id="mainNav" aria-label="주요 메뉴">
+        <a href="../index.html">인테리어</a>
+        <a href="../leak.html">누수·배관</a>
+        <a href="../blog.html" aria-current="page">실제 사례</a>
+        <a href="../office.html">관리사무소</a>
+        <a href="../index.html#process">진행 순서</a>
+        <a href="../index.html#inquiry">상담</a>
+      </nav>
+      <a href="../index.html#inquiry" class="btn btn-primary btn-sm header-cta">상담 신청</a>
+      <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mainNav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="section">
+      <div class="container">
+        <a class="post-back" href="../blog.html">← 현장 기록 목록</a>
+        <div class="area-head">
+          <span class="eyebrow">DAEJEON AREA RECORD</span>
+          <h1>대전 {esc(gu)} 현장 기록</h1>
+          <p class="area-lead">만물인테리어가 대전 {esc(gu)}에서 작업한 현장 기록 {n}건을 최신순으로 모았습니다. 각 기록에 적힌 동네·단지와 작업 내용 그대로이며, 동·호수와 고객 정보는 공개하지 않습니다.</p>
+        </div>
+        <dl class="area-facts"><div><dt>기록</dt><dd>{n}건</dd></div>{facts}<div><dt>기록 날짜</dt><dd>{esc(first_day)} ~ {esc(last_day)}</dd></div></dl>
+        <p class="area-dongs">기록에 적힌 동네: {esc(area_dong_summary(items, areas))}</p>
+        <div class="insights-grid area-case-grid">
+{card_html}
+        </div>
+        <div class="post-cta area-cta">{cta_lines}
+            <a href="../leak.html#leakInquiry" class="btn btn-primary">누수 증상 남기기</a>
+            <a href="../index.html#inquiry" class="btn btn-ghost">인테리어 상담</a>
+            <a href="tel:01023978629" class="btn btn-ghost">전화 010-2397-8629</a>
+        </div>{others_html}
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© 만물인테리어 · 인테리어·누수 전문</span>
+      <a href="../index.html">홈으로</a>
+    </div>
+  </footer>
+
+  <nav class="mobile-service-dock" aria-label="빠른 상담">
+    <a class="dock-leak" href="../leak.html#leakInquiry">💧 누수</a>
+    <a href="../index.html#inquiry">🏠 인테리어</a>
+    <a class="dock-call" href="tel:01023978629">📞 전화</a>
+  </nav>
+
+  <script>
+  (function () {{
+    var t = document.getElementById('navToggle'), n = document.getElementById('mainNav');
+    if (!t || !n) return;
+    t.addEventListener('click', function () {{
+      var open = n.classList.toggle('open');
+      t.setAttribute('aria-expanded', open);
+    }});
+  }})();
+  </script>
+</body>
+</html>
+'''
+
+
+def write_area_pages(area_pages, areas):
+    """area/daejeon-<구>.html 을 만든다. 대상이 아닌 남은 쪽은 지우지 않고 알린다(ensure-area-pages 가 막는다)."""
+    outdir = os.path.join(ROOT, 'area')
+    os.makedirs(outdir, exist_ok=True)
+    known = set()
+    for gu, slug, items in area_pages:
+        path = os.path.join(outdir, slug + '.html')
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(area_html(gu, slug, items, area_pages, areas))
+        known.add(slug + '.html')
+        print('생성: area/%s.html(대전 %s 사례 %d건, lastmod %s)' % (slug, gu, len(items), area_lastmod(items)))
+    for fn in sorted(os.listdir(outdir)):
+        if fn.endswith('.html') and fn not in known:
+            print('확인 필요: area/%s 은 생성 대상이 아니다(사례 %d건 미만) — 지우지 않았다. 대표 확인 뒤 옮기거나 정리하세요' % (fn, AREA_MIN_CASES))
 
 
 LEAK_REVIEWS_START = '  <!-- leak-reviews:start'
@@ -757,13 +1028,16 @@ def main():
     # published 가 없던 기존 글은 하위 호환으로 공개 상태다.
     insights = [a for a in insights if a.get('published', True) is not False]
     insights = sorted(insights, key=lambda a: str(a.get('date') or ''), reverse=True)
+    areas = load_post_areas()
+    area_pages = area_pages_for(insights, areas)
+    area_link_by_slug = {a['slug']: (gu, slug) for gu, slug, items in area_pages for a in items}
     outdir = os.path.join(ROOT, 'posts')
     os.makedirs(outdir, exist_ok=True)
     known = set()
     for a in insights:
         path = os.path.join(outdir, a['slug'] + '.html')
         with open(path, 'w', encoding='utf-8') as f:
-            f.write(article_html(a, insights))
+            f.write(article_html(a, insights, area_link_by_slug.get(a['slug'])))
         known.add(a['slug'] + '.html')
         print('생성:', os.path.relpath(path, ROOT))
     # 삭제된 글의 잔여 페이지 정리
@@ -771,10 +1045,11 @@ def main():
         if fn.endswith('.html') and fn not in known:
             os.remove(os.path.join(outdir, fn))
             print('삭제(글 없음):', 'posts/' + fn)
-    write_blog_list(insights)
+    write_blog_list(insights, area_pages)
     write_rss(insights)
     write_leak_case_index(insights)
     write_leak_reviews(reviews)
+    write_area_pages(area_pages, areas)
     print(f'완료 · {len(insights)}건')
 
 
