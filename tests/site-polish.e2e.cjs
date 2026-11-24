@@ -42,7 +42,8 @@ async function open(t,file,options={}){
 for(const width of [320,390,768,1280])test(`${width}px 공개 화면: 새 스타일 배포·이미지 구분·메뉴·가로 넘침`,async t=>{
   for(const file of ['index.html','blog.html','leak.html','posts/yeolmae-extension-floor-screed.html']){
     const page=await open(t,file,{viewport:{width,height:900}});
-    assert.equal(await page.locator('link[href$="site-polish.css?v=20261002-editorial"]').count(),1,file);
+    // 2026-11-25: site-polish.css 를 고쳐 캐시 표시를 20261125-reviews1 로 올렸다(구별 기록·모아 보기 링크 스타일).
+    assert.equal(await page.locator('link[href$="site-polish.css?v=20261125-reviews1"]').count(),1,file);
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),file+' 가로 넘침');
     if(file==='index.html'){
       const visual=page.locator('.interior-hero-visual');

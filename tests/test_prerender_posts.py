@@ -260,7 +260,11 @@ class AreaPageTests(unittest.TestCase):
         self.assertIn('<title>대전 서구 현장 기록 3건 · 만물인테리어</title>', markup)
         self.assertIn('<link rel="canonical" href="https://01023978629.github.io/manmool/area/daejeon-seo-gu.html" />', markup)
         self.assertIn('href="tel:01023978629"', markup)
-        self.assertIn('기록에 적힌 동네: 가상동 2건 · 동 이름 없이 구만 적힌 기록 1건', markup)
+        # 동이 없는 글은 세지 않는다 — '동 이름 없이' 라고 쓰면 '신탄진' 처럼 동네를 적은 글을 틀리게 말한다(2026-11-25 검토).
+        self.assertIn('<p class="area-dongs">글에 동 이름이 적힌 기록: 가상동 2건</p>', markup)
+        self.assertNotIn('동 이름 없이', markup)
+        no_dong = {slug: {'gu': v['gu']} for slug, v in self.areas.items()}
+        self.assertNotIn('area-dongs', PRERENDER.area_html(gu, slug, items, pages, no_dong), '동이 하나도 없으면 줄을 두지 않는다')
         self.assertIn('<div><dt>누수·배관</dt><dd>2건</dd></div><div><dt>인테리어</dt><dd>1건</dd></div>', markup)
         self.assertNotIn('area-others', markup, '다른 구 쪽이 없으면 다른 구 목록도 없다')
 

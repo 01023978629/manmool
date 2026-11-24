@@ -23,6 +23,8 @@ from email.utils import format_datetime
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE = 'https://01023978629.github.io/manmool'
 V = '20261002-editorial'  # 공개 화면의 에디토리얼 디자인 레이어
+# css/site-polish.css 만 따로 올린다(2026-11-25 — 구별 기록·글의 모아 보기 링크 스타일). styles.css·brand-system.css 는 그대로라 V 를 둔다.
+V_POLISH = '20261125-reviews1'
 
 
 def esc(s):
@@ -410,7 +412,7 @@ def article_html(a, insights, area_link=None):
   <link rel="apple-touch-icon" href="../assets/site/apple-touch-icon.png" />
   <link rel="stylesheet" href="../css/styles.css?v={V}" />
   <link rel="stylesheet" href="../css/brand-system.css?v={V}" />
-  <link rel="stylesheet" href="../css/site-polish.css?v={V}" />
+  <link rel="stylesheet" href="../css/site-polish.css?v={V_POLISH}" />
   <script type="application/ld+json">{ld}</script>
   <script type="application/ld+json">{crumbs}</script>
 </head>
@@ -705,16 +707,14 @@ def area_nav_markup(area_pages):
 
 
 def area_dong_summary(items, areas):
+    """post-areas.json 에 동이 적힌 글만 동별로 센다. 동이 없는 글은 세지 않는다 —
+    '동 이름 없이 구만' 이라고 쓰면 '신탄진' 처럼 동네 이름을 적은 글을 틀리게 말하게 된다(2026-11-25 검토)."""
     counts = {}
     for a in items:
         dong = str((areas.get(a['slug']) or {}).get('dong') or '').strip()
         if dong:
             counts[dong] = counts.get(dong, 0) + 1
-    parts = [f'{dong} {n}건' for dong, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))]
-    unnamed = len(items) - sum(counts.values())
-    if unnamed:
-        parts.append(f'동 이름 없이 구만 적힌 기록 {unnamed}건')
-    return ' · '.join(parts)
+    return ' · '.join(f'{dong} {n}건' for dong, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])))
 
 
 def area_html(gu, page_slug, items, area_pages, areas):
@@ -795,6 +795,9 @@ def area_html(gu, page_slug, items, area_pages, areas):
     collection = collection.replace('&', '\\u0026').replace('<', '\\u003c').replace('>', '\\u003e')
     crumbs = crumbs.replace('&', '\\u0026').replace('<', '\\u003c').replace('>', '\\u003e')
     card_html = '\n'.join(cards)
+    dong_summary = area_dong_summary(items, areas)
+    dong_line = (f'        <p class="area-dongs">글에 동 이름이 적힌 기록: {esc(dong_summary)}</p>\n'
+                 if dong_summary else '')
     return f'''<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -822,7 +825,7 @@ def area_html(gu, page_slug, items, area_pages, areas):
   <link rel="apple-touch-icon" href="../assets/site/apple-touch-icon.png" />
   <link rel="stylesheet" href="../css/styles.css?v={V}" />
   <link rel="stylesheet" href="../css/brand-system.css?v={V}" />
-  <link rel="stylesheet" href="../css/site-polish.css?v={V}" />
+  <link rel="stylesheet" href="../css/site-polish.css?v={V_POLISH}" />
   <link rel="alternate" type="application/rss+xml" title="만물인테리어 현장 기록" href="../rss.xml" />
   <script type="application/ld+json">{collection}</script>
   <script type="application/ld+json">{crumbs}</script>
@@ -860,8 +863,7 @@ def area_html(gu, page_slug, items, area_pages, areas):
           <p class="area-lead">만물인테리어가 대전 {esc(gu)}에서 작업한 현장 기록 {n}건을 최신순으로 모았습니다. 각 기록에 적힌 동네·단지와 작업 내용 그대로이며, 동·호수와 고객 정보는 공개하지 않습니다.</p>
         </div>
         <dl class="area-facts"><div><dt>기록</dt><dd>{n}건</dd></div>{facts}<div><dt>기록 날짜</dt><dd>{esc(first_day)} ~ {esc(last_day)}</dd></div></dl>
-        <p class="area-dongs">기록에 적힌 동네: {esc(area_dong_summary(items, areas))}</p>
-        <div class="insights-grid area-case-grid">
+{dong_line}        <div class="insights-grid area-case-grid">
 {card_html}
         </div>
         <div class="post-cta area-cta">{cta_lines}

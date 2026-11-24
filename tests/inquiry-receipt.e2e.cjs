@@ -181,6 +181,35 @@ test('인테리어 폼: 유입 페이지·신청 단추·UTM 이 메일과 접�
   await phoneLike.ctx.close();
 });
 
+/* 2026-11-25 — 꼬리표를 달고 들어와 시안 창을 열고 닫은 뒤(주소가 #design= 으로 바뀌었다 돌아옴) 신청해도 UTM 이 실린다.
+   예전에는 창을 닫을 때 ?검색어를 버려 꼬리표가 사라졌고, 폼은 보낼 때의 주소를 읽었다. 가이드 상담 링크도 꼬리표를 잇는다. */
+test('인테리어 폼: utm 으로 들어와 시안 창을 열고 닫은 뒤 신청해도 UTM 이 실리고, 가이드 상담 링크도 꼬리표를 잇는다', async () => {
+  const { page, ctx, bodies, pageErrors } = await openPage('index.html?utm_source=naver_blog&utm_medium=blog');
+  const guideHref = await page.locator('#projectGuideResult .project-guide-actions .btn-ghost').getAttribute('href');
+  const guideUrl = new URL(guideHref, origin + '/');
+  assert.equal(guideUrl.searchParams.get('utm_source'), 'naver_blog', '가이드 상담 링크가 꼬리표를 잃었다: ' + guideHref);
+  assert.equal(guideUrl.searchParams.get('type'), '주거');
+  await page.locator('#portfolioGrid .folio').first().waitFor({ timeout: 9000 });
+  await page.locator('#portfolioGrid .folio').first().click();
+  await page.waitForFunction(() => !document.getElementById('folioModal').hidden);
+  assert.match(await page.evaluate(() => location.hash), /design=/);
+  assert.match(await page.evaluate(() => location.search), /utm_source=naver_blog/, '시안 창을 열 때 주소에서 꼬리표가 빠졌다');
+  await page.locator('#folioModal .folio-modal-close').click();
+  await page.waitForFunction(() => document.getElementById('folioModal').hidden);
+  assert.match(await page.evaluate(() => location.search), /utm_source=naver_blog&utm_medium=blog/, '시안 창을 닫을 때 주소에서 꼬리표가 빠졌다');
+  await fillInterior(page);
+  await page.click('#submitInquiry');
+  await page.waitForSelector('.inquiry-done', { timeout: 9000 });
+  await page.waitForTimeout(200);
+  const mail = bodies.mail[0];
+  assert.equal(mail.utmSource, 'naver_blog');
+  assert.equal(mail.utmMedium, 'blog');
+  assert.equal(mail.ctaId, 'index-inquiry-submit');
+  assert.equal(bodies.inbox[0].payload.utmSource, 'naver_blog');
+  assert.deepEqual(pageErrors, []);
+  await ctx.close();
+});
+
 test('누수 폼: 접수함이 번호를 주면 접수 화면에 접수번호가 보이고, 꺼져 있으면 안 보인다', async () => {
   for (const [variant, expectReceipt] of [[{}, true], [{ inboxOff: true }, false], [{ inbox: 'bad-receipt' }, false]]) {
     const { page, ctx, pageErrors } = await openPage('leak.html', variant);

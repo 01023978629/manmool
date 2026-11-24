@@ -65,6 +65,12 @@ export function maskDisplayName(value) {
   return { name: core[0] + '○'.repeat(core.length - 1) + suffix, raw: core };
 }
 
+/* --date 를 안 주면 오늘 날짜 — 한국 시각(Asia/Seoul) 기준이다. 예전에는 UTC 날짜(toISOString)라
+   한국 시각 0시~9시에 넣은 후기가 하루 전 날짜로 공개됐다. */
+export function seoulToday(now = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+}
+
 /** 입력값을 공개 가능한 후기 한 건으로 만든다. 못 만들면 이유를 담아 throw. */
 export function buildReview(values, today) {
   const v = values || {};
@@ -93,7 +99,7 @@ export function buildReview(values, today) {
     throw new Error('--service 는 leak(누수·배관·방수) 또는 interior(인테리어) 중 하나여야 합니다 — 누수 페이지 후기 칸은 leak 만 보여 줍니다');
   }
   out.service = service;
-  const date = String(v.date || today || new Date().toISOString().slice(0, 10));
+  const date = String(v.date || today || seoulToday());
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('--date 는 YYYY-MM-DD 형식이어야 합니다');
   out.date = date;
   return out;

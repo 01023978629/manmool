@@ -33,6 +33,33 @@ function escapeContent(value) {
     .replace(/'/g, '&#39;');
 }
 
+/* 들어온 링크의 utm_* 꼬리표(당근·네이버 블로그·카카오 채널 등)를 이 쪽 안에서 주소를 바꾸거나 다른 쪽으로 넘어갈 때도
+   잃지 않게 한다(2026-11-25). 상담 폼(js/inquiry.js)이 문의 출처를 세는 값이다 — 값 거르기는 js/revenue-conversion.js 가 접수 때 한다. */
+const CAMPAIGN_KEYS = ['utm_source', 'utm_medium', 'utm_campaign'];
+
+// 지금 쪽 주소(?검색어 포함)에 해시 조각을 붙인다. 예전에는 location.search 를 빼고 만들어 시안 창을 열고 닫기만 해도 꼬리표가 사라졌다.
+function currentPageUrl(hashParts) {
+  const parts = (hashParts || []).filter(Boolean);
+  return location.origin + location.pathname + location.search + (parts.length ? '#' + parts.join('&') : '');
+}
+
+// 같은 사이트의 상담 쪽(index.html·leak.html)으로 가는 링크에 지금 주소의 utm_* 를 이어 붙인다(이미 있으면 그대로).
+function withCampaignParams(href) {
+  const value = String(href == null ? '' : href);
+  if (!/^(?:index|leak)\.html(?:[?#]|$)/.test(value)) return value;
+  let current;
+  try { current = new URLSearchParams(location.search); } catch (e) { return value; }
+  const carry = CAMPAIGN_KEYS.filter((key) => current.get(key));
+  if (!carry.length) return value;
+  const hashAt = value.indexOf('#');
+  const head = hashAt >= 0 ? value.slice(0, hashAt) : value;
+  const hash = hashAt >= 0 ? value.slice(hashAt) : '';
+  const queryAt = head.indexOf('?');
+  const params = new URLSearchParams(queryAt >= 0 ? head.slice(queryAt + 1) : '');
+  carry.forEach((key) => { if (!params.has(key)) params.set(key, current.get(key)); });
+  return (queryAt >= 0 ? head.slice(0, queryAt) : head) + '?' + params.toString() + hash;
+}
+
 function publicDesignText(value) {
   return String(value == null ? '' : value)
     .replace(/신규\s*AI\s*시안/g, '신규 디지털 시안')
@@ -215,7 +242,7 @@ function setupProjectGuide() {
     host.innerHTML = `<span class="guide-result-kicker">${escapeContent(item.kicker)}</span>
       <h3>${escapeContent(item.title)}</h3><p>${escapeContent(item.desc)}</p>
       <ul>${item.checks.map((text) => `<li>${escapeContent(text)}</li>`).join('')}</ul>
-      <div class="project-guide-actions"><a class="btn btn-primary" href="${escapeContent(item.primary[1])}">${escapeContent(item.primary[0])}</a><a class="btn btn-ghost" href="${escapeContent(item.secondary[1])}">${escapeContent(item.secondary[0])}</a></div>`;
+      <div class="project-guide-actions"><a class="btn btn-primary" href="${escapeContent(withCampaignParams(item.primary[1]))}">${escapeContent(item.primary[0])}</a><a class="btn btn-ghost" href="${escapeContent(withCampaignParams(item.secondary[1]))}">${escapeContent(item.secondary[0])}</a></div>`;
   };
   tabs.forEach((tab, index) => {
     tab.addEventListener('click', () => show(tab.dataset.projectGuide));
@@ -1089,7 +1116,7 @@ function setupFolioModal() {
     // 주소에서 design 키만 걷어낸다 — 같이 있던 #sim=·#look= 은 남아야 한다.
     try {
       const parts = String(location.hash || '').replace(/^#/, '').split('&').filter((p) => p && p.indexOf('design=') !== 0);
-      history.replaceState(null, '', location.origin + location.pathname + (parts.length ? '#' + parts.join('&') : ''));
+      history.replaceState(null, '', currentPageUrl(parts));
     } catch (e) {}
     document.title = __siteTitle;
     // 모달을 연 요소로 포커스 복귀 (요소가 재렌더로 사라졌으면 생략)
@@ -1477,7 +1504,7 @@ async function init() {
     build(key, value) {
       const parts = String(location.hash || '').replace(/^#/, '').split('&').filter((p) => p && p.indexOf(key + '=') !== 0);
       parts.push(key + '=' + encodeURIComponent(value));
-      return location.origin + location.pathname + '#' + parts.join('&');
+      return currentPageUrl(parts);
     }
   };
 

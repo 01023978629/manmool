@@ -43,11 +43,24 @@ check(['js/revenue-conversion.js', 'js/lead-transport.js', 'js/inquiry.js'].ever
 
 /* ② 세 폼의 배선 */
 check(/const REVENUE = window\.ManmulRevenue;/.test(inquiry) && /const INQUIRY_CTA_ID = 'index-inquiry-submit';/.test(inquiry)
-  && /REVENUE\.captureLeadMetadata\(window\.location, INQUIRY_CTA_ID\)/.test(inquiry),
-  'js/inquiry.js 가 captureLeadMetadata(window.location, "index-inquiry-submit") 를 부르지 않는다', '인테리어 폼 출처 수집');
+  && /REVENUE\.captureLeadMetadata\(\{ pathname: window\.location\.pathname, search: window\.location\.search \}, INQUIRY_CTA_ID\)/.test(inquiry),
+  'js/inquiry.js 가 처음 주소로 captureLeadMetadata(…, "index-inquiry-submit") 를 부르지 않는다', '인테리어 폼 출처 수집');
+// 처음 들어온 주소에서 한 번만 잡고(LANDING_SOURCE) 보낼 때는 그 사본을 쓴다 — 보낼 때의 주소를 다시 읽으면
+// 시안 창을 열고 닫는 사이(history.replaceState) 꼬리표가 빠진 주소를 읽는다(2026-11-25).
+check(/const LANDING_SOURCE = \(\(\) => \{/.test(inquiry) && /const leadMetadata = \(\) => Object\.assign\(\{\}, LANDING_SOURCE\);/.test(inquiry)
+  && (inquiry.match(/captureLeadMetadata\(/g) || []).length === 1,
+  'js/inquiry.js 가 출처를 처음 주소에서 한 번 잡아 두지 않는다(보낼 때 주소를 다시 읽음)', '인테리어 출처 처음 주소 고정');
 const indexPayload = (inquiry.match(/const payload = \{([\s\S]*?)\};/) || [])[1] || '';
 check(/\.\.\.data,\s*\.\.\.leadMetadata\(\),\s*privacyConsent: data\.consent/.test(indexPayload),
   'js/inquiry.js 상담 payload 에 출처(leadMetadata())가 실리지 않는다', '인테리어 payload 출처');
+// 쪽 안에서 주소를 다시 쓰는 곳(시안 창 닫기·MANMUL_HASH.build)은 ?검색어를 지키고, 가이드의 상담 링크는 utm_* 를 이어 붙인다.
+const mainJs = read('js/main.js');
+check(/function currentPageUrl\(hashParts\) \{[\s\S]*?location\.origin \+ location\.pathname \+ location\.search \+/.test(mainJs)
+  && /history\.replaceState\(null, '', currentPageUrl\(parts\)\);/.test(mainJs) && /return currentPageUrl\(parts\);/.test(mainJs)
+  && !/location\.origin \+ location\.pathname \+ (?:'#'|\(parts)/.test(mainJs),
+  'js/main.js 가 주소를 다시 쓸 때 ?utm_* 검색어를 버린다(시안 창 닫기·MANMUL_HASH.build)', '주소 다시 쓰기 검색어 유지');
+check(/withCampaignParams\(item\.primary\[1\]\)/.test(mainJs) && /withCampaignParams\(item\.secondary\[1\]\)/.test(mainJs),
+  'js/main.js 공사 시작 가이드 상담 링크가 utm_* 를 이어 붙이지 않는다(index.html?type=… 로 다시 열리며 꼬리표가 빠진다)', '가이드 링크 꼬리표');
 check(/REVENUE\.captureLeadMetadata\(window\.location, 'leak-inquiry-submit', referenceCase\)/.test(leakInquiry),
   'js/leak-inquiry.js 가 누수 문의 출처를 싣지 않는다', '누수 폼 출처 수집');
 check(/REVENUE\.captureLeadMetadata\(window\.location,\s*'office-pilot-submit'\)/.test(pilot),

@@ -1,7 +1,7 @@
 # 대전 구별 현장 기록 쪽 (2026-11-25, M3)
 
 `area/daejeon-<구>.html` — 만물인테리어가 그 구에서 작업한 **실제 사례 글 목록**만 모은 쪽이다. 지어낸 소개 문장·과장 없이,
-사례 글에 이미 공개된 제목·소개·날짜·공정(분류)·글에 적힌 동네와, 서비스 링크(누수 상담·인테리어 상담)·전화만 둔다.
+사례 글에 이미 공개된 제목·소개·날짜·공정(분류)·글에 동 이름이 적힌 기록의 동별 건수와, 서비스 링크(누수 상담·인테리어 상담)·전화만 둔다.
 **사례가 3건 이상인 구만** 쪽을 만든다(얇은 지역 쪽은 검색엔진이 '도어웨이'로 본다).
 
 | 쪽 | 사례 | 누수·배관 / 인테리어 | 기록 날짜 | sitemap lastmod |
@@ -26,11 +26,11 @@
 | 유성구 | gyochon-mimade-boiler-hot-water-pipe-repair-20261112 | 대전 유성구 교촌동 |
 | 유성구 | jukdong-yemiji-bathroom-coating-vent-core-20261007 | 대전 유성구 죽동 |
 | 유성구 | sangdae-ipark-bathroom-waterproof-coating-20260830 | 대전 유성구 상대동 |
-| 대덕구 | saeyeoul-toilet-drain-pipe-insert-20261117 | 대전 대덕구 신탄진(동 이름 없음) |
+| 대덕구 | saeyeoul-toilet-drain-pipe-insert-20261117 | 대전 대덕구 신탄진('○○동' 표기 없음 — 동별 건수에서 뺌) |
 | 대덕구 | samho-front-balcony-rain-pipe-waterproof-20261116 | 대전 대덕구 법동 |
 | 대덕구 | samho-balcony-rain-pipe-base-replacement-20261110 | 대전 대덕구 법동 |
 | 대덕구 | seonbi-1danji-retaining-wall-plaster-repair-20261103 | 대전 대덕구 송촌동 |
-| 대덕구 | saeyeoul-laundry-rain-pipe-floor-drain-20261022 | 대전 대덕구 신탄진(동 이름 없음) |
+| 대덕구 | saeyeoul-laundry-rain-pipe-floor-drain-20261022 | 대전 대덕구 신탄진('○○동' 표기 없음 — 동별 건수에서 뺌) |
 | 대덕구 | seonbi-1danji-boiler-pipe-valve-replacement-20261007 | 대전 대덕구 송촌동 |
 | 대덕구 | samho-balcony-rain-pipe-joint-replacement-20261005 | 대전 대덕구 법동 |
 | 대덕구 | pyeonghaneul-apartment-leak-repair-20260909 | 본문 '대전 대덕구 목상동' |
@@ -40,7 +40,7 @@
 | 중구 | daejeon-jung-gu-yard-water-valve-leak | 대전 중구 문화동 |
 | 중구 | mokdong-trench-drain | 장소 '대전 중구 목동' |
 | 서구 | tanbang-house-floor-screed-20261112 | 대전 서구 탄방동 |
-| 서구 | sanho-balcony-drain-tile-replacement-20261029 | 대전 서구(동 이름 없음) |
+| 서구 | sanho-balcony-drain-tile-replacement-20261029 | 대전 서구(동 표기 없음) |
 | 서구 | sujeong-town-laundry-rain-pipe-drain-20261029 | 대전 서구 둔산동 |
 | 서구 | wolpyeong-town-laundry-rain-pipe-joint-20261029 | 대전 서구 월평동 |
 | 서구 | mokhwa-toilet-reset-ceiling-drain-pipe-20261026 | 대전 서구 복수동 |
@@ -77,7 +77,7 @@
 
 - `scripts/ensure-area-pages.mjs`(확인 442건): ① 글자 근거(구 글자 또는 동→구 표의 동), 동이 글에 있음, 동-구 일치, 다른 구가 적힌 글 아님, 대전 밖 아님
   ② '대전 ○구' 가 적힌 실제 사례 누락 없음 ③ 쪽 목록 = 3건 이상인 구, 남은 쪽 없음 ④ 쪽 카드 = 그 구 사례(최신순)·제목·canonical·연락/서비스 링크·구조화 데이터,
-  금액·협력사 이름·좌표 없음, 동네 줄 ⑤ sitemap 목록·lastmod, 블로그 링크·건수, 누수/인테리어 지역 문구, 글의 모아 보기 링크, 허용목록, CI 생성물 비교.
+  금액·협력사 이름·좌표 없음, 동별 건수 줄 ⑤ sitemap 목록·lastmod, 블로그 링크·건수, 누수/인테리어 지역 문구, 글의 모아 보기 링크, 허용목록, CI 생성물 비교.
 - `tests/test_prerender_posts.py` `AreaPageTests` 4건(3건 문턱·공개/실제 사례만, 쪽 내용·escape·JSON-LD, 블로그 링크, 글 링크).
 
 ### 변이 표 — 27/27 잡힘

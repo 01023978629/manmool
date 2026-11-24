@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { buildReview, appendReview, piiFindings, maskDisplayName, isMaskedDisplayName } from './new-review.mjs';
+import { buildReview, appendReview, piiFindings, maskDisplayName, isMaskedDisplayName, seoulToday } from './new-review.mjs';
 
 const GOOD = { rating: '5', name: '김○○', service: 'interior', space: '유성구 ○○아파트 · 욕실 리모델링', text: '타일 줄눈까지 꼼꼼하게 마무리해 주셨어요. 설명도 자세했습니다.' };
 
@@ -41,6 +41,18 @@ test('같은 실명이 현장·본문에 있으면 거기서도 가린다', () =
   assert.equal(review.space, '홍○○ 고객님 댁 · 욕실');
   assert.equal(review.text, '홍○○입니다. 줄눈까지 꼼꼼하게 마무리해 주셨어요.');
   assert.doesNotMatch(JSON.stringify(review), /홍길동/);
+});
+
+test('--date 를 안 주면 한국 시각(Asia/Seoul) 오늘 — UTC 로 하루 밀리지 않는다', () => {
+  assert.equal(seoulToday(new Date('2026-11-24T15:00:00Z')), '2026-11-25', '한국 0시(UTC 15시)부터는 한국 날짜');
+  assert.equal(seoulToday(new Date('2026-11-24T14:59:59Z')), '2026-11-24');
+  assert.equal(seoulToday(new Date('2026-12-31T23:30:00Z')), '2027-01-01', '연말에도 한국 날짜');
+  assert.match(seoulToday(), /^\d{4}-\d{2}-\d{2}$/);
+  const before = seoulToday();
+  const review = buildReview(GOOD);
+  const after = seoulToday();
+  assert.ok(review.date === before || review.date === after, `날짜를 안 주면 한국 오늘(${before})이어야 하는데 ${review.date}`);
+  assert.equal(buildReview({ ...GOOD, date: '2026-10-23' }).date, '2026-10-23', '--date 를 주면 그 값');
 });
 
 test('분야(--service)는 leak·interior 둘 중 하나만 받는다 — 누수 페이지 후기 칸이 이 값으로 고른다', () => {

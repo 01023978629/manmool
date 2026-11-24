@@ -130,7 +130,7 @@ for (const page of expected) {
     check(!hit, `${where}: ${name}로 보이는 "${hit && hit[0]}" 가 있다 — 구별 쪽은 사례 글의 사실만`, `${where} ${name} 없음`);
   }
   const dongs = [...new Set(page.items.map((a) => areas[a.slug].dong).filter(Boolean))];
-  check(dongs.every((d) => html.includes(d)), `${where}: 기록에 적힌 동네 줄이 post-areas.json 의 동과 다르다`, `${where} 동네 줄`);
+  check(dongs.every((d) => html.includes(d)), `${where}: 동별 건수 줄(글에 동 이름이 적힌 기록)이 post-areas.json 의 동과 다르다`, `${where} 동별 건수 줄`);
 }
 
 /* ⑤ 길 — sitemap·블로그 목록·지역 문구·글의 모아 보기 링크·허용목록·CI */
