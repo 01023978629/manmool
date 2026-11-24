@@ -98,6 +98,8 @@
 .mini.ghost { background: var(--bg-alt); color: var(--ink); border: 1px solid var(--line); }
 .mini:hover { transform: translateY(-1px); }
 .mini[disabled] { opacity: .5; cursor: default; transform: none; }
+/* 링크를 .mini 버튼처럼 — 고객 페이지 '후기 작성'은 review.html 로 가는 진짜 링크다 */
+a.mini { display: inline-block; text-decoration: none; line-height: 1.25; }
 
 /* 폼(현장·A/S 입력) */
 .app-form { display: flex; flex-direction: column; gap: 16px; }

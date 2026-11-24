@@ -1,4 +1,5 @@
 /* Public service-page behavior: serve the Pages artifact; never submit a form. */
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
@@ -59,7 +60,7 @@ async function openPublic(t, file, options = {}) {
     const request = route.request();
     if (request.method() !== 'GET') mutations.push({ method: request.method(), url: request.url() });
     if (!request.url().startsWith(origin + '/') || request.method() !== 'GET') return route.abort();
-    return route.continue();
+    return route.fallback();
   });
   const page = await context.newPage();
   page.setDefaultTimeout(6000);

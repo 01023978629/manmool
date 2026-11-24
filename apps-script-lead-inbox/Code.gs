@@ -346,6 +346,14 @@ function leadDecide_(session, payload) {
 }
 
 /* ── 최초 설치 (편집기에서 직접 1회 실행) ───────────────────────── */
+/* 편집기 실행용 입구(2026-11-19 추가). 이름 끝에 '_' 가 붙은 비공개 함수는 Apps Script 편집기의 함수 선택 목록에
+   나오지 않아 대표가 고를 수 없다 — 이 함수 하나를 골라 실행하면 시트 머리글 만들기와 매일 정리 트리거 걸기를 함께 한다.
+   웹 action(LEAD_ACTIONS)이 아니며 doPost 로는 부를 수 없다. 두 번 실행해도 안전하다(머리글 확인·트리거 하나만 유지). */
+function leadInboxSetup() {
+  var sheets = leadInboxSetupSheets_();
+  var trigger = leadInboxInstallTrigger_();
+  return sheets === 'ok' && trigger === 'ok' ? 'ok' : 'check';
+}
 function leadInboxSetupSheets_() {
   var ss = leadSpreadsheet_();
   Object.keys(LEAD_HEADERS).forEach(function (name) {

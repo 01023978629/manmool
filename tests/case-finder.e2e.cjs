@@ -1,4 +1,5 @@
 /* Public blog finder: real generated cards, no account access or submissions. */
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
@@ -71,7 +72,7 @@ async function openBlog(t, options = {}) {
         /(<div class="container" id="blogRoot">)[\s\S]*?\r?\n      <\/div>/,
         '$1</div>') });
     }
-    return route.continue();
+    return route.fallback();
   });
   const page = await context.newPage();
   page.setDefaultTimeout(6000);
@@ -310,9 +311,11 @@ for (const javaScriptEnabled of [false, true]) {
 test('검색·필터 후 전체로 돌아가도 분야별 결과 건수와 빈 구역 숨김을 유지한다', async (t) => {
   const { page } = await openBlog(t);
   // 2026-10-11: 승인된 하부 연결부 교체 사례 추가로 삼호아파트 기록은 3건.
-  await search(page, '삼호아파트', 3);
+  // 2026-11-12: 11/10 삼호아파트 베란다 우수관 하부 교체 사례 추가로 4건(모두 누수 분야).
+  // 2026-11-17: 11/16 삼호아파트 앞베란다 우수관 방수 사례 추가로 5건(모두 누수 분야).
+  await search(page, '삼호아파트', 5);
   assert.equal(await page.locator('[data-case-group]:visible').count(), 1);
-  assert.equal(await page.locator('[data-case-group="leak"] [data-case-group-count]').innerText(), '3건');
+  assert.equal(await page.locator('[data-case-group="leak"] [data-case-group-count]').innerText(), '5건');
   await page.locator('[data-case-filter="info"]').click();
   assert.equal(await page.locator('[data-case-group]:visible').count(), 0);
   assert.equal(await page.locator('#caseEmpty').isVisible(), true);

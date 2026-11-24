@@ -1,4 +1,5 @@
 // Read-only localhost verification; external services and submissions are blocked.
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), http = require('node:http');
@@ -30,7 +31,7 @@ for (const width of [320, 390, 1280]) {
   test(width + 'px five cases: photos, captions, legacy routes, related links and no overflow', { timeout: 120000 }, async t => {
     const context = await browser.newContext({ viewport: { width, height: 850 } });
     t.after(() => context.close());
-    await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.continue() : route.abort());
+    await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.fallback() : route.abort());
     const page = await context.newPage(), errors = [];
     page.on('pageerror', e => errors.push(e.message));
     for (const c of fixture.cases) {
@@ -70,7 +71,7 @@ for (const width of [320, 390, 1280]) {
 test('mobile list filters and search discover each approved case', { timeout: 60000 }, async t => {
   const context = await browser.newContext({ viewport: { width: 390, height: 850 } });
   t.after(() => context.close());
-  await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.continue() : route.abort());
+  await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.fallback() : route.abort());
   const page = await context.newPage();
   for (const c of fixture.cases) {
     const article = site.insights.find(a => a.slug === c.slug);

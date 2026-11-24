@@ -1,0 +1,66 @@
+{
+  "previousCount": 92,
+  "previousHash": "8b649bc178521cf5bdafb7ee2b4695113a1951ceeec39d62086435d7c0a682d9",
+  "otherDataHash": "5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487",
+  "cases": [
+    {
+      "slug": "heightsville-extension-floor-heating-screed-20261118",
+      "service": "interior",
+      "category": "바닥·미장",
+      "date": "2026-11-18",
+      "photoCount": 9,
+      "shootingDates": [
+        "2026-11-18"
+      ],
+      "placeName": "대전 유성구 관평동 하이츠빌아파트",
+      "leakCard": false
+    }
+  ],
+  "photos": [
+    {
+      "file": "assets/cases/floor-heating-20261118-01.jpg",
+      "sha256": "84eb384544ed6817198d3ec8849fdf1bdc9066740431ca81cd2f77bad0c7176e",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/floor-heating-20261118-02.jpg",
+      "sha256": "7e47e8a7716d4dcba7f3b686a02265d62cf277c9326ff6e8cda45a4499364305",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/floor-heating-20261118-03.jpg",
+      "sha256": "48b01e9a8163a38f92cebd7bcfc7f82de48500360809bd7a2d688ccfb6a9fd79",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/floor-heating-20261118-04.jpg",
+      "sha256": "15430611de206f459ec72de38fa71175e99fb32d1ffbdbedc5b3fac843ca5134",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/floor-heating-20261118-05.jpg",
+      "sha256": "5e9f0415050cedb54a3915f6a182dd2d191f30b1d9034181a3f69313a22e58a3",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/floor-heating-20261118-06.jpg",
+      "sha256": "5f5c83f4970e76b7a61a62cd501b5300e9a97ea840bb52207d615e4bd80eb568",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/floor-heating-20261118-07.jpg",
+      "sha256": "d59a0d73299fd6a6ec52268ee73427dc4c5676eab500ae5731d16e700b35bb65",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/floor-heating-20261118-08.jpg",
+      "sha256": "261774c5504b9186d39617ee2d94d6533b06966fe48345a5ef52132d11a85e3d",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/floor-heating-20261118-09.jpg",
+      "sha256": "08a273e978f9c96b1e3ebb8ee6e2771452c468379daf000507340ac603e07725",
+      "longSide": 1200
+    }
+  ]
+}

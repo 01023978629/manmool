@@ -1,4 +1,5 @@
 /* Real generated HTML + legacy view. Local GET only; no customer data. */
+require('./helpers/e2e-offline.cjs');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -59,7 +60,7 @@ async function readBody(page) {
 async function contextFor(t, options = {}) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 850 }, ...options });
   const errors = [];
-  await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.continue() : route.abort());
+  await context.route('**/*', route => route.request().url().startsWith(origin + '/') && route.request().method() === 'GET' ? route.fallback() : route.abort());
   context.on('page', page => page.on('pageerror', e => errors.push(e.message)));
   t.after(async () => { await context.close(); assert.deepEqual(errors, []); });
   return context;

@@ -6,6 +6,114 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-11-21 대전 유성구 관평동 하이츠빌아파트 확장부 난방 배관·미장(11/18, 진행 중) 사례 1건 공개 후보
+
+`claude/case-heightsville-extension-floor-heating-screed-20261118`는 대표가 검토한 비공개 초안을 `published:true`로 더한다 —
+`heightsville-extension-floor-heating-screed-20261118`(사진 9장, 인테리어·`바닥·미장`). 대표가 11/21 단지가 관평동이라고 확인해 장소 표기만
+'대전 유성구 관평동 하이츠빌아파트'로 고쳤고 나머지 문구는 초안 그대로다. **병합하면 바로 공개된다** — 대표 확인 대기 8개는 PR 설명과 `docs/recent-cases-20261121.md`.
+
+- 가장 새 글이라 맨 앞에 들어가 **대표 사례(FEATURED)가 11/17 새여울에서 이 글로 바뀐다**(인테리어 칸). 인테리어라 누수 카드·색인 없음.
+- **blog/leak `lastmod` 가 처음으로 갈라졌다** — blog 2026-11-18(최신 공개 글), leak 2026-11-17(누수 페이지 최신 사례 카드, `ensure-weekly-leak-cases` 규칙 그대로).
+  기존 검사의 `['blog.html','leak.html']` 같은 값 기대를 각각 따로 보게 고쳤다. 다음 누수 사례가 더 새것이면 둘이 다시 같아진다.
+- 진행 중 사례다(남은 작업은 다음 방문 때). 완공처럼 쓰지 않는다 — 새 검사 `recent-cases-20261121` 이 막는다. 공개 위치는 동네+단지명까지.
+- 기존 92건은 한 글자도 바꾸지 않았다(origin/main `520dc41`). 다시 고정한 핀 목록은 `docs/recent-cases-20261121.md`.
+
+### 2026-11-19 정리 — A/S 상담 유형·내부 화면 비공개·포털 설정 저장소 고정·문의 접수함 켜기
+
+`claude/tidy-20261119` (대표 정리 목록 12·17·28·32·33번 중 만물웹 몫).
+
+- **A/S·하자 상담 유형(현장웹과 공통 약속 — 바꾸지 말 것)**: `index.html` 상담 폼 '공간 유형'에 `<option value="A/S">A/S·하자 (시공했던 집)</option>`.
+  값에는 '·' 를 넣지 않는다 — 현장웹 `webWorkClassify` 가 메일 '공간' 줄을 '·' 로 나눠 첫 칸 `A/S`(별칭 AS·하자·하자보수)를 service `as`(표시 'A/S·하자')로 읽는다.
+  누수처럼 연락처 지름길(`#asShortcut`, '만물인테리어에서 시공한 집…평수·공사 범위를 건너뛰셔도 됩니다')과 요청 내용 안내('어느 아파트(단지)·동네인지,
+  언제 시공한 곳인지, 어떤 증상인지' — 지름길이 1단계 지역 칸을 건너뛰고, 현장웹 A/S 접수는 단지명으로 현장 짝을 찾는다)를 준다. 예상견적(`manmul:estimate`)이
+  유형을 바꿔도 안내가 따라 바뀐다(`prefillFromEstimate` → `syncTypeGuides`). 전송 코드는 그대로(제목에 유형이 이미 붙는다).
+  `ensure-lead-route-parity` ⑥이 폼 유형 값 = **로컬 약속 목록**·공간 줄 첫 칸을 지킨다 — 현장웹 코드는 읽지 않으므로 병합 순서는 못 잡는다.
+  **현장웹 v613(정리 묶음 — A/S 분류, 판 이름 hyeonjang-v613-tidy) 라이브 배포 뒤에 병합한다**(병합 전 https://01023978629.github.io/hyeonjang/ 에서 A/S 분류가 보이는지 PR 체크리스트에 남긴다) —
+  먼저 나가면 A/S 메일이 현장웹에서 '모르는 유형'으로 거부된다.
+- **admin.html·case-new.html 을 Pages 공개 산출물에서 뺐다**(로그인 없이 공개 주소에서 열리던 내부 화면). `scripts/pages-artifact-policy.mjs` 의 `LOCAL_ONLY_*`
+  (페이지 2·js 4·css 2). 파일은 저장소에 남고 로컬에서 연다(README '로컬 전용 화면'). robots 의 두 줄과 `js/main.js` 미리보기 배너의 admin 링크를 뗐다.
+  `ensure-admin-content-editor`·`ensure-case-new`·`ensure-pages-artifact` 가 '공개 허용목록·산출물에 없음'을 지킨다. `lead-inbox.html`·`office-*` 는 그대로 공개.
+- **포털 설정 저장소 고정**: `office-portal-api.json` 을 라이브 값 그대로 두고 배포 중 주입 단계를 뺐다(저장소 = 라이브).
+  `ensure-office-portal` 이 주입 재등장(주석 밖 워크플로에 설정 스크립트·파일 이름이 나오면 실패)을 막는다.
+  `tests/office-portal-rbac.e2e.cjs` 의 '꺼진 설정' 검사는 저장소 파일 대신 꺼짐 설정을 직접 route 한다.
+  포털 **서버 소스**는 보안 검토가 끝날 때까지 이 공개 저장소에 올리지 않는다(정본은 대표 PC 의 외부 작업본). 현장웹 `apps-script-office-portal/` 은 옛 판이다.
+- **PR 검사**: `deploy-pages.yml` 이 main 으로 가는 PR 에서도 `verify` job(전체 검사·산출물 빌드·화면 검사)을 돈다. `deploy` job(Pages 공개)은
+  main push·main 수동 실행에서만, `github-pages` 환경과 쓰기 권한도 그 job 에만 있다. 예전에는 e2e 가 병합 뒤 main 에서 처음 돌았다.
+- **문의 접수함 켬**(PR #238): `data/config.json` `inbox` 에 대표가 배포한 주소가 들어가 있다. 메일(Web3Forms)과 접수함은 둘 다 나간다(기존 `deliver`).
+  편집기 입구 `leadInboxSetup()`(웹 action 아님)과 접수함 service `A/S·하자` 를 더했다. 대표 안내 `docs/운영/문의접수함-켜기.md`,
+  현장웹이 부를 API 는 `apps-script-lead-inbox/README.md` '현장웹(hyeonjang)에서 부를 때'.
+  로그인 실패 잠금은 전역 키 하나(`lead-login:fail`)다 — 막혀도 손님 접수·메일은 무관하므로 우선 이대로 켰다(바꿀 때는 서버 코드부터).
+  서버가 스크립트 속성을 쓰지 않는 규칙(`ensure-lead-inbox`) 때문에 비밀값 자동 생성은 넣지 않았다. 관리 비밀번호는 8~64자.
+- 관리사무소 PIN 접수(`office-request.*`)는 주소를 `office-api.json` 하나에서만 읽는다(`js/office-request-api.js` `CONFIG_PATH`). 새 접수 서버 배포 뒤 메인 세션이 그 파일만 바꾼다.
+
+### 2026-11-18 청주 용암동 태산그린아파트 옥상 배수구 2곳·앞베란다 우수관 하부(11/13) 사례 1건 공개 후보
+
+`claude/case-taesan-roof-drain-balcony-20261113`는 대표 요청("현장 웹에 프로젝트 및 사진 정리하고 만물 웹에 사례도 추가해줘")으로 사례 1건을
+`published:true`로 더한다 — `taesan-roof-drain-balcony-rain-pipe-20261113`(사진 9장, 누수). **병합하면 바로 공개된다** — 대표 확인 대기 항목은
+PR 설명과 `docs/recent-cases-20261118-taesan.md`.
+
+- 날짜 자리(11/14 열매마을 뒤·11/12 문창동 앞)라 FEATURED·blog/leak `lastmod`(2026-11-17)는 그대로다. 누수 카드는 11/16 삼호 카드 뒤(카드 수 45→46).
+- **`data/leak-case-index.json` 예산을 10KB → 16KB 로 올렸다**(52건·10,261바이트). 키·형식은 그대로. 다음에 넘으면 그때 항목 축소를 정한다.
+- 대전 밖(충북 청주시) 아파트 사례다. 단지명까지만 쓰고 동 번호·라인·호수·관리사무소(발주처)·금액은 쓰지 않는다 — 새 검사 `recent-cases-20261118-taesan` 이 막는다.
+- 기존 `taesan-rain-pipe-replacement`·`taesan-lexan-frame` 은 '대전 태산그린아파트'로 적혀 있다(청주로 보임 — 대표 확인 대기, 이 PR 에서는 손대지 않음).
+- 기존 91건은 한 글자도 바꾸지 않았다(origin/main `e3e888f`). 다시 고정한 핀 목록은 `docs/recent-cases-20261118-taesan.md`.
+
+### 2026-11-18 충남 공주 공장 컨테이너 옆 판넬 지붕·벽체(11/9) 사례 1건 공개 후보
+
+`claude/case-gongju-factory-container-panel-roof-wall-20261109`는 대표 요청("만물웹에 사례 작성해줘" → 비공개 초안 → "올려줘")으로 사례 1건을
+`published:true`로 더한다 — `gongju-factory-container-panel-roof-wall-20261109`(사진 8장, 인테리어·새 분류 `판넬·조립식`).
+**병합하면 바로 공개된다** — 대표 확인 대기 항목은 PR 설명과 `docs/recent-cases-20261118.md`.
+
+- 대전 밖(충남 공주시) 판넬·조립식 사례다. 위치는 시까지만 쓰고 공장(발주처) 이름·주소·금액은 쓰지 않는다 — 새 검사 `recent-cases-20261118` 이
+  다른 지명·시 아래 단위·발주처 표기를 막는다.
+- 날짜 자리(11/10 사례 뒤·11/6 앞)라 FEATURED·blog/leak `lastmod`(2026-11-17)·`leak.html` 카드 수(45)는 그대로다. 인테리어라 누수 카드·색인 없음.
+- `recent-cases-20261112` 의 '세 글 연속' 조건을, 날짜상 그 사이에 들어가는 이 글만 낄 수 있게 고쳤다(`LATER`). 다음에 11/7~11/9 글을 더하면 거기에 더한다.
+- 기존 90건은 한 글자도 바꾸지 않았다(origin/main `66ae5bd` 해시 그대로, 새 검사가 고정). 다시 고정한 핀 목록은 `docs/recent-cases-20261118.md`.
+
+### 2026-11-17 새여울아파트 양변기 배관 삽입(11/17)·삼호아파트 앞베란다 우수관 방수(11/16)·열매마을 욕조 자리 방수·바닥 미장(11/14, 진행 중)·목양마을아파트 세면대 배관(11/10) 사례 4건 공개
+
+`claude/cases-saeyeoul-samho-yeolmae-mokyang-20261117`는 대표 요청("사례 만물웹 만들어줘" → 초안 수정 요청 → "올려줘")으로 사례 4건을
+`published:true`로 더한다 — `saeyeoul-toilet-drain-pipe-insert-20261117`(사진 4장, 누수), `samho-front-balcony-rain-pipe-waterproof-20261116`(5장, 누수),
+`yeolmae-bathtub-area-waterproof-floor-screed-20261114`(4장, 인테리어·진행 중), `mokyang-washbasin-drain-pipe-20261110`(5장, 누수).
+대표 승인("바로공개", 2026-11-17)으로 PR #234 를 병합했다. 범위·제외 사진·확인 사항은 `docs/recent-cases-20261117.md`.
+
+- 세 글(11/17·11/16·11/14)이 맨 앞에 들어가 **대표 사례(FEATURED)가 11/17 새여울로 바뀐다**. 목양(11/10)은 날짜 자리 — 11/12 사례 뒤, 같은 날 먼저
+  공개한 삼호·유원 묶음 바로 앞(그 묶음을 고정한 `recent-cases-20261112` 가 갈라지지 않게). `leak.html` 카드 수 핀 42→45, blog/leak `lastmod` 2026-11-17.
+  기존 86건은 한 글자도 바꾸지 않았다(새 검사 `recent-cases-20261117` 이 고정).
+- 삼호는 페인트 마감이 따로라 완료로 쓰지 않고, 새여울 배관 삽입 단계는 사진이 없다고 본문에 밝혔다 — 새 검사가 둘 다 지킨다.
+- 다시 고정한 핀: `docs/recent-cases-20261117.md` 목록. 다음에 실제 사례를 더할 때도 이 목록을 같이 챙겨라.
+- ⚠ `data/leak-case-index.json` 이 10KB 예산까지 약 200바이트 남았다(51건·10,041바이트). 다음 누수 사례 1건이면 `ensure-leak-case-index` 가 막을 수
+  있다 — 그때 색인 항목 축소나 예산을 같이 정한다.
+- 병합 뒤 첫 배포(run 44069722749)가 마지막 단계에서 멈췄다 — `ubuntu-latest` 가 26.04 로 바뀌어 index.html 1280px '상담' 버튼이 41px 로 그려졌다
+  (44px 검사). `deploy-pages.yml` 을 `runs-on: ubuntu-24.04` 로 고정했다(hyeonjang PR #218 과 같은 조치). 26.04 로 올리려면 그 버튼 최소 너비부터 고친다.
+
+### 2026-11-13 문창동 난방 분배기·밸브(11/12)·교촌동 미메이드아파트 온수 배관(11/12)·탄방동 바닥 미장(11/12, 진행 중) 사례 3건 공개
+
+`claude/cases-munchang-mimade-tanbang-20261113`는 대표 요청("이번주에 사례 올리지 않은 것은 만물 웹과 당근 네이버지도 카카오지도에 올려줘")으로
+사례 3건을 `published:true`로 더한다 — `munchang-heating-manifold-valve-replacement-20261112`(사진 6장, 누수),
+`gyochon-mimade-boiler-hot-water-pipe-repair-20261112`(3장, 누수), `tanbang-house-floor-screed-20261112`(8장, 인테리어·진행 중).
+범위·제외 사진·확인 사항은 `docs/recent-cases-20261113.md`.
+
+- 세 글이 맨 앞에 들어가 **대표 사례(FEATURED)가 11/12 문창동으로 바뀐다**. `leak.html` #cases 맨 앞 카드는 누수 2건만(카드 수 핀 40→42),
+  blog/leak `lastmod` 2026-11-12. 기존 83건은 한 글자도 바꾸지 않았다(새 검사 `recent-cases-20261113` 이 고정).
+- 탄방동은 **공사 중 사례**다(도배·마루 전). 완공처럼 쓰지 않는다 — 새 검사가 '완공·시공 완료' 같은 표현을 막는다. 도배·마루가 끝나면 같은 글을
+  고치지 말고 완료 사례를 따로 더하는 편이 기존 글 고정 검사와 맞는다.
+- 다시 고정한 핀: `docs/recent-cases-20261113.md` 끝 목록. 다음에 실제 사례를 더할 때도 이 목록을 같이 챙겨라.
+- 문창동 원본 사진 속 보일러 A/S 스티커(다른 업체 전화번호)·제조사 모델명, 서비스점 접수 화면 정보는 공개 글·사진에 넣지 않는다.
+
+### 2026-11-12 삼호아파트·유원아파트 베란다 우수관 하부(11/10)·열매마을 우수관 박스(11/6) 사례 3건 공개
+
+`claude/cases-yeolmae-samho-yuwon-20261112`는 대표 요청("만물 웹에는 최신 사례 올려줘")으로 사례 3건을 `published:true`로 더한다 —
+`samho-balcony-rain-pipe-base-replacement-20261110`(사진 7장), `yuwon-balcony-rain-pipe-base-drain-20261110`(9장),
+`yeolmae-rain-pipe-box-replacement-20261106`(8장). 범위·제외 사진·확인 사항은 `docs/recent-cases-20261112.md`.
+
+- 세 글이 11/3 선비마을보다 새것이라 site.json 맨 앞(날짜 순)에 들어가고 **대표 사례(FEATURED)가 11/10 삼호로 바뀐다**.
+  `leak.html` #cases 맨 앞 카드 3장(카드 수 핀 37→40), blog/leak `lastmod` 2026-11-10. 기존 80건은 한 글자도 바꾸지 않았다(`4a50d2f` 해시 그대로).
+- 기존 검사 12곳의 핀을 다시 고정했다(날짜 주석) — 맨 앞 글·FEATURED·첫 누수 카드·`lastmod`·'삼호아파트' 검색 건수를 가정한 검사 포함.
+  다음에 실제 사례를 더할 때도 이 목록(`docs/recent-cases-20261112.md` 끝)을 같이 챙겨라.
+- `data/leak-case-index.json` 은 이제 한 줄 JSON 이다 — 들여쓰기본이 10KB 예산(`ensure-leak-case-index`)을 넘었다. 키·순서·내용은 그대로.
+- 같은 날 목양마을 '세면대 배관' 사진은 작업 전후가 분명하지 않아 넣지 않았다(대표 설명 대기).
+
 ### 2026-11-04 목화아파트·둔산동 데크·아이파크시티 사례 3건 공개 후보
 
 `claude/cases-ipark-mokhwa-deck-20261104`는 PR #227(11/3 선비마을) 위에 쌓은 브랜치로, 사례 3건을 `published:true`로 더한다 —
@@ -132,11 +240,23 @@ Pages 배포, 소유자 인증 후 계정 발급은 각각 별도로 확인한�
 
 ## ✅ 검증 절차
 
+> 2026-10-23 문서·CI 정리: ensure 개수(8→26)·전자계약 검사 수(파일 6·pure 130·wiring 158)·잠금 동작 7개(`payment.update` 제거)·README `admin.html` 설명(승인/보류/거절은 `lead-inbox.html`)·`deploy-pages.yml` 에 designs 드리프트 검사 단계 추가. 코드에서 센 값만 적었다.
+
 **홈페이지 변경:**
 ```bash
 for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; done
 # 종료코드로 판정하라 — 일부 스크립트는 통과해도 표를 길게 출력한다
 ```
+**브라우저 e2e 는 실서버와 끊고 쓴다(2026-11-19).** playwright 를 쓰는 `tests/*.cjs` 의 첫 require 는
+`require('./helpers/e2e-offline.cjs');` 다. 이 helper 가 모든 브라우저 context 에서 `data/config.json` 의 `inbox`·`n8n`
+접수 경로만 끄고(저장소 값은 라이브 접수함이 켜진 운영 값이다) Apps Script·Web3Forms 로 가는 요청과, 시험이 받지 않은
+로컬 밖 쓰기 요청(POST 등)을 막는다. 막은 요청이 하나라도 있으면 그 시험 파일은 실패한다. 시험 라우트가 직접
+처리하지 않는 요청은 `route.continue()` 가 아니라 `route.fallback()` 으로 넘긴다 — continue 는 helper 를 건너뛴다.
+`page.request`·`route.fetch()` 같은 브라우저 밖 요청도 helper 를 거치지 않으므로 쓰지 않는다(로컬 서버 확인은 `node:http`).
+접수함을 시험하려면 page 라우트로 가짜 주소(`https://script.google.com/macros/s/fixture-…/exec`)를 켜고 그 주소를 직접 받는다.
+`scripts/ensure-e2e-offline.mjs` 가 지키고, 배포 워크플로가 첫 e2e 전에 돌린다. 계기: PR #238 병합 뒤 배포 검사의 e2e 가
+라이브 접수함에 시험 행 16개를 남기고 9건이 깨졌다.
+
 **블로그 글은 `posts/*.html` 을 손으로 만들지 마라.** 그건 생성물이다.
 정본은 `data/site.json` 의 `insights` 하나뿐이고, 거기에 항목을 넣은 뒤
 `python3 scripts/prerender-posts.py` 를 돌리면 `posts/<slug>.html` 과
@@ -233,7 +353,7 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 | 고칠 곳 | 안 고치면 |
 |---|---|
 | `python3 scripts/prerender-posts.py` | `posts/*.html`·`blog.html`·`rss.xml`·`data/leak-case-index.json` 이 안 생긴다. CI 첫 단계가 `git diff --exit-code` 로 막는다 |
-| `python3 scripts/prerender-designs.py` | 시안의 `tip`·`trendLabel` 을 고쳤다면 `designs/*.html` 8장이 옛 글을 들고 남는다. CI 마지막 `git diff --exit-code` 가 잡는다 |
+| `python3 scripts/prerender-designs.py` | 시안의 `tip`·`trendLabel` 을 고쳤다면 `designs/*.html` 8장이 옛 글을 들고 남는다. CI `Verify generated designs are current` 단계(`git diff --exit-code -- designs`, 2026-10-23 추가 — 그 전에는 CI 가 이 생성기를 돌리지 않아 잡지 못했다)가 잡는다 |
 | `sitemap.xml` 에 `posts/<slug>.html` 줄 | `ensure-site-integrity` 가 "sitemap 에 없다" 로 막는다 — **생성기가 손대지 않는다** |
 | `sitemap.xml` 의 `blog.html` `<lastmod>` | `ensure-weekly-leak-cases` 가 "목록의 최신 공개 글 수정일과 다르다" 로 막는다 |
 
@@ -252,13 +372,46 @@ for f in scripts/ensure-*.mjs; do node "$f" >/dev/null 2>&1 || echo "FAIL $f"; d
 
 **전자계약 서버 변경:**
 ```bash
-node --test apps-script-contract/test/*.mjs   # Node 13파일; pure 118 + wiring 117, 화면은 Playwright 환경에서 별도
+node --test apps-script-contract/test/*.mjs   # 파일 6개(node --test 는 13건으로 센다); pure 130 + wiring 158, 화면 screens.e2e 12건은 Playwright 가 있을 때만(없으면 건너뜀·CI 는 실패)
 ```
 - **`PROTOCOL.md` 가 규약이다. 코드보다 먼저 고쳐라.** 문서와 코드가 어긋나면
   코드가 틀린 것이다.
 - 테스트 하네스는 `.gs` 원본을 **복사하지 않고** `node:vm` 으로 그대로 읽는다.
   소스를 테스트용으로 복제하지 마라 — 언젠가 한쪽만 고쳐진다.
 - 새 검사는 변이 검증(보호 동작을 되돌려 실패 확인)까지.
+
+## 후기 수집과 누수 요금 범위 (2026-10-23)
+
+**후기는 `review.html` 로 받는다.** 대문 후기 섹션은 `data/site.json` 의 `reviews` 가 비면 숨겨진다(허위 후기
+미노출). 2026-10-23 전까지 고객 페이지(`js/mypage.js`)의 "후기 작성" 버튼은 `alert('데모')` 였다 — 후기를 받을
+통로 자체가 없었다. 지금 흐름:
+
+1. 손님이 `review.html` 에서 별점·공사 종류·현장(단지명까지)·후기·표시 이름·확인 연락처(선택)를 적고 동의 2종
+   (개인정보·공개)을 체크한다 → 상담 폼과 같은 `js/lead-transport.js` 로 `type:'후기'` 메일이 간다(제목
+   `[홈페이지 후기]`, 본문은 `buildReviewText`). 보내기 전에 `js/pii-rules.js` 로 동·호수·전화·이메일을 막는다
+   ('고객명' 규칙은 "김○○ 고객" 같은 표시 이름을 오탐하므로 제외 — 배포 검사와 같은 4종만 쓴다).
+2. 대표가 메일을 확인하고 `node scripts/new-review.mjs --rating 5 --name "김○○" --space "유성구 ○○아파트 · 욕실
+   리모델링" --text "…"` 로 `reviews` 맨 앞에 옮겨 적는다. 이 도구도 같은 규칙으로 거부한다. **넣는 순간 대문에
+   공개되므로** 브랜치 → PR → 병합(대표 승인). 확인 연락처는 게시용이 아니다 — 메일에 `(비공개)` 로 찍히고
+   `reviews` 에는 넣지 않는다. 받지 않은 후기를 지어내지 마라.
+3. `scripts/ensure-review-intake.mjs` 가 폼 요소·동의 2종 required·허니팟·규칙 정본 사용·영구 저장소 미사용·
+   처리방침 문단(`#privacy-review-items`)·푸터 링크·mypage 실연결·공개 허용목록·`reviews` 의 개인정보를 본다
+   (변이 8건 검증). 화면 동작은 `tests/review-intake.e2e.cjs`(정상 전송·PII 차단·동의 미체크·허니팟·실패 복구),
+   본문·제목은 `tests/lead-transport.test.cjs`, 옮겨 적기 도구는 `scripts/new-review.test.mjs`.
+
+- `review.html` 은 `noindex` 라 sitemap 에 넣지 않는다. 새 공개 페이지는 `scripts/pages-artifact-policy.mjs`
+  허용목록(`review.html`·`js/review.js`)에 있어야 배포된다 — 빠지면 조용히 404 다.
+- 현장 앱(`hyeonjang`) 문자 센터의 리뷰 요청 문자에 `https://01023978629.github.io/manmool/review.html` 주소를
+  넣는 일은 저쪽 저장소 작업이다(🅰, 아직 안 함). 네이버 플레이스가 생기면 그쪽 후기 링크도 같이 둔다.
+
+**누수 탐지비는 범위만 공개한다(대표 결정 2026-10-23).** 5단계 표(40·57·65·65·83만원)는 `site.json`
+`leakPricing` 에 `published:true` 로 확정돼 있지만, 대문은 인테리어 전용이라 `data-surface="leak-only"` 로 닫혀
+있고 `leak.html` 에는 표가 없어 공개 화면 어디에도 금액이 없었다(숨고는 '대전 누수탐지' 페이지에서 평균
+30만원·15~80만원을 공개해 손님이 그 앵커를 들고 온다). 이제 `leak.html` 첫 화면 `#leakFeeRange`·FAQ·구조화
+데이터 `AggregateOffer` 세 곳에 **최소~최대(40만~83만원, 부가세 별도)** 만 적는다. 숫자는 손으로 적혀 있어
+`ensure-leak-pricing.mjs` 가 `site.json` 단계 최소·최대와 대조하고, 중간 단계 금액(57·65만원)이나 단계별 표
+컴포넌트가 `leak.html` 에 나오면 막는다(변이 6건 검증, 화면은 `tests/leak-fee-range.e2e.cjs`). 요금을 바꾸면
+정본과 `leak.html` 두 곳을 같이 고쳐라. 단계별 표를 공개하려면 대표 결정부터 다시 받는다.
 
 ## 전자계약 서버 핵심 불변식
 
@@ -267,7 +420,7 @@ node --test apps-script-contract/test/*.mjs   # Node 13파일; pure 118 + wiring
 - 토큰: 32바이트+ 무작위, SHA-256 해시만 저장, sign 72h/view 15m 만료, 1회성.
 - 문서지문 `docHash = SHA-256(정렬JSON({amount, body}))` — 금액 바꿔치기 검출.
 - 대금 분할 50/40/10, 잔금은 나머지 전부. 계약번호 `MM-YYYY-NNNN`.
-- 잠금 동작(`create·lock·signlink.issue·quickSend·void·payment.update·settings.set·sign.submit`)은 LockService 안, 멱등키는
+- 잠금 동작(`create·lock·signlink.issue·quickSend·void·settings.set·sign.submit` 7개 — `payment.update` 는 2026-08-13 삭제, `PROTOCOL.md` 동시성 항목과 `wiring.test.mjs` 가 대조)은 LockService 안, 멱등키는
   인증 통과 후 조회, 고객 캐시는 토큰 해시별 분리.
 - AI 중계(`ai.ask`): 키는 헤더로만, 갈 수 있는 곳은 아는 두 곳뿐, 한도는
   횟수만 막는다(요금 아님), 유료(openai)는 `AI_ALLOW_PAID=1` 없이 거절.
@@ -320,8 +473,9 @@ node --test apps-script-contract/test/*.mjs   # Node 13파일; pure 118 + wiring
   현재 작업은 `codex/install-rehearsal-20260810` → `codex/site-defects-20260810` →
   `codex/case-post-pipeline-20260810` → `codex/leak-pricing-ready-20260810` 순으로 쌓여
   있으므로 아래쪽부터 병합해야 한다.
-- 홈페이지 회귀: `scripts/ensure-*.mjs` 8개 전부 통과. 누수 상담 유형은 접수→관리자→
+- 홈페이지 회귀: `scripts/ensure-*.mjs` 8개 전부 통과(2026-10-23 현재 26개). 누수 상담 유형은 접수→관리자→
   현장앱 인계까지 보존되며, 공개 블로그 본문에 숫자 동·호수가 있으면 실패한다.
+- (2026-10-23) 후기 수집 통로 `review.html` 과 옮겨 적기 도구 `scripts/new-review.mjs` 가 생겼다. **실제 후기는 아직 0건**이고 지어내지 않는다. 누수 탐지비는 `leak.html` 에 범위(40만~83만원, 부가세 별도)만 공개한다.
 - 실제 현장 사례 생성 도구는 준비됐지만 **실제 사례는 추가하지 않았다.** 대표가
   6항목을 줄 때만 `scripts/new-case-post.mjs` 로 `published:false` 초안을 만든다.
 - 누수탐지 5단계 금액(40/57/65/65/83만원)과 화면 컴포넌트는 준비됐으나

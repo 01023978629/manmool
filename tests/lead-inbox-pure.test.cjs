@@ -98,6 +98,9 @@ test('서비스 구분은 누수 유형·누수 페이지·관리사무소 파�
   assert.equal(pure.leadPureNormalizeCreate_(payload({ source: 'leak-page' })).row.service, '누수');
   assert.equal(pure.leadPureNormalizeCreate_(payload({ source: 'office-pilot' })).row.service, '관리사무소');
   assert.equal(pure.leadPureNormalizeCreate_(payload({ source: 'index' })).row.service, '인테리어');
+  // A/S 연동 약속(2026-11-19): 상담 폼 유형 'A/S' 는 접수함에서도 인테리어가 아니라 A/S·하자로 보인다(현장웹 표시와 같다).
+  assert.equal(pure.leadPureNormalizeCreate_(payload({ type: 'A/S', source: 'website' })).row.service, 'A/S·하자');
+  assert.equal(pure.leadPureNormalizeCreate_(payload({ type: 'A/S', source: 'website' })).row.type, 'A/S');
   assert.equal(pure.leadPureNormalizeCreate_(payload({ name: '', emailDelivered: 'Y' })).row.name, '(이름 없음)');
   assert.equal(pure.leadPureNormalizeCreate_(payload({ emailDelivered: 'Y' })).row.emailDelivered, 'N');
 });

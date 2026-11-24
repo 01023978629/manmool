@@ -2,19 +2,30 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 export const PUBLIC_ROOT_FILES = Object.freeze([
-  '404.html', 'admin.html', 'as.html', 'bathroom-check.html', 'blog.html', 'case-new.html',
+  '404.html', 'as.html', 'bathroom-check.html', 'blog.html',
   'field.html', 'index.html', 'lead-inbox.html', 'leak.html', 'mypage.html', 'office.html', 'office-request.html', 'office-api.json',
-  'office-login.html', 'office-portal.html', 'office-admin.html', 'office-portal-api.json', 'privacy.html',
+  'office-login.html', 'office-portal.html', 'office-admin.html', 'office-portal-api.json', 'privacy.html', 'review.html',
   'google11dc37fbc3ab6e98.html', 'og-image.png', 'robots.txt', 'rss.xml', 'sitemap.xml',
 ]);
 export const PUBLIC_DATA_FILES = Object.freeze(['config.json', 'leak-case-index.json', 'material-catalog.json', 'project.json', 'site.json']);
 export const PUBLIC_JS_FILES = Object.freeze([
-  'admin.js', 'as.js', 'bathroom-check.js', 'blog.js', 'case-new.js', 'case-store.js', 'content-editor.js', 'design-bom.js', 'estimate.js',
-  'field.js', 'hj-link.js', 'inquiry.js', 'revenue-conversion.js', 'lead-inbox-api.js', 'lead-inbox.js', 'lead-transport.js', 'office-pilot.js', 'leak-inquiry.js', 'leak.js', 'lookbook.js', 'main.js', 'mypage.js',
+  'as.js', 'bathroom-check.js', 'blog.js', 'design-bom.js', 'estimate.js',
+  'field.js', 'hj-link.js', 'inquiry.js', 'revenue-conversion.js', 'review.js', 'lead-inbox-api.js', 'lead-inbox.js', 'lead-transport.js', 'office-pilot.js', 'leak-inquiry.js', 'leak.js', 'lookbook.js', 'main.js', 'mypage.js',
   'office-request-api.js', 'office-request-core.js', 'office-request-photo.js', 'office-request.js',
   'office-frame-guard.js', 'office-portal-api.js', 'office-portal-core.js', 'office-login.js', 'office-portal.js', 'office-admin.js', 'pii-rules.js', 'project-state.js',
   'page-recovery.js', 'public-nav.js', 'service-nav.js', 'simulator.js',
 ]);
+/* 저장소에는 남기되 Pages 공개 산출물에는 넣지 않는 내부 화면(2026-11-19).
+ * admin.html(연동 상태·콘텐츠 편집기)·case-new.html(사례 등록)은 로그인 없이 공개 주소에서 열렸다(내용은 비어 있음).
+ * 대표는 사례·글을 Claude PR 로만 올리므로 공개할 이유가 없다. 쓰려면 저장소를 내려받아 로컬에서 연다(README '내부 화면').
+ * 이 목록의 파일은 공개 허용목록(PUBLIC_*)에 다시 넣을 수 없고, 산출물에 있으면 ensure-pages-artifact 가 막는다. */
+export const LOCAL_ONLY_ROOT_FILES = Object.freeze(['admin.html', 'case-new.html']);
+export const LOCAL_ONLY_JS_FILES = Object.freeze(['admin.js', 'case-new.js', 'case-store.js', 'content-editor.js']);
+export const LOCAL_ONLY_TREE_FILES = Object.freeze(['css/admin.css', 'css/case-new.css']);
+export const LOCAL_ONLY_FILES = Object.freeze([
+  ...LOCAL_ONLY_ROOT_FILES, ...LOCAL_ONLY_JS_FILES.map((name) => `js/${name}`), ...LOCAL_ONLY_TREE_FILES,
+]);
+
 export const PUBLIC_TREE_RULES = new Map([
   ['assets', /\.(?:avif|gif|jpe?g|png|svg|webp|mp4|webm)$/i],
   ['css', /\.css$/i],
@@ -66,6 +77,7 @@ function listAllowedTree(root, directory, allowedFile, fileSystem) {
       }
       const absolute = path.join(current, entry.name);
       assertAllowedPublicPath(path.relative(root, absolute));
+      if (entry.isFile() && LOCAL_ONLY_TREE_FILES.includes(toPublicPath(path.relative(root, absolute)))) continue;
       if (entry.isDirectory()) visit(absolute);
       else if (entry.isFile() && allowedFile.test(entry.name)) found.push(absolute);
       else throw new Error(`허용되지 않은 공개 파일 형식입니다: ${toPublicPath(path.relative(root, absolute))}`);
@@ -79,7 +91,9 @@ function listExplicitJavaScript(root, fileSystem) {
   const jsRoot = path.join(root, 'js');
   requireFile(fileSystem, jsRoot, '필수 공개 폴더가 없습니다');
   const actual = fileSystem.readdirSync(jsRoot, { withFileTypes: true });
-  const names = actual.map((entry) => entry.name).sort();
+  // js/ 의 모든 파일은 공개(PUBLIC_JS_FILES) 아니면 로컬 전용(LOCAL_ONLY_JS_FILES) 중 하나로 이름이 적혀 있어야 한다.
+  // 로컬 전용은 저장소에 없어도 되지만(허용목록만 복사한 사본), 공개 목록은 빠짐없이 있어야 한다.
+  const names = actual.map((entry) => entry.name).filter((name) => !LOCAL_ONLY_JS_FILES.includes(name)).sort();
   const expected = [...PUBLIC_JS_FILES].sort();
   if (actual.some((entry) => !entry.isFile() || isForbiddenPublicName(entry.name)) || JSON.stringify(names) !== JSON.stringify(expected)) {
     throw new Error(`js 공개 파일은 명시적 허용목록과 정확히 같아야 합니다: ${names.join(', ')}`);
@@ -90,7 +104,17 @@ function listExplicitJavaScript(root, fileSystem) {
   });
 }
 
+export function assertNoLocalOnlyInPublicLists() {
+  const leaked = [
+    ...PUBLIC_ROOT_FILES.filter((name) => LOCAL_ONLY_ROOT_FILES.includes(name)),
+    ...PUBLIC_JS_FILES.filter((name) => LOCAL_ONLY_JS_FILES.includes(name)).map((name) => `js/${name}`),
+    ...PORTAL_PUBLIC_FILES.filter((name) => LOCAL_ONLY_FILES.includes(name)),
+  ];
+  if (leaked.length) throw new Error(`로컬 전용 내부 화면이 공개 허용목록에 들어 있습니다: ${leaked.join(', ')}`);
+}
+
 export function expectedPublicFiles(root, fileSystem = fs) {
+  assertNoLocalOnlyInPublicLists();
   const files = [];
   for (const name of PUBLIC_ROOT_FILES) {
     assertAllowedPublicPath(name);

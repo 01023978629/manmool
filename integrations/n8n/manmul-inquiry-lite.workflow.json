@@ -88,7 +88,7 @@
           "parameters": [
             {
               "name": "template_object",
-              "value": "={{ JSON.stringify({ object_type: 'text', text: '🔔 새 상담 [' + $json.ai.priority + ']\\n' + $json.name + ' (' + $json.phone + ')\\n' + $json.ai.summary + '\\n예산적합 ' + $json.ai.budgetFit + ' · 점수 ' + $json.ai.score, link: { web_url: 'https://01023978629.github.io/manmool/admin.html' }, button_title: '대시보드' }) }}"
+              "value": "={{ JSON.stringify({ object_type: 'text', text: '🔔 새 상담 [' + $json.ai.priority + ']\\n' + $json.name + ' (' + $json.phone + ')\\n' + $json.ai.summary + '\\n예산적합 ' + $json.ai.budgetFit + ' · 점수 ' + $json.ai.score, link: { web_url: 'https://01023978629.github.io/manmool/lead-inbox.html' }, button_title: '문의 접수함' }) }}"
             }
           ]
         },

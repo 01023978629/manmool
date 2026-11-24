@@ -16,8 +16,21 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 // 2026-11-03: Seonbi 1-danji retaining-wall plaster case added (no existing entry changed); re-pinned to 72.
 // 2026-11-04: Mokhwa toilet/ceiling-pipe, Dunsan deck and IPark City bathroom cases added at their date positions
 // (no existing entry changed); re-pinned to 75 — recent-cases-20261104 pins the 77 entries before them.
+// 2026-11-12: Samho/Yuwon balcony rain-pipe bases (11-10) and Yeolmae rain-pipe box (11-06) cases added first (no existing
+// entry changed); re-pinned to 78 — recent-cases-20261112 pins the 80 entries before them.
+// 2026-11-13: Munchang manifold/valve, Gyochon Mimade hot-water pipe and Tanbang floor screed cases (11-12) added first (no
+// existing entry changed); re-pinned to 81 — recent-cases-20261113 pins the 83 entries before them.
+// 2026-11-17: Saeyeoul toilet drain-pipe insert (11-17), Samho front-balcony rain pipe (11-16), Yeolmae bathtub-area
+// waterproofing + floor screed (11-14, interior) and Mokyang washbasin drain pipe (11-10) cases added at their date positions
+// (no existing entry changed); re-pinned to 85 — recent-cases-20261117 pins the 86 entries before them.
+// 2026-11-18: Gongju factory panel roof/wall case (11-09, interior) added at its date position (no existing entry changed);
+// re-pinned to 86 — recent-cases-20261118 pins the 90 entries before it.
+// 2026-11-18 (2): Cheongju Taesan Green roof drains + front-balcony rain pipe (11-13, leak) added at its date position (no
+// existing entry changed); re-pinned to 87 — recent-cases-20261118-taesan pins the 91 entries before it.
+// 2026-11-21: Gwanpyeong-dong Heightsville extension floor heating pipe + screed (11-18, interior) added first (no existing
+// entry changed); re-pinned to 88 — recent-cases-20261121 pins the 92 entries before it.
 test('previous 71 complete entries and ordering, company/catalog preserved; mutation guards active', () => {
-  assert.equal(site.insights.length, 80);
+  assert.equal(site.insights.length, 93);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), fixture.otherDataHash);

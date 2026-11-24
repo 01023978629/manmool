@@ -1,0 +1,32 @@
+/* 후기 남기기(review.html) — app.css 패널 위에 폼 요소만 더한다. 공용 규칙은 styles.css·app.css 에 있다. */
+.rv-panel { max-width: 760px; margin: 0 auto; }
+.rv-lead { font-size: 14.5px; line-height: 1.65; color: var(--ink-soft); margin: -6px 0 18px; }
+.rv-lead b { color: var(--ink); }
+/* .app-form 은 flex 라 hidden 속성만으로는 안 숨는다 — 전송 뒤 폼을 치우려면 이 줄이 필요하다 */
+.app-form[hidden], .rv-done[hidden] { display: none !important; }
+.rv-field { display: flex; flex-direction: column; gap: 8px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.rv-field .fl { margin-bottom: 0; }
+.rv-field .fl small, .rv-field legend small { font-weight: 650; color: var(--ink-soft); font-size: 12.5px; margin-left: 6px; }
+.rv-field .req, .rv-consent .req { font-style: normal; font-size: 12px; font-weight: 800; color: var(--link-strong); margin-left: 6px; }
+.rv-field input[type="text"], .rv-field input[type="tel"], .rv-field select, .rv-field textarea {
+  width: 100%; border: 1.5px solid var(--line); border-radius: 10px; padding: 12px 13px; font: inherit; font-size: 15px;
+  background: var(--surface); color: var(--ink); min-height: 44px;
+}
+.rv-field textarea { min-height: 128px; resize: vertical; line-height: 1.6; }
+.rv-field input:focus-visible, .rv-field select:focus-visible, .rv-field textarea:focus-visible { outline: 3px solid rgba(184,137,90,.3); outline-offset: 2px; border-color: var(--brand); }
+.rv-stars { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.rv-star { position: relative; cursor: pointer; }
+.rv-star input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.rv-star span { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; font-size: 32px; line-height: 1; color: #d8d2c8; transition: color .12s, transform .12s; }
+.rv-star.on span { color: #e3a21a; }
+.rv-star:hover span { transform: scale(1.08); }
+.rv-star input:focus-visible + span { outline: 3px solid rgba(184,137,90,.4); outline-offset: 2px; border-radius: 10px; }
+.rv-star-label { margin-left: 8px; font-size: 14px; font-weight: 700; color: var(--brand-dark); min-width: 4em; }
+.rv-consent { display: flex; gap: 11px; align-items: flex-start; font-size: 14px; line-height: 1.55; color: var(--ink); }
+.rv-consent input { width: 22px; height: 22px; margin-top: 1px; flex: none; accent-color: var(--brand); }
+.rv-consent a { color: var(--brand-dark); font-weight: 700; text-decoration: underline; }
+.rv-done h3 { font-size: 18px; margin: 0 0 8px; }
+.rv-done p { font-size: 14.5px; line-height: 1.65; color: var(--ink-soft); margin: 0 0 10px; }
+.rv-done-text { white-space: pre-wrap; word-break: break-word; background: var(--bg-alt); border: 1px solid var(--line); border-radius: 10px; padding: 14px; font-size: 13.5px; line-height: 1.6; margin: 12px 0; font-family: inherit; }
+.rv-done-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.rv-done-actions .btn { min-height: 44px; }

@@ -3,12 +3,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { PORTAL_PUBLIC_FILES, PUBLIC_ROOT_FILES, expectedPublicFiles, toPublicPath } from './pages-artifact-policy.mjs';
+import { LOCAL_ONLY_FILES, PORTAL_PUBLIC_FILES, PUBLIC_ROOT_FILES, expectedPublicFiles, toPublicPath } from './pages-artifact-policy.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_SITE = new URL('https://01023978629.github.io/manmool/');
 const googleVerificationFile = 'google11dc37fbc3ab6e98.html';
-const forbiddenTop = new Set(['.git', '.github', '.claude', '.codex', 'apps-script-contract', 'apps-script-lead-inbox', 'contract-backend', 'docs', 'integrations', 'scripts']);
+const forbiddenTop = new Set(['.git', '.github', '.claude', '.codex', 'apps-script-contract', 'apps-script-lead-inbox', 'apps-script-office-portal', 'contract-backend', 'docs', 'integrations', 'scripts']);
 const textFile = /\.(?:html|css|js|json|txt|xml)$/i;
 const secretIdentifiers = [/\b(?:APP_TOKEN|OFFICE_SESSION_SECRET|pinHash|pinSalt)\b/];
 const portalFixtureMarkers = [
@@ -139,6 +139,8 @@ export function verifyPagesArtifact(root = ROOT, site = path.join(root, '_site')
     else if (sha256(source, fileSystem) !== sha256(output, fileSystem)) failures.push(`산출물이 현재 공개 소스와 다름(신선한 빌드 필요): ${relative}`);
   }
   for (const relative of actualFiles.keys()) if (!expectedFiles.has(relative)) failures.push(`허용목록 밖의 output-only 산출물이 포함됨: ${relative}`);
+  // 내부 화면(admin·case-new)은 로그인 없이 열리던 곳이라 공개 산출물에 없어야 한다(2026-11-19). 저장소에는 남는다.
+  for (const relative of LOCAL_ONLY_FILES) if (actualFiles.has(relative)) failures.push(`로컬 전용 내부 화면이 공개 산출물에 포함됨: ${relative}`);
   const actualDirectories = new Set(actual.directories.map((directory) => toPublicPath(path.relative(site, directory))));
   const expectedDirs = expectedDirectories(expected);
   for (const relative of expectedDirs) if (!actualDirectories.has(relative)) failures.push(`필수 공개 폴더 누락: ${relative}`);

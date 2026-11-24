@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expectedPublicFiles } from './pages-artifact-policy.mjs';
+import { isExactAppsScriptUrl } from './configure-office-portal-api.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (relative) => fs.readFileSync(path.join(ROOT, relative), 'utf8');
@@ -37,7 +38,34 @@ check(files.login.includes('type="email"') && /name="loginCode"[^>]*inputmode="t
 check(/validLoginCredential/.test(files.core) && /role === 'system_admin' && isMasterPassword\(value\)/.test(files.core) && /masterDowngrade && !isSixDigitCode\(value\)/.test(files.core) && /core\.validateUserLoginCode/.test(files.adminJs), '관리자 비밀번호 역할 제한 또는 직원 강등 시 6자리 필수 검증이 없습니다.');
 check(!/loginCode[^\n;]*\.trim\(/.test(files.core + files.adminJs + files.loginJs), '비밀번호 원문을 trim 처리합니다.');
 check(['login', 'portal', 'admin'].every((page) => files[page].includes('js/office-portal-core.js?v=20260908-master-password1')), '공통 비밀번호 검증 코드의 캐시 버전이 일치하지 않습니다.');
-check(/"enabled": false[\s\S]*"apiUrl": ""/.test(files.config) && Object.keys(JSON.parse(files.config)).sort().join(',') === 'apiUrl,enabled', '포털 API 기본 설정이 exact disabled가 아닙니다.');
+// 2026-11-19: 저장소 office-portal-api.json 이 라이브 값 그대로다(예전에는 저장소=꺼짐, 배포 단계가 켜서 주입). 지키는 것:
+//  - 키는 enabled·apiUrl 둘뿐, 꺼짐이면 정확히 { false, '' }, 켜짐이면 script.google.com /exec 정확한 주소
+//  - 포털 주소는 관리사무소 PIN 접수(office-api.json, 현장웹 사진 중계) 주소와 달라야 한다 — 별개 Apps Script 프로젝트다
+//  - 배포가 이 파일을 몰래 바꾸지 않는다(configure-office-portal-api 주입 단계 금지) — 저장소 값 = 라이브 값
+{
+  let portalConfig = null;
+  try { portalConfig = JSON.parse(files.config); } catch (_) { portalConfig = null; }
+  const keysOk = portalConfig && typeof portalConfig === 'object' && !Array.isArray(portalConfig) && Object.keys(portalConfig).sort().join(',') === 'apiUrl,enabled';
+  check(keysOk, '포털 API 설정(office-portal-api.json)의 키가 enabled·apiUrl 둘이 아닙니다.');
+  if (keysOk) {
+    if (portalConfig.enabled === false) check(portalConfig.apiUrl === '', '포털 API 설정이 꺼져 있는데 주소가 남아 있습니다(반쯤 설정된 상태 금지).');
+    else check(portalConfig.enabled === true && isExactAppsScriptUrl(portalConfig.apiUrl), '포털 API 설정이 켜져 있는데 주소가 script.google.com /exec 정확한 형식이 아닙니다.');
+    let intakeUrl = '';
+    try { intakeUrl = JSON.parse(read('office-api.json')).apiUrl || ''; } catch (_) { intakeUrl = ''; }
+    check(!portalConfig.apiUrl || portalConfig.apiUrl !== intakeUrl, '포털 API 주소가 관리사무소 PIN 접수(office-api.json) 주소와 같습니다 — 포털은 별도 Apps Script 프로젝트여야 합니다.');
+    check(JSON.stringify(portalConfig, null, 2) + '\n' === files.config.replace(/\r\n/g, '\n'), 'office-portal-api.json 이 configure-office-portal-api.mjs 가 쓰는 형식(2칸 들여쓰기·끝 줄바꿈)이 아닙니다.');
+  }
+  const workflow = read('.github/workflows/deploy-pages.yml');
+  // 주석 줄을 뺀 워크플로 본문에 설정 스크립트나 설정 파일 이름이 한 번이라도 나오면 실패한다 — 한 줄 `run:`·다른 step 이름·
+  // echo/jq 로 덮어쓰기처럼 어떤 모양으로 다시 넣어도 그 파일 이름은 써야 한다. (산출물 바이트 비교만으로는 빌드 전에 저장소 파일을
+  // 바꾸는 단계를 못 잡는다 — 빌드는 바뀐 파일을 그대로 복사하므로.) 검사 파일 tests/configure-office-portal-api.test.cjs 는 허용한다.
+  const workflowBody = workflow.replace(/\r\n/g, '\n').split('\n').filter((line) => !/^\s*#/.test(line)).join('\n');
+  check(!/scripts\/configure-office-portal-api/.test(workflowBody) && !/office-portal-api\.json/.test(workflowBody) && !/^\s*- name: Enable management office employee portal/m.test(workflowBody),
+    '배포 워크플로가 office-portal-api.json 을 배포 중에 바꿉니다 — 저장소 값과 라이브 값이 다시 갈라집니다(저장소 파일을 고쳐 PR 로 올리세요).');
+}
+
+// 포털 서버 소스는 보안 검토가 끝날 때까지 이 공개 저장소에 두지 않는다(2026-11-19). 폴더가 생기면 공개 산출물 밖인지만 본다.
+check(!fs.existsSync(path.join(ROOT, 'apps-script-office-portal')) || ![...publicFiles].some((relative) => relative.startsWith('apps-script-office-portal/')), '포털 서버 소스 폴더가 Pages 공개 허용목록에 들어갑니다.');
 check(actions.every((action) => files.api.includes(`'${action}'`)), '포털 API action 계약이 불완전합니다.');
 check(/sessionStorage/.test(files.loginJs + files.portalJs + files.adminJs) && !/(localStorage|indexedDB)/.test(files.core + files.api + files.loginJs + files.portalJs + files.adminJs), '포털이 허용되지 않은 영구 브라우저 저장소를 사용합니다.');
 check(/token,user,office,permissions,expiresAt/.test(files.core.replace(/\s+/g, '')) || /\{ token, user, office, permissions, expiresAt \}/.test(files.core), '세션 저장 필드 allowlist가 없습니다.');
