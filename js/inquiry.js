@@ -17,6 +17,14 @@
   const copyToClipboard = LEAD.copyToClipboard;
   const backendConfigured = () => LEAD.backendConfigured(CONFIG);
   const deliver = (payload) => LEAD.deliver(CONFIG, payload);
+  // 어느 쪽·어느 단추·어떤 링크(utm_source·utm_medium·utm_campaign)로 들어온 문의인지 — 누수 폼과 같은
+  // js/revenue-conversion.js captureLeadMetadata 를 쓴다(2026-11-25). 계정 없이 접수함·메일에서 채널별 문의 수를 세려는 것.
+  // 그 파일을 못 읽어도 상담 접수는 막지 않는다(출처 줄만 빠진다).
+  const REVENUE = window.ManmulRevenue;
+  const INQUIRY_CTA_ID = 'index-inquiry-submit';
+  const leadMetadata = () => (REVENUE && typeof REVENUE.captureLeadMetadata === 'function'
+    ? REVENUE.captureLeadMetadata(window.location, INQUIRY_CTA_ID)
+    : {});
   const WORKS = ['철거', '샷시', '확장', '바닥', '도배·페인트', '주방', '욕실', '누수탐지·누수수리', '조명·전기', '가구·붙박이', '스마트홈'];
 
   const TOTAL_STEPS = 4;
@@ -351,6 +359,7 @@
       submittedAt: new Date().toISOString(),
       status: '신규',
       ...data,
+      ...leadMetadata(),
       privacyConsent: data.consent
     };
 

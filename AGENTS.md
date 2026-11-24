@@ -12,6 +12,11 @@
   가리지 않은 이름·escape 없는 `renderReviews`·접수함으로 새는 후기를 막는다. 후기(`type:'후기'`)는 **메일로만** 간다 — `js/lead-transport.js`
   `inboxAccepts`(접수함 서버는 그대로, 재배포 없음). `leak.html` 에 누수 후기 칸(`#leakReviews`, `<!-- leak-reviews:start/end -->` 사이는
   `prerender-posts.py` 생성물, 0건이면 hidden) — CI 생성물 비교에 `leak.html` 을 더했다. 실제 후기는 여전히 0건이다.
+- **M2 문의 출처(계정 없이)**: 인테리어 폼(`js/inquiry.js`)도 누수·파일럿 폼처럼 `captureLeadMetadata(location, 'index-inquiry-submit')` 로
+  유입 페이지·신청 단추·`utm_source/medium/campaign` 을 싣는다(`index.html` 이 `js/revenue-conversion.js` 를 먼저 읽는다). 메일 본문·접수함 `utm` 열로
+  채널별 문의 수를 센다. 대표용 링크 안내 `docs/운영/문의-출처-링크.md`(당근·네이버 블로그·카카오 채널 × 인테리어·누수), 처리방침
+  `#privacy-lead-source`. **GA4 등 계정형 도구는 넣지 않았다** — 새 검사 `ensure-lead-attribution` 이 배선·안내 링크(정본 코드로 실제 기록되는지)·
+  추적 도구 유입을 본다. 화면 확인은 `tests/inquiry-receipt.e2e.cjs` 새 시험(이 PC 에는 playwright 가 없어 CI 에서만 돈다).
 
 ### 2026-11-21 대전 유성구 관평동 하이츠빌아파트 확장부 난방 배관·미장(11/18, 진행 중) 사례 1건 공개 후보
 
