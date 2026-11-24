@@ -45,7 +45,8 @@ test('공개 원본 사진·동영상 186개 파일 내용 보존',()=>{
   const files=[...new Set(legacyInsights.flatMap(a=>[a.image,...a.body.flatMap(b=>[b.img,b.video,b.videoPoster])]).filter(Boolean).map(p=>p.split('?')[0]))].sort();
   assert.equal(files.length,186);
   const fingerprints=files.map(p=>[p,crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,p))).digest('hex')]);
-  assert.equal(hash(fingerprints),'64d52f6d58ceabb9e4331651790b7e78f9bd0fee5b594d23c5b2edb737f8865e');
+  // 11/25 PR 229: 사진 3장(평화로운아파트 표지 벽 손글씨 동·호수 · 교회 간판 · 계량기 봉인 번호)만 가림 — 파일 수·경로는 그대로
+  assert.equal(hash(fingerprints),'c0fc9672d5b19c030bd666ae61dc5fb88abcc2117efb0545963cc92b68faf8a4');
 });
 test('31개 글의 요약·상담·관련 글과 사실성 경계',()=>{
   for(const a of cases){
