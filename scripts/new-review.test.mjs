@@ -4,13 +4,50 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { buildReview, appendReview, piiFindings } from './new-review.mjs';
+import { buildReview, appendReview, piiFindings, maskDisplayName, isMaskedDisplayName } from './new-review.mjs';
 
-const GOOD = { rating: '5', name: '김○○', space: '유성구 ○○아파트 · 욕실 리모델링', text: '타일 줄눈까지 꼼꼼하게 마무리해 주셨어요. 설명도 자세했습니다.' };
+const GOOD = { rating: '5', name: '김○○', service: 'interior', space: '유성구 ○○아파트 · 욕실 리모델링', text: '타일 줄눈까지 꼼꼼하게 마무리해 주셨어요. 설명도 자세했습니다.' };
 
-test('정상 입력은 별점·이름·현장·본문·날짜만 가진 후기 한 건이 된다', () => {
+test('정상 입력은 별점·이름·현장·본문·분야·날짜만 가진 후기 한 건이 된다', () => {
   const review = buildReview(GOOD, '2026-10-23');
-  assert.deepEqual(review, { rating: 5, name: '김○○', space: GOOD.space, text: GOOD.text, date: '2026-10-23' });
+  assert.deepEqual(review, { rating: 5, name: '김○○', space: GOOD.space, text: GOOD.text, service: 'interior', date: '2026-10-23' });
+});
+
+/* 2026-11-25 — 표시 이름 칸은 자유 글이라 손님이 실명을 적는다. 공개 전에 성만 남긴다(가상 이름만 씀). */
+test('표시 이름은 성+○ 로 가린다: 세 글자·두 글자·네 글자·호칭', () => {
+  for (const [input, expected] of [
+    ['홍길동', '홍○○'], ['김민', '김○'], ['남궁가상', '남○○○'],
+    ['홍길동 고객', '홍○○ 고객'], ['홍길동 고객님', '홍○○ 고객님'], ['홍길동님', '홍○○님'], ['  홍길동  ', '홍○○'],
+  ]) {
+    assert.equal(maskDisplayName(input).name, expected, input);
+    assert.equal(buildReview({ ...GOOD, name: input }, '2026-11-25').name, expected, input);
+    assert.ok(isMaskedDisplayName(expected), expected);
+  }
+});
+
+test('이미 가린 이름과 "고객" 은 그대로 두고, 가릴 수 없는 닉네임·영문은 거부한다', () => {
+  for (const kept of ['김○○', '김○', '김○○ 고객', '김○○님', '고객', '고객님']) {
+    assert.equal(buildReview({ ...GOOD, name: kept }, '2026-11-25').name, kept);
+  }
+  for (const bad of ['가상닉네임입니다', 'Hong', 'ㅎㅎ', '김 민수', '홍길동씨네집']) {
+    assert.throws(() => buildReview({ ...GOOD, name: bad }), /--name/, bad);
+  }
+  for (const unmasked of ['홍길동', '김민', '홍길동 고객', 'Hong', '고객 홍길동', '김○○○○']) assert.equal(isMaskedDisplayName(unmasked), false, unmasked);
+});
+
+test('같은 실명이 현장·본문에 있으면 거기서도 가린다', () => {
+  const review = buildReview({ ...GOOD, name: '홍길동', space: '홍길동 고객님 댁 · 욕실', text: '홍길동입니다. 줄눈까지 꼼꼼하게 마무리해 주셨어요.' }, '2026-11-25');
+  assert.equal(review.name, '홍○○');
+  assert.equal(review.space, '홍○○ 고객님 댁 · 욕실');
+  assert.equal(review.text, '홍○○입니다. 줄눈까지 꼼꼼하게 마무리해 주셨어요.');
+  assert.doesNotMatch(JSON.stringify(review), /홍길동/);
+});
+
+test('분야(--service)는 leak·interior 둘 중 하나만 받는다 — 누수 페이지 후기 칸이 이 값으로 고른다', () => {
+  assert.equal(buildReview({ ...GOOD, service: 'leak' }, '2026-11-25').service, 'leak');
+  for (const bad of [undefined, '', '누수', 'Leak', 'other']) {
+    assert.throws(() => buildReview({ ...GOOD, service: bad }), /--service/, String(bad));
+  }
 });
 
 test('동·호수·전화·이메일이 섞이면 거부한다 (규칙 정본 js/pii-rules.js)', () => {
@@ -47,5 +84,20 @@ test('reviews 맨 앞에 넣고 나머지 정본은 글자 그대로 보존하�
   assert.deepEqual({ ...after, reviews: undefined }, { ...original, reviews: undefined });
   assert.ok(fs.readFileSync(sitePath, 'utf8').endsWith('}\n'));
   assert.throws(() => appendReview(sitePath, review), /이미 있습니다/);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('윈도우 작업본(CRLF) site.json 은 CRLF 그대로, LF 는 LF 그대로 다시 쓴다', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'new-review-eol-'));
+  const sitePath = path.join(dir, 'site.json');
+  const original = { company: { name: '만물인테리어' }, reviews: [] };
+  fs.writeFileSync(sitePath, (JSON.stringify(original, null, 2) + '\n').replace(/\n/g, '\r\n'));
+  appendReview(sitePath, buildReview(GOOD, '2026-11-25'));
+  const crlf = fs.readFileSync(sitePath, 'utf8');
+  assert.ok(crlf.endsWith('}\r\n'));
+  assert.equal(crlf.replace(/\r\n/g, '').includes('\n'), false, 'CRLF 파일에 LF 줄끝이 섞였다');
+  fs.writeFileSync(sitePath, JSON.stringify(original, null, 2) + '\n');
+  appendReview(sitePath, buildReview(GOOD, '2026-11-25'));
+  assert.equal(fs.readFileSync(sitePath, 'utf8').includes('\r'), false);
   fs.rmSync(dir, { recursive: true, force: true });
 });

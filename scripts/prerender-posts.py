@@ -6,9 +6,10 @@
 이 스크립트가 data/site.json의 insights를 읽어 posts/<slug>.html 정적
 페이지(본문·canonical·OG·BlogPosting 포함), RSS, 누수 접수용 경량 사례 색인을
 만들어 그 문제를 해소한다.
+2026-11-25: leak.html 의 누수 후기 칸(leak-reviews 표시 사이)도 site.json reviews 로 그린다.
 
-사용: data/site.json의 insights를 수정할 때마다 실행 후 posts/·rss.xml·
-data/leak-case-index.json을 함께 커밋한다.
+사용: data/site.json의 insights·reviews를 수정할 때마다 실행 후 posts/·rss.xml·
+data/leak-case-index.json·leak.html을 함께 커밋한다.
   python3 scripts/prerender-posts.py
 """
 import html
@@ -645,6 +646,77 @@ def write_blog_list(insights):
     return True
 
 
+LEAK_REVIEWS_START = '  <!-- leak-reviews:start'
+LEAK_REVIEWS_END = '  <!-- leak-reviews:end -->'
+
+
+def leak_review_cards(reviews):
+    """site.json reviews 중 누수 후기(service "leak")만 카드로 만든다.
+
+    후기 글·이름·현장은 손님이 쓴 글이라 전부 escape 한다. 별점은 1~5 정수일 때만 그린다.
+    이름은 scripts/new-review.mjs 가 성+○○ 로 가린 값이고, ensure-review-intake 가 다시 본다.
+    """
+    cards = []
+    for r in reviews or []:
+        if not isinstance(r, dict) or r.get('service') != 'leak':
+            continue
+        text = str(r.get('text') or '').strip()
+        name = str(r.get('name') or '').strip()
+        if not text or not name:
+            continue
+        rating = r.get('rating')
+        stars = ''
+        if isinstance(rating, int) and not isinstance(rating, bool) and 1 <= rating <= 5:
+            stars = ('<div class="leak-review-stars" aria-label="별점 %d점">%s%s</div>'
+                     % (rating, '★' * rating, '☆' * (5 - rating)))
+        who = ' · '.join(x for x in (str(r.get('space') or '').strip(), str(r.get('date') or '').strip()) if x)
+        cards.append('      <article class="leak-review">' + stars
+                     + f'<p>“{esc(text)}”</p><div class="leak-review-who"><b>{esc(name)}</b>'
+                     + (f'<small>{esc(who)}</small>' if who else '') + '</div></article>')
+    return cards
+
+
+def leak_reviews_markup(reviews):
+    """leak.html 의 누수 후기 칸 한 벌(시작·끝 표시 포함). 누수 후기가 0건이면 hidden 으로 숨긴다."""
+    cards = leak_review_cards(reviews)
+    hidden = '' if cards else ' hidden'
+    return (
+        LEAK_REVIEWS_START + ' — scripts/prerender-posts.py 가 data/site.json reviews 중 service "leak" 만 그린다. 손으로 고치지 마라(0건이면 hidden). -->\n'
+        f'  <section class="section leak-reviews-section" id="leakReviews" aria-labelledby="leak-reviews-title"{hidden}>\n'
+        '    <div class="section-heading centered-heading"><div class="section-kicker">REVIEWS</div>'
+        '<h2 id="leak-reviews-title">누수·배관 공사 <em>고객 후기</em></h2></div>\n'
+        '    <div class="leak-review-grid">\n'
+        + ''.join(card + '\n' for card in cards) +
+        '    </div>\n'
+        '    <p class="leak-review-note">대표가 확인한 실제 후기만 올리고, 이름은 성만 보이게 가립니다. <a href="review.html">후기 남기기</a></p>\n'
+        '  </section>\n'
+        + LEAK_REVIEWS_END)
+
+
+def write_leak_reviews(reviews):
+    """leak.html 의 leak-reviews 표시 사이를 site.json reviews 로 다시 그린다(2026-11-25).
+
+    leak.html 은 손으로 고치는 페이지지만 이 칸만 생성물이다 — 누수 페이지는 500KB 가 넘는
+    site.json 을 받지 않으므로(누수 접수 색인과 같은 이유) 후기를 정적으로 박아 둔다.
+    """
+    path = os.path.join(ROOT, 'leak.html')
+    with open(path, encoding='utf-8') as f:
+        src = f.read()
+    start = src.find(LEAK_REVIEWS_START)
+    end = src.find(LEAK_REVIEWS_END, start)
+    if start < 0 or end < 0:
+        print('건너뜀: leak.html 에서 leak-reviews 표시를 찾지 못했습니다')
+        return False
+    new = src[:start] + leak_reviews_markup(reviews) + src[end + len(LEAK_REVIEWS_END):]
+    if new == src:
+        print('leak.html 후기 칸 변경 없음')
+        return False
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(new)
+    print('생성: leak.html 후기 칸(누수 후기 %d건)' % len(leak_review_cards(reviews)))
+    return True
+
+
 def write_leak_case_index(insights):
     """누수 접수 폼이 500KB가 넘는 site.json 전체를 받지 않도록
     공개 누수 사례의 식별자와 제목만 따로 제공한다.
@@ -678,7 +750,9 @@ def write_leak_case_index(insights):
 
 def main():
     with open(os.path.join(ROOT, 'data', 'site.json'), encoding='utf-8') as f:
-        insights = json.load(f).get('insights', [])
+        site = json.load(f)
+    insights = site.get('insights', [])
+    reviews = site.get('reviews', [])
     # 초안은 공개 data/site.json 안에 있어도 목록·정적 글로 만들지 않는다.
     # published 가 없던 기존 글은 하위 호환으로 공개 상태다.
     insights = [a for a in insights if a.get('published', True) is not False]
@@ -700,6 +774,7 @@ def main():
     write_blog_list(insights)
     write_rss(insights)
     write_leak_case_index(insights)
+    write_leak_reviews(reviews)
     print(f'완료 · {len(insights)}건')
 
 

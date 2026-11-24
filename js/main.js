@@ -1140,12 +1140,19 @@ function renderReviews(reviews) {
     return;
   }
   if (section) section.hidden = false;
-  document.getElementById('reviewsGrid').innerHTML = reviews.map((r) => `
+  // 후기 글·이름·현장은 손님이 쓴 글이다 — 태그로 읽히지 않게 escapeContent 로만 넣는다(2026-11-25).
+  // 별점은 1~5 정수일 때만 그린다(문자열이 aria-label 속성으로 새지 않게).
+  document.getElementById('reviewsGrid').innerHTML = reviews.map((r) => {
+    const rating = Number(r && r.rating);
+    const stars = Number.isInteger(rating) && rating >= 1 && rating <= 5
+      ? `<div class="stars" aria-label="별점 ${rating}점">${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}</div>` : '';
+    return `
     <article class="review reveal">
-      ${r.rating ? `<div class="stars" aria-label="별점 ${r.rating}점">${'★'.repeat(r.rating)}${'☆'.repeat(Math.max(0, 5 - r.rating))}</div>` : ''}
-      <p>“${r.text}”</p>
-      <div class="who"><b>${r.name}</b><small>${r.space}</small></div>
-    </article>`).join('');
+      ${stars}
+      <p>“${escapeContent(r && r.text)}”</p>
+      <div class="who"><b>${escapeContent(r && r.name)}</b><small>${escapeContent(r && r.space)}</small></div>
+    </article>`;
+  }).join('');
 }
 
 /* ---------- 회사 소개 (About) ---------- */

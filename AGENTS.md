@@ -6,6 +6,13 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-11-25 후기 정리·문의 출처·대전 구별 현장 기록 (`claude/reviews-stats-area-20261125`, 로컬 후보)
+
+- **M1 후기**(`docs/reviews-20261125.md`): `new-review.mjs` 가 표시 이름을 성+○○ 로 가리고(`--service leak|interior` 필수), `ensure-review-intake` 가
+  가리지 않은 이름·escape 없는 `renderReviews`·접수함으로 새는 후기를 막는다. 후기(`type:'후기'`)는 **메일로만** 간다 — `js/lead-transport.js`
+  `inboxAccepts`(접수함 서버는 그대로, 재배포 없음). `leak.html` 에 누수 후기 칸(`#leakReviews`, `<!-- leak-reviews:start/end -->` 사이는
+  `prerender-posts.py` 생성물, 0건이면 hidden) — CI 생성물 비교에 `leak.html` 을 더했다. 실제 후기는 여전히 0건이다.
+
 ### 2026-11-21 대전 유성구 관평동 하이츠빌아파트 확장부 난방 배관·미장(11/18, 진행 중) 사례 1건 공개 후보
 
 `claude/case-heightsville-extension-floor-heating-screed-20261118`는 대표가 검토한 비공개 초안을 `published:true`로 더한다 —
@@ -390,8 +397,9 @@ node --test apps-script-contract/test/*.mjs   # 파일 6개(node --test 는 13�
    (개인정보·공개)을 체크한다 → 상담 폼과 같은 `js/lead-transport.js` 로 `type:'후기'` 메일이 간다(제목
    `[홈페이지 후기]`, 본문은 `buildReviewText`). 보내기 전에 `js/pii-rules.js` 로 동·호수·전화·이메일을 막는다
    ('고객명' 규칙은 "김○○ 고객" 같은 표시 이름을 오탐하므로 제외 — 배포 검사와 같은 4종만 쓴다).
-2. 대표가 메일을 확인하고 `node scripts/new-review.mjs --rating 5 --name "김○○" --space "유성구 ○○아파트 · 욕실
-   리모델링" --text "…"` 로 `reviews` 맨 앞에 옮겨 적는다. 이 도구도 같은 규칙으로 거부한다. **넣는 순간 대문에
+2. 대표가 메일을 확인하고 `node scripts/new-review.mjs --rating 5 --name "홍길동" --service interior --space "유성구 ○○아파트 · 욕실
+   리모델링" --text "…"` 로 `reviews` 맨 앞에 옮겨 적는다(2026-11-25부터 이름은 성+○○ 로 가려 넣고, `--service leak|interior` 필수 —
+   누수 후기는 `python3 scripts/prerender-posts.py` 로 `leak.html` 후기 칸도 다시 그린다). 이 도구도 같은 규칙으로 거부한다. **넣는 순간 대문에
    공개되므로** 브랜치 → PR → 병합(대표 승인). 확인 연락처는 게시용이 아니다 — 메일에 `(비공개)` 로 찍히고
    `reviews` 에는 넣지 않는다. 받지 않은 후기를 지어내지 마라.
 3. `scripts/ensure-review-intake.mjs` 가 폼 요소·동의 2종 required·허니팟·규칙 정본 사용·영구 저장소 미사용·
@@ -401,8 +409,8 @@ node --test apps-script-contract/test/*.mjs   # 파일 6개(node --test 는 13�
 
 - `review.html` 은 `noindex` 라 sitemap 에 넣지 않는다. 새 공개 페이지는 `scripts/pages-artifact-policy.mjs`
   허용목록(`review.html`·`js/review.js`)에 있어야 배포된다 — 빠지면 조용히 404 다.
-- 현장 앱(`hyeonjang`) 문자 센터의 리뷰 요청 문자에 `https://01023978629.github.io/manmool/review.html` 주소를
-  넣는 일은 저쪽 저장소 작업이다(🅰, 아직 안 함). 네이버 플레이스가 생기면 그쪽 후기 링크도 같이 둔다.
+- 현장 앱(`hyeonjang`) 문자 센터의 리뷰 요청 문자는 `https://01023978629.github.io/manmool/review.html` 주소를 쓴다
+  (저쪽 `REVIEW_FALLBACK_URL`·`hjReviewLink()`, 2026-11-25 조사 때 확인). 네이버 플레이스가 생기면 그쪽 후기 링크도 같이 둔다.
 
 **누수 탐지비는 범위만 공개한다(대표 결정 2026-10-23).** 5단계 표(40·57·65·65·83만원)는 `site.json`
 `leakPricing` 에 `published:true` 로 확정돼 있지만, 대문은 인테리어 전용이라 `data-surface="leak-only"` 로 닫혀

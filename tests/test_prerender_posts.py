@@ -189,5 +189,36 @@ class FeaturedCaseTests(unittest.TestCase):
         self.assertEqual(len(parsed.cards), 1)
 
 
+class LeakReviewTests(unittest.TestCase):
+    """2026-11-25 — leak.html 누수 후기 칸. 손님 글은 escape, 누수 후기만, 0건이면 숨김."""
+
+    def test_no_leak_reviews_keeps_section_hidden_and_empty(self):
+        for reviews in ([], None, [{'service': 'interior', 'rating': 5, 'name': '가○○', 'text': '인테리어 후기 본문입니다'}]):
+            markup = PRERENDER.leak_reviews_markup(reviews)
+            self.assertIn('id="leakReviews" aria-labelledby="leak-reviews-title" hidden>', markup)
+            self.assertNotIn('<article', markup)
+            self.assertTrue(markup.startswith(PRERENDER.LEAK_REVIEWS_START))
+            self.assertTrue(markup.endswith(PRERENDER.LEAK_REVIEWS_END))
+
+    def test_only_leak_reviews_are_rendered_and_text_is_escaped(self):
+        markup = PRERENDER.leak_reviews_markup([
+            {'service': 'leak', 'rating': 5, 'name': '가○○', 'space': '가상구 <b>가상</b>아파트',
+             'text': '"</p><script>alert(1)</script>', 'date': '2026-11-25'},
+            {'service': 'interior', 'rating': 4, 'name': '나○○', 'text': '인테리어 후기라 누수 칸에 안 나온다'},
+            {'service': 'leak', 'rating': '5" onmouseover="x', 'name': '다○', 'text': '별점이 이상하면 별을 안 그린다'},
+            {'service': 'leak', 'rating': 5, 'name': '', 'text': '이름이 비면 뺀다'},
+        ])
+        self.assertNotIn(' hidden>', markup)
+        self.assertEqual(markup.count('<article class="leak-review">'), 2)
+        self.assertNotIn('<script>', markup)
+        self.assertNotIn('<b>가상</b>', markup)
+        self.assertIn('&lt;script&gt;', markup)
+        self.assertIn('가상구 &lt;b&gt;가상&lt;/b&gt;아파트 · 2026-11-25', markup)
+        self.assertIn('aria-label="별점 5점">★★★★★</div>', markup)
+        self.assertNotIn('onmouseover', markup)
+        self.assertNotIn('인테리어 후기라', markup)
+        self.assertNotIn('이름이 비면', markup)
+
+
 if __name__ == '__main__':
     unittest.main()

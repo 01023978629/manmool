@@ -21,6 +21,9 @@
     .map((o) => o.value).filter(Boolean);
   const RATING_LABELS = { 1: '아쉬웠어요', 2: '그저 그래요', 3: '보통이에요', 4: '좋았어요', 5: '아주 만족해요' };
   const SCROLL = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  // 후기는 메일로만 간다(접수함 제외, js/lead-transport.js inboxAccepts). 접수함만 켜진 설정이면
+  // '자동 전송 경로 없음'으로 안내해야 문자·복사 대안이 나온다 — 그래서 경로 판정에 종류를 같이 넘긴다.
+  const REVIEW_KIND = { type: '후기' };
 
   let CONFIG = {};
   let submitAttemptEpoch = 0;
@@ -110,7 +113,7 @@
     const hp = $('rvCompanyUrl');
     if (hp && hp.value) {
       submitAttemptEpoch += 1;
-      showDone(collect(), { delivered: false, hasBackend: LEAD.backendConfigured(CONFIG), honeypot: true });
+      showDone(collect(), { delivered: false, hasBackend: LEAD.backendConfigured(CONFIG, REVIEW_KIND), honeypot: true });
       return;
     }
 
@@ -160,7 +163,7 @@
     status.className = 'app-status';
     status.textContent = '보내는 중입니다...';
 
-    const hasBackend = LEAD.backendConfigured(CONFIG);
+    const hasBackend = LEAD.backendConfigured(CONFIG, payload);
     const attempt = ++submitAttemptEpoch;
     const capturedFailureGeneration = visibleFailureGeneration;
     try {
@@ -231,7 +234,7 @@
     const retryable = !opts.delivered && !opts.honeypot && opts.generation > 0 && opts.hasBackend;
     const head = opts.delivered
       ? '<h3>후기를 받았습니다. 고맙습니다.</h3>'
-        + '<p>대표가 확인한 뒤 홈페이지 후기 란에 표시 이름·현장·별점·내용만 올립니다. 확인 연락처와 동·호수는 공개하지 않습니다. 올라간 뒤에도 삭제를 원하시면 010-2397-8629로 말씀해 주세요.</p>'
+        + '<p>대표가 확인한 뒤 홈페이지 후기 란에 표시 이름(성만 보이게 가림)·현장·별점·내용만 올립니다. 확인 연락처와 동·호수는 공개하지 않습니다. 올라간 뒤에도 삭제를 원하시면 010-2397-8629로 말씀해 주세요.</p>'
       : opts.honeypot
         ? '<h3>아직 전송되지 않았습니다.</h3><p>자동 전송하지 않았고 내용도 저장되지 않았습니다. 아래 버튼으로 문자 또는 내용 복사를 이용해 주세요.</p>'
         : CONFIG.configLoadFailed

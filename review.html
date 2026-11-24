@@ -81,7 +81,8 @@
           <div class="field-row">
             <div class="rv-field">
               <label class="fl" for="rvName">표시 이름 <small>선택</small></label>
-              <input type="text" id="rvName" name="displayName" maxlength="20" placeholder="예: 김○○ 또는 닉네임 (비우면 '고객')" autocomplete="off" />
+              <input type="text" id="rvName" name="displayName" maxlength="20" placeholder="예: 홍길동 (비우면 '고객')" autocomplete="off" aria-describedby="rvNameHelp" />
+              <p class="form-note" id="rvNameHelp">홈페이지에는 성만 보이게 가려서 올립니다(예: 홍길동 → 홍○○).</p>
             </div>
             <div class="rv-field">
               <label class="fl" for="rvPhone">확인 연락처 <small>선택 · 비공개</small></label>
@@ -96,7 +97,7 @@
           </label>
           <label class="rv-consent">
             <input type="checkbox" id="rvPublishConsent" name="publishConsent" required />
-            <span>표시 이름·현장·별점·후기 내용을 홈페이지 후기 란에 공개하는 데 동의합니다 <em class="req" aria-hidden="true">필수</em> — 공개 전 대표가 확인하며, 확인 연락처와 동·호수는 공개하지 않습니다. 삭제는 언제든 010-2397-8629로 요청하실 수 있습니다.</span>
+            <span>표시 이름(성만 보이게 가림)·현장·별점·후기 내용을 홈페이지 후기 란에 공개하는 데 동의합니다 <em class="req" aria-hidden="true">필수</em> — 공개 전 대표가 확인하며, 확인 연락처와 동·호수는 공개하지 않습니다. 삭제는 언제든 010-2397-8629로 요청하실 수 있습니다.</span>
           </label>
 
           <button type="submit" class="btn btn-primary btn-lg btn-block" id="rvSubmit">후기 보내기</button>

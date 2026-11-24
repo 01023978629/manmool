@@ -193,3 +193,47 @@ test('접수함이 돌려준 접수번호는 형식이 맞을 때만 payload 에
   assert.deepEqual(JSON.parse(JSON.stringify(await noReceipt.lead.retryLatest(both()))), { status: 'sent', generation: gen2, receiptNo: '' });
 });
 
+/* 2026-11-25 — 고객 후기(type 후기)는 접수함에 넣지 않는다. 접수함(LeadInboxPure.gs)에는 후기 종류가 없어
+   전화가 든 후기가 '인테리어' 상담 줄로 들어가 승인 대기에 섞였다. 접수함 서버는 그대로 두고 사이트에서 메일로만 보낸다. */
+const review = () => ({ type: '후기', rating: 5, workType: '방수', site: '가상구 가상아파트', reviewText: '가상 후기 본문입니다. 열 자를 넘깁니다.',
+  displayName: '가○○', name: '가○○', phone: '01000000000', publishConsent: true, privacyConsent: true, source: 'review-page' });
+
+test('후기는 접수함이 켜져 있어도 메일 경로로만 가고 접수함(leadCreate)은 부르지 않는다', async () => {
+  const loaded = loadLead(router('{"success":true}', '{"ok":true,"receiptNo":"LD-20261125-0001"}'));
+  const data = review();
+  assert.equal(await loaded.lead.deliver(both(), data), true);
+  assert.deepEqual(loaded.calls.map((c) => c.url), [EMAIL_URL]);
+  assert.equal(loaded.calls[0].body.type, '후기');
+  assert.match(loaded.calls[0].body.subject, /^\[홈페이지 후기\]/);
+  assert.equal('receiptNo' in data, false, '후기에 상담 접수번호가 붙으면 안 된다');
+  // 같은 설정에서 상담은 여전히 메일 → 접수함 둘 다 간다(후기만 뺐다).
+  const consult = loadLead(router('{"success":true}', '{"ok":true}'));
+  assert.equal(await consult.lead.deliver(both(), payload()), true);
+  assert.deepEqual(consult.calls.map((c) => c.url), [EMAIL_URL, INBOX_URL]);
+});
+
+test('접수함만 켜진 설정에서 후기는 "보낼 길 없음"이고, 메일이 실패하면 접수함으로 새지 않고 실패한다', async () => {
+  const inboxOnlyLoaded = loadLead(router('{"success":true}', '{"ok":true}'));
+  assert.equal(inboxOnlyLoaded.lead.backendConfigured(inboxOnly(), review()), false);
+  assert.equal(inboxOnlyLoaded.lead.backendConfigured(inboxOnly(), payload()), true);
+  assert.equal(inboxOnlyLoaded.lead.backendConfigured(inboxOnly()), true, 'payload 없이 부르면 예전처럼 상담 기준');
+  assert.equal(inboxOnlyLoaded.lead.backendConfigured(both(), review()), true);
+  assert.equal(await inboxOnlyLoaded.lead.deliver(inboxOnly(), review()), false);
+  assert.deepEqual(inboxOnlyLoaded.calls, []);
+
+  const mailDown = loadLead(router(() => response(500, '{"success":false}'), '{"ok":true}'));
+  await notAccepted(mailDown.lead.deliver(both(), review()));
+  assert.deepEqual(mailDown.calls.map((c) => c.url), [EMAIL_URL]);
+});
+
+test('후기 재전송도 접수함으로 가지 않고, 접수함만 켜져 있으면 unavailable 이다', async () => {
+  const retry = loadLead(router('{"success":true}', '{"ok":true}'));
+  const generation = retry.lead.rememberFailure(review());
+  assert.deepEqual(JSON.parse(JSON.stringify(await retry.lead.retryLatest(both()))), { status: 'sent', generation, receiptNo: '' });
+  assert.deepEqual(retry.calls.map((c) => c.url), [EMAIL_URL]);
+  const noMail = loadLead(router('{"success":true}', '{"ok":true}'));
+  const gen2 = noMail.lead.rememberFailure(review());
+  assert.deepEqual(JSON.parse(JSON.stringify(await noMail.lead.retryLatest(inboxOnly()))), { status: 'unavailable', generation: gen2 });
+  assert.deepEqual(noMail.calls, []);
+});
+

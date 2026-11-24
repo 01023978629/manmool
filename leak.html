@@ -787,6 +787,15 @@
     <div class="case-actions"><a class="outline-case-button" href="blog.html?category=leak">누수·배관 사례 모아 보기</a><a class="primary-case-button" href="#leakInquiry">증상 남기고 상담 신청</a></div>
   </section>
 
+  <!-- leak-reviews:start — scripts/prerender-posts.py 가 data/site.json reviews 중 service "leak" 만 그린다. 손으로 고치지 마라(0건이면 hidden). -->
+  <section class="section leak-reviews-section" id="leakReviews" aria-labelledby="leak-reviews-title" hidden>
+    <div class="section-heading centered-heading"><div class="section-kicker">REVIEWS</div><h2 id="leak-reviews-title">누수·배관 공사 <em>고객 후기</em></h2></div>
+    <div class="leak-review-grid">
+    </div>
+    <p class="leak-review-note">대표가 확인한 실제 후기만 올리고, 이름은 성만 보이게 가립니다. <a href="review.html">후기 남기기</a></p>
+  </section>
+  <!-- leak-reviews:end -->
+
   <section class="section faq-section" id="faq">
     <div class="section-heading centered-heading faq-heading"><div class="section-kicker">FAQ</div><h2>누수 탐지 전, <em>많이 물어보시는 질문</em></h2></div>
     <div class="faq-list">
