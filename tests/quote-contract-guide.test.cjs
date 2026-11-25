@@ -32,7 +32,8 @@ const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comp
 // 전체 객체·순서는 recent-cases-20261118-taesan 검사가 따로 고정한다. 11/13 은 11/17 새여울보다 오래돼 FEATURED 는 그대로다.
 // 2026-11-21: 대전 유성구 관평동 하이츠빌아파트 확장부 난방 배관·미장(11/18, 인테리어) 사례 1건을 맨 앞에 추가(기존 글 수정 없음). 그 전 92건
 // 전체 객체·순서는 recent-cases-20261121 검사가 따로 고정한다. 가장 최근 실제 사례가 11/18 하이츠빌아파트라 FEATURED 를 그 글로 바꿨다.
-const OLD_COUNT = 92, OLD_HASH = 'af08af487539c43a312e647c1a0bd458f65986b9d0acafe3df33cf402c4f5a1b';
+// 2026-11-25: 최근 사례 5편(11/18 하이츠빌·11/17 새여울·11/16 삼호 앞베란다·11/14 열매마을 욕조 자리·11/13 태산그린)의 글을 보강했다(docs/case-enrich-20261125.md — 소개문·단계 설명·'알아 두면 좋은 점' 한 칸·updated·readMin). 사진·날짜·장소·순서와 나머지 88건은 그대로이고, 이 고정값은 그 5편의 새 글로 다시 계산했다.
+const OLD_COUNT = 92, OLD_HASH = '1e90df7bf4698067604fee55fecd83f9201c17724427e58414ba1753a1caaaf7';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');

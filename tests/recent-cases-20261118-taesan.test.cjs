@@ -11,6 +11,11 @@
 // screed; remaining work on a later visit) was added first (no existing entry changed): pinned set +1. It is the newest real
 // case, so it takes the blog featured slot and the blog.html lastmod is 2026-11-18; as an interior case it gets no leak card or
 // leak index entry, so leak.html keeps 2026-11-17 (the newest leak case). recent-cases-20261121 pins the 92 entries before it.
+// 2026-11-25: the five newest cases (11/18 Heightsville, 11/17 Saeyeoul, 11/16 Samho front balcony, 11/14 Yeolmae bathtub area and
+// 11/13 Taesan Green) were enriched in place (docs/case-enrich-20261125.md): excerpt, longer step text, one general-guidance
+// section before the closing section, updated 2026-11-25 and readMin. Photos, dates, places, order and the other 88 entries did
+// not change (checked by reverting only those five objects and getting the old pin back). The pinned hash was recomputed for the
+// new text, and blog.html / leak.html / the five post lastmod values follow the edit day (updated).
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -109,6 +114,13 @@ test('one case: 9 photos, work date, leak service, conservative public copy and 
     // Not written as a finished building project, and what the photos do not show is said plainly instead of guessed.
     assert.doesNotMatch(text, /완공|공사 완료|마감 완료|시공 완료/);
     assert.match(a.caseSummary.result, /미기재/);
+    // 2026-11-25 enrichment (docs/case-enrich-20261125.md): one general-guidance section sits right before the closing section.
+    // It has no photo and says in its first sentence that it is not a record of this site; the entry carries the edit day.
+    { const guide = a.body.at(-2);
+      assert.equal(a.updated, '2026-11-25', c.slug);
+      assert.ok(/^\d+\. 알아 두면 좋은 점/.test(guide.h) && !guide.img, c.slug);
+      assert.ok(guide.p.startsWith('아래는 이 현장에서 확인한 내용이 아니라, ') && /일반적으로 정리한 것입니다/.test(guide.p), c.slug);
+      assert.equal(a.body.filter(b => /알아 두면 좋은 점/.test(b.h)).length, 1, c.slug); }
     assert.match(a.body.at(-1).p, /자료가 없어 적지 않았습니다/);
     assert.ok(a.consultation && a.consultation.photos && a.consultation.scope && a.caseSummary, c.slug);
     assert.match(a.consultation.scope, /최종 범위와 금액은 현장 확인 후 안내합니다/);
@@ -122,7 +134,7 @@ test('one case: 9 photos, work date, leak service, conservative public copy and 
     // Discovery: list card in the leak group, RSS, sitemap (lastmod = work date), leak index entry and one landing card.
     assert.match(blog, new RegExp(`<a class="insight-card" href="posts/${c.slug}\\.html" data-group="${c.service}" data-date="${c.date}"`));
     assert.ok(rss.includes(`/posts/${c.slug}.html`), 'rss ' + c.slug);
-    assert.equal(sitemapLastmod(`posts/${c.slug}.html`), a.date);
+    assert.equal(sitemapLastmod(`posts/${c.slug}.html`), a.updated || a.date);  // 2026-11-25: enriched posts carry updated (docs/case-enrich-20261125.md)
     assert.equal(index.cases.filter(x => x.slug === c.slug).length, 1, 'leak index ' + c.slug);
     assert.equal(leak.includes(`href="posts/${c.slug}.html"`), c.leakCard, 'leak card ' + c.slug);
     const html = read('posts/' + c.slug + '.html');
@@ -145,7 +157,8 @@ test('one case: 9 photos, work date, leak service, conservative public copy and 
   // The featured slot stays with the 11/17 case; blog/leak lastmod stays at the newest public post date.
   assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/${FEATURED}\\.html"`));
   // 2026-11-21: blog.html follows the newest post (11/18 Heightsville, interior); leak.html keeps the newest leak case (11/17).
-  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), page === 'blog.html' ? '2026-11-18' : '2026-11-17', page);
+  // 2026-11-25: five recent posts were enriched (updated 2026-11-25), so blog.html and leak.html both follow that edit day.
+  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), '2026-11-25', page);
   // The leak index stays under the inquiry-form budget (10KB -> 16KB with this entry).
   assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);
 });

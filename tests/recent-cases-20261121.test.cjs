@@ -7,6 +7,11 @@
 // gets no leak landing card and no leak index entry, and leak.html keeps the newest leak case date (2026-11-17).
 // Only the dong and complex name are public (the owner confirmed Gwanpyeong-dong on 2026-11-21): no building/unit numbers,
 // road address, customer, cost, partner company, workers or location metadata.
+// 2026-11-25: the five newest cases (11/18 Heightsville, 11/17 Saeyeoul, 11/16 Samho front balcony, 11/14 Yeolmae bathtub area and
+// 11/13 Taesan Green) were enriched in place (docs/case-enrich-20261125.md): excerpt, longer step text, one general-guidance
+// section before the closing section, updated 2026-11-25 and readMin. Photos, dates, places, order and the other 88 entries did
+// not change (checked by reverting only those five objects and getting the old pin back). The pinned hash was recomputed for the
+// new text, and blog.html / leak.html / the five post lastmod values follow the edit day (updated).
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -99,6 +104,13 @@ test('one case: 9 photos, work date, interior service, owner-confirmed place, co
     assert.doesNotMatch(text, /완공|공사 완료|마감 완료|시공 완료/);
     assert.match(a.body.at(-1).p, /남은 작업은 다음 방문 때 이어서 진행할 예정입니다/);
     assert.match(a.caseSummary.result, /미기재/);
+    // 2026-11-25 enrichment (docs/case-enrich-20261125.md): one general-guidance section sits right before the closing section.
+    // It has no photo and says in its first sentence that it is not a record of this site; the entry carries the edit day.
+    { const guide = a.body.at(-2);
+      assert.equal(a.updated, '2026-11-25', c.slug);
+      assert.ok(/^\d+\. 알아 두면 좋은 점/.test(guide.h) && !guide.img, c.slug);
+      assert.ok(guide.p.startsWith('아래는 이 현장에서 확인한 내용이 아니라, ') && /일반적으로 정리한 것입니다/.test(guide.p), c.slug);
+      assert.equal(a.body.filter(b => /알아 두면 좋은 점/.test(b.h)).length, 1, c.slug); }
     assert.match(a.body.at(-1).p, /자료가 없어 적지 않았습니다/);
     assert.ok(a.consultation && a.consultation.photos && a.consultation.scope && a.caseSummary, c.slug);
     assert.match(a.consultation.scope, /최종 범위와 금액은 현장 확인 후 안내합니다/);
@@ -112,7 +124,7 @@ test('one case: 9 photos, work date, interior service, owner-confirmed place, co
     // Discovery: featured card in the interior group, RSS, sitemap (lastmod = work date); no leak index entry or landing card.
     assert.match(blog, new RegExp(`<a class="insight-featured" href="posts/${c.slug}\\.html" data-group="${c.service}" data-date="${c.date}"`));
     assert.ok(rss.includes(`/posts/${c.slug}.html`), 'rss ' + c.slug);
-    assert.equal(sitemapLastmod(`posts/${c.slug}.html`), a.date);
+    assert.equal(sitemapLastmod(`posts/${c.slug}.html`), a.updated || a.date);  // 2026-11-25: enriched posts carry updated (docs/case-enrich-20261125.md)
     assert.equal(index.cases.some(x => x.slug === c.slug), false, 'leak index ' + c.slug);
     assert.equal(leak.includes(`href="posts/${c.slug}.html"`), c.leakCard, 'leak card ' + c.slug);
     const html = read('posts/' + c.slug + '.html');
@@ -126,9 +138,13 @@ test('one case: 9 photos, work date, interior service, owner-confirmed place, co
   assert.match(blog, new RegExp(`<a class="insight-card" href="posts/${NEXT}\\.html"`));
   assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 46);
   // blog.html follows the newest post; leak.html keeps the newest leak case date.
-  assert.equal(sitemapLastmod('blog.html'), fixture.cases[0].date);
-  assert.equal(sitemapLastmod('leak.html'), site.insights.find(a => a.published !== false && serviceOf(a) === 'leak').date);
-  assert.equal(sitemapLastmod('leak.html'), '2026-11-17');
+  // 2026-11-25: five recent posts were enriched (updated 2026-11-25), so both pages follow that edit day
+  // (blog: newest updated-or-date of all public posts; leak: of the leak cases — it was blog 11/18, leak 11/17).
+  const day = a => a.updated || a.date, newest = items => items.map(day).sort().at(-1);
+  assert.equal(sitemapLastmod('blog.html'), newest(site.insights.filter(a => a.published !== false)));
+  assert.equal(sitemapLastmod('leak.html'), newest(site.insights.filter(a => a.published !== false && serviceOf(a) === 'leak')));
+  assert.equal(sitemapLastmod('blog.html'), '2026-11-25');
+  assert.equal(sitemapLastmod('leak.html'), '2026-11-25');
   assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);
 });
 

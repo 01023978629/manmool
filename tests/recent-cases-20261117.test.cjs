@@ -16,6 +16,11 @@
 // screed; remaining work on a later visit) was added first (no existing entry changed): pinned set +1. It is the newest real
 // case, so it takes the blog featured slot and the blog.html lastmod is 2026-11-18; as an interior case it gets no leak card or
 // leak index entry, so leak.html keeps 2026-11-17 (the newest leak case). recent-cases-20261121 pins the 92 entries before it.
+// 2026-11-25: the five newest cases (11/18 Heightsville, 11/17 Saeyeoul, 11/16 Samho front balcony, 11/14 Yeolmae bathtub area and
+// 11/13 Taesan Green) were enriched in place (docs/case-enrich-20261125.md): excerpt, longer step text, one general-guidance
+// section before the closing section, updated 2026-11-25 and readMin. Photos, dates, places, order and the other 88 entries did
+// not change (checked by reverting only those five objects and getting the old pin back). The pinned hash was recomputed for the
+// new text, and blog.html / leak.html / the five post lastmod values follow the edit day (updated).
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -125,7 +130,7 @@ test('four cases: 18 photos, work dates, service split, conservative public copy
     const listClass = 'insight-card';  // 2026-11-21: slugs[0] was the featured card until the 11/18 Heightsville case
     assert.match(blog, new RegExp(`<a class="${listClass}" href="posts/${c.slug}\\.html" data-group="${c.service}" data-date="${c.date}"`));
     assert.ok(rss.includes(`/posts/${c.slug}.html`), 'rss ' + c.slug);
-    assert.equal(sitemapLastmod(`posts/${c.slug}.html`), a.date);
+    assert.equal(sitemapLastmod(`posts/${c.slug}.html`), a.updated || a.date);  // 2026-11-25: enriched posts carry updated (docs/case-enrich-20261125.md)
     assert.equal(index.cases.some(x => x.slug === c.slug), c.service === 'leak', 'leak index ' + c.slug);
     assert.equal(leak.includes(`href="posts/${c.slug}.html"`), c.leakCard, 'leak card ' + c.slug);
     const html = read('posts/' + c.slug + '.html');
@@ -147,7 +152,20 @@ test('four cases: 18 photos, work dates, service split, conservative public copy
   assert.match(samhoText, /페인트 마감은 따로 진행합니다/);
   assert.doesNotMatch(samhoText, /페인트[^.]{0,20}(?:칠했|칠을 마쳤|마감했|완료)/);
   // Yeolmae (interior): the screed dries before the next process, so the case reads as work in progress.
-  assert.match(bySlug(slugs[2]).body.at(-2).p, /다음 공정을 이어 갑니다/);
+  // 2026-11-25: the general-guidance section now sits between the last photo section and the closing section, so this looks at the
+  // last photo section instead of body.at(-2).
+  assert.match(bySlug(slugs[2]).body.filter(b => b.img).at(-1).p, /다음 공정을 이어 갑니다/);
+  // 2026-11-25 enrichment (docs/case-enrich-20261125.md): the three newest cases got one general-guidance section right before the
+  // closing section. It has no photo and says in its first sentence that it is not a record of this site. The 11/10 Mokyang case
+  // was not touched.
+  for (const s of slugs.slice(0, 3)) {
+    const a = bySlug(s), guide = a.body.at(-2);
+    assert.equal(a.updated, '2026-11-25', s);
+    assert.ok(/^\d+\. 알아 두면 좋은 점/.test(guide.h) && !guide.img, s);
+    assert.ok(guide.p.startsWith('아래는 이 현장에서 확인한 내용이 아니라, ') && /일반적으로 정리한 것입니다/.test(guide.p), s);
+    assert.equal(a.body.filter(b => /알아 두면 좋은 점/.test(b.h)).length, 1, s);
+  }
+  assert.ok(!Object.hasOwn(bySlug(slugs[3]), 'updated') && !bySlug(slugs[3]).body.some(b => /알아 두면 좋은 점/.test(b.h)));
   // The newest case takes the blog featured slot (2026-11-21: the 11/18 Heightsville case, no longer slugs[0]).
   assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/heightsville-extension-floor-heating-screed-20261118\\.html"`));
   // Leak landing: card count pin 42 -> 45. The 11/17 and 11/16 cards come first; the 11/10 card sits at its date position,
@@ -161,7 +179,8 @@ test('four cases: 18 photos, work dates, service split, conservative public copy
   for (const c of fixture.cases.filter(c => c.leakCard)) assert.equal(cards.filter(x => x === c.slug).length, 1, c.slug);
   // blog.html and leak.html advertise the newest public post date.
   // 2026-11-21: blog.html follows the newest post (11/18 Heightsville, interior); leak.html keeps the newest leak case (11/17).
-  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), page === 'blog.html' ? '2026-11-18' : '2026-11-17', page);
+  // 2026-11-25: five recent posts were enriched (updated 2026-11-25), so blog.html and leak.html both follow that edit day.
+  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), '2026-11-25', page);
   // The small leak index stays under the inquiry-form budget after these entries.
   assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);  // 2026-11-18: budget 10KB -> 16KB (ensure-leak-case-index)
 });
