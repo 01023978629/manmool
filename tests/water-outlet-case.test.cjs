@@ -18,7 +18,8 @@ const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).
 // 2026-11-18: 충남 공주 공장 컨테이너 옆 판넬 지붕·벽체(11/9, 인테리어) 사례 1건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 90건 전체 객체·순서는 recent-cases-20261118 검사가 따로 고정한다.
 // 2026-11-18: 청주 용암동 태산그린아파트 옥상 배수구 2곳·앞베란다 우수관(11/13) 사례 1건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 91건 전체 객체·순서는 recent-cases-20261118-taesan 검사가 따로 고정한다.
 // 2026-11-21: 대전 유성구 관평동 하이츠빌아파트 확장부 난방 배관·미장(11/18, 인테리어) 사례 1건을 맨 앞에 추가(기존 글 수정 없음). 그 전 92건 전체 객체·순서는 recent-cases-20261121 검사가 따로 고정한다.
-const baseline = 'b00ff9420a7c5f145ef7b58a2b471ba8a5c6877e308b24f0f9c345eff3393a52';
+// 2026-11-25: 최근 사례 5편(11/18 하이츠빌·11/17 새여울·11/16 삼호 앞베란다·11/14 열매마을 욕조 자리·11/13 태산그린)의 글을 보강했다(docs/case-enrich-20261125.md — 소개문·단계 설명·'알아 두면 좋은 점' 한 칸·updated·readMin). 사진·날짜·장소·순서와 나머지 88건은 그대로이고, 이 고정값은 그 5편의 새 글로 다시 계산했다.
+const baseline = 'fdb3a682d338905962904aa102b5b1cad804ff1b16c39a1ace879d2df0c4d3a9';
 function preserved(items) {
   const old = items.filter(a => a.slug !== slug);
   return old.length === 92 && hash(old) === baseline;

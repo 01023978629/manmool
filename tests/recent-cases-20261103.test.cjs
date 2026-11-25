@@ -19,6 +19,11 @@
 // screed; remaining work on a later visit) was added first (no existing entry changed): pinned set +1. It is the newest real
 // case, so it takes the blog featured slot and the blog.html lastmod is 2026-11-18; as an interior case it gets no leak card or
 // leak index entry, so leak.html keeps 2026-11-17 (the newest leak case). recent-cases-20261121 pins the 92 entries before it.
+// 2026-11-25: the five newest cases (11/18 Heightsville, 11/17 Saeyeoul, 11/16 Samho front balcony, 11/14 Yeolmae bathtub area and
+// 11/13 Taesan Green) were enriched in place (docs/case-enrich-20261125.md): excerpt, longer step text, one general-guidance
+// section before the closing section, updated 2026-11-25 and readMin. Photos, dates, places, order and the other 88 entries did
+// not change (checked by reverting only those five objects and getting the old pin back). The pinned hash was recomputed for the
+// new text, and blog.html / leak.html / the five post lastmod values follow the edit day (updated).
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -109,7 +114,8 @@ test('Seonbi 1-danji retaining-wall plaster case: 9 photos, work date, conservat
   for (const page of ['blog.html', 'leak.html']) {
     const lastmod = (read('sitemap.xml').match(new RegExp(`<loc>https://01023978629\\.github\\.io/manmool/${page}</loc>\\s*<lastmod>([^<]+)</lastmod>`)) || [])[1];
     // 2026-11-21: blog.html follows the newest post (11/18 Heightsville, interior); leak.html keeps the newest leak case (11/17).
-    assert.equal(lastmod, page === 'blog.html' ? '2026-11-18' : '2026-11-17', page);  // 2026-11-17: newest public post was 11/17
+    // 2026-11-25: five recent posts were enriched (updated 2026-11-25), so blog.html and leak.html both follow that edit day.
+    assert.equal(lastmod, '2026-11-25', page);  // 2026-11-21: was blog 11/18, leak 11/17
   }
 });
 
