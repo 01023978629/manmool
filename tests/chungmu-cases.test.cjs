@@ -25,9 +25,10 @@ const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex'
 // 2026-11-27: 대전 동구 낭월동 남대전 이편한세상아파트 33평 리모델링(11/27, 인테리어) 사례 1건을 맨 앞에 추가(기존 글 수정 없음). 그 전 93건 전체 객체·순서는 recent-cases-20261127 검사가 따로 고정한다.
 // 2026-11-27: 대전 서구 월평동 월평타운 두 세대 앞·뒤 베란다 우수관 하부 부속 교체(11/26, 누수) 사례 1건을 11/27 남대전 글 바로 뒤(날짜 자리)에 추가(기존 글 수정 없음). 그 전 94건 전체 객체·순서는 recent-cases-20261127-wolpyeong 검사가 따로 고정한다.
 // 2026-11-28: 대표 지시로 11/26 월평타운 두 세대 합친 글을 세대별 두 글(첫 번째·두 번째 세대, 같은 날짜 자리)로 나눴다 — 합친 글 1건을 빼고 2건을 넣어 글이 1건 늘었다(다른 글 수정 없음). 그 전 94건 전체 객체·순서는 recent-cases-20261127-wolpyeong 검사가 따로 고정한다.
-const baseline='fbacdc8fb7adc646109722634441b277af5c5fc16c7b89cc3917d821b825e80b';
-function preserved(items){const old=items.filter(a=>!slugs.includes(a.slug));return old.length===94&&hash(old)===baseline;}
-test('기준 갱신한 94개 원고 객체와 순서 보존, 변이 검출',()=>{
+// 2026-11-28: 대전 중구 오류동 삼성아파트 같은 세대의 두 사례(11/27 냉·온수 배관 전체 교체·11/25 우수관 1곳 하부 부속 작업)를 날짜 자리에 더해 글이 2건 늘었다(다른 글 수정 없음). 그 전 96건 전체 객체·순서는 recent-cases-20261128-samsung 검사가 따로 고정한다.
+const baseline='c4d7d971a8360c688e279b3d105cd200971c489e089d51897e5d94d3cfe8f748';
+function preserved(items){const old=items.filter(a=>!slugs.includes(a.slug));return old.length===96&&hash(old)===baseline;}
+test('기준 갱신한 96개 원고 객체와 순서 보존, 변이 검출',()=>{
   const items=JSON.parse(read('data/site.json')).insights;
   assert.ok(preserved(items));
   const changed=structuredClone(items); changed.find(a=>!slugs.includes(a.slug)).title+='변이'; assert.equal(preserved(changed),false);

@@ -39,7 +39,8 @@ const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comp
 // 전체 객체·순서는 recent-cases-20261127-wolpyeong 검사가 따로 고정한다. 11/26 은 11/27 남대전보다 오래돼 FEATURED 는 그대로다.
 // 2026-11-28: 대표 지시로 11/26 월평타운 두 세대 합친 글을 세대별 두 글(첫 번째·두 번째 세대, 같은 날짜 자리)로 나눴다 — 합친 글 1건을 빼고 2건을 넣어 글이 1건 늘었다(다른 글 수정 없음). 그 전 94건 전체 객체·순서는 recent-cases-20261127-wolpyeong 검사가 따로 고정한다.
 // 11/26 글은 11/27 남대전보다 오래돼 FEATURED 는 그대로다.
-const OLD_COUNT = 95, OLD_HASH = 'bcf65be10a163d9177b6f70b0b0dabc1e99f39254067953dd6d607265514da8f';
+// 2026-11-28: 대전 중구 오류동 삼성아파트 같은 세대의 두 사례(11/27 냉·온수 배관 전체 교체·11/25 우수관 1곳 하부 부속 작업)를 날짜 자리에 더해 글이 2건 늘었다(다른 글 수정 없음). 그 전 96건 전체 객체·순서는 recent-cases-20261128-samsung 검사가 따로 고정한다.
+const OLD_COUNT = 97, OLD_HASH = 'a8ce733cd5c9b44c3f6babd35f0d6bfa57d0dec82fddd30896af1eeb0fa26be9';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');

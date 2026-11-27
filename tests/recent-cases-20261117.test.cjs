@@ -36,6 +36,10 @@
 // changed): pinned set +1. Its leak landing card was replaced by two cards at the front (count 47 -> 48);
 // blog.html (2026-11-27) and leak.html (2026-11-26) lastmods are unchanged. The old URL is a noindex redirect page
 // (scripts/post-redirects.json). recent-cases-20261127-wolpyeong now pins the two entries and the 94 entries before them.
+// 2026-11-28: two cases from the same home at the Samsung apartments in Oryu-dong, Jung-gu (11/27 hot/cold water pipe
+// replacement, 11/25 one rain-pipe base) were added at their date positions (no other entry changed). Their leak landing
+// cards make the count 48 -> 50; leak.html lastmod 2026-11-26 -> 2026-11-27 (blog.html stays 2026-11-27).
+// recent-cases-20261128-samsung pins the two entries and the 96 entries before them.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -82,8 +86,10 @@ test('the 86 entries before these cases keep their object and order; mutation gu
   // 2026-11-27 (2): the 11/26 Wolpyeong Town case (recent-cases-20261127-wolpyeong) sits after the 11/27 case, so they start at index 3.
   // 2026-11-28: that case is now two same-date entries (first and second home), so they start at index 4; the two 11/26 entries
   // share a date, every other step is strictly older.
-  assert.deepEqual(insights.slice(4, 7).map(a => a.slug), slugs.slice(0, 3));
-  for (let k = 0; k < 7; k++) assert.ok(insights[k].date > insights[k + 1].date || (k === 1 && insights[k].date === insights[k + 1].date), insights[k].slug);
+  // 2026-11-28 (2): the 11/27 Oryu-dong Samsung pipe entry (same date as the 11/27 case) and the 11/25 rain-pipe entry come before
+  // them too, so they start at index 6; the same-date pairs are the two 11/27 entries and the two 11/26 entries.
+  assert.deepEqual(insights.slice(6, 9).map(a => a.slug), slugs.slice(0, 3));
+  for (let k = 0; k < 9; k++) assert.ok(insights[k].date > insights[k + 1].date || ((k === 0 || k === 2) && insights[k].date === insights[k + 1].date), insights[k].slug);
   // The 11/10 case sits at its date position: after every newer entry, right before the earlier 11/10 batch.
   const m = insights.findIndex(a => a.slug === slugs[3]), day = fixture.cases[3].date;
   assert.ok(m > 6 && insights.slice(0, m).every(a => a.date > day), slugs[3]);  // 2026-11-27 (2): was m > 4; 2026-11-28: was m > 5
@@ -189,14 +195,18 @@ test('four cases: 18 photos, work dates, service split, conservative public copy
   assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/nangwol-namdaejeon-epyeonhan-33py-remodel-20261127\\.html"`));  // 2026-11-27: was the 11/18 Heightsville case
   // Leak landing: card count pin 42 -> 45. The 11/17 and 11/16 cards come first; the 11/10 card sits at its date position,
   // right before the earlier 11/10 batch. No card for the interior case.
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 48);  // 2026-11-18: 45 -> 46 (11/13 Taesan card), 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards)
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 50);  // 2026-11-18: 45 -> 46 (11/13 Taesan card), 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards), 2026-11-28 (2): 48 -> 50 (11/27 Oryu-dong Samsung pipe card first, 11/25 rain-pipe card after the 11/26 cards)
   const cards = leakCardSlugs(leak), dateOf = s => site.insights.find(a => a.slug === s).date;
   // 2026-11-27 (2): the 11/26 Wolpyeong Town card comes first now, so the 11/17 and 11/16 cards are second and third.
   // 2026-11-28: that card is now the two per-home 11/26 cards, so the 11/17 and 11/16 cards are third and fourth.
-  assert.deepEqual(cards.slice(0, 2), ['wolpyeong-town-first-home-veranda-rain-pipe-fitting-20261126', 'wolpyeong-town-second-home-veranda-rain-pipe-fitting-20261126']);
-  assert.deepEqual(cards.slice(2, 4), slugs.slice(0, 2));
+  // 2026-11-28 (2): the 11/27 Oryu-dong Samsung pipe card leads and the 11/25 rain-pipe card follows the 11/26 cards, so the 11/17
+  // and 11/16 cards are fifth and sixth.
+  assert.equal(cards[0], 'samsung-apt-water-pipe-full-replacement-20261127');
+  assert.deepEqual(cards.slice(1, 3), ['wolpyeong-town-first-home-veranda-rain-pipe-fitting-20261126', 'wolpyeong-town-second-home-veranda-rain-pipe-fitting-20261126']);
+  assert.equal(cards[3], 'oryu-samsung-apt-rain-pipe-base-fitting-20261125');
+  assert.deepEqual(cards.slice(4, 6), slugs.slice(0, 2));
   const k = cards.indexOf(slugs[3]);
-  assert.ok(k > 4 && cards.slice(0, k).every(s => dateOf(s) > fixture.cases[3].date), slugs[3]);  // 2026-11-27 (2): was k > 2; 2026-11-28: was k > 3
+  assert.ok(k > 6 && cards.slice(0, k).every(s => dateOf(s) > fixture.cases[3].date), slugs[3]);  // 2026-11-27 (2): was k > 2; 2026-11-28: was k > 3; 2026-11-28 (2): was k > 4
   assert.equal(cards[k + 1], EARLIER_SAME_DAY);
   for (const c of fixture.cases.filter(c => c.leakCard)) assert.equal(cards.filter(x => x === c.slug).length, 1, c.slug);
   // blog.html and leak.html advertise the newest public post date.
@@ -204,7 +214,7 @@ test('four cases: 18 photos, work dates, service split, conservative public copy
   // 2026-11-25: five recent posts were enriched (updated 2026-11-25), so blog.html and leak.html both follow that edit day.
   // 2026-11-27: blog.html follows the newest post (11/27 Nangwol-dong Namdaejeon e-Pyeonhan, interior); leak.html keeps 2026-11-25.
   // 2026-11-27 (2): leak.html follows the newest leak case (11/26 Wolpyeong Town); blog.html stays 2026-11-27 (11/27 Namdaejeon).
-  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), page === 'blog.html' ? '2026-11-27' : '2026-11-26', page);
+  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), page === 'blog.html' ? '2026-11-27' : '2026-11-27', page);  // 2026-11-28 (2): leak.html follows the newest leak case (11/27 Oryu-dong Samsung pipe)
   // The small leak index stays under the inquiry-form budget after these entries.
   assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);  // 2026-11-18: budget 10KB -> 16KB (ensure-leak-case-index)
 });

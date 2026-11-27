@@ -42,7 +42,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 // blog.html (2026-11-27) and leak.html (2026-11-26) lastmods are unchanged. The old URL is a noindex redirect page
 // (scripts/post-redirects.json). recent-cases-20261127-wolpyeong now pins the two entries and the 94 entries before them.
 test('previous 71 complete entries and ordering, company/catalog preserved; mutation guards active', () => {
-  assert.equal(site.insights.length, 96);  // 2026-11-28: 95 -> 96 (combined 11/26 entry split into two)
+  assert.equal(site.insights.length, 98);  // 2026-11-28: 95 -> 96 (combined 11/26 entry split into two); 96 -> 98 (two Oryu-dong Samsung cases)
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), fixture.otherDataHash);

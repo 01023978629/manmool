@@ -39,6 +39,10 @@
 // changed): pinned set +1. Its leak landing card was replaced by two cards at the front (count 47 -> 48);
 // blog.html (2026-11-27) and leak.html (2026-11-26) lastmods are unchanged. The old URL is a noindex redirect page
 // (scripts/post-redirects.json). recent-cases-20261127-wolpyeong now pins the two entries and the 94 entries before them.
+// 2026-11-28: two cases from the same home at the Samsung apartments in Oryu-dong, Jung-gu (11/27 hot/cold water pipe
+// replacement, 11/25 one rain-pipe base) were added at their date positions (no other entry changed). Their leak landing
+// cards make the count 48 -> 50; leak.html lastmod 2026-11-26 -> 2026-11-27 (blog.html stays 2026-11-27).
+// recent-cases-20261128-samsung pins the two entries and the 96 entries before them.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -120,7 +124,7 @@ test('Seonbi 1-danji retaining-wall plaster case: 9 photos, work date, conservat
   assert.match(read('blog.html'), new RegExp(`insight-featured[^>]*href="posts/${site.insights[0].slug}\\.html"`));
   // The leak landing lists cards newest first; the card count pin follows it (34 -> 35; 2026-11-04 35 -> 37; 2026-11-12 37 -> 40;
   // 2026-11-13 40 -> 42; 2026-11-17 42 -> 45).
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 48);  // 2026-11-18: 45 -> 46 (11/13 Taesan card), 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards)
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 50);  // 2026-11-18: 45 -> 46 (11/13 Taesan card), 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards), 2026-11-28 (2): 48 -> 50 (11/27 Oryu-dong Samsung pipe card first, 11/25 rain-pipe card after the 11/26 cards)
   const cardSlugs = [...leak.matchAll(/<article\b[^>]*class="case-card registered-case"[^>]*>[\s\S]*?<\/article>/g)]
     .map(m => (m[0].match(/href="posts\/([^"]+)\.html"/) || [])[1]);
   const dateOf = s => (site.insights.find(a => a.slug === s) || {}).date;
@@ -132,7 +136,7 @@ test('Seonbi 1-danji retaining-wall plaster case: 9 photos, work date, conservat
     // 2026-11-25: five recent posts were enriched (updated 2026-11-25), so blog.html and leak.html both follow that edit day.
     // 2026-11-27: blog.html follows the newest post (11/27 Nangwol-dong Namdaejeon e-Pyeonhan, interior); leak.html keeps 2026-11-25.
     // 2026-11-27 (2): leak.html follows the newest leak case (11/26 Wolpyeong Town); blog.html stays 2026-11-27 (11/27 Namdaejeon).
-    assert.equal(lastmod, page === 'blog.html' ? '2026-11-27' : '2026-11-26', page);  // 2026-11-21: was blog 11/18, leak 11/17
+    assert.equal(lastmod, page === 'blog.html' ? '2026-11-27' : '2026-11-27', page);  // 2026-11-21: was blog 11/18, leak 11/17  // 2026-11-28 (2): leak.html follows the newest leak case (11/27 Oryu-dong Samsung pipe)
   }
 });
 

@@ -1,0 +1,95 @@
+{
+  "previousCount": 96,
+  "previousHash": "3fb7c2a36b0342d090bbe2e91ff36c9bd04a9035a26cf373d80ae2b75bf3d145",
+  "otherDataHash": "5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487",
+  "cases": [
+    {
+      "slug": "samsung-apt-water-pipe-full-replacement-20261127",
+      "service": "leak",
+      "category": "방수·설비",
+      "date": "2026-11-27",
+      "photoCount": 8,
+      "placeName": "대전 중구 오류동 삼성아파트",
+      "gu": "중구",
+      "dong": "오류동",
+      "leakCard": true,
+      "entryHash": "210d943d8a8fca43f7d9693f1d4537b5da807e2b8538c5da51f519dc23e2fef9",
+      "photos": [
+        {
+          "file": "assets/cases/samsung-water-pipe-20261127-01.jpg",
+          "sha256": "be7ad207224af48b5a50834f7d1468bcd87b5a53bfca01910eb1a8aa4c573e7e",
+          "longSide": 1200
+        },
+        {
+          "file": "assets/cases/samsung-water-pipe-20261127-02.jpg",
+          "sha256": "612cdaf55b7f0c1e07b78e3d07ade093215453ce3136582b68347a981002aa95",
+          "longSide": 1200
+        },
+        {
+          "file": "assets/cases/samsung-water-pipe-20261127-03.jpg",
+          "sha256": "4185863a10be2ccef823791f008737dedb7171fd7c2c97dfbfa39bd18d369338",
+          "longSide": 1200
+        },
+        {
+          "file": "assets/cases/samsung-water-pipe-20261127-04.jpg",
+          "sha256": "f70484a6f90043f85b59bb0e79522e95f07e6d2678b6065eed3f79b625640efe",
+          "longSide": 1200
+        },
+        {
+          "file": "assets/cases/samsung-water-pipe-20261127-05.jpg",
+          "sha256": "e5c63c2e5690f6ffa6aee120fe8649e752898f4e89cb3ac91bf5f1abb2cdf0bd",
+          "longSide": 1200
+        },
+        {
+          "file": "assets/cases/samsung-water-pipe-20261127-06.jpg",
+          "sha256": "588505eb964dfbde1abbf9336065927eeb301f80c182c9013b2f5e63cbf6e731",
+          "longSide": 1200
+        },
+        {
+          "file": "assets/cases/samsung-water-pipe-20261127-07.jpg",
+          "sha256": "5fed9b1f4e4b59e546b29f5f27078815e19686872a565c236af8b7c25218550d",
+          "longSide": 1200
+        },
+        {
+          "file": "assets/cases/samsung-water-pipe-20261127-08.jpg",
+          "sha256": "6272a1612b34b34ea0add40ab1ce94b00e50d64a62f8400ee3ec2853fa99fc08",
+          "longSide": 1200
+        }
+      ]
+    },
+    {
+      "slug": "oryu-samsung-apt-rain-pipe-base-fitting-20261125",
+      "service": "leak",
+      "category": "방수·설비",
+      "date": "2026-11-25",
+      "photoCount": 4,
+      "placeName": "대전 중구 오류동 삼성아파트",
+      "gu": "중구",
+      "dong": "오류동",
+      "leakCard": true,
+      "entryHash": "a2dd8f691ac2b3321a4bd97be0e3bda2111c720af114723b23735f3e296bb2ca",
+      "photos": [
+        {
+          "file": "assets/cases/oryu-samsung-rain-pipe-20261125-01.jpg",
+          "sha256": "553a1cfa349bde672e7d0d5dd57a0ee33d77767845b5d79751bb589c10933a5c",
+          "longSide": 1200
+        },
+        {
+          "file": "assets/cases/oryu-samsung-rain-pipe-20261125-02.jpg",
+          "sha256": "ffce802656ba5b3b87f5d462de183a5780d3d2bfe367d8a108e931add229a282",
+          "longSide": 1200
+        },
+        {
+          "file": "assets/cases/oryu-samsung-rain-pipe-20261125-03.jpg",
+          "sha256": "823de808a9ef599797d10d4b9e78b0a24345c63885c7740f71542ddcd692e62d",
+          "longSide": 1200
+        },
+        {
+          "file": "assets/cases/oryu-samsung-rain-pipe-20261125-04.jpg",
+          "sha256": "c89ae530a08acfe2743743060f9c8c03252e44d8a17614b0d69adbe477a1a993",
+          "longSide": 1200
+        }
+      ]
+    }
+  ]
+}
