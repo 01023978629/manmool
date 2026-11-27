@@ -20,6 +20,10 @@
 // changed): pinned set +1. Its leak landing card was replaced by two cards at the front (count 47 -> 48);
 // blog.html (2026-11-27) and leak.html (2026-11-26) lastmods are unchanged. The old URL is a noindex redirect page
 // (scripts/post-redirects.json). recent-cases-20261127-wolpyeong now pins the two entries and the 94 entries before them.
+// 2026-11-28: two cases from the same home at the Samsung apartments in Oryu-dong, Jung-gu (11/27 hot/cold water pipe
+// replacement, 11/25 one rain-pipe base) were added at their date positions (no other entry changed). Their leak landing
+// cards make the count 48 -> 50; leak.html lastmod 2026-11-26 -> 2026-11-27 (blog.html stays 2026-11-27).
+// recent-cases-20261128-samsung pins the two entries and the 96 entries before them.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -65,9 +69,14 @@ test('the 94 entries outside this case keep their object and order; newest first
   assert.ok(!preserved(reordered));
   // Newest entry: first in the list, every other entry is older, and the previous first entry follows it.
   assert.equal(insights[0].slug, slugs[0]);
-  assert.ok(insights.slice(1).every(a => a.date < fixture.cases[0].date));
-  assert.deepEqual(insights.slice(1, 3).map(a => a.slug), OLDER_LEAK);  // 2026-11-27 (2): was NEXT; 2026-11-28: the combined entry became two
-  assert.equal(insights[3].slug, NEXT);
+  // 2026-11-28 (2): the 11/27 Oryu-dong Samsung pipe entry has the same date and sits right after it; the 11/25 rain-pipe entry
+  // sits after the two 11/26 entries; every entry after the pipe entry is older.
+  assert.equal(insights[1].slug, 'samsung-apt-water-pipe-full-replacement-20261127');
+  assert.equal(insights[1].date, fixture.cases[0].date);
+  assert.ok(insights.slice(2).every(a => a.date < fixture.cases[0].date));
+  assert.deepEqual(insights.slice(2, 4).map(a => a.slug), OLDER_LEAK);  // 2026-11-27 (2): was NEXT; 2026-11-28: the combined entry became two; 2026-11-28 (2): was slice(1, 3)
+  assert.equal(insights[4].slug, 'oryu-samsung-apt-rain-pipe-base-fitting-20261125');
+  assert.equal(insights[5].slug, NEXT);
   // It is the newest real case (caseSummary), so it is the featured case.
   const firstCase = insights.find(a => a.published !== false && Object.keys(a.caseSummary || {}).length);
   assert.equal(firstCase.slug, slugs[0]);
@@ -169,13 +178,13 @@ test('discovery: featured interior card, RSS, sitemap, Dong-gu area entry withou
   // 2026-11-27 (2): 46 -> 47 — the 11/26 Wolpyeong Town leak case adds the first landing card (this case still has none).
   assert.equal((blog.match(/class="insight-featured"/g) || []).length, 1);
   assert.match(blog, new RegExp(`<a class="insight-card" href="posts/${NEXT}\\.html"`));
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 48);  // 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards)
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 50);  // 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards), 2026-11-28 (2): 48 -> 50 (11/27 Oryu-dong Samsung pipe card first, 11/25 rain-pipe card after the 11/26 cards)
   // blog.html follows the newest post (this case); leak.html keeps the newest leak case edit day (2026-11-25).
   const day = a => a.updated || a.date, newest = items => items.map(day).sort().at(-1);
   assert.equal(sitemapLastmod('blog.html'), newest(site.insights.filter(a => a.published !== false)));
   assert.equal(sitemapLastmod('leak.html'), newest(site.insights.filter(a => a.published !== false && serviceOf(a) === 'leak')));
   assert.equal(sitemapLastmod('blog.html'), '2026-11-27');
-  assert.equal(sitemapLastmod('leak.html'), '2026-11-26');  // 2026-11-27 (2): the 11/26 Wolpyeong Town leak case (was 2026-11-25)
+  assert.equal(sitemapLastmod('leak.html'), '2026-11-27');  // 2026-11-27 (2): the 11/26 Wolpyeong Town leak case (was 2026-11-25); 2026-11-28 (2): the 11/27 Oryu-dong Samsung pipe case
   assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);
 });
 

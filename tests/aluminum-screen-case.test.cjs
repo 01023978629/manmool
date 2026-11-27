@@ -25,14 +25,15 @@ const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).
 // 2026-11-27: 대전 동구 낭월동 남대전 이편한세상아파트 33평 리모델링(11/27, 인테리어) 사례 1건을 맨 앞에 추가(기존 글 수정 없음). 그 전 93건 전체 객체·순서는 recent-cases-20261127 검사가 따로 고정한다.
 // 2026-11-27: 대전 서구 월평동 월평타운 두 세대 앞·뒤 베란다 우수관 하부 부속 교체(11/26, 누수) 사례 1건을 11/27 남대전 글 바로 뒤(날짜 자리)에 추가(기존 글 수정 없음). 그 전 94건 전체 객체·순서는 recent-cases-20261127-wolpyeong 검사가 따로 고정한다.
 // 2026-11-28: 대표 지시로 11/26 월평타운 두 세대 합친 글을 세대별 두 글(첫 번째·두 번째 세대, 같은 날짜 자리)로 나눴다 — 합친 글 1건을 빼고 2건을 넣어 글이 1건 늘었다(다른 글 수정 없음). 그 전 94건 전체 객체·순서는 recent-cases-20261127-wolpyeong 검사가 따로 고정한다.
-const oldHash = 'fa0c1cfbcbcc5b5830cb623d6ca26b0bdf82145652cd970ec3aa2a1770b70e0f';
+// 2026-11-28: 대전 중구 오류동 삼성아파트 같은 세대의 두 사례(11/27 냉·온수 배관 전체 교체·11/25 우수관 1곳 하부 부속 작업)를 날짜 자리에 더해 글이 2건 늘었다(다른 글 수정 없음). 그 전 96건 전체 객체·순서는 recent-cases-20261128-samsung 검사가 따로 고정한다.
+const oldHash = 'd0c69af459c37ab418410965e49ed6245a010779af71dd0a67270471b6d54601';
 const originalRestHash = '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487';
 const preserved = insights => {
   const old = insights.filter(a => a.slug !== slug);
-  return old.length === 95 && hash(old) === oldHash;
+  return old.length === 97 && hash(old) === oldHash;
 };
-test('방충망 외 95개 원고 객체·순서와 회사·시안 데이터가 그대로다', () => {
-  assert.equal(site.insights.length, 96);
+test('방충망 외 97개 원고 객체·순서와 회사·시안 데이터가 그대로다', () => {
+  assert.equal(site.insights.length, 98);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), originalRestHash);

@@ -31,6 +31,10 @@
 // changed): pinned set +1. Its leak landing card was replaced by two cards at the front (count 47 -> 48);
 // blog.html (2026-11-27) and leak.html (2026-11-26) lastmods are unchanged. The old URL is a noindex redirect page
 // (scripts/post-redirects.json). recent-cases-20261127-wolpyeong now pins the two entries and the 94 entries before them.
+// 2026-11-28: two cases from the same home at the Samsung apartments in Oryu-dong, Jung-gu (11/27 hot/cold water pipe
+// replacement, 11/25 one rain-pipe base) were added at their date positions (no other entry changed). Their leak landing
+// cards make the count 48 -> 50; leak.html lastmod 2026-11-26 -> 2026-11-27 (blog.html stays 2026-11-27).
+// recent-cases-20261128-samsung pins the two entries and the 96 entries before them.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -160,7 +164,7 @@ test('one case: 9 photos, work date, leak service, conservative public copy and 
   }
   // Leak landing: count 45 -> 46; the card sits at its date position, right after the 11/16 Samho card and before the 11/12
   // Munchang card, and appears once. It uses this case's own cover photo and title.
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 48);  // 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards)
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 50);  // 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards), 2026-11-28 (2): 48 -> 50 (11/27 Oryu-dong Samsung pipe card first, 11/25 rain-pipe card after the 11/26 cards)
   const cards = leakCardSlugs(leak), k = cards.indexOf(slugs[0]);
   assert.equal(cards.filter(s => s === slugs[0]).length, 1);
   assert.equal(cards[k - 1], CARD_BEFORE);
@@ -175,7 +179,7 @@ test('one case: 9 photos, work date, leak service, conservative public copy and 
   // 2026-11-25: five recent posts were enriched (updated 2026-11-25), so blog.html and leak.html both follow that edit day.
   // 2026-11-27: blog.html follows the newest post (11/27 Nangwol-dong Namdaejeon e-Pyeonhan, interior); leak.html keeps 2026-11-25.
   // 2026-11-27 (2): leak.html follows the newest leak case (11/26 Wolpyeong Town); blog.html stays 2026-11-27 (11/27 Namdaejeon).
-  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), page === 'blog.html' ? '2026-11-27' : '2026-11-26', page);
+  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), page === 'blog.html' ? '2026-11-27' : '2026-11-27', page);  // 2026-11-28 (2): leak.html follows the newest leak case (11/27 Oryu-dong Samsung pipe)
   // The leak index stays under the inquiry-form budget (10KB -> 16KB with this entry).
   assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);
 });

@@ -18,6 +18,10 @@
 // Only the dong and complex name are public: no building/unit numbers, road address, customer, cost, partner company, workers or
 // location metadata. Both are registered under Seo-gu (Wolpyeong-dong) in scripts/post-areas.json, so the Seo-gu area page lists
 // them (10 -> 11 cases) and its sitemap lastmod stays 2026-11-26.
+// 2026-11-28 (2): two Oryu-dong Samsung cases from one home were added (recent-cases-20261128-samsung): the 11/27 pipe entry now
+// sits between the 11/27 Namdaejeon entry and these two, and the 11/25 rain-pipe entry right after them (before Heightsville).
+// The pinned 94 entries before them become 96 (the two new entries are in that set); leak cards 48 -> 50 with the 11/27 pipe card
+// first and the 11/25 rain-pipe card right after these two; leak.html lastmod 2026-11-26 -> 2026-11-27.
 // Public case content only: no field database, accounts or external writes.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
@@ -43,9 +47,11 @@ const leakCardSlugs = leak => {
     .map(m => (m[0].match(/href="posts\/([^"]+)\.html"/) || [])[1]);
 };
 // Neighbours at the date position (list), the next leak landing card, and the featured case that does not change.
-const BEFORE = 'nangwol-namdaejeon-epyeonhan-33py-remodel-20261127', AFTER = 'heightsville-extension-floor-heating-screed-20261118';
-const CARD_AFTER = 'saeyeoul-toilet-drain-pipe-insert-20261117';
-const FEATURED = BEFORE;
+// 2026-11-28 (2): neighbours are now the 11/27 Oryu-dong Samsung pipe entry (before) and the 11/25 rain-pipe entry (after; was
+// 11/27 Namdaejeon and 11/18 Heightsville); the next landing card is the rain-pipe card (was 11/17 Saeyeoul). Featured unchanged.
+const BEFORE = 'samsung-apt-water-pipe-full-replacement-20261127', AFTER = 'oryu-samsung-apt-rain-pipe-base-fitting-20261125';
+const CARD_AFTER = 'oryu-samsung-apt-rain-pipe-base-fitting-20261125';
+const FEATURED = 'nangwol-namdaejeon-epyeonhan-33py-remodel-20261127';
 const LAUNDRY = 'wolpyeong-town-laundry-rain-pipe-joint-20261029';
 const PLACE = '대전 서구 월평동 월평타운';
 const ORDINAL = ['첫 번째', '두 번째'];
@@ -81,7 +87,7 @@ test('the 94 entries before these cases keep their object and order; date positi
   assert.ok(!slugs.includes(OLD));
   // Date position: everything before them is newer, everything after them is older; exact neighbours as at origin/main.
   const at = insights.findIndex(a => a.slug === slugs[0]), day = fixture.cases[0].date;
-  assert.equal(at, 1, slugs[0]);
+  assert.equal(at, 2, slugs[0]);  // 2026-11-28 (2): was 1 (the 11/27 pipe entry now sits before them)
   assert.equal(insights[at + 1].slug, slugs[1]);
   assert.ok(fixture.cases.every(c => c.date === day));
   assert.ok(insights.slice(0, at).every(a => a.date > day), slugs[0]);
@@ -208,10 +214,12 @@ test('discovery: leak list cards, RSS, sitemap, leak index, first two leak landi
   }
   // Leak landing: count 47 -> 48 (the combined card replaced by two); the two cards lead (first home, then second home), right
   // before the 11/17 Saeyeoul card, each once, with its own cover photo, alt, title, excerpt and place.
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 48);
+  // 2026-11-28 (2): 48 -> 50 — the 11/27 Oryu-dong Samsung pipe card leads, these two follow, then the 11/25 rain-pipe card.
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 50);
   const cards = leakCardSlugs(leak);
-  assert.deepEqual(cards.slice(0, 2), slugs);
-  assert.equal(cards[2], CARD_AFTER);
+  assert.equal(cards[0], BEFORE);
+  assert.deepEqual(cards.slice(1, 3), slugs);
+  assert.equal(cards[3], CARD_AFTER);
   for (const s of slugs) {
     assert.equal(cards.filter(x => x === s).length, 1);
     const a = site.insights.find(x => x.slug === s);
@@ -221,14 +229,14 @@ test('discovery: leak list cards, RSS, sitemap, leak index, first two leak landi
     assert.ok(card.includes(`${a.place.name} · ${a.date} 촬영`));
     assert.doesNotMatch(card, HIDDEN_WORD);
   }
-  // The featured slot stays with the 11/27 case. blog.html follows the newest post (11/27); leak.html the newest leak case (11/26).
+  // The featured slot stays with the 11/27 case. blog.html follows the newest post (11/27); leak.html the newest leak case (11/26; 2026-11-28 (2): 11/27).
   assert.equal((blog.match(/class="insight-featured"/g) || []).length, 1);
   assert.match(blog, new RegExp(`<a class="insight-featured" href="posts/${FEATURED}\\.html"`));
   const day = x => x.updated || x.date, newest = items => items.map(day).sort().at(-1);
   assert.equal(sitemapLastmod('blog.html'), newest(site.insights.filter(x => x.published !== false)));
   assert.equal(sitemapLastmod('leak.html'), newest(site.insights.filter(x => x.published !== false && serviceOf(x) === 'leak')));
   assert.equal(sitemapLastmod('blog.html'), '2026-11-27');
-  assert.equal(sitemapLastmod('leak.html'), '2026-11-26');
+  assert.equal(sitemapLastmod('leak.html'), '2026-11-27');  // 2026-11-28 (2): the 11/27 Oryu-dong Samsung pipe case (was 2026-11-26)
   assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);
 });
 

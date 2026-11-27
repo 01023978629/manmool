@@ -42,6 +42,10 @@
 // changed): pinned set +1. Its leak landing card was replaced by two cards at the front (count 47 -> 48);
 // blog.html (2026-11-27) and leak.html (2026-11-26) lastmods are unchanged. The old URL is a noindex redirect page
 // (scripts/post-redirects.json). recent-cases-20261127-wolpyeong now pins the two entries and the 94 entries before them.
+// 2026-11-28: two cases from the same home at the Samsung apartments in Oryu-dong, Jung-gu (11/27 hot/cold water pipe
+// replacement, 11/25 one rain-pipe base) were added at their date positions (no other entry changed). Their leak landing
+// cards make the count 48 -> 50; leak.html lastmod 2026-11-26 -> 2026-11-27 (blog.html stays 2026-11-27).
+// recent-cases-20261128-samsung pins the two entries and the 96 entries before them.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -151,9 +155,10 @@ test('three cases: 30 photos, work dates, service split, conservative public cop
   assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/${site.insights[0].slug}\\.html"`));
   assert.equal(site.insights[0].slug, 'nangwol-namdaejeon-epyeonhan-33py-remodel-20261127');  // 2026-11-27: was the 11/18 Heightsville case; 2026-11-21: was the 11/17 Saeyeoul case
   // Leak landing: card count pin 35 -> 37 (the interior deck case has no leak card), cards at their date positions.
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 48);  // 2026-11-17: 42 -> 45, 2026-11-18: 45 -> 46, 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards)
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 50);  // 2026-11-17: 42 -> 45, 2026-11-18: 45 -> 46, 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards), 2026-11-28 (2): 48 -> 50 (11/27 Oryu-dong Samsung pipe card first, 11/25 rain-pipe card after the 11/26 cards)
   const cards = leakCardSlugs(leak), dateOf = slug => site.insights.find(a => a.slug === slug).date;
-  assert.deepEqual(cards.slice(0, 2), ['wolpyeong-town-first-home-veranda-rain-pipe-fitting-20261126', 'wolpyeong-town-second-home-veranda-rain-pipe-fitting-20261126']);  // 2026-11-28: the two per-home 11/26 cards lead (2026-11-27 (2): the combined 11/26 card; before that the 11/17 Saeyeoul card)
+  assert.equal(cards[0], 'samsung-apt-water-pipe-full-replacement-20261127');  // 2026-11-28 (2): the 11/27 Oryu-dong Samsung pipe card leads
+  assert.deepEqual(cards.slice(1, 3), ['wolpyeong-town-first-home-veranda-rain-pipe-fitting-20261126', 'wolpyeong-town-second-home-veranda-rain-pipe-fitting-20261126']);  // 2026-11-28: the two per-home 11/26 cards lead (2026-11-27 (2): the combined 11/26 card; before that the 11/17 Saeyeoul card)
   for (const c of fixture.cases.filter(c => c.leakCard)) {
     const k = cards.indexOf(c.slug);
     assert.equal(cards.filter(s => s === c.slug).length, 1, c.slug);
@@ -164,7 +169,7 @@ test('three cases: 30 photos, work dates, service split, conservative public cop
   // 2026-11-25: five recent posts were enriched (updated 2026-11-25), so blog.html and leak.html both follow that edit day.
   // 2026-11-27: blog.html follows the newest post (11/27 Nangwol-dong Namdaejeon e-Pyeonhan, interior); leak.html keeps 2026-11-25.
   // 2026-11-27 (2): leak.html follows the newest leak case (11/26 Wolpyeong Town); blog.html stays 2026-11-27 (11/27 Namdaejeon).
-  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), page === 'blog.html' ? '2026-11-27' : '2026-11-26', page);
+  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), page === 'blog.html' ? '2026-11-27' : '2026-11-27', page);  // 2026-11-28 (2): leak.html follows the newest leak case (11/27 Oryu-dong Samsung pipe)
 });
 
 test('public photo copies unchanged, long side 1600px, only a JFIF header (no EXIF/GPS/XMP), small-screen variants', () => {
