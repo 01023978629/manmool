@@ -99,11 +99,31 @@ const isInternal = (src) => /name="robots"[^>]*content="[^"]*noindex/.test(src);
       if (!blog.includes(`posts/${s}.html`))
         fail.push(`글 "${s}" 이 blog.html 목록에 없다 — 손님이 볼 방법이 없다. prerender-posts.py 를 돌려라`);
     }
+    /* 2026-11-28: 공개한 뒤 내린 글의 옛 주소(scripts/post-redirects.json)는 고아 글이 아니라 새 글로 보내는 작은 쪽이다.
+     * 그 쪽은 검색 제외(noindex)이고, canonical·바로 이동이 공개 글을 가리켜야 하며, 옛 slug 는 공개 글이 아니어야 한다. */
+    let redirects = {};
+    try {
+      const rawRedirects = readIf('scripts/post-redirects.json');
+      if (rawRedirects) redirects = Object.fromEntries(Object.entries(JSON.parse(rawRedirects)).filter(([k]) => !k.startsWith('_')));
+    } catch (e) { fail.push('scripts/post-redirects.json 을 읽을 수 없다: ' + e.message); }
+    for (const [old, r] of Object.entries(redirects)) {
+      checked++;
+      const to = r && r.to;
+      const page = readIf(`posts/${old}.html`);
+      if (slugs.has(old)) fail.push(`옮긴 주소 ${old} 가 아직 공개 글이다 — scripts/post-redirects.json 에서 빼라`);
+      else if (!to || !slugs.has(to) || ![to, ...((r && r.also) || [])].every((s) => slugs.has(s)))
+        fail.push(`옮긴 주소 ${old} 가 공개 글이 아닌 곳을 가리킨다 — scripts/post-redirects.json 을 고쳐라`);
+      else if (!page) fail.push(`옮긴 주소 posts/${old}.html 이 없다 — prerender-posts.py 를 돌려라`);
+      else if (!isInternal(page)
+        || !page.includes(`<link rel="canonical" href="https://01023978629.github.io/manmool/posts/${to}.html" />`)
+        || !page.includes(`<meta http-equiv="refresh" content="0; url=${to}.html" />`))
+        fail.push(`posts/${old}.html 이 검색 제외(noindex)·새 글 canonical·바로 이동을 갖춘 옮긴 주소 쪽이 아니다 — prerender-posts.py 를 돌려라`);
+    }
     for (const f of fs.existsSync(path.join(ROOT, 'posts')) ? fs.readdirSync(path.join(ROOT, 'posts')) : []) {
       if (!f.endsWith('.html')) continue;
       const s = f.replace(/\.html$/, '');
       checked++;
-      if (!slugs.has(s))
+      if (!slugs.has(s) && !Object.hasOwn(redirects, s))
         fail.push(`posts/${f} 이 data/site.json 의 insights 에 없다 — 고아 글이다(목록·홈 어디에도 안 뜬다). site.json 에 넣고 prerender-posts.py 를 돌려라`);
     }
   }

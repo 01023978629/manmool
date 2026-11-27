@@ -6,6 +6,19 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-11-28 월평타운 두 세대 합친 사례(11/26) → 세대별 두 글로 나누기
+
+`claude/case-wolpyeong-split-20261126`는 대표 지시("세대 나눠서 올려줘")로 11/27 공개한 합친 글 `wolpyeong-town-two-homes-veranda-rain-pipe-fitting-20261126`을 내리고
+`wolpyeong-town-first-home-veranda-rain-pipe-fitting-20261126`·`wolpyeong-town-second-home-veranda-rain-pipe-fitting-20261126`(사진 6장씩, 누수)로 바꾼다.
+**병합하면 바로 공개된다** — 범위·핀 목록은 PR 설명과 `docs/recent-cases-20261128-wolpyeong-split.md`.
+
+- 세대는 공개 글에서 '첫 번째 세대'·'두 번째 세대'로만 부른다. 대표가 공개하지 말라고 한 작업 낱말은 아래 11/27 항목 규칙 그대로(분류 이름 칸만) — 같은 검사가 두 글에 건다.
+- **새 방식: 공개한 뒤 내린 글의 옛 주소.** `scripts/post-redirects.json` 에 `{옛 slug: {to, also}}` 를 적으면 `prerender-posts.py` 가 `posts/<옛 slug>.html` 을
+  검색 제외·새 글 canonical·바로 이동 쪽으로 만들고(목록·RSS·sitemap 에는 안 넣음), `ensure-site-integrity` 가 그 쪽을 고아 글 대신 이동 쪽으로 검사한다.
+  글을 내릴 때 site.json 에서 빼고 이 표에 옛 주소를 적으면 된다. 표에 없는 옛 쪽은 예전처럼 지워진다.
+- 날짜 자리(11/27 남대전 뒤, 첫 번째 → 두 번째, 11/18 하이츠빌 앞) — FEATURED·blog `lastmod`(2026-11-27)·leak `lastmod`(2026-11-26) 그대로. 누수 카드 47→48(합친 1장 → 2장, 맨 앞).
+- 합친 글 사진(`assets/cases/wolpyeong-veranda-rain-pipe-20261126-*`)은 쓰는 곳이 없지만 검사가 요구하지 않아 남겼다.
+
 ### 2026-11-27 대전 서구 월평동 월평타운 두 세대 앞·뒤 베란다 우수관 하부 부속 교체(11/26) 사례 1건 공개 후보
 
 `claude/case-wolpyeong-town-two-homes-veranda-rain-pipe-fitting-20261126`는 대표가 승인한(“올려줘”) 비공개 초안을 `published:true`로 더한다 —

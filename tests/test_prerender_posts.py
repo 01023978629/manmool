@@ -284,5 +284,34 @@ class AreaPageTests(unittest.TestCase):
         self.assertNotIn('../area/', PRERENDER.article_html(a, self.insights))
 
 
+class PostRedirectTests(unittest.TestCase):
+    """2026-11-28: 공개한 뒤 내린 글의 옛 주소(scripts/post-redirects.json)."""
+
+    insights = [
+        {'slug': 'new-a', 'title': '새 글 A & 첫 번째', 'published': True},
+        {'slug': 'new-b', 'title': '새 글 B', 'published': True},
+    ]
+
+    def test_redirect_page_is_noindex_and_points_at_the_new_post(self):
+        markup = PRERENDER.redirect_html('old-post', {'to': 'new-a', 'also': ['new-b']}, self.insights)
+        self.assertIn('<meta name="robots" content="noindex, follow" />', markup)
+        self.assertIn('<link rel="canonical" href="https://01023978629.github.io/manmool/posts/new-a.html" />', markup)
+        self.assertIn('<meta http-equiv="refresh" content="0; url=new-a.html" />', markup)
+        self.assertIn('<a href="new-a.html">새 글 A &amp; 첫 번째</a>', markup)
+        self.assertIn('<a href="new-b.html">새 글 B</a>', markup)
+        self.assertNotIn('<script', markup)
+        self.assertNotIn('old-post', markup)
+
+    def test_bad_redirect_tables_stop_the_build(self):
+        PRERENDER.check_post_redirects({'old-post': {'to': 'new-a', 'also': ['new-b']}}, self.insights)
+        for table in ({'new-a': {'to': 'new-b'}},                 # 옛 주소가 아직 공개 글
+                      {'old-post': {'to': 'missing'}},            # 없는 글로 보냄
+                      {'old-post': {'to': 'new-a', 'also': ['missing']}},
+                      {'Old Post': {'to': 'new-a'}},              # slug 형식
+                      {'old-post': 'new-a'}):                     # 형식
+            with self.assertRaises(SystemExit, msg=table):
+                PRERENDER.check_post_redirects(table, self.insights)
+
+
 if __name__ == '__main__':
     unittest.main()

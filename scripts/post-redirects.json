@@ -1,0 +1,8 @@
+{
+  "_comment": "옮긴 글 주소(2026-11-28~). 공개한 뒤 내린 글의 옛 주소 → 대신 올린 글. prerender-posts.py 가 posts/<옛 slug>.html 을 검색 제외(noindex)·바로 이동 쪽으로 만들고 목록·RSS·sitemap 에는 넣지 않는다. 옛 slug 가 다시 site.json 의 공개 글이면 생성이 멈춘다(ensure-site-integrity 도 본다). to = 바로 이동할 글, also = 쪽에 같이 걸 글.",
+  "wolpyeong-town-two-homes-veranda-rain-pipe-fitting-20261126": {
+    "to": "wolpyeong-town-first-home-veranda-rain-pipe-fitting-20261126",
+    "also": ["wolpyeong-town-second-home-veranda-rain-pipe-fitting-20261126"],
+    "since": "2026-11-28"
+  }
+}

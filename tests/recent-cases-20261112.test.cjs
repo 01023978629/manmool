@@ -34,6 +34,11 @@
 // (no existing entry changed): pinned set +1. The 11/27 case keeps the blog featured slot and blog.html lastmod stays 2026-11-27;
 // as a leak case it gets the first leak landing card (count 46 -> 47) and a leak index entry, so leak.html lastmod is 2026-11-26.
 // recent-cases-20261127-wolpyeong pins the 94 entries before it.
+// 2026-11-28: on the owner's instruction the combined 11/26 Wolpyeong Town entry was split into one entry per home (first and
+// second home, both 11-26, at the same date position): the combined entry was removed and two entries added (no other entry
+// changed): pinned set +1. Its leak landing card was replaced by two cards at the front (count 47 -> 48);
+// blog.html (2026-11-27) and leak.html (2026-11-26) lastmods are unchanged. The old URL is a noindex redirect page
+// (scripts/post-redirects.json). recent-cases-20261127-wolpyeong now pins the two entries and the 94 entries before them.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -150,11 +155,12 @@ test('three cases: 24 photos, work dates, leak service, conservative public copy
   assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/nangwol-namdaejeon-epyeonhan-33py-remodel-20261127\\.html"`));  // 2026-11-27: was the 11/18 Heightsville case
   // Leak landing: card count pin 37 -> 40 (2026-11-13: 40 -> 42; 2026-11-17: 42 -> 45), the three cards in date order after the
   // newer cards.
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 47);  // 2026-11-18: 45 -> 46 (11/13 Taesan card), 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card)
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 48);  // 2026-11-18: 45 -> 46 (11/13 Taesan card), 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards)
   const cards = leakCardSlugs(leak);
   // 2026-11-13: after the two 11/12 leak cards. 2026-11-17: also after the 11/17 Saeyeoul, 11/16 Samho and same-date 11/10
   // Mokyang cards. 2026-11-18: also after the 11/13 Taesan card. 2026-11-27 (2): also after the 11/26 Wolpyeong Town card (first).
-  assert.deepEqual(cards.slice(7, 10), slugs);
+  // 2026-11-28: that card became two per-home cards, so they move one more place down.
+  assert.deepEqual(cards.slice(8, 11), slugs);
   for (const c of fixture.cases) assert.equal(cards.filter(s => s === c.slug).length, 1, c.slug);
   // blog.html and leak.html advertise the newest public post date.
   // 2026-11-21: blog.html follows the newest post (11/18 Heightsville, interior); leak.html keeps the newest leak case (11/17).
