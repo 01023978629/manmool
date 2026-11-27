@@ -16,6 +16,11 @@
 // section before the closing section, updated 2026-11-25 and readMin. Photos, dates, places, order and the other 88 entries did
 // not change (checked by reverting only those five objects and getting the old pin back). The pinned hash was recomputed for the
 // new text, and blog.html / leak.html / the five post lastmod values follow the edit day (updated).
+// 2026-11-27: the Nangwol-dong (Dong-gu) Namdaejeon e-Pyeonhan Sesang 33-pyeong remodel case (11-27, interior: two bathrooms,
+// wallpaper, vinyl flooring and lights, entrance sliding door, living-room tile wall, kitchen tall units and a built-in wardrobe)
+// was added first (no existing entry changed): pinned set +1. It is the newest real case, so it takes the blog featured slot and
+// blog.html lastmod is 2026-11-27; as an interior case it gets no leak card or leak index entry, so leak.html keeps 2026-11-25
+// (the enriched leak cases). recent-cases-20261127 pins the 93 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -35,7 +40,7 @@ const serviceOf = a => Object.hasOwn(a, 'service')
   : (['방수·설비', '누수탐지·수리'].includes(a.category) ? 'leak' : 'interior');
 // Neighbours at the date position: the last 11/10 entry before it and the 11/06 entry after it.
 const BEFORE = 'yuwon-balcony-rain-pipe-base-drain-20261110', AFTER = 'yeolmae-rain-pipe-box-replacement-20261106';
-const FEATURED = 'heightsville-extension-floor-heating-screed-20261118';  // 2026-11-21: was the 11/17 Saeyeoul case (recent-cases-20261121)
+const FEATURED = 'nangwol-namdaejeon-epyeonhan-33py-remodel-20261127';  // 2026-11-27: was the 11/18 Heightsville case; 2026-11-21: was the 11/17 Saeyeoul case
 
 test('the 90 entries before this case keep their object and order; date position; mutation guards active', () => {
   assert.equal(site.insights.length, fixture.previousCount + slugs.length);
@@ -133,7 +138,8 @@ test('one case: 8 photos, work date, interior service, conservative public copy 
   assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 46);  // 2026-11-18: 45 -> 46 (11/13 Taesan card)
   // 2026-11-21: blog.html follows the newest post (11/18 Heightsville, interior); leak.html keeps the newest leak case (11/17).
   // 2026-11-25: five recent posts were enriched (updated 2026-11-25), so blog.html and leak.html both follow that edit day.
-  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), '2026-11-25', page);
+  // 2026-11-27: blog.html follows the newest post (11/27 Nangwol-dong Namdaejeon e-Pyeonhan, interior); leak.html keeps 2026-11-25.
+  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), page === 'blog.html' ? '2026-11-27' : '2026-11-25', page);
   assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);  // 2026-11-18: budget 10KB -> 16KB (ensure-leak-case-index)
 });
 

@@ -1,0 +1,81 @@
+{
+  "previousCount": 93,
+  "previousHash": "1ee1365b438d6010ed4d5097ba53f9003ad1be29bb29dd6c03d18b561501cbb5",
+  "otherDataHash": "5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487",
+  "entryHash": "df785da973c1d72bd6b6ba0bbc2608e5eacaa8ec3738934649929cee812162a3",
+  "cases": [
+    {
+      "slug": "nangwol-namdaejeon-epyeonhan-33py-remodel-20261127",
+      "service": "interior",
+      "category": "시공 사례",
+      "date": "2026-11-27",
+      "photoCount": 12,
+      "placeName": "대전 동구 낭월동 남대전 이편한세상아파트",
+      "gu": "동구",
+      "dong": "낭월동",
+      "leakCard": false
+    }
+  ],
+  "photos": [
+    {
+      "file": "assets/cases/namdaejeon-epyeonhan-remodel-20261127-01.jpg",
+      "sha256": "17918c7c7135beb48fc9bda576f44c8c6cafa3820e5abc3a0ee221d7f84b7180",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/namdaejeon-epyeonhan-remodel-20261127-02.jpg",
+      "sha256": "701e4ea9531114dd6ea0a507ccbbf74054e32cfbf2883d50ed5ce38e33ac16f3",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/namdaejeon-epyeonhan-remodel-20261127-03.jpg",
+      "sha256": "75ad601612b86e487046b0fa34a57b5f9256bec98f9399df7e51da9c9e7e0cab",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/namdaejeon-epyeonhan-remodel-20261127-04.jpg",
+      "sha256": "9c7f19bf2daddde2f473099ffdbe72169e05c8eb341daa9d350cac6a61da207e",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/namdaejeon-epyeonhan-remodel-20261127-05.jpg",
+      "sha256": "4ae779d9529f993cecf94c7dd64895adffd34528c1d38d56479352cc38217283",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/namdaejeon-epyeonhan-remodel-20261127-06.jpg",
+      "sha256": "0b3ad8fa21b913a4fecd08222cd9f900c229b82a855a6bafab0f00e2f1b4260c",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/namdaejeon-epyeonhan-remodel-20261127-07.jpg",
+      "sha256": "8c849db6f7ac84de96b215e9326a5acfb1fbad7ebc523534c33949732b05d3a0",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/namdaejeon-epyeonhan-remodel-20261127-08.jpg",
+      "sha256": "700688217bc6a26ff1932944a842cb4b8cc1dc6b23c2e083cab2c2c31efe9315",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/namdaejeon-epyeonhan-remodel-20261127-09.jpg",
+      "sha256": "c5e531c4bcaf586ff97e635ce5aa3e1026cd41b91b0a5b4ffa229b0c4d8720ea",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/namdaejeon-epyeonhan-remodel-20261127-10.jpg",
+      "sha256": "3f0ef9de674061e2c23add2a45cd4f28edc0af62b09e32f01d82a1ed06610c61",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/namdaejeon-epyeonhan-remodel-20261127-11.jpg",
+      "sha256": "499bd92031d2b685951c5a52e82d93e7c41ed0c9d52d98840bd86d73df583e9f",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/namdaejeon-epyeonhan-remodel-20261127-12.jpg",
+      "sha256": "5ecd51e2f4e024e32ed755877f396cf0993f7b5915b48306a980b200fe224141",
+      "longSide": 1200
+    }
+  ]
+}

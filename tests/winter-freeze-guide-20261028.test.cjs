@@ -19,8 +19,9 @@ const SLUG = 'winter-pipe-freeze-prevention-november';
 // 2026-11-18: 청주 용암동 태산그린아파트 옥상 배수구 2곳·앞베란다 우수관(11/13) 사례 1건을 날짜 자리에 추가(기존 글 수정 없음). 그 전 91건 전체 객체·순서는 recent-cases-20261118-taesan 검사가 따로 고정한다.
 // 2026-11-21: 대전 유성구 관평동 하이츠빌아파트 확장부 난방 배관·미장(11/18, 인테리어) 사례 1건을 맨 앞에 추가(기존 글 수정 없음). 그 전 92건 전체 객체·순서는 recent-cases-20261121 검사가 따로 고정한다.
 // 2026-11-25: 최근 사례 5편(11/18 하이츠빌·11/17 새여울·11/16 삼호 앞베란다·11/14 열매마을 욕조 자리·11/13 태산그린)의 글을 보강했다(docs/case-enrich-20261125.md — 소개문·단계 설명·'알아 두면 좋은 점' 한 칸·updated·readMin). 사진·날짜·장소·순서와 나머지 88건은 그대로이고, 이 고정값은 그 5편의 새 글로 다시 계산했다.
-const PREVIOUS_COUNT = 92;
-const PREVIOUS_HASH = '06f875d6708dfb1174c86b10cc9192872b881587937f27a5935009454fd62bfe';
+// 2026-11-27: 대전 동구 낭월동 남대전 이편한세상아파트 33평 리모델링(11/27, 인테리어) 사례 1건을 맨 앞에 추가(기존 글 수정 없음). 그 전 93건 전체 객체·순서는 recent-cases-20261127 검사가 따로 고정한다.
+const PREVIOUS_COUNT = 93;
+const PREVIOUS_HASH = 'a63b3c32849aa9dd768b9ffd69e2c9a8301ee6e0f18a054c607310091ef65b33';
 const REST_HASH = '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487';
 // 사례 작성/정보글 폴더의 정본(insights-entry.json)에서 published 만 true 로 바꾼 객체.
 const ENTRY_HASH = '32e78c0ee197e90914a1b0350629cd0acb28c7ac6eb94ed19c2b3f24f51481cc';
