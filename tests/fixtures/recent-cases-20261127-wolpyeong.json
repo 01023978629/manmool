@@ -1,0 +1,66 @@
+{
+  "previousCount": 94,
+  "previousHash": "20342adf96b69ce9d4beec1a816d94eed7d609498056c83489b9d83b4f2f2b98",
+  "otherDataHash": "5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487",
+  "entryHash": "0fc1d5906de6b32eb038b42209a1c37cf38afe81e79799cc4b8b3dbeb3fea05d",
+  "cases": [
+    {
+      "slug": "wolpyeong-town-two-homes-veranda-rain-pipe-fitting-20261126",
+      "service": "leak",
+      "category": "방수·설비",
+      "date": "2026-11-26",
+      "photoCount": 9,
+      "placeName": "대전 서구 월평동 월평타운",
+      "gu": "서구",
+      "dong": "월평동",
+      "leakCard": true
+    }
+  ],
+  "photos": [
+    {
+      "file": "assets/cases/wolpyeong-veranda-rain-pipe-20261126-01.jpg",
+      "sha256": "592a879feef5fc0f0bae613cae7479c8a54b117950c674c2202eeaba0bb7e112",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/wolpyeong-veranda-rain-pipe-20261126-02.jpg",
+      "sha256": "bcb67066d854c08186400bca9a51e1240b674b4bc6d09957c2ae54bc7b922344",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/wolpyeong-veranda-rain-pipe-20261126-03.jpg",
+      "sha256": "018c5aa06633b065254547ab6d6c03f4e20d18f64dc8f89a5d493704659f198b",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/wolpyeong-veranda-rain-pipe-20261126-04.jpg",
+      "sha256": "a6452e3533472a6ffd14af8bfd000b5d98d48acafd46ec8c4ece894062715650",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/wolpyeong-veranda-rain-pipe-20261126-05.jpg",
+      "sha256": "1294134d26bf5214f66c451c2c580489026fba4ade2718867e608ccdd0010b19",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/wolpyeong-veranda-rain-pipe-20261126-06.jpg",
+      "sha256": "f42123bc3d59dd338dbbd52bcb38a38455801ce0ae8c95f07ea8d12a845f9730",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/wolpyeong-veranda-rain-pipe-20261126-07.jpg",
+      "sha256": "64756f7f0d896ee8d1029cd3fdbbe8de4e3b74dff54558fbfe2e9de3e1e653f9",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/wolpyeong-veranda-rain-pipe-20261126-08.jpg",
+      "sha256": "304bf932c8d6872ce799e53fd95ab9922ccb0cbc0489b700e11b4d8ac176add8",
+      "longSide": 1200
+    },
+    {
+      "file": "assets/cases/wolpyeong-veranda-rain-pipe-20261126-09.jpg",
+      "sha256": "bd8f240f42ade4e50dedccba5a8e98625e06f1b8546156bd48f889214679cd4c",
+      "longSide": 1200
+    }
+  ]
+}

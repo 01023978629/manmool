@@ -6,6 +6,20 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-11-27 대전 서구 월평동 월평타운 두 세대 앞·뒤 베란다 우수관 하부 부속 교체(11/26) 사례 1건 공개 후보
+
+`claude/case-wolpyeong-town-two-homes-veranda-rain-pipe-fitting-20261126`는 대표가 승인한(“올려줘”) 비공개 초안을 `published:true`로 더한다 —
+`wolpyeong-town-two-homes-veranda-rain-pipe-fitting-20261126`(사진 9장, 누수·`방수·설비`). 문구는 초안 그대로다(새 검사가 글 객체 전체를 `entryHash` 로 고정).
+**병합하면 바로 공개된다** — 범위·핀 목록은 PR 설명과 `docs/recent-cases-20261127-wolpyeong.md`.
+
+- **대표 지시: 이 글의 공개 문구에는 '방수' 낱말을 쓰지 않는다.** 지금 공개 문구에 없고, 남는 곳은 분류 이름 `방수·설비` 뿐이다 —
+  새 검사 `recent-cases-20261127-wolpyeong` 이 글 객체·글 쪽·목록 카드·RSS·누수 색인·랜딩 카드·서구 쪽 카드에서 막는다. 원고를 고칠 때도 이 규칙을 지킨다.
+  (관련 글 카드에 보이는 11/16 삼호 앞베란다 글 제목은 다른 글의 제목이라 그대로 두었다 — 대표 확인 대기.)
+- 날짜 자리(11/27 남대전 뒤·11/18 하이츠빌 앞)라 FEATURED·blog `lastmod`(2026-11-27)는 그대로. 가장 새 누수 사례라 누수 카드는 **맨 앞**(카드 수 46→47),
+  leak `lastmod` 2026-11-26. 기존 검사의 leak 기대값을 2026-11-26 으로, 카드 위치(slice)는 한 칸씩 뒤로 고쳤다.
+- '대전 서구 … 월평동' 이 적힌 사례라 `scripts/post-areas.json` 에 서구·월평동으로 넣었다(동→구 표는 이미 있음). 서구 쪽 9→10건, sitemap 서구 쪽 `lastmod` 2026-11-26.
+- 기존 94건은 한 글자도 바꾸지 않았다(origin/main `25f1cd4`). 다시 고정한 핀 목록은 `docs/recent-cases-20261127-wolpyeong.md`.
+
 ### 2026-11-27 대전 동구 낭월동 남대전 이편한세상아파트 33평 리모델링(11/27) 사례 1건 공개 후보
 
 `claude/case-nangwol-namdaejeon-epyeonhan-33py-remodel-20261127`는 대표가 승인한 비공개 초안을 `published:true`로 더한다 —
