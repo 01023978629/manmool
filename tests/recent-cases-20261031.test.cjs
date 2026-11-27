@@ -32,6 +32,8 @@ const sitemapLastmod = slug => (read('sitemap.xml').match(new RegExp(
 // entry changed); re-pinned to 83 — recent-cases-20261121 pins the 92 entries before it.
 // 2026-11-25: five newest cases enriched in place (docs/case-enrich-20261125.md — text only; photos, dates, places and order
 // unchanged); the pinned 83 entries include them, so the hash was recomputed. No entry was added or removed.
+// 2026-11-27: Nangwol-dong Namdaejeon e-Pyeonhan Sesang 33-pyeong remodel (11-27, interior) added first (no existing entry
+// changed); re-pinned to 84 — recent-cases-20261127 pins the 93 entries before it.
 test('every entry outside this batch keeps its object and order; mutation guards active', () => {
   assert.equal(site.insights.length, fixture.previousCount + slugs.length);
   assert.ok(preserved(site.insights));

@@ -24,6 +24,11 @@
 // section before the closing section, updated 2026-11-25 and readMin. Photos, dates, places, order and the other 88 entries did
 // not change (checked by reverting only those five objects and getting the old pin back). The pinned hash was recomputed for the
 // new text, and blog.html / leak.html / the five post lastmod values follow the edit day (updated).
+// 2026-11-27: the Nangwol-dong (Dong-gu) Namdaejeon e-Pyeonhan Sesang 33-pyeong remodel case (11-27, interior: two bathrooms,
+// wallpaper, vinyl flooring and lights, entrance sliding door, living-room tile wall, kitchen tall units and a built-in wardrobe)
+// was added first (no existing entry changed): pinned set +1. It is the newest real case, so it takes the blog featured slot and
+// blog.html lastmod is 2026-11-27; as an interior case it gets no leak card or leak index entry, so leak.html keeps 2026-11-25
+// (the enriched leak cases). recent-cases-20261127 pins the 93 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -73,7 +78,7 @@ test('the 80 entries before these cases keep their object and order; mutation gu
   assert.ok(at > 0 && insights.slice(0, at).every(a => a.date >= insights[at].date));
   for (let k = at; k < at + span; k++) assert.ok(insights[k].date >= insights[k + 1].date, insights[k].slug);
   const firstCase = insights.find(a => a.published !== false && Object.keys(a.caseSummary || {}).length);
-  assert.equal(firstCase.slug, 'heightsville-extension-floor-heating-screed-20261118');  // 2026-11-21: was the 11/17 Saeyeoul case
+  assert.equal(firstCase.slug, 'nangwol-namdaejeon-epyeonhan-33py-remodel-20261127');  // 2026-11-27: was the 11/18 Heightsville case; 2026-11-21: was the 11/17 Saeyeoul case
 });
 
 test('three cases: 24 photos, work dates, leak service, conservative public copy and discovery links', () => {
@@ -137,7 +142,7 @@ test('three cases: 24 photos, work dates, leak service, conservative public copy
     assert.ok(cta.includes(`href="../leak.html?case=${c.slug}#leakInquiry"`), c.slug);
   }
   // The newest case takes the blog featured slot (2026-11-21: now the 11/18 Heightsville case, interior group).
-  assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/heightsville-extension-floor-heating-screed-20261118\\.html"`));
+  assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/nangwol-namdaejeon-epyeonhan-33py-remodel-20261127\\.html"`));  // 2026-11-27: was the 11/18 Heightsville case
   // Leak landing: card count pin 37 -> 40 (2026-11-13: 40 -> 42; 2026-11-17: 42 -> 45), the three cards in date order after the
   // newer cards.
   assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 46);  // 2026-11-18: 45 -> 46 (11/13 Taesan card)
@@ -149,7 +154,8 @@ test('three cases: 24 photos, work dates, leak service, conservative public copy
   // blog.html and leak.html advertise the newest public post date.
   // 2026-11-21: blog.html follows the newest post (11/18 Heightsville, interior); leak.html keeps the newest leak case (11/17).
   // 2026-11-25: five recent posts were enriched (updated 2026-11-25), so blog.html and leak.html both follow that edit day.
-  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), '2026-11-25', page);  // 2026-11-17
+  // 2026-11-27: blog.html follows the newest post (11/27 Nangwol-dong Namdaejeon e-Pyeonhan, interior); leak.html keeps 2026-11-25.
+  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), page === 'blog.html' ? '2026-11-27' : '2026-11-25', page);  // 2026-11-17
   // The small leak index stays under the inquiry-form budget after these three entries.
   assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);  // 2026-11-18: budget 10KB -> 16KB (ensure-leak-case-index)
 });

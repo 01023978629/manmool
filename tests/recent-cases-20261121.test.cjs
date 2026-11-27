@@ -12,6 +12,10 @@
 // section before the closing section, updated 2026-11-25 and readMin. Photos, dates, places, order and the other 88 entries did
 // not change (checked by reverting only those five objects and getting the old pin back). The pinned hash was recomputed for the
 // new text, and blog.html / leak.html / the five post lastmod values follow the edit day (updated).
+// 2026-11-27: the Nangwol-dong (Dong-gu) Namdaejeon e-Pyeonhan Sesang 33-pyeong remodel case (11-27, interior) was added first
+// (no existing entry changed): the pinned set is now 93 entries, this case sits second (right after it, before 11/17 Saeyeoul),
+// and the 11/27 case takes the featured slot, so this case is a normal interior card. blog.html lastmod follows it (2026-11-27);
+// leak.html keeps 2026-11-25. recent-cases-20261127 pins the 93 entries before that case.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -31,9 +35,11 @@ const serviceOf = a => Object.hasOwn(a, 'service')
   : (['방수·설비', '누수탐지·수리'].includes(a.category) ? 'leak' : 'interior');
 // The entry that led the list before this case (and held the featured slot).
 const NEXT = 'saeyeoul-toilet-drain-pipe-insert-20261117';
+// 2026-11-27: the entry that leads the list now (and holds the featured slot) — recent-cases-20261127.
+const NEWER = 'nangwol-namdaejeon-epyeonhan-33py-remodel-20261127';
 const PLACE = '대전 유성구 관평동 하이츠빌아파트';
 
-test('the 92 entries before this case keep their object and order; newest first; mutation guards active', () => {
+test('the 93 entries outside this case keep their object and order; second newest; mutation guards active', () => {
   assert.equal(site.insights.length, fixture.previousCount + slugs.length);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
@@ -48,12 +54,15 @@ test('the 92 entries before this case keep their object and order; newest first;
   const reordered = structuredClone(insights); [reordered[i], reordered[i + 1]] = [reordered[i + 1], reordered[i]];
   assert.ok(!preserved(reordered));
   // Newest entry: first in the list, every other entry is older, and the previous first entry follows it.
-  assert.equal(insights[0].slug, slugs[0]);
-  assert.ok(insights.slice(1).every(a => a.date < fixture.cases[0].date));
-  assert.equal(insights[1].slug, NEXT);
+  // 2026-11-27: second, right after the 11/27 case (was first); every entry after it is older.
+  assert.equal(insights[0].slug, NEWER);
+  assert.ok(insights[0].date > fixture.cases[0].date);
+  assert.equal(insights[1].slug, slugs[0]);
+  assert.ok(insights.slice(2).every(a => a.date < fixture.cases[0].date));
+  assert.equal(insights[2].slug, NEXT);
   // It is the newest real case (caseSummary), so it is the featured case.
   const firstCase = insights.find(a => a.published !== false && Object.keys(a.caseSummary || {}).length);
-  assert.equal(firstCase.slug, slugs[0]);
+  assert.equal(firstCase.slug, NEWER);  // 2026-11-27: was slugs[0] (this case)
 });
 
 test('one case: 9 photos, work date, interior service, owner-confirmed place, conservative copy and discovery links', () => {
@@ -122,7 +131,8 @@ test('one case: 9 photos, work date, interior service, owner-confirmed place, co
       assert.equal(serviceOf(related), a.service, r);
     }
     // Discovery: featured card in the interior group, RSS, sitemap (lastmod = work date); no leak index entry or landing card.
-    assert.match(blog, new RegExp(`<a class="insight-featured" href="posts/${c.slug}\\.html" data-group="${c.service}" data-date="${c.date}"`));
+    // 2026-11-27: a normal interior card now (the 11/27 case took the featured slot).
+    assert.match(blog, new RegExp(`<a class="insight-card" href="posts/${c.slug}\\.html" data-group="${c.service}" data-date="${c.date}"`));
     assert.ok(rss.includes(`/posts/${c.slug}.html`), 'rss ' + c.slug);
     assert.equal(sitemapLastmod(`posts/${c.slug}.html`), a.updated || a.date);  // 2026-11-25: enriched posts carry updated (docs/case-enrich-20261125.md)
     assert.equal(index.cases.some(x => x.slug === c.slug), false, 'leak index ' + c.slug);
@@ -136,6 +146,7 @@ test('one case: 9 photos, work date, interior service, owner-confirmed place, co
   // Exactly one featured card; the previous featured case is a normal card now. The leak landing card count stays 46.
   assert.equal((blog.match(/class="insight-featured"/g) || []).length, 1);
   assert.match(blog, new RegExp(`<a class="insight-card" href="posts/${NEXT}\\.html"`));
+  assert.match(blog, new RegExp(`<a class="insight-featured" href="posts/${NEWER}\\.html" data-group="interior"`));  // 2026-11-27
   assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 46);
   // blog.html follows the newest post; leak.html keeps the newest leak case date.
   // 2026-11-25: five recent posts were enriched (updated 2026-11-25), so both pages follow that edit day
@@ -143,7 +154,7 @@ test('one case: 9 photos, work date, interior service, owner-confirmed place, co
   const day = a => a.updated || a.date, newest = items => items.map(day).sort().at(-1);
   assert.equal(sitemapLastmod('blog.html'), newest(site.insights.filter(a => a.published !== false)));
   assert.equal(sitemapLastmod('leak.html'), newest(site.insights.filter(a => a.published !== false && serviceOf(a) === 'leak')));
-  assert.equal(sitemapLastmod('blog.html'), '2026-11-25');
+  assert.equal(sitemapLastmod('blog.html'), '2026-11-27');  // 2026-11-27: the 11/27 Nangwol-dong case (was 2026-11-25)
   assert.equal(sitemapLastmod('leak.html'), '2026-11-25');
   assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);
 });
