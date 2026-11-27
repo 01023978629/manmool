@@ -16,6 +16,11 @@
 // (no existing entry changed): the pinned set is now 93 entries, this case sits second (right after it, before 11/17 Saeyeoul),
 // and the 11/27 case takes the featured slot, so this case is a normal interior card. blog.html lastmod follows it (2026-11-27);
 // leak.html keeps 2026-11-25. recent-cases-20261127 pins the 93 entries before that case.
+// 2026-11-27 (2): the Wolpyeong-dong (Seo-gu) Wolpyeong Town case (11-26, leak: rain-pipe base fittings on the front and back
+// verandas of two homes) was added right after the 11/27 case at its date position (no existing entry changed): the pinned set
+// is now 94 entries and this case sits third (before 11/17 Saeyeoul). The featured slot and blog.html lastmod (2026-11-27) stay
+// with the 11/27 case; the new leak landing card makes the count 47 and leak.html lastmod 2026-11-26.
+// recent-cases-20261127-wolpyeong pins the 94 entries before that case.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -37,9 +42,11 @@ const serviceOf = a => Object.hasOwn(a, 'service')
 const NEXT = 'saeyeoul-toilet-drain-pipe-insert-20261117';
 // 2026-11-27: the entry that leads the list now (and holds the featured slot) — recent-cases-20261127.
 const NEWER = 'nangwol-namdaejeon-epyeonhan-33py-remodel-20261127';
+// 2026-11-27 (2): the 11/26 Wolpyeong Town leak case sits between the 11/27 case and this one — recent-cases-20261127-wolpyeong.
+const NEWER_LEAK = 'wolpyeong-town-two-homes-veranda-rain-pipe-fitting-20261126';
 const PLACE = '대전 유성구 관평동 하이츠빌아파트';
 
-test('the 93 entries outside this case keep their object and order; second newest; mutation guards active', () => {
+test('the 94 entries outside this case keep their object and order; third newest; mutation guards active', () => {
   assert.equal(site.insights.length, fixture.previousCount + slugs.length);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
@@ -57,9 +64,12 @@ test('the 93 entries outside this case keep their object and order; second newes
   // 2026-11-27: second, right after the 11/27 case (was first); every entry after it is older.
   assert.equal(insights[0].slug, NEWER);
   assert.ok(insights[0].date > fixture.cases[0].date);
-  assert.equal(insights[1].slug, slugs[0]);
-  assert.ok(insights.slice(2).every(a => a.date < fixture.cases[0].date));
-  assert.equal(insights[2].slug, NEXT);
+  // 2026-11-27 (2): third, after the 11/27 case and the 11/26 Wolpyeong Town case (was second).
+  assert.equal(insights[1].slug, NEWER_LEAK);
+  assert.ok(insights[1].date > fixture.cases[0].date);
+  assert.equal(insights[2].slug, slugs[0]);
+  assert.ok(insights.slice(3).every(a => a.date < fixture.cases[0].date));
+  assert.equal(insights[3].slug, NEXT);
   // It is the newest real case (caseSummary), so it is the featured case.
   const firstCase = insights.find(a => a.published !== false && Object.keys(a.caseSummary || {}).length);
   assert.equal(firstCase.slug, NEWER);  // 2026-11-27: was slugs[0] (this case)
@@ -144,10 +154,11 @@ test('one case: 9 photos, work date, interior service, owner-confirmed place, co
     assert.ok(cta.includes('href="../index.html#estimator"') && cta.includes('href="../index.html#inquiry"') && !cta.includes('leak.html'), c.slug);
   }
   // Exactly one featured card; the previous featured case is a normal card now. The leak landing card count stays 46.
+  // 2026-11-27 (2): 46 -> 47 — the 11/26 Wolpyeong Town leak case adds the first landing card.
   assert.equal((blog.match(/class="insight-featured"/g) || []).length, 1);
   assert.match(blog, new RegExp(`<a class="insight-card" href="posts/${NEXT}\\.html"`));
   assert.match(blog, new RegExp(`<a class="insight-featured" href="posts/${NEWER}\\.html" data-group="interior"`));  // 2026-11-27
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 46);
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 47);  // 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card)
   // blog.html follows the newest post; leak.html keeps the newest leak case date.
   // 2026-11-25: five recent posts were enriched (updated 2026-11-25), so both pages follow that edit day
   // (blog: newest updated-or-date of all public posts; leak: of the leak cases — it was blog 11/18, leak 11/17).
@@ -155,7 +166,7 @@ test('one case: 9 photos, work date, interior service, owner-confirmed place, co
   assert.equal(sitemapLastmod('blog.html'), newest(site.insights.filter(a => a.published !== false)));
   assert.equal(sitemapLastmod('leak.html'), newest(site.insights.filter(a => a.published !== false && serviceOf(a) === 'leak')));
   assert.equal(sitemapLastmod('blog.html'), '2026-11-27');  // 2026-11-27: the 11/27 Nangwol-dong case (was 2026-11-25)
-  assert.equal(sitemapLastmod('leak.html'), '2026-11-25');
+  assert.equal(sitemapLastmod('leak.html'), '2026-11-26');  // 2026-11-27 (2): the 11/26 Wolpyeong Town leak case (was 2026-11-25)
   assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);
 });
 

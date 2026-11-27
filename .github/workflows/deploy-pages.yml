@@ -159,6 +159,7 @@ jobs:
           node --test tests/recent-cases-20261118-taesan.test.cjs
           node --test tests/recent-cases-20261121.test.cjs
           node --test tests/recent-cases-20261127.test.cjs
+          node --test tests/recent-cases-20261127-wolpyeong.test.cjs
           node --test tests/case-reader.e2e.cjs
           node --test tests/remaining-cases.test.cjs
           node --test scripts/new-case-post.test.mjs

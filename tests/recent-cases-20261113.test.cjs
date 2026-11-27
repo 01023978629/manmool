@@ -27,6 +27,11 @@
 // was added first (no existing entry changed): pinned set +1. It is the newest real case, so it takes the blog featured slot and
 // blog.html lastmod is 2026-11-27; as an interior case it gets no leak card or leak index entry, so leak.html keeps 2026-11-25
 // (the enriched leak cases). recent-cases-20261127 pins the 93 entries before it.
+// 2026-11-27 (2): the Wolpyeong-dong (Seo-gu) Wolpyeong Town case (11-26, leak: rain-pipe base fittings replaced on the front
+// and back verandas of two homes, four spots on one day) was added right after the 11/27 Namdaejeon entry at its date position
+// (no existing entry changed): pinned set +1. The 11/27 case keeps the blog featured slot and blog.html lastmod stays 2026-11-27;
+// as a leak case it gets the first leak landing card (count 46 -> 47) and a leak index entry, so leak.html lastmod is 2026-11-26.
+// recent-cases-20261127-wolpyeong pins the 94 entries before it.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -146,16 +151,18 @@ test('three cases: 17 photos, work date, service split, conservative public copy
   assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/nangwol-namdaejeon-epyeonhan-33py-remodel-20261127\\.html"`));  // 2026-11-27: was the 11/18 Heightsville case
   // Leak landing: card count pin 40 -> 42 (2026-11-17: 42 -> 45), the two leak cards in listed order right after the 11/17
   // Saeyeoul and 11/16 Samho cards; no card for the interior case.
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 46);  // 2026-11-18: 45 -> 46 (11/13 Taesan card)
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 47);  // 2026-11-18: 45 -> 46 (11/13 Taesan card), 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card)
   const cards = leakCardSlugs(leak), leakSlugs = fixture.cases.filter(c => c.leakCard).map(c => c.slug);
   // 2026-11-18: the 11/13 Taesan card sits between the 11/16 Samho card and these two, so they move one place down.
-  assert.deepEqual(cards.slice(3, 5), leakSlugs);
+  // 2026-11-27 (2): the 11/26 Wolpyeong Town card leads the landing, so they move one more place down.
+  assert.deepEqual(cards.slice(4, 6), leakSlugs);
   for (const s of leakSlugs) assert.equal(cards.filter(x => x === s).length, 1, s);
   // blog.html and leak.html advertise the newest public post date.
   // 2026-11-21: blog.html follows the newest post (11/18 Heightsville, interior); leak.html keeps the newest leak case (11/17).
   // 2026-11-25: five recent posts were enriched (updated 2026-11-25), so blog.html and leak.html both follow that edit day.
   // 2026-11-27: blog.html follows the newest post (11/27 Nangwol-dong Namdaejeon e-Pyeonhan, interior); leak.html keeps 2026-11-25.
-  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), page === 'blog.html' ? '2026-11-27' : '2026-11-25', page);  // 2026-11-17
+  // 2026-11-27 (2): leak.html follows the newest leak case (11/26 Wolpyeong Town); blog.html stays 2026-11-27 (11/27 Namdaejeon).
+  for (const page of ['blog.html', 'leak.html']) assert.equal(sitemapLastmod(page), page === 'blog.html' ? '2026-11-27' : '2026-11-26', page);  // 2026-11-17
   // The small leak index stays under the inquiry-form budget after these entries.
   assert.ok(fs.statSync(path.join(root, 'data/leak-case-index.json')).size < 16 * 1024);  // 2026-11-18: budget 10KB -> 16KB (ensure-leak-case-index)
 });
