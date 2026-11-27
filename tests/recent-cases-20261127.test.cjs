@@ -15,6 +15,11 @@
 // verandas of two homes) was added right after this case at its date position (no existing entry changed): pinned set +1
 // (94). This case still leads the list and keeps the featured slot and blog.html lastmod 2026-11-27; the new leak landing card
 // makes the count 47 and leak.html lastmod 2026-11-26. recent-cases-20261127-wolpyeong pins the 94 entries before that case.
+// 2026-11-28: on the owner's instruction the combined 11/26 Wolpyeong Town entry was split into one entry per home (first and
+// second home, both 11-26, at the same date position): the combined entry was removed and two entries added (no other entry
+// changed): pinned set +1. Its leak landing card was replaced by two cards at the front (count 47 -> 48);
+// blog.html (2026-11-27) and leak.html (2026-11-26) lastmods are unchanged. The old URL is a noindex redirect page
+// (scripts/post-redirects.json). recent-cases-20261127-wolpyeong now pins the two entries and the 94 entries before them.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -35,7 +40,8 @@ const serviceOf = a => Object.hasOwn(a, 'service')
 // The entry that led the list before this case (it held the featured slot until now).
 const NEXT = 'heightsville-extension-floor-heating-screed-20261118';
 // 2026-11-27 (2): the 11/26 Wolpyeong Town leak case now sits right after this case, before NEXT — recent-cases-20261127-wolpyeong.
-const OLDER_LEAK = 'wolpyeong-town-two-homes-veranda-rain-pipe-fitting-20261126';
+// 2026-11-28: that case is now two same-date entries, one per home (first, then second) — recent-cases-20261127-wolpyeong.
+const OLDER_LEAK = ['wolpyeong-town-first-home-veranda-rain-pipe-fitting-20261126', 'wolpyeong-town-second-home-veranda-rain-pipe-fitting-20261126'];
 const PLACE = '대전 동구 낭월동 남대전 이편한세상아파트';
 // No building/unit numbers, road addresses, local paths, drive ids, location metadata or phone/e-mail patterns.
 const LOCATION = /\d+\s*동(?![가-힣])|\d+\s*호(?![가-힣])|\d+\s*동\s*\d+\s*호|\d+\s*층|[가-힣]\d{1,3}(?:로|길)(?![가-힣])|(?:로|길)\s*\d+|번길|번지|sourcePath|driveId|GPS|좌표|위도|경도|\d{1,3}\.\d{4,}|[A-Za-z]:[\\/]|file:\/\/|01[016789][- .]?\d{3,4}[- .]?\d{4}|\d{2,3}-\d{3,4}-\d{4}|@[\w.-]+\.[A-Za-z]{2,}/;
@@ -60,8 +66,8 @@ test('the 94 entries outside this case keep their object and order; newest first
   // Newest entry: first in the list, every other entry is older, and the previous first entry follows it.
   assert.equal(insights[0].slug, slugs[0]);
   assert.ok(insights.slice(1).every(a => a.date < fixture.cases[0].date));
-  assert.equal(insights[1].slug, OLDER_LEAK);  // 2026-11-27 (2): was NEXT
-  assert.equal(insights[2].slug, NEXT);
+  assert.deepEqual(insights.slice(1, 3).map(a => a.slug), OLDER_LEAK);  // 2026-11-27 (2): was NEXT; 2026-11-28: the combined entry became two
+  assert.equal(insights[3].slug, NEXT);
   // It is the newest real case (caseSummary), so it is the featured case.
   const firstCase = insights.find(a => a.published !== false && Object.keys(a.caseSummary || {}).length);
   assert.equal(firstCase.slug, slugs[0]);
@@ -163,7 +169,7 @@ test('discovery: featured interior card, RSS, sitemap, Dong-gu area entry withou
   // 2026-11-27 (2): 46 -> 47 — the 11/26 Wolpyeong Town leak case adds the first landing card (this case still has none).
   assert.equal((blog.match(/class="insight-featured"/g) || []).length, 1);
   assert.match(blog, new RegExp(`<a class="insight-card" href="posts/${NEXT}\\.html"`));
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 47);  // 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card)
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 48);  // 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards)
   // blog.html follows the newest post (this case); leak.html keeps the newest leak case edit day (2026-11-25).
   const day = a => a.updated || a.date, newest = items => items.map(day).sort().at(-1);
   assert.equal(sitemapLastmod('blog.html'), newest(site.insights.filter(a => a.published !== false)));

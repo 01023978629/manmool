@@ -7,6 +7,7 @@
 페이지(본문·canonical·OG·BlogPosting 포함), RSS, 누수 접수용 경량 사례 색인을
 만들어 그 문제를 해소한다.
 2026-11-25: leak.html 의 누수 후기 칸(leak-reviews 표시 사이)도 site.json reviews 로 그린다.
+2026-11-28: 공개한 뒤 내린 글의 옛 주소는 scripts/post-redirects.json 대로 새 글로 보내는 작은 쪽(noindex)으로 남긴다.
 
 사용: data/site.json의 insights·reviews를 수정할 때마다 실행 후 posts/·rss.xml·
 data/leak-case-index.json·leak.html을 함께 커밋한다.
@@ -678,6 +679,71 @@ def load_post_areas():
     return data if isinstance(data, dict) else {}
 
 
+REDIRECT_SLUG = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
+
+
+def load_post_redirects():
+    """옮긴 글 주소(2026-11-28) — scripts/post-redirects.json 의 {옛 slug: {to, also?, since?}}.
+    '_' 로 시작하는 키는 설명이다. 파일이 없으면 빈 표."""
+    path = os.path.join(ROOT, 'scripts', 'post-redirects.json')
+    if not os.path.exists(path):
+        return {}
+    with open(path, encoding='utf-8') as f:
+        data = json.load(f)
+    if not isinstance(data, dict):
+        return {}
+    return {k: v for k, v in data.items() if not k.startswith('_')}
+
+
+def check_post_redirects(redirects, insights):
+    """옛 주소는 공개 글이 아니어야 하고, 이동할 글은 공개 글이어야 한다. 어긋나면 생성을 멈춘다."""
+    live = {a['slug'] for a in insights}
+    for old, r in redirects.items():
+        targets = [r.get('to') if isinstance(r, dict) else None, *((r.get('also') or []) if isinstance(r, dict) else [])]
+        if not REDIRECT_SLUG.match(old) or not all(isinstance(t, str) and REDIRECT_SLUG.match(t) for t in targets):
+            raise SystemExit(f'post-redirects.json: slug 형식이 잘못됐다 — {old}')
+        if old in live:
+            raise SystemExit(f'post-redirects.json: {old} 는 아직 공개 글이다 — 옮긴 주소 표에서 빼라')
+        missing = [t for t in targets if t not in live]
+        if missing:
+            raise SystemExit(f'post-redirects.json: {old} 가 가리키는 글이 공개 글이 아니다 — {", ".join(missing)}')
+
+
+def redirect_html(old, r, insights):
+    """옛 글 주소에 남기는 작은 이동 쪽 — 검색 제외(noindex)·canonical 은 새 글·곧바로 이동(meta refresh).
+    자바스크립트·추적 없이 동작하고, 이동이 막힌 브라우저를 위해 새 글 링크를 함께 둔다."""
+    by_slug = {a['slug']: a for a in insights}
+    to = by_slug[r['to']]
+    links = '\n'.join(
+        f'      <li><a href="{esc(s)}.html">{esc(by_slug[s]["title"])}</a></li>'
+        for s in [r['to'], *(r.get('also') or [])])
+    return f'''<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, follow" />
+  <title>글 주소가 바뀌었습니다 · 만물인테리어</title>
+  <link rel="canonical" href="{BASE}/posts/{esc(to['slug'])}.html" />
+  <meta http-equiv="refresh" content="0; url={esc(to['slug'])}.html" />
+  <link rel="icon" href="../assets/site/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="../assets/site/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="../assets/site/apple-touch-icon.png" />
+</head>
+<body>
+  <main>
+    <h1>글 주소가 바뀌었습니다</h1>
+    <p>이 사례는 세대별 글로 나눠 다시 올렸습니다. 잠시 뒤 새 글로 이동합니다.</p>
+    <ul>
+{links}
+    </ul>
+    <p><a href="../blog.html">실제 사례 목록 보기</a></p>
+  </main>
+</body>
+</html>
+'''
+
+
 def area_pages_for(insights, areas):
     """[(구, 쪽 slug, [글])] — 사례 AREA_MIN_CASES 건 이상인 구만, 구 순서 고정, 글은 insights 순서(최신순)."""
     pages = []
@@ -1042,6 +1108,15 @@ def main():
             f.write(article_html(a, insights, area_link_by_slug.get(a['slug'])))
         known.add(a['slug'] + '.html')
         print('생성:', os.path.relpath(path, ROOT))
+    # 2026-11-28: 공개한 뒤 내린 글의 옛 주소는 새 글로 보내는 작은 쪽으로 남긴다(scripts/post-redirects.json).
+    redirects = load_post_redirects()
+    check_post_redirects(redirects, insights)
+    for old, r in redirects.items():
+        path = os.path.join(outdir, old + '.html')
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(redirect_html(old, r, insights))
+        known.add(old + '.html')
+        print('생성(옮긴 주소):', os.path.relpath(path, ROOT), '→', r['to'])
     # 삭제된 글의 잔여 페이지 정리
     for fn in os.listdir(outdir):
         if fn.endswith('.html') and fn not in known:

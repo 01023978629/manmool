@@ -21,6 +21,11 @@
 // is now 94 entries and this case sits third (before 11/17 Saeyeoul). The featured slot and blog.html lastmod (2026-11-27) stay
 // with the 11/27 case; the new leak landing card makes the count 47 and leak.html lastmod 2026-11-26.
 // recent-cases-20261127-wolpyeong pins the 94 entries before that case.
+// 2026-11-28: on the owner's instruction the combined 11/26 Wolpyeong Town entry was split into one entry per home (first and
+// second home, both 11-26, at the same date position): the combined entry was removed and two entries added (no other entry
+// changed): pinned set +1. Its leak landing card was replaced by two cards at the front (count 47 -> 48);
+// blog.html (2026-11-27) and leak.html (2026-11-26) lastmods are unchanged. The old URL is a noindex redirect page
+// (scripts/post-redirects.json). recent-cases-20261127-wolpyeong now pins the two entries and the 94 entries before them.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -43,7 +48,8 @@ const NEXT = 'saeyeoul-toilet-drain-pipe-insert-20261117';
 // 2026-11-27: the entry that leads the list now (and holds the featured slot) — recent-cases-20261127.
 const NEWER = 'nangwol-namdaejeon-epyeonhan-33py-remodel-20261127';
 // 2026-11-27 (2): the 11/26 Wolpyeong Town leak case sits between the 11/27 case and this one — recent-cases-20261127-wolpyeong.
-const NEWER_LEAK = 'wolpyeong-town-two-homes-veranda-rain-pipe-fitting-20261126';
+// 2026-11-28: that case is now two same-date entries, one per home (first, then second) — recent-cases-20261127-wolpyeong.
+const NEWER_LEAK = ['wolpyeong-town-first-home-veranda-rain-pipe-fitting-20261126', 'wolpyeong-town-second-home-veranda-rain-pipe-fitting-20261126'];
 const PLACE = '대전 유성구 관평동 하이츠빌아파트';
 
 test('the 94 entries outside this case keep their object and order; third newest; mutation guards active', () => {
@@ -65,11 +71,12 @@ test('the 94 entries outside this case keep their object and order; third newest
   assert.equal(insights[0].slug, NEWER);
   assert.ok(insights[0].date > fixture.cases[0].date);
   // 2026-11-27 (2): third, after the 11/27 case and the 11/26 Wolpyeong Town case (was second).
-  assert.equal(insights[1].slug, NEWER_LEAK);
-  assert.ok(insights[1].date > fixture.cases[0].date);
-  assert.equal(insights[2].slug, slugs[0]);
-  assert.ok(insights.slice(3).every(a => a.date < fixture.cases[0].date));
-  assert.equal(insights[3].slug, NEXT);
+  // 2026-11-28: fourth, after the 11/27 case and the two per-home 11/26 entries (was third).
+  assert.deepEqual(insights.slice(1, 3).map(a => a.slug), NEWER_LEAK);
+  assert.ok(insights.slice(1, 3).every(a => a.date > fixture.cases[0].date));
+  assert.equal(insights[3].slug, slugs[0]);
+  assert.ok(insights.slice(4).every(a => a.date < fixture.cases[0].date));
+  assert.equal(insights[4].slug, NEXT);
   // It is the newest real case (caseSummary), so it is the featured case.
   const firstCase = insights.find(a => a.published !== false && Object.keys(a.caseSummary || {}).length);
   assert.equal(firstCase.slug, NEWER);  // 2026-11-27: was slugs[0] (this case)
@@ -158,7 +165,7 @@ test('one case: 9 photos, work date, interior service, owner-confirmed place, co
   assert.equal((blog.match(/class="insight-featured"/g) || []).length, 1);
   assert.match(blog, new RegExp(`<a class="insight-card" href="posts/${NEXT}\\.html"`));
   assert.match(blog, new RegExp(`<a class="insight-featured" href="posts/${NEWER}\\.html" data-group="interior"`));  // 2026-11-27
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 47);  // 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card)
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 48);  // 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards)
   // blog.html follows the newest post; leak.html keeps the newest leak case date.
   // 2026-11-25: five recent posts were enriched (updated 2026-11-25), so both pages follow that edit day
   // (blog: newest updated-or-date of all public posts; leak: of the leak cases — it was blog 11/18, leak 11/17).

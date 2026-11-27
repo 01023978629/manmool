@@ -31,6 +31,11 @@
 // (no existing entry changed): pinned set +1. The 11/27 case keeps the blog featured slot and blog.html lastmod stays 2026-11-27;
 // as a leak case it gets the first leak landing card (count 46 -> 47) and a leak index entry, so leak.html lastmod is 2026-11-26.
 // recent-cases-20261127-wolpyeong pins the 94 entries before it.
+// 2026-11-28: on the owner's instruction the combined 11/26 Wolpyeong Town entry was split into one entry per home (first and
+// second home, both 11-26, at the same date position): the combined entry was removed and two entries added (no other entry
+// changed): pinned set +1. Its leak landing card was replaced by two cards at the front (count 47 -> 48);
+// blog.html (2026-11-27) and leak.html (2026-11-26) lastmods are unchanged. The old URL is a noindex redirect page
+// (scripts/post-redirects.json). recent-cases-20261127-wolpyeong now pins the two entries and the 94 entries before them.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -75,11 +80,13 @@ test('the 86 entries before these cases keep their object and order; mutation gu
   // 2026-11-21: they now follow the 11/18 Heightsville case (recent-cases-20261121), so they start at index 1.
   // 2026-11-27: the 11/27 Nangwol-dong case (recent-cases-20261127) leads, then 11/18 Heightsville, so they start at index 2.
   // 2026-11-27 (2): the 11/26 Wolpyeong Town case (recent-cases-20261127-wolpyeong) sits after the 11/27 case, so they start at index 3.
-  assert.deepEqual(insights.slice(3, 6).map(a => a.slug), slugs.slice(0, 3));
-  for (let k = 0; k < 6; k++) assert.ok(insights[k].date > insights[k + 1].date, insights[k].slug);
+  // 2026-11-28: that case is now two same-date entries (first and second home), so they start at index 4; the two 11/26 entries
+  // share a date, every other step is strictly older.
+  assert.deepEqual(insights.slice(4, 7).map(a => a.slug), slugs.slice(0, 3));
+  for (let k = 0; k < 7; k++) assert.ok(insights[k].date > insights[k + 1].date || (k === 1 && insights[k].date === insights[k + 1].date), insights[k].slug);
   // The 11/10 case sits at its date position: after every newer entry, right before the earlier 11/10 batch.
   const m = insights.findIndex(a => a.slug === slugs[3]), day = fixture.cases[3].date;
-  assert.ok(m > 5 && insights.slice(0, m).every(a => a.date > day), slugs[3]);  // 2026-11-27 (2): was m > 4
+  assert.ok(m > 6 && insights.slice(0, m).every(a => a.date > day), slugs[3]);  // 2026-11-27 (2): was m > 4; 2026-11-28: was m > 5
   assert.equal(insights[m + 1].slug, EARLIER_SAME_DAY);
   assert.equal(insights[m + 1].date, day);
   const firstCase = insights.find(a => a.published !== false && Object.keys(a.caseSummary || {}).length);
@@ -182,13 +189,14 @@ test('four cases: 18 photos, work dates, service split, conservative public copy
   assert.match(blog, new RegExp(`insight-featured[^>]*href="posts/nangwol-namdaejeon-epyeonhan-33py-remodel-20261127\\.html"`));  // 2026-11-27: was the 11/18 Heightsville case
   // Leak landing: card count pin 42 -> 45. The 11/17 and 11/16 cards come first; the 11/10 card sits at its date position,
   // right before the earlier 11/10 batch. No card for the interior case.
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 47);  // 2026-11-18: 45 -> 46 (11/13 Taesan card), 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card)
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 48);  // 2026-11-18: 45 -> 46 (11/13 Taesan card), 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards)
   const cards = leakCardSlugs(leak), dateOf = s => site.insights.find(a => a.slug === s).date;
   // 2026-11-27 (2): the 11/26 Wolpyeong Town card comes first now, so the 11/17 and 11/16 cards are second and third.
-  assert.equal(cards[0], 'wolpyeong-town-two-homes-veranda-rain-pipe-fitting-20261126');
-  assert.deepEqual(cards.slice(1, 3), slugs.slice(0, 2));
+  // 2026-11-28: that card is now the two per-home 11/26 cards, so the 11/17 and 11/16 cards are third and fourth.
+  assert.deepEqual(cards.slice(0, 2), ['wolpyeong-town-first-home-veranda-rain-pipe-fitting-20261126', 'wolpyeong-town-second-home-veranda-rain-pipe-fitting-20261126']);
+  assert.deepEqual(cards.slice(2, 4), slugs.slice(0, 2));
   const k = cards.indexOf(slugs[3]);
-  assert.ok(k > 3 && cards.slice(0, k).every(s => dateOf(s) > fixture.cases[3].date), slugs[3]);  // 2026-11-27 (2): was k > 2
+  assert.ok(k > 4 && cards.slice(0, k).every(s => dateOf(s) > fixture.cases[3].date), slugs[3]);  // 2026-11-27 (2): was k > 2; 2026-11-28: was k > 3
   assert.equal(cards[k + 1], EARLIER_SAME_DAY);
   for (const c of fixture.cases.filter(c => c.leakCard)) assert.equal(cards.filter(x => x === c.slug).length, 1, c.slug);
   // blog.html and leak.html advertise the newest public post date.

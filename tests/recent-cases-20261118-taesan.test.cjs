@@ -26,6 +26,11 @@
 // (no existing entry changed): pinned set +1. The 11/27 case keeps the blog featured slot and blog.html lastmod stays 2026-11-27;
 // as a leak case it gets the first leak landing card (count 46 -> 47) and a leak index entry, so leak.html lastmod is 2026-11-26.
 // recent-cases-20261127-wolpyeong pins the 94 entries before it.
+// 2026-11-28: on the owner's instruction the combined 11/26 Wolpyeong Town entry was split into one entry per home (first and
+// second home, both 11-26, at the same date position): the combined entry was removed and two entries added (no other entry
+// changed): pinned set +1. Its leak landing card was replaced by two cards at the front (count 47 -> 48);
+// blog.html (2026-11-27) and leak.html (2026-11-26) lastmods are unchanged. The old URL is a noindex redirect page
+// (scripts/post-redirects.json). recent-cases-20261127-wolpyeong now pins the two entries and the 94 entries before them.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { findHidden, describeHidden } = require('../scripts/lib/hidden-terms.cjs');
@@ -155,7 +160,7 @@ test('one case: 9 photos, work date, leak service, conservative public copy and 
   }
   // Leak landing: count 45 -> 46; the card sits at its date position, right after the 11/16 Samho card and before the 11/12
   // Munchang card, and appears once. It uses this case's own cover photo and title.
-  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 47);  // 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card)
+  assert.equal((leak.match(/class="case-card registered-case"/g) || []).length, 48);  // 2026-11-27: 46 -> 47 (11/26 Wolpyeong Town card), 2026-11-28: 47 -> 48 (the combined card replaced by the two per-home cards)
   const cards = leakCardSlugs(leak), k = cards.indexOf(slugs[0]);
   assert.equal(cards.filter(s => s === slugs[0]).length, 1);
   assert.equal(cards[k - 1], CARD_BEFORE);

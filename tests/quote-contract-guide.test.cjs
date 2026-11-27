@@ -37,7 +37,9 @@ const ROOT = path.resolve(__dirname, '..'), SLUG = 'interior-quote-contract-comp
 // 전체 객체·순서는 recent-cases-20261127 검사가 따로 고정한다. 가장 최근 실제 사례가 11/27 남대전 이편한세상아파트라 FEATURED 를 그 글로 바꿨다.
 // 2026-11-27: 대전 서구 월평동 월평타운 두 세대 앞·뒤 베란다 우수관 하부 부속 교체(11/26, 누수) 사례 1건을 11/27 남대전 글 바로 뒤(날짜 자리)에 추가(기존 글 수정 없음). 그 전 94건
 // 전체 객체·순서는 recent-cases-20261127-wolpyeong 검사가 따로 고정한다. 11/26 은 11/27 남대전보다 오래돼 FEATURED 는 그대로다.
-const OLD_COUNT = 94, OLD_HASH = '8d5372d76ce48d006f3e203ade91adfb8ca52238a01713b3b06d57d9d85e68a2';
+// 2026-11-28: 대표 지시로 11/26 월평타운 두 세대 합친 글을 세대별 두 글(첫 번째·두 번째 세대, 같은 날짜 자리)로 나눴다 — 합친 글 1건을 빼고 2건을 넣어 글이 1건 늘었다(다른 글 수정 없음). 그 전 94건 전체 객체·순서는 recent-cases-20261127-wolpyeong 검사가 따로 고정한다.
+// 11/26 글은 11/27 남대전보다 오래돼 FEATURED 는 그대로다.
+const OLD_COUNT = 95, OLD_HASH = 'bcf65be10a163d9177b6f70b0b0dabc1e99f39254067953dd6d607265514da8f';
 const IMAGE_PATHS = ['assets/insights/interior-quote-details-ai-redacted.png'];
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');

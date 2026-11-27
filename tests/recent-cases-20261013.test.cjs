@@ -36,8 +36,13 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 // 2026-11-27 (2): Wolpyeong-dong (Seo-gu) Wolpyeong Town two homes, front/back veranda rain-pipe base fittings (11-26, leak) added
 // right after the 11/27 Namdaejeon entry at its date position (no existing entry changed); re-pinned to 90 —
 // recent-cases-20261127-wolpyeong pins the 94 entries before it.
+// 2026-11-28: on the owner's instruction the combined 11/26 Wolpyeong Town entry was split into one entry per home (first and
+// second home, both 11-26, at the same date position): the combined entry was removed and two entries added (no other entry
+// changed); re-pinned to 91. Its leak landing card was replaced by two cards at the front (count 47 -> 48);
+// blog.html (2026-11-27) and leak.html (2026-11-26) lastmods are unchanged. The old URL is a noindex redirect page
+// (scripts/post-redirects.json). recent-cases-20261127-wolpyeong now pins the two entries and the 94 entries before them.
 test('previous 71 complete entries and ordering, company/catalog preserved; mutation guards active', () => {
-  assert.equal(site.insights.length, 95);
+  assert.equal(site.insights.length, 96);  // 2026-11-28: 95 -> 96 (combined 11/26 entry split into two)
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), fixture.otherDataHash);

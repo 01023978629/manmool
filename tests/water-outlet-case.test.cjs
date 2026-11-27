@@ -21,13 +21,14 @@ const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).
 // 2026-11-25: 최근 사례 5편(11/18 하이츠빌·11/17 새여울·11/16 삼호 앞베란다·11/14 열매마을 욕조 자리·11/13 태산그린)의 글을 보강했다(docs/case-enrich-20261125.md — 소개문·단계 설명·'알아 두면 좋은 점' 한 칸·updated·readMin). 사진·날짜·장소·순서와 나머지 88건은 그대로이고, 이 고정값은 그 5편의 새 글로 다시 계산했다.
 // 2026-11-27: 대전 동구 낭월동 남대전 이편한세상아파트 33평 리모델링(11/27, 인테리어) 사례 1건을 맨 앞에 추가(기존 글 수정 없음). 그 전 93건 전체 객체·순서는 recent-cases-20261127 검사가 따로 고정한다.
 // 2026-11-27: 대전 서구 월평동 월평타운 두 세대 앞·뒤 베란다 우수관 하부 부속 교체(11/26, 누수) 사례 1건을 11/27 남대전 글 바로 뒤(날짜 자리)에 추가(기존 글 수정 없음). 그 전 94건 전체 객체·순서는 recent-cases-20261127-wolpyeong 검사가 따로 고정한다.
-const baseline = '912ac191b63dd11467f85343ee051e3aef70fd409ae25343949d5204ba580194';
+// 2026-11-28: 대표 지시로 11/26 월평타운 두 세대 합친 글을 세대별 두 글(첫 번째·두 번째 세대, 같은 날짜 자리)로 나눴다 — 합친 글 1건을 빼고 2건을 넣어 글이 1건 늘었다(다른 글 수정 없음). 그 전 94건 전체 객체·순서는 recent-cases-20261127-wolpyeong 검사가 따로 고정한다.
+const baseline = '8908602d667613d86b8e4fb5ba4c0b5c4f137645079a33aad2c2f2ad65412863';
 function preserved(items) {
   const old = items.filter(a => a.slug !== slug);
-  return old.length === 94 && hash(old) === baseline;
+  return old.length === 95 && hash(old) === baseline;
 }
-test('옥천 외 94개 글 객체·사진 설명·순서와 회사 데이터 보존, 변이 검출', () => {
-  assert.equal(site.insights.length, 95);
+test('옥천 외 95개 글 객체·사진 설명·순서와 회사 데이터 보존, 변이 검출', () => {
+  assert.equal(site.insights.length, 96);
   assert.ok(preserved(site.insights));
   const { insights, ...rest } = site;
   assert.equal(hash(rest), '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487');
