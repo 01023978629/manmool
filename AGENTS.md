@@ -6,6 +6,25 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-11-28 배포 — 공개 직전에 이 커밋이 아직 main 머리인지 본다(옛 커밋이 새 공개를 덮은 일)
+
+PR #231(병합 `7194e19`)·#242(병합 `32013b7` — 둘 다 든 main 머리)가 6초 사이에 자동 병합됐는데, GitHub 이 두 push 의 배포 실행을 10분쯤 늦게,
+그것도 거꾸로(`32013b7` 실행 10:29:38 → `7194e19` 실행 10:30:04) 만들었다. main 배포의 `concurrency: pages`(진행 중 취소 없음)는 실행을
+**만들어진 순서대로** 하나씩 돌리므로 `32013b7` 이 10:45 에 공개된 뒤, 기다리던 `7194e19` 실행이 11:01 에 옛 트리를 덮어 공개했다 —
+#242 내용이 main 수동 실행 전까지 사이트에서 빠졌다(run 46135424711 · 46135456988). 공개 파일·검사 변경 없음.
+- verify job 끝, `Verify service navigation and responsive layouts` 뒤·`Upload site artifact` 바로 앞에 `Check this commit is still the head of main`
+  (id `head` · `scripts/pages-head-guard.mjs` · main 배포 실행에서만): main 머리(API `commits/main` 세 번 → 안 되면 `git ls-remote`)가 이 커밋과 다르면
+  `publish=false` — 로그 `main moved on to <sha> — newer run will publish`. 그 커밋의 실행이 이 커밋까지 든 새 트리를 공개한다.
+  머리를 못 읽으면 `publish=true`(예전처럼 공개). 스크립트는 늘 0 — 건너뛴 실행은 'success', 산출물 올리기와 deploy job 만 skipped.
+- `verify` outputs `publish` · 올리기 `&& steps.head.outputs.publish != 'false'` · deploy job `&& needs.verify.outputs.publish != 'false'`
+  (출력이 없으면 공개 — `== 'true'` 로 쓰면 확인 못 할 때 공개가 빠진다). 단계 이름·검사 단계·`cancel-in-progress` 는 그대로, 수동 실행(main)은 그대로 공개.
+  머리 확인 이름에 'Deploy to GitHub Pages' 를 넣지 마라(카톡봇은 그 이름의 실패를 GitHub 쪽 실패로 본다).
+- `cancel-in-progress` 를 켜도 못 막는다 — 나중에 만들어진 실행(이번엔 옛 커밋)이 먼저 것을 끊어 오히려 옛 커밋만 남고, 공개 중인 실행까지 끊긴다.
+- 남은 틈(바꾸지 않음): 묶음의 대기 자리는 하나라, 기다리던 새 커밋 실행이 더 늦게 만들어진 옛 커밋 실행에 밀려 취소되면 새 커밋은 아무도 공개하지 않는다
+  (예전에도 그 경우 옛 커밋이 공개됐다 — 이제 사이트가 뒤로 가지는 않는다). 카톡봇이 취소된 배포를 알리면 main 수동 실행으로 푼다.
+- 새 검사 `scripts/ensure-pages-head-guard.mjs`(CI 의 `ensure-*` 반복이 돈다): 판단 · 머리 읽기 · 127.0.0.1 가짜 API+임시 저장소로 실제 명령 · 워크플로 구조 ·
+  변이 18종을 파일 안에서 모두 잡음. 현장웹(hyeonjang)도 같은 'pages' 묶음이라 같은 수정을 따로 올렸다.
+
 ### 2026-11-28 누수 글·욕실 셀프 체크의 '무료' 문구를 FAQ 정본에 맞춤 (PR #231, `mm/free-wording` — 11/09 초안을 main `9d3cb6c` 위에 다시 만듦)
 
 `rainy-season-waterproof-check`·`bathroom-waterproof-signs` 두 정보글에 조건 없는 '점검과 방문 실측은 무료이니 …' 가 남아 있었다.
