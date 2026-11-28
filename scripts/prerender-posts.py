@@ -26,10 +26,55 @@ BASE = 'https://01023978629.github.io/manmool'
 V = '20261002-editorial'  # 공개 화면의 에디토리얼 디자인 레이어
 # css/site-polish.css 만 따로 올린다(2026-11-25 — 구별 기록·글의 모아 보기 링크 스타일). styles.css·brand-system.css 는 그대로라 V 를 둔다.
 V_POLISH = '20261125-reviews1'
+# 2026-11-22 글 끝 '관련 검색어'·네이버 블로그 링크. site.json insights 는 기존 글 고정 검사(recent-cases-* 해시)가
+# 많아 손대지 않고, 이 파일에 slug 별로 따로 둔다 — {slug: {"keywords": [...최대 10], "naverBlog": "https://blog.naver.com/1dncjf/…"}}.
+# 공개 산출물(data/ 허용목록)에는 들어가지 않는 생성 입력이다. scripts/ensure-post-extras.mjs 가 지킨다.
+EXTRAS_PATH = os.path.join(ROOT, 'scripts', 'post-extras.json')
+NAVER_BLOG_RE = re.compile(r'^https://blog\.naver\.com/1dncjf/\d{6,}$')
+MAX_KEYWORDS = 10
 
 
 def esc(s):
     return html.escape(str(s or ''), quote=True)
+
+
+def load_extras(path=EXTRAS_PATH):
+    try:
+        with open(path, encoding='utf-8') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+EXTRAS = load_extras()
+
+
+def post_extras(slug, extras=None):
+    """slug 의 관련 검색어(공백 정리·중복 제거·최대 10개)와 블로그 주소(꼴이 맞을 때만)."""
+    item = (EXTRAS if extras is None else extras).get(slug) or {}
+    keywords = []
+    for k in item.get('keywords') or []:
+        k = re.sub(r'\s+', ' ', str(k or '')).strip()
+        if k and k not in keywords:
+            keywords.append(k)
+    blog = str(item.get('naverBlog') or '').strip()
+    return keywords[:MAX_KEYWORDS], (blog if NAVER_BLOG_RE.match(blog) else '')
+
+
+def extras_markup(keywords, blog):
+    """본문 아래 '관련 검색어' 칩과 네이버 블로그 글 링크. 둘 다 없으면 빈 문자열."""
+    if not keywords and not blog:
+        return ''
+    label = '관련 검색어' if keywords else '블로그 글'
+    out = f'<aside class="post-keywords" aria-label="{label}">'
+    if keywords:
+        out += ('<p class="pk-label">관련 검색어</p><ul class="pk-list">'
+                + ''.join(f'<li>{esc(k)}</li>' for k in keywords) + '</ul>')
+    if blog:
+        out += (f'<a class="pk-blog" href="{esc(blog)}" target="_blank" rel="noopener">'
+                '네이버 블로그 글로 보기</a>')
+    return out + '</aside>'
 
 
 def render_paragraphs(value):
@@ -237,8 +282,12 @@ def write_rss(insights):
     print('생성: rss.xml(%d건)' % len(insights))
 
 
-def article_html(a, insights, area_link=None):
+def article_html(a, insights, area_link=None, extras=None):
     url = f'{BASE}/posts/{a["slug"]}.html'
+    keywords, naver_blog = post_extras(a['slug'], extras)
+    keywords_meta = f'\n  <meta name="keywords" content="{esc(", ".join(keywords))}" />' if keywords else ''
+    extras_slot = extras_markup(keywords, naver_blog)
+    extras_slot = f'\n          {extras_slot}' if extras_slot else ''
     img_abs = f'{BASE}/{a["image"]}' if a.get('image') else f'{BASE}/og-image.png'
     img_alt = a.get('imageAlt') or a['title']
     img_size = image_dimensions(a.get('image'))
@@ -336,6 +385,8 @@ def article_html(a, insights, area_link=None):
     }
     if a.get('updated'):
         ld_obj['dateModified'] = a['updated']
+    if keywords:
+        ld_obj['keywords'] = ', '.join(keywords)
     if place.get('name'):
         # 좌표는 확인된 값이 있을 때만 넣는다. 지어낸 좌표는 엉뚱한 곳으로 안내한다.
         loc = {'@type': 'Place', 'name': place['name']}
@@ -392,7 +443,7 @@ def article_html(a, insights, area_link=None):
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{esc(a['title'])} · 만물인테리어</title>
-  <meta name="description" content="{esc(a.get('excerpt'))}" />
+  <meta name="description" content="{esc(a.get('excerpt'))}" />{keywords_meta}
   <meta name="theme-color" content="#b8895a" />
   <link rel="canonical" href="{url}" />
   <meta property="og:type" content="article" />
@@ -452,7 +503,7 @@ def article_html(a, insights, area_link=None):
           <div class="post-body">
             <p class="post-excerpt">{esc(a.get('excerpt'))}</p>
             {body}{sources_html}
-          </div>
+          </div>{extras_slot}
           {cta_html}
         </article>
         <div class="post-related">

@@ -29,6 +29,23 @@ PR #247(월평 세대 나누기) 머리 `82dc5c1` 위에서 만들었다 — #24
 - 날짜 자리(11/27 남대전 뒤, 첫 번째 → 두 번째, 11/18 하이츠빌 앞) — FEATURED·blog `lastmod`(2026-11-27)·leak `lastmod`(2026-11-26) 그대로. 누수 카드 47→48(합친 1장 → 2장, 맨 앞).
 - 합친 글 사진(`assets/cases/wolpyeong-veranda-rain-pipe-20261126-*`)은 쓰는 곳이 없지만 검사가 요구하지 않아 남겼다.
 
+### 2026-11-28 사례 글 끝 '관련 검색어'·네이버 블로그 링크(37편) (PR #242 — 11/22 초안을 main `9d3cb6c` 위에 다시 만듦)
+
+`claude/post-keywords-blog-links-20261122`는 대표 요청(11/22 "블로그 키워드 10가지 … 만물 웹에 적용", 키워드+블로그 링크, 보이게)으로
+사례 37편의 본문 아래·상담 칸 위에 '관련 검색어' 칩 10개와 '네이버 블로그 글로 보기' 버튼, 같은 값의 `<meta name="keywords">`·BlogPosting `keywords` 를 더한다.
+**병합하면 바로 공개된다** — 대표 확인(블로그↔만물웹 짝, 특히 오류동/문화동 삼성아파트)은 PR 설명과 `docs/post-extras-20261122.md`.
+
+- **정본은 `scripts/post-extras.json`**(slug → keywords·naverBlog). `site.json` insights 에는 넣지 않았다 — 기존 글을 해시로 고정한 검사 20여 개가 칸 하나로 다 깨진다.
+  `data/` 는 공개 허용목록과 정확히 같아야 하므로(`pages-artifact-policy`) 생성 입력인 이 파일은 `scripts/` 에 있다(공개 산출물에 안 나감).
+- 생성기 `prerender-posts.py` 가 읽어 `posts/<slug>.html` 에만 그린다(`article_html(a, insights, area_link=None, extras=None)` — 11/25 구별 쪽 링크 인자 뒤에 붙임).
+  목록·RSS·누수 색인·구별 쪽·`site.json`·나머지 글은 그대로. `blog.html?post=` JS 보기에는 없다. 해시 핀은 그대로다(insights 를 건드리지 않음).
+- 새 검사 `scripts/ensure-post-extras.mjs`(변이 20종 확인): 공개 글만·1~10개·대표 블로그(`blog.naver.com/1dncjf/글번호`) 꼴·블로그 글 중복 금지·
+  동·호수/전화/금액/과장 금지·협력사·작업자 이름 금지(11/22 초안의 글자 정규식 대신 `scripts/lib/hidden-terms.cjs` sha256 대조)·생성물이 정본과 같음·정본에 없는 글에 칸이 남지 않음·**내린 글의 옛 주소(`post-redirects.json`)는 정본에 둘 수 없음**
+  (11/26 월평타운 합친 글처럼 — 블로그 링크는 대신 올린 글에 붙인다). 단위 시험 `tests/test_prerender_posts.py` `PostExtrasTests`.
+- 새 사례를 블로그에도 올렸으면 그 글의 slug 를 `post-extras.json` 에 더하고 생성기를 다시 돌린다(키워드는 지역·공정·검색량으로 — 방법은 docs).
+  11/22 뒤 블로그 짝이 생긴 글(11/18 하이츠빌)은 검색량 비교를 거치지 않아 이번 범위(37편)에 넣지 않았다 — 후보는 docs '11/28 다시 얹기'.
+- 칸 스타일은 `css/styles.css` 에 있고 그 캐시 표시(`V`)는 올리지 않았다(올리면 모든 글·구별 쪽의 `styles.css?v=` 와 고정 검사가 같이 움직인다).
+
 ### 2026-11-27 대전 서구 월평동 월평타운 두 세대 앞·뒤 베란다 우수관 하부 부속 교체(11/26) 사례 1건 공개 후보
 
 `claude/case-wolpyeong-town-two-homes-veranda-rain-pipe-fitting-20261126`는 대표가 승인한(“올려줘”) 비공개 초안을 `published:true`로 더한다 —

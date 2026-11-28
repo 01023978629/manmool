@@ -412,6 +412,14 @@ body.content-preview .site-header { top: 46px; }
 .post-sources p { margin: 0 0 12px; color: var(--ink-soft); font-size: 13px; }
 .post-sources ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .post-sources a { color: var(--link-strong); font-size: 13.5px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; word-break: break-word; }
+/* 2026-11-22 글 끝 관련 검색어·네이버 블로그 글 링크(scripts/post-extras.json → prerender-posts.py) */
+.post-keywords { margin: 34px 0 8px; padding: 18px 20px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg-alt); }
+.post-keywords .pk-label { margin: 0 0 10px; font-size: 13px; font-weight: 800; color: var(--brand-dark); }
+.post-keywords .pk-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.post-keywords .pk-list li { padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font-size: 13.5px; line-height: 1.4; word-break: keep-all; }
+.post-keywords .pk-blog { margin-top: 14px; font-size: 13.5px; font-weight: 750; color: #fff; background: #03c75a; border-radius: 999px; padding: 0 18px; min-height: 44px; display: inline-flex; align-items: center; }
+.post-keywords .pk-blog:hover { filter: brightness(.95); }
+@media (max-width: 560px) { .post-keywords .pk-blog { width: 100%; justify-content: center; } }
 .post-related { max-width: 1000px; margin: 60px auto 0; }
 .post-related h3 { font-size: 20px; margin-bottom: 20px; text-align: center; }
 .story-page .site-footer a { display: inline-flex; min-height: 44px; align-items: center; }

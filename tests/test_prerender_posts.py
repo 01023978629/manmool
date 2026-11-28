@@ -52,6 +52,46 @@ class ParagraphTests(unittest.TestCase):
                          '<p>&lt;img onerror=&quot;bad()&quot;&gt; &amp;</p><p>끝</p>')
 
 
+class PostExtrasTests(unittest.TestCase):
+    """2026-11-22 글 끝 관련 검색어·네이버 블로그 링크(scripts/post-extras.json)."""
+
+    def test_keywords_are_trimmed_deduped_and_capped(self):
+        extras = {'a': {'keywords': [' 대전  누수 ', '대전 누수', ''] + [f'키워드{i}' for i in range(12)]}}
+        keywords, blog = PRERENDER.post_extras('a', extras)
+        self.assertEqual(keywords[0], '대전 누수')
+        self.assertEqual(len(keywords), PRERENDER.MAX_KEYWORDS)
+        self.assertEqual(len(set(keywords)), len(keywords))
+        self.assertEqual(blog, '')
+
+    def test_only_owner_blog_urls_render(self):
+        ok = {'a': {'keywords': ['우수관 누수'], 'naverBlog': 'https://blog.naver.com/1dncjf/224481519632'}}
+        self.assertEqual(PRERENDER.post_extras('a', ok)[1], 'https://blog.naver.com/1dncjf/224481519632')
+        for bad in ('https://blog.naver.com/manmool4436/224339177021', 'http://blog.naver.com/1dncjf/224481519632',
+                    'https://blog.naver.com/1dncjf/224481519632?x=1', 'javascript:alert(1)'):
+            self.assertEqual(PRERENDER.post_extras('a', {'a': {'naverBlog': bad}})[1], '', bad)
+        self.assertEqual(PRERENDER.post_extras('missing', ok), ([], ''))
+
+    def test_markup_escapes_and_is_empty_without_data(self):
+        self.assertEqual(PRERENDER.extras_markup([], ''), '')
+        markup = PRERENDER.extras_markup(['<b>누수</b> & 방수'], 'https://blog.naver.com/1dncjf/224481519632')
+        self.assertIn('<li>&lt;b&gt;누수&lt;/b&gt; &amp; 방수</li>', markup)
+        self.assertIn('class="pk-blog" href="https://blog.naver.com/1dncjf/224481519632" target="_blank" rel="noopener"', markup)
+        self.assertTrue(markup.startswith('<aside class="post-keywords" aria-label="관련 검색어">'))
+
+    def test_article_gets_meta_and_structured_keywords(self):
+        article = {'slug': 'x', 'title': '제목', 'excerpt': '요약', 'category': '방수·설비', 'date': '2026-11-22',
+                   'readMin': 1, 'body': [{'h': '소제목', 'p': '본문'}]}
+        extras = {'x': {'keywords': ['우수관 누수', '대전 누수'], 'naverBlog': 'https://blog.naver.com/1dncjf/224481519632'}}
+        page = PRERENDER.article_html(article, [article], extras=extras)
+        self.assertIn('<meta name="keywords" content="우수관 누수, 대전 누수" />', page)
+        self.assertIn('"keywords": "우수관 누수, 대전 누수"', page)
+        self.assertLess(page.index('<div class="post-body">'), page.index('<aside class="post-keywords"'))
+        self.assertLess(page.index('<aside class="post-keywords"'), page.index('<div class="post-cta">'))
+        plain = PRERENDER.article_html(article, [article], extras={})
+        self.assertNotIn('post-keywords', plain)
+        self.assertNotIn('name="keywords"', plain)
+
+
 class CaseReaderTests(unittest.TestCase):
     def test_consultation_requires_both_fields_and_escapes_markup(self):
         self.assertEqual(PRERENDER.consultation_markup({}), '')
