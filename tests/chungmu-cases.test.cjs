@@ -26,7 +26,9 @@ const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex'
 // 2026-11-27: 대전 서구 월평동 월평타운 두 세대 앞·뒤 베란다 우수관 하부 부속 교체(11/26, 누수) 사례 1건을 11/27 남대전 글 바로 뒤(날짜 자리)에 추가(기존 글 수정 없음). 그 전 94건 전체 객체·순서는 recent-cases-20261127-wolpyeong 검사가 따로 고정한다.
 // 2026-11-28: 대표 지시로 11/26 월평타운 두 세대 합친 글을 세대별 두 글(첫 번째·두 번째 세대, 같은 날짜 자리)로 나눴다 — 합친 글 1건을 빼고 2건을 넣어 글이 1건 늘었다(다른 글 수정 없음). 그 전 94건 전체 객체·순서는 recent-cases-20261127-wolpyeong 검사가 따로 고정한다.
 // 2026-11-28: 대전 중구 오류동 삼성아파트 같은 세대의 두 사례(11/27 냉·온수 배관 전체 교체·11/25 우수관 1곳 하부 부속 작업)를 날짜 자리에 더해 글이 2건 늘었다(다른 글 수정 없음). 그 전 96건 전체 객체·순서는 recent-cases-20261128-samsung 검사가 따로 고정한다.
-const baseline='c4d7d971a8360c688e279b3d105cd200971c489e089d51897e5d94d3cfe8f748';
+// 2026-11-28(요금 문구): 정보글 'rainy-season-waterproof-check'·'bathroom-waterproof-signs'의 '점검과 방문 실측은 무료이니' 한 문장을 FAQ 정본(1차 방문 실측 무료, 누수탐지는 장비 탐지 착수부터 유료)에 맞춰 조건형으로 고쳤다(PR #231) — 기존 글이 바뀐 것이라 개수는 그대로 두고 해시만 다시 고정.
+// 두 글의 그 문장 말고는 글·순서·사진 어느 것도 바뀌지 않았다(origin/main 9d3cb6c 의 site.json 으로 같은 선택식을 돌려 종전 고정값이 나오는 것을 먼저 확인). 조건 없는 '무료'는 scripts/ensure-fee-honesty.mjs 가 막는다.
+const baseline='cc9261a2dec580441b4e9a54f900d517606e31189fbaef3c16c565182f11de88';
 function preserved(items){const old=items.filter(a=>!slugs.includes(a.slug));return old.length===96&&hash(old)===baseline;}
 test('기준 갱신한 96개 원고 객체와 순서 보존, 변이 검출',()=>{
   const items=JSON.parse(read('data/site.json')).insights;

@@ -6,6 +6,32 @@
 
 ## 이 저장소가 무엇인가
 
+### 2026-11-28 누수 글·욕실 셀프 체크의 '무료' 문구를 FAQ 정본에 맞춤 (PR #231, `mm/free-wording` — 11/09 초안을 main `9d3cb6c` 위에 다시 만듦)
+
+`rainy-season-waterproof-check`·`bathroom-waterproof-signs` 두 정보글에 조건 없는 '점검과 방문 실측은 무료이니 …' 가 남아 있었다.
+사이트 FAQ 정본(`data/site.json` faq — `index.html`·`leak.html` 에도 같은 글)은 "인테리어 상담과 1차 방문 실측은 무료입니다. 누수탐지는
+장비 탐지에 착수하는 시점부터 유료…" 라, 누수 글이 '점검 무료'라고 하면 현장에서 탐지비를 듣는 순간 홈페이지가 거짓말한 것이 된다(🔴 6 조건형 규칙).
+두 글의 그 문장만 "1차 방문 실측은 무료이니(누수탐지는 장비 탐지에 착수하는 시점부터 유료) …" 로 고쳤다 — 금액·효과는 새로 적지 않았고
+`updated` 도 달지 않았다(달면 blog/leak `lastmod` 핀·RSS·구별 쪽 `lastmod` 가 같이 움직인다 — 대표가 원하면 그때).
+
+- **기존 글을 한 글자라도 고치면 '기존 n건' 해시 핀이 전부 깨진다**(글을 더할 때는 개수+해시, 고칠 때는 해시만). 이번에 20곳:
+  `tests/fixtures/recent-cases-20261013 · 1031 · 1103 · 1104 · 1112 · 1113 · 1117 · 1118 · 1118-taesan · 1121 · 1127 · 1127-wolpyeong · 1128-samsung.json` previousHash,
+  `quote-contract-guide` OLD_HASH · `chungmu-cases` baseline · `aluminum-screen-case` oldHash · `water-outlet-case` baseline · `winter-freeze-guide-20261028` PREVIOUS_HASH ·
+  `case-reader.e2e` othersHash · `remaining-cases` protectedSlugs. 개수는 그대로, 해시만 다시 고정하고 줄마다 날짜·이유를 적었다. **다시 고정하기 전에
+  origin/main 의 site.json 으로 같은 선택식을 돌려 지금 핀과 같은지 확인했다**(20곳 모두 일치, 바뀐 글 객체는 두 정보글뿐, insights 밖 데이터 해시 같음).
+- 새 검사 `scripts/ensure-fee-honesty.mjs`(CI 의 `ensure-*` 루프가 자동으로 돈다): ① 어디에도 '점검(과|·|및)방문 실측 무료' 꼴 없음 ② 누수 분야
+  단위(글 문단 · `leak.html`·`bathroom-check.html` 의 메타/속성/블록 문단/ld+json 문자열 · `js/leak*.js`·`js/bathroom-check.js` 한 줄)에 '무료' 가 있으면
+  같은 단위에 '유료' 경계 ③ FAQ 정본 문장 존재. 정본 site.json · 생성물 `posts/` · 공개 루트 HTML(`pages-artifact-policy` PUBLIC_ROOT_FILES 의 .html) ·
+  공개 js(PUBLIC_JS_FILES) · 공개 생성 폴더(PUBLIC_TREE_RULES 의 .html 폴더 — `area/`·`designs/`·`posts/` 전체, 옛 주소 이동 쪽 포함, ①만)를 허용목록 그대로 보므로
+  공개 파일을 더하면 자동으로 범위에 든다. 인테리어 화면의 '무료 방문 실측'·'무료 1차 상담' 은 정본과 같은 말이라 막지 않는다(`index.html`·`js/estimate.js`·
+  `js/lookbook.js`·`js/simulator.js`·`designs/`). 11/09 뒤에 더한 사례 글·구별 쪽에는 조건 없는 '무료' 가 없었다.
+  변이 9종 검출: 정본 되돌림·FAQ 변경·유료 없는 무료 문단·생성물만 되돌림·루트 HTML 되돌림·누수 js 버튼 되돌림·구별 쪽·시안 쪽·옛 주소 이동 쪽.
+- `bathroom-check.html`(description·og:description·'왜 만물인테리어인가' 항목)과 `js/bathroom-check.js`(결과 문구, 버튼 '무료 방문 점검 신청'
+  → '방문 점검 신청')도 같은 조건형으로. 이 두 파일의 글자는 어느 검사도 고정하지 않아 핀 재고정은 없었다. `bathroom-check.html` 의
+  스크립트 주소는 `js/bathroom-check.js?v=20261128-fee` 로 올렸다 — 안 올리면 다시 온 손님 브라우저가 옛 '무료' 문구가 든 스크립트를 캐시에서 쓴다.
+- 대표 확인: `leak.html` FAQ 는 '유료(부가세 별도)' 만 있고 `index.html`·site.json FAQ 에는 기본 금액까지 적혀 있어 금액 표기가 갈린다(이번에 안 고침).
+  `partial-vs-full-remodel` 의 '무료 방문 실측' 은 인테리어 글이라 정본과 같은 말이다.
+
 ### 2026-11-28 대전 중구 오류동 삼성아파트 같은 세대 사례 2건(냉·온수 배관 11/27 · 우수관 11/25) 공개 후보
 
 `claude/case-oryu-samsung-pipes-rainpipe-20261127`는 대표가 "지금 올려"·"우수관은 따로 사례 만들어줘" 한 비공개 초안 두 개를 `published:true`로 더한다 —
