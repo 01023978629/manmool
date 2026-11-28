@@ -56,6 +56,10 @@ const site = JSON.parse(fs.readFileSync(path.join(root, 'data/site.json'), 'utf8
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const slugs = fixture.cases.map(c => c.slug);
 const previous = items => items.filter(a => !slugs.includes(a.slug));
+// 2026-11-28 (fee wording): one sentence in two info posts (rainy-season-waterproof-check, bathroom-waterproof-signs) changed from the
+// unconditional "점검과 방문 실측은 무료이니" to the FAQ wording (first site visit free; leak detection paid from equipment start), PR #231.
+// This edits pinned entries, so the count stays and only the fixture previousHash was re-pinned (the old value was first reproduced
+// from origin/main 9d3cb6c with the same selection). Nothing else changed; scripts/ensure-fee-honesty.mjs now guards unconditional '무료'.
 const preserved = items => previous(items).length === fixture.previousCount && hash(previous(items)) === fixture.previousHash;
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const sitemapLastmod = page => (read('sitemap.xml').match(new RegExp(

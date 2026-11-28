@@ -23,8 +23,10 @@ const SLUG = 'winter-pipe-freeze-prevention-november';
 // 2026-11-27: 대전 서구 월평동 월평타운 두 세대 앞·뒤 베란다 우수관 하부 부속 교체(11/26, 누수) 사례 1건을 11/27 남대전 글 바로 뒤(날짜 자리)에 추가(기존 글 수정 없음). 그 전 94건 전체 객체·순서는 recent-cases-20261127-wolpyeong 검사가 따로 고정한다.
 // 2026-11-28: 대표 지시로 11/26 월평타운 두 세대 합친 글을 세대별 두 글(첫 번째·두 번째 세대, 같은 날짜 자리)로 나눴다 — 합친 글 1건을 빼고 2건을 넣어 글이 1건 늘었다(다른 글 수정 없음). 그 전 94건 전체 객체·순서는 recent-cases-20261127-wolpyeong 검사가 따로 고정한다.
 // 2026-11-28: 대전 중구 오류동 삼성아파트 같은 세대의 두 사례(11/27 냉·온수 배관 전체 교체·11/25 우수관 1곳 하부 부속 작업)를 날짜 자리에 더해 글이 2건 늘었다(다른 글 수정 없음). 그 전 96건 전체 객체·순서는 recent-cases-20261128-samsung 검사가 따로 고정한다.
+// 2026-11-28(요금 문구): 정보글 'rainy-season-waterproof-check'·'bathroom-waterproof-signs'의 '점검과 방문 실측은 무료이니' 한 문장을 FAQ 정본(1차 방문 실측 무료, 누수탐지는 장비 탐지 착수부터 유료)에 맞춰 조건형으로 고쳤다(PR #231) — 기존 글이 바뀐 것이라 개수는 그대로 두고 해시만 다시 고정.
+// 두 글의 그 문장 말고는 글·순서·사진 어느 것도 바뀌지 않았다(origin/main 9d3cb6c 의 site.json 으로 같은 선택식을 돌려 종전 고정값이 나오는 것을 먼저 확인). 조건 없는 '무료'는 scripts/ensure-fee-honesty.mjs 가 막는다.
 const PREVIOUS_COUNT = 97;
-const PREVIOUS_HASH = '94f13620c4685f32daf68a8f6433e29fa680ac7c33ec0e643296fb82eba03ed9';
+const PREVIOUS_HASH = 'c77125dc29c8cef9f5c98fe14d277b8298c5bb3683b0a4d1ec16b6f304258049';
 const REST_HASH = '5ce930bbf0be2e52959b420208146a75c42bc16e193f653b728689b6dafa5487';
 // 사례 작성/정보글 폴더의 정본(insights-entry.json)에서 published 만 true 로 바꾼 객체.
 const ENTRY_HASH = '32e78c0ee197e90914a1b0350629cd0acb28c7ac6eb94ed19c2b3f24f51481cc';
